@@ -1,6 +1,10 @@
 package realy
 
+import (
+	. "nostr.mleku.dev"
+)
+
 type Notice struct {
-	Kind    string `json:"kind"`
-	Message string `json:"message"`
+	Kind    S `json:"kind"`
+	Message S `json:"message"`
 }

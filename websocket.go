@@ -5,6 +5,7 @@ import (
 
 	"github.com/fasthttp/websocket"
 	"golang.org/x/time/rate"
+	. "nostr.mleku.dev"
 )
 
 type WebSocket struct {
@@ -12,18 +13,18 @@ type WebSocket struct {
 	mutex sync.Mutex
 
 	// nip42
-	challenge string
-	authed    string
+	challenge S
+	authed    S
 	limiter   *rate.Limiter
 }
 
-func (ws *WebSocket) WriteJSON(any interface{}) error {
+func (ws *WebSocket) WriteJSON(any interface{}) E {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
 	return ws.conn.WriteJSON(any)
 }
 
-func (ws *WebSocket) WriteMessage(t int, b []byte) error {
+func (ws *WebSocket) WriteMessage(t int, b B) E {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
 	return ws.conn.WriteMessage(t, b)

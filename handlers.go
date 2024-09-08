@@ -17,6 +17,7 @@ import (
 	"github.com/nbd-wtf/go-nostr/nip42"
 	"golang.org/x/exp/slices"
 	"golang.org/x/time/rate"
+	. "nostr.mleku.dev"
 )
 
 // TODO: consider moving these to Server as config params
@@ -43,7 +44,7 @@ var upgrader = websocket.Upgrader{
 
 func challenge(conn *websocket.Conn) *WebSocket {
 	// NIP-42 challenge
-	challenge := make([]byte, 8)
+	challenge := make(B, 8)
 	rand.Read(challenge)
 
 	return &WebSocket{
@@ -52,8 +53,8 @@ func challenge(conn *websocket.Conn) *WebSocket {
 	}
 }
 
-func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawMessage,
-	store eventstore.Store) string {
+func (s *Server) doEvent(c Ctx, ws *WebSocket, request []json.RawMessage,
+	store eventstore.Store) S {
 	advancedDeleter, _ := store.(AdvancedDeleter)
 	latestIndex := len(request) - 1
 
@@ -86,12 +87,12 @@ func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawM
 		// event deletion -- nip09
 		for _, tag := range evt.Tags {
 			if len(tag) >= 2 && tag[0] == "e" {
-				ctx, cancel := context.WithTimeout(ctx, time.Millisecond*200)
+				ctx, cancel := context.WithTimeout(c, time.Millisecond*200)
 				defer cancel()
 
 				// fetch event to be deleted
 				res, err := s.relay.Storage(ctx).QueryEvents(ctx,
-					nostr.Filter{IDs: []string{tag[1]}})
+					nostr.Filter{IDs: []S{tag[1]}})
 				if err != nil {
 					ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
 						Reason: "failed to query for target event"})
@@ -138,19 +139,19 @@ func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawM
 		return ""
 	}
 
-	ok, reason := AddEvent(ctx, s.relay, &evt)
+	ok, reason := AddEvent(c, s.relay, &evt)
 	ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: ok, Reason: reason})
 	return ""
 }
 
 func (s *Server) doCount(ctx context.Context, ws *WebSocket, request []json.RawMessage,
-	store eventstore.Store) string {
+	store eventstore.Store) S {
 	counter, ok := store.(EventCounter)
 	if !ok {
 		return "restricted: this relay does not support NIP-45"
 	}
 
-	var id string
+	var id S
 	json.Unmarshal(request[1], &id)
 	if id == "" {
 		return "COUNT has no <id>"
@@ -167,7 +168,7 @@ func (s *Server) doCount(ctx context.Context, ws *WebSocket, request []json.RawM
 
 		// prevent kind-4 events from being returned to unauthed users,
 		//   only when authentication is a thing
-		if _, ok := s.relay.(Auther); ok {
+		if _, ok := s.relay.(Authenticator); ok {
 			if slices.Contains(filter.Kinds, 4) {
 				senders := filter.Authors
 				receivers, _ := filter.Tags["p"]
@@ -196,20 +197,19 @@ func (s *Server) doCount(ctx context.Context, ws *WebSocket, request []json.RawM
 		total += count
 	}
 
-	ws.WriteJSON([]interface{}{"COUNT", id, map[string]int64{"count": total}})
+	ws.WriteJSON([]interface{}{"COUNT", id, map[S]int64{"count": total}})
 	return ""
 }
 
-func (s *Server) doReq(ctx context.Context, ws *WebSocket, request []json.RawMessage,
-	store eventstore.Store) string {
-	var id string
-	json.Unmarshal(request[1], &id)
+func (s *Server) doReq(c Ctx, ws *WebSocket, req []json.RawMessage, store eventstore.Store) S {
+	var id S
+	json.Unmarshal(req[1], &id)
 	if id == "" {
 		return "REQ has no <id>"
 	}
 
-	filters := make(nostr.Filters, len(request)-2)
-	for i, filterReq := range request[2:] {
+	filters := make(nostr.Filters, len(req)-2)
+	for i, filterReq := range req[2:] {
 		if err := json.Unmarshal(
 			filterReq,
 			&filters[i],
@@ -218,8 +218,8 @@ func (s *Server) doReq(ctx context.Context, ws *WebSocket, request []json.RawMes
 		}
 	}
 
-	if accepter, ok := s.relay.(ReqAccepter); ok {
-		if !accepter.AcceptReq(ctx, id, filters, ws.authed) {
+	if accepter, ok := s.relay.(ReqAcceptor); ok {
+		if !accepter.AcceptReq(c, id, filters, ws.authed) {
 			return "REQ filters are not accepted"
 		}
 	}
@@ -228,7 +228,7 @@ func (s *Server) doReq(ctx context.Context, ws *WebSocket, request []json.RawMes
 
 		// prevent kind-4 events from being returned to unauthed users,
 		//   only when authentication is a thing
-		if _, ok := s.relay.(Auther); ok {
+		if _, ok := s.relay.(Authenticator); ok {
 			if slices.Contains(filter.Kinds, 4) {
 				senders := filter.Authors
 				receivers, _ := filter.Tags["p"]
@@ -249,7 +249,7 @@ func (s *Server) doReq(ctx context.Context, ws *WebSocket, request []json.RawMes
 			}
 		}
 
-		events, err := store.QueryEvents(ctx, filter)
+		events, err := store.QueryEvents(c, filter)
 		if err != nil {
 			s.Log.Errorf("store: %v", err)
 			continue
@@ -281,9 +281,9 @@ func (s *Server) doReq(ctx context.Context, ws *WebSocket, request []json.RawMes
 	return ""
 }
 
-func (s *Server) doClose(ctx context.Context, ws *WebSocket, request []json.RawMessage,
-	store eventstore.Store) string {
-	var id string
+func (s *Server) doClose(c Ctx, ws *WebSocket, request []json.RawMessage,
+	store eventstore.Store) S {
+	var id S
 	json.Unmarshal(request[1], &id)
 	if id == "" {
 		return "CLOSE has no <id>"
@@ -293,16 +293,15 @@ func (s *Server) doClose(ctx context.Context, ws *WebSocket, request []json.RawM
 	return ""
 }
 
-func (s *Server) doAuth(ctx context.Context, ws *WebSocket, request []json.RawMessage,
-	store eventstore.Store) string {
-	if auther, ok := s.relay.(Auther); ok {
+func (s *Server) doAuth(c Ctx, ws *WebSocket, req []json.RawMessage, store eventstore.Store) S {
+	if auther, ok := s.relay.(Authenticator); ok {
 		var evt nostr.Event
-		if err := json.Unmarshal(request[1], &evt); err != nil {
+		if err := json.Unmarshal(req[1], &evt); err != nil {
 			return "failed to decode auth event: " + err.Error()
 		}
 		if pubkey, ok := nip42.ValidateAuthEvent(&evt, ws.challenge, auther.ServiceURL()); ok {
 			ws.authed = pubkey
-			ctx = context.WithValue(ctx, AUTH_CONTEXT_KEY, pubkey)
+			c = context.WithValue(c, AUTH_CONTEXT_KEY, pubkey)
 			ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: true})
 		} else {
 			ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
@@ -312,9 +311,8 @@ func (s *Server) doAuth(ctx context.Context, ws *WebSocket, request []json.RawMe
 	return ""
 }
 
-func (s *Server) handleMessage(ctx context.Context, ws *WebSocket, message []byte,
-	store eventstore.Store) {
-	var notice string
+func (s *Server) handleMessage(c Ctx, ws *WebSocket, message B, store eventstore.Store) {
+	var notice S
 	defer func() {
 		if notice != "" {
 			ws.WriteJSON(nostr.NoticeEnvelope(notice))
@@ -332,20 +330,20 @@ func (s *Server) handleMessage(ctx context.Context, ws *WebSocket, message []byt
 		return
 	}
 
-	var typ string
+	var typ S
 	json.Unmarshal(request[0], &typ)
 
 	switch typ {
 	case "EVENT":
-		notice = s.doEvent(ctx, ws, request, store)
+		notice = s.doEvent(c, ws, request, store)
 	case "COUNT":
-		notice = s.doCount(ctx, ws, request, store)
+		notice = s.doCount(c, ws, request, store)
 	case "REQ":
-		notice = s.doReq(ctx, ws, request, store)
+		notice = s.doReq(c, ws, request, store)
 	case "CLOSE":
-		notice = s.doClose(ctx, ws, request, store)
+		notice = s.doClose(c, ws, request, store)
 	case "AUTH":
-		notice = s.doAuth(ctx, ws, request, store)
+		notice = s.doAuth(c, ws, request, store)
 	default:
 		if cwh, ok := s.relay.(CustomWebSocketHandler); ok {
 			cwh.HandleUnknownType(ws, typ, request)
@@ -404,13 +402,13 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 
 		conn.SetReadLimit(maxMessageSize)
 		conn.SetReadDeadline(time.Now().Add(pongWait))
-		conn.SetPongHandler(func(string) error {
+		conn.SetPongHandler(func(S) E {
 			conn.SetReadDeadline(time.Now().Add(pongWait))
 			return nil
 		})
 
 		// NIP-42 auth challenge
-		if _, ok := s.relay.(Auther); ok {
+		if _, ok := s.relay.(Authenticator); ok {
 			ws.WriteJSON(nostr.AuthEnvelope{Challenge: &ws.challenge})
 		}
 
@@ -479,7 +477,7 @@ func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 		info = ifmer.GetNIP11InformationDocument()
 	} else {
 		supportedNIPs := []int{9, 11, 12, 15, 16, 20, 33}
-		if _, ok := s.relay.(Auther); ok {
+		if _, ok := s.relay.(Authenticator); ok {
 			supportedNIPs = append(supportedNIPs, 42)
 		}
 		if storage, ok := s.relay.(eventstore.Store); ok && storage != nil {

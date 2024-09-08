@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/nbd-wtf/go-nostr"
+	. "nostr.mleku.dev"
 )
 
 type Listener struct {
@@ -11,8 +12,8 @@ type Listener struct {
 }
 
 var (
-	listeners      = make(map[*WebSocket]map[string]*Listener)
-	listenersMutex = sync.Mutex{}
+	listeners      = make(map[*WebSocket]map[S]*Listener)
+	listenersMutex sync.Mutex
 )
 
 func GetListeningFilters() nostr.Filters {
@@ -46,21 +47,21 @@ func GetListeningFilters() nostr.Filters {
 	return respfilters
 }
 
-func setListener(id string, ws *WebSocket, filters nostr.Filters) {
+func setListener(id S, ws *WebSocket, ff nostr.Filters) {
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
 
 	subs, ok := listeners[ws]
 	if !ok {
-		subs = make(map[string]*Listener)
+		subs = make(map[S]*Listener)
 		listeners[ws] = subs
 	}
 
-	subs[id] = &Listener{filters: filters}
+	subs[id] = &Listener{filters: ff}
 }
 
 // Remove a specific subscription id from listeners for a given ws client
-func removeListenerId(ws *WebSocket, id string) {
+func removeListenerId(ws *WebSocket, id S) {
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
 
@@ -80,16 +81,16 @@ func removeListener(ws *WebSocket) {
 	delete(listeners, ws)
 }
 
-func notifyListeners(event *nostr.Event) {
+func notifyListeners(ev *nostr.Event) {
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
 
 	for ws, subs := range listeners {
 		for id, listener := range subs {
-			if !listener.filters.Match(event) {
+			if !listener.filters.Match(ev) {
 				continue
 			}
-			ws.WriteJSON(nostr.EventEnvelope{SubscriptionID: &id, Event: *event})
+			ws.WriteJSON(nostr.EventEnvelope{SubscriptionID: &id, Event: *ev})
 		}
 	}
 }

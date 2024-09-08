@@ -1,13 +1,15 @@
 package realy
 
-import "context"
+import (
+	. "nostr.mleku.dev"
+)
 
 const AUTH_CONTEXT_KEY = iota
 
-func GetAuthStatus(ctx context.Context) (pubkey string, ok bool) {
+func GetAuthStatus(ctx Ctx) (pubkey S, ok bool) {
 	authedPubkey := ctx.Value(AUTH_CONTEXT_KEY)
 	if authedPubkey == nil {
 		return "", false
 	}
-	return authedPubkey.(string), true
+	return authedPubkey.(S), true
 }

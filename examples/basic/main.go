@@ -11,16 +11,17 @@ import (
 	"github.com/fiatjaf/eventstore/postgresql"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/nbd-wtf/go-nostr"
+	. "nostr.mleku.dev"
 	realy "realy.mleku.dev"
 )
 
 type Relay struct {
-	PostgresDatabase string `envconfig:"POSTGRESQL_DATABASE"`
+	PostgresDatabase S `envconfig:"POSTGRESQL_DATABASE"`
 
 	storage *postgresql.PostgresBackend
 }
 
-func (r *Relay) Name() string {
+func (r *Relay) Name() S {
 	return "BasicRelay"
 }
 
@@ -28,7 +29,7 @@ func (r *Relay) Storage(ctx context.Context) eventstore.Store {
 	return r.storage
 }
 
-func (r *Relay) Init() error {
+func (r *Relay) Init() E {
 	err := envconfig.Process("", r)
 	if err != nil {
 		return fmt.Errorf("couldn't process envconfig: %w", err)

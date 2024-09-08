@@ -15,6 +15,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"
+	. "nostr.mleku.dev"
 )
 
 // Server is a base for package users to implement nostr relays.
@@ -45,7 +46,7 @@ type Server struct {
 	clients   map[*websocket.Conn]struct{}
 
 	// in case you call Server.Start
-	Addr       string
+	Addr       S
 	serveMux   *http.ServeMux
 	httpServer *http.Server
 }
@@ -56,7 +57,7 @@ func (s *Server) Router() *http.ServeMux {
 
 // NewServer initializes the relay and its storage using their respective Init methods,
 // returning any non-nil errors, and returns a Server ready to listen for HTTP requests.
-func NewServer(relay Relay, opts ...Option) (*Server, error) {
+func NewServer(relay Relay, opts ...Option) (*Server, E) {
 	options := DefaultOptions()
 	for _, opt := range opts {
 		opt(options)
@@ -104,7 +105,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) Start(host string, port int, started ...chan bool) error {
+func (s *Server) Start(host S, port int, started ...chan bool) E {
 	addr := net.JoinHostPort(host, strconv.Itoa(port))
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -166,7 +167,7 @@ func DefaultOptions() *Options {
 	return &Options{}
 }
 
-func WithPerConnectionLimiter(rps rate.Limit, burst int) Option {
+func WithPerConnectionLimiter(rps rate.Limit, burst N) Option {
 	return func(o *Options) {
 		o.perConnectionLimiter = rate.NewLimiter(rps, burst)
 	}
@@ -178,7 +179,7 @@ func WithSkipEventFunc(skipEventFunc func(*nostr.Event) bool) Option {
 	}
 }
 
-func defaultLogger(prefix string) Logger {
+func defaultLogger(prefix S) Logger {
 	l := log.New(os.Stderr, "", log.LstdFlags|log.Lmsgprefix)
 	l.SetPrefix(prefix)
 	return stdLogger{l}
@@ -186,6 +187,6 @@ func defaultLogger(prefix string) Logger {
 
 type stdLogger struct{ log *log.Logger }
 
-func (l stdLogger) Infof(format string, v ...any)    { l.log.Printf(format, v...) }
-func (l stdLogger) Warningf(format string, v ...any) { l.log.Printf(format, v...) }
-func (l stdLogger) Errorf(format string, v ...any)   { l.log.Printf(format, v...) }
+func (l stdLogger) Infof(format S, v ...any)    { l.log.Printf(format, v...) }
+func (l stdLogger) Warningf(format S, v ...any) { l.log.Printf(format, v...) }
+func (l stdLogger) Errorf(format S, v ...any)   { l.log.Printf(format, v...) }
