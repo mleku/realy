@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"time"
+	"os"
 
 	"github.com/fiatjaf/eventstore"
-	"github.com/fiatjaf/eventstore/postgresql"
+	"github.com/fiatjaf/eventstore/badger"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/nbd-wtf/go-nostr"
 	. "nostr.mleku.dev"
@@ -16,9 +16,9 @@ import (
 )
 
 type Relay struct {
-	PostgresDatabase S `envconfig:"POSTGRESQL_DATABASE"`
+	BadgerDbPath S `envconfig:"BADGER_DATABASE"`
 
-	storage *postgresql.PostgresBackend
+	storage *badger.BadgerBackend
 }
 
 func (r *Relay) Name() S {
@@ -34,18 +34,6 @@ func (r *Relay) Init() E {
 	if err != nil {
 		return fmt.Errorf("couldn't process envconfig: %w", err)
 	}
-
-	// every hour, delete all very old events
-	go func() {
-		db := r.Storage(context.TODO()).(*postgresql.PostgresBackend)
-
-		for {
-			time.Sleep(60 * time.Minute)
-			db.DB.Exec(`DELETE FROM event WHERE created_at < $1`,
-				time.Now().AddDate(0, -3, 0).Unix()) // 3 months
-		}
-	}()
-
 	return nil
 }
 
@@ -60,17 +48,28 @@ func (r *Relay) AcceptEvent(ctx context.Context, evt *nostr.Event) bool {
 }
 
 func main() {
-	r := Relay{}
-	if err := envconfig.Process("", &r); err != nil {
+	var err E
+	var path S
+	// default to creating a one-time temporary database
+	if path, err = os.MkdirTemp("/tmp", "realy"); Chk.E(err) {
+		os.Exit(1)
+	}
+	r := Relay{BadgerDbPath: path}
+	// if an environment variable for the database path is set, it will override the temporary.
+	if err = envconfig.Process("", &r); err != nil {
 		log.Fatalf("failed to read from env: %v", err)
 		return
 	}
-	r.storage = &postgresql.PostgresBackend{DatabaseURL: r.PostgresDatabase}
-	server, err := realy.NewServer(&r)
+	r.storage = &badger.BadgerBackend{Path: r.BadgerDbPath}
+	// if err := r.storage.Init(); err != nil {
+	// 	panic(err)
+	// }
+	var server *realy.Server
+	server, err = realy.NewServer(&r)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}
-	if err := server.Start("0.0.0.0", 7447); err != nil {
+	if err := server.Start("0.0.0.0", 3334); err != nil {
 		log.Fatalf("server terminated: %v", err)
 	}
 }
