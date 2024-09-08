@@ -1,4 +1,4 @@
-package relayer
+package realy
 
 import (
 	"context"
@@ -52,7 +52,8 @@ func challenge(conn *websocket.Conn) *WebSocket {
 	}
 }
 
-func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawMessage, store eventstore.Store) string {
+func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawMessage,
+	store eventstore.Store) string {
 	advancedDeleter, _ := store.(AdvancedDeleter)
 	latestIndex := len(request) - 1
 
@@ -72,10 +73,12 @@ func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawM
 
 	// check signature
 	if ok, err := evt.CheckSignature(); err != nil {
-		ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false, Reason: "error: failed to verify signature"})
+		ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
+			Reason: "error: failed to verify signature"})
 		return ""
 	} else if !ok {
-		ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false, Reason: "invalid: signature is invalid"})
+		ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
+			Reason: "invalid: signature is invalid"})
 		return ""
 	}
 
@@ -87,9 +90,11 @@ func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawM
 				defer cancel()
 
 				// fetch event to be deleted
-				res, err := s.relay.Storage(ctx).QueryEvents(ctx, nostr.Filter{IDs: []string{tag[1]}})
+				res, err := s.relay.Storage(ctx).QueryEvents(ctx,
+					nostr.Filter{IDs: []string{tag[1]}})
 				if err != nil {
-					ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false, Reason: "failed to query for target event"})
+					ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
+						Reason: "failed to query for target event"})
 					return ""
 				}
 
@@ -107,7 +112,8 @@ func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawM
 
 				// check if this can be deleted
 				if target.PubKey != evt.PubKey {
-					ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false, Reason: "insufficient permissions"})
+					ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
+						Reason: "insufficient permissions"})
 					return ""
 				}
 
@@ -116,7 +122,8 @@ func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawM
 				}
 
 				if err := store.DeleteEvent(ctx, target); err != nil {
-					ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false, Reason: fmt.Sprintf("error: %s", err.Error())})
+					ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
+						Reason: fmt.Sprintf("error: %s", err.Error())})
 					return ""
 				}
 
@@ -136,7 +143,8 @@ func (s *Server) doEvent(ctx context.Context, ws *WebSocket, request []json.RawM
 	return ""
 }
 
-func (s *Server) doCount(ctx context.Context, ws *WebSocket, request []json.RawMessage, store eventstore.Store) string {
+func (s *Server) doCount(ctx context.Context, ws *WebSocket, request []json.RawMessage,
+	store eventstore.Store) string {
 	counter, ok := store.(EventCounter)
 	if !ok {
 		return "restricted: this relay does not support NIP-45"
@@ -192,7 +200,8 @@ func (s *Server) doCount(ctx context.Context, ws *WebSocket, request []json.RawM
 	return ""
 }
 
-func (s *Server) doReq(ctx context.Context, ws *WebSocket, request []json.RawMessage, store eventstore.Store) string {
+func (s *Server) doReq(ctx context.Context, ws *WebSocket, request []json.RawMessage,
+	store eventstore.Store) string {
 	var id string
 	json.Unmarshal(request[1], &id)
 	if id == "" {
@@ -272,7 +281,8 @@ func (s *Server) doReq(ctx context.Context, ws *WebSocket, request []json.RawMes
 	return ""
 }
 
-func (s *Server) doClose(ctx context.Context, ws *WebSocket, request []json.RawMessage, store eventstore.Store) string {
+func (s *Server) doClose(ctx context.Context, ws *WebSocket, request []json.RawMessage,
+	store eventstore.Store) string {
 	var id string
 	json.Unmarshal(request[1], &id)
 	if id == "" {
@@ -283,7 +293,8 @@ func (s *Server) doClose(ctx context.Context, ws *WebSocket, request []json.RawM
 	return ""
 }
 
-func (s *Server) doAuth(ctx context.Context, ws *WebSocket, request []json.RawMessage, store eventstore.Store) string {
+func (s *Server) doAuth(ctx context.Context, ws *WebSocket, request []json.RawMessage,
+	store eventstore.Store) string {
 	if auther, ok := s.relay.(Auther); ok {
 		var evt nostr.Event
 		if err := json.Unmarshal(request[1], &evt); err != nil {
@@ -294,13 +305,15 @@ func (s *Server) doAuth(ctx context.Context, ws *WebSocket, request []json.RawMe
 			ctx = context.WithValue(ctx, AUTH_CONTEXT_KEY, pubkey)
 			ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: true})
 		} else {
-			ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false, Reason: "error: failed to authenticate"})
+			ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
+				Reason: "error: failed to authenticate"})
 		}
 	}
 	return ""
 }
 
-func (s *Server) handleMessage(ctx context.Context, ws *WebSocket, message []byte, store eventstore.Store) {
+func (s *Server) handleMessage(ctx context.Context, ws *WebSocket, message []byte,
+	store eventstore.Store) {
 	var notice string
 	defer func() {
 		if notice != "" {
@@ -410,7 +423,8 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 					websocket.CloseNoStatusReceived, // 1005
 					websocket.CloseAbnormalClosure,  // 1006
 				) {
-					s.Log.Warningf("unexpected close error from %s: %v", r.Header.Get("X-Forwarded-For"), err)
+					s.Log.Warningf("unexpected close error from %s: %v",
+						r.Header.Get("X-Forwarded-For"), err)
 				}
 				break
 			}

@@ -1,4 +1,4 @@
-package relayer
+package realy
 
 import (
 	"context"
@@ -70,7 +70,8 @@ func (st *testStorage) Close() {
 	}
 }
 
-func (st *testStorage) QueryEvents(ctx context.Context, f nostr.Filter) (chan *nostr.Event, error) {
+func (st *testStorage) QueryEvents(ctx context.Context, f nostr.Filter) (chan *nostr.Event,
+	error) {
 	if fn := st.queryEvents; fn != nil {
 		return fn(ctx, f)
 	}

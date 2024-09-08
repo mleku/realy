@@ -9,9 +9,9 @@ import (
 
 	"github.com/fiatjaf/eventstore"
 	"github.com/fiatjaf/eventstore/postgresql"
-	"github.com/fiatjaf/relayer/v2"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/nbd-wtf/go-nostr"
+	realy "realy.mleku.dev"
 )
 
 type Relay struct {
@@ -40,7 +40,8 @@ func (r *Relay) Init() error {
 
 		for {
 			time.Sleep(60 * time.Minute)
-			db.DB.Exec(`DELETE FROM event WHERE created_at < $1`, time.Now().AddDate(0, -3, 0).Unix()) // 3 months
+			db.DB.Exec(`DELETE FROM event WHERE created_at < $1`,
+				time.Now().AddDate(0, -3, 0).Unix()) // 3 months
 		}
 	}()
 
@@ -64,7 +65,7 @@ func main() {
 		return
 	}
 	r.storage = &postgresql.PostgresBackend{DatabaseURL: r.PostgresDatabase}
-	server, err := relayer.NewServer(&r)
+	server, err := realy.NewServer(&r)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}

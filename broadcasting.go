@@ -1,4 +1,4 @@
-package relayer
+package realy
 
 import (
 	"github.com/nbd-wtf/go-nostr"

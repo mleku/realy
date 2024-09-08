@@ -1,4 +1,4 @@
-package relayer
+package realy
 
 import (
 	"context"
@@ -12,7 +12,8 @@ import (
 var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
 
 // AddEvent has a business rule to add an event to the relayer
-func AddEvent(ctx context.Context, relay Relay, evt *nostr.Event) (accepted bool, message string) {
+func AddEvent(ctx context.Context, relay Relay, evt *nostr.Event) (accepted bool,
+	message string) {
 	if evt == nil {
 		return false, ""
 	}
