@@ -494,7 +494,7 @@ func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 			PubKey:        "~",
 			Contact:       "~",
 			SupportedNIPs: supportedNIPs,
-			Software:      "https://github.com/fiatjaf/relayer",
+			Software:      "https://realy.mleku.dev",
 			Version:       "~",
 		}
 	}
