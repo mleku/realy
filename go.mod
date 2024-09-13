@@ -13,7 +13,7 @@ require (
 	golang.org/x/time v0.6.0
 	nostr.mleku.dev v1.0.14
 	store.mleku.dev v0.0.2
-	util.mleku.dev v1.0.4
+	util.mleku.dev v1.0.5
 )
 
 require (
