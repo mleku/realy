@@ -6,26 +6,29 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
-	"github.com/fiatjaf/eventstore"
-	"github.com/fiatjaf/eventstore/badger"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/nbd-wtf/go-nostr"
 	. "nostr.mleku.dev"
 	realy "realy.mleku.dev"
+	eventstore "store.mleku.dev"
+	"store.mleku.dev/ratel"
+	"util.mleku.dev/lol"
+	"util.mleku.dev/units"
 )
 
 type Relay struct {
-	BadgerDbPath S `envconfig:"BADGER_DATABASE"`
+	RatelDbPath S `envconfig:"BADGER_DATABASE"`
 
-	storage *badger.BadgerBackend
+	storage eventstore.I
 }
 
 func (r *Relay) Name() S {
 	return "BasicRelay"
 }
 
-func (r *Relay) Storage(ctx context.Context) eventstore.Store {
+func (r *Relay) Storage(ctx context.Context) eventstore.I {
 	return r.storage
 }
 
@@ -54,22 +57,24 @@ func main() {
 	if path, err = os.MkdirTemp("/tmp", "realy"); Chk.E(err) {
 		os.Exit(1)
 	}
-	r := Relay{BadgerDbPath: path}
+	r := &Relay{RatelDbPath: path}
 	// if an environment variable for the database path is set, it will override the temporary.
 	if err = envconfig.Process("", &r); err != nil {
 		log.Fatalf("failed to read from env: %v", err)
 		return
 	}
-	r.storage = &badger.BadgerBackend{Path: r.BadgerDbPath}
-	// if err := r.storage.Init(); err != nil {
-	// 	panic(err)
-	// }
+	var wg sync.WaitGroup
+	c, cancel := context.WithCancel(context.Background())
+	r.storage = ratel.GetBackend(c, &wg, r.RatelDbPath, false, units.Gb*8, lol.Trace, 0)
 	var server *realy.Server
-	server, err = realy.NewServer(&r)
+	if server, err = realy.NewServer(r); Chk.E(err) {
+
+	}
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}
-	if err := server.Start("0.0.0.0", 3334); err != nil {
+	if err = server.Start("0.0.0.0", 3334); Chk.E(err) {
 		log.Fatalf("server terminated: %v", err)
 	}
+	cancel()
 }

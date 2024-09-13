@@ -1,13 +1,11 @@
 package realy
 
 import (
-	"context"
 	"encoding/json"
 
-	"github.com/fiatjaf/eventstore"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip11"
-	. "nostr.mleku.dev"
+	"nostr.mleku.dev/codec/event"
+	store "store.mleku.dev"
 )
 
 // Relay is the main interface for implementing a nostr relay.
@@ -25,7 +23,7 @@ type Relay interface {
 	// in NIP-20.
 	AcceptEvent(Ctx, *nostr.Event) bool
 	// Storage returns the relay storage implementation.
-	Storage(Ctx) eventstore.Store
+	Storage(Ctx) store.I
 }
 
 // ReqAcceptor is the main interface for implementing a nostr relay.
@@ -33,7 +31,7 @@ type ReqAcceptor interface {
 	// AcceptReq is called for every nostr request filters received by the
 	// server. If the returned value is true, the filtres is passed on to
 	// [Storage.QueryEvent].
-	AcceptReq(ctx context.Context, id S, filters nostr.Filters, authedPubkey S) bool
+	AcceptReq(ctx Ctx, id S, filters nostr.Filters, authedPubkey S) bool
 }
 
 // Authenticator is the interface for implementing NIP-42.
@@ -80,8 +78,8 @@ type AdvancedDeleter interface {
 
 // AdvancedSaver methods are called before and after [Storage.SaveEvent].
 type AdvancedSaver interface {
-	BeforeSave(Ctx, *nostr.Event)
-	AfterSave(*nostr.Event)
+	BeforeSave(Ctx, *event.T)
+	AfterSave(*event.T)
 }
 
 type EventCounter interface {

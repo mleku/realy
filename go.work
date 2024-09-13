@@ -1,0 +1,9 @@
+go 1.23.1
+
+use (
+	.
+)
+
+replace nostr.mleku.dev => ../nostr.mleku.dev
+replace util.mleku.dev => ../util.mleku.dev
+replace store.mleku.dev => ../store.mleku.dev

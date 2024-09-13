@@ -5,10 +5,12 @@ import (
 
 	"github.com/nbd-wtf/go-nostr"
 	. "nostr.mleku.dev"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/filters"
 )
 
 type Listener struct {
-	filters nostr.Filters
+	filters *filters.T
 }
 
 var (
@@ -25,7 +27,7 @@ func GetListeningFilters() nostr.Filters {
 	// here we go through all the existing listeners
 	for _, connlisteners := range listeners {
 		for _, listener := range connlisteners {
-			for _, listenerfilter := range listener.filters {
+			for _, listenerfilter := range listener.filters.F {
 				for _, respfilter := range respfilters {
 					// check if this filter specifically is already added to respfilters
 					if nostr.FilterEqual(listenerfilter, respfilter) {
@@ -81,7 +83,7 @@ func removeListener(ws *WebSocket) {
 	delete(listeners, ws)
 }
 
-func notifyListeners(ev *nostr.Event) {
+func notifyListeners(ev *event.T) {
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
 

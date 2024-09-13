@@ -4,37 +4,35 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/fiatjaf/eventstore"
-	"github.com/nbd-wtf/go-nostr"
 	. "nostr.mleku.dev"
+	"nostr.mleku.dev/codec/event"
+	"store.mleku.dev"
 )
 
 var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
 
 // AddEvent has a business rule to add an event to the relayer
-func AddEvent(c Ctx, relay Relay, evt *nostr.Event) (accepted bool, message S) {
+func AddEvent(c Ctx, relay Relay, evt *event.T) (accepted bool, message S) {
 	if evt == nil {
 		return false, ""
 	}
 
 	store := relay.Storage(c)
-	wrapper := &eventstore.RelayWrapper{
-		Store: store,
-	}
+	wrapper := &eventstore.RelayWrapper{store}
 	advancedSaver, _ := store.(AdvancedSaver)
 
 	if !relay.AcceptEvent(c, evt) {
 		return false, "blocked: event blocked by relay"
 	}
 
-	if 20000 <= evt.Kind && evt.Kind < 30000 {
+	if evt.Kind.IsEphemeral() {
 		// do not store ephemeral events
 	} else {
 		if advancedSaver != nil {
 			advancedSaver.BeforeSave(c, evt)
 		}
 
-		if saveErr := wrapper.Publish(c, *evt); saveErr != nil {
+		if saveErr := wrapper.Publish(c, evt); saveErr != nil {
 			switch saveErr {
 			case eventstore.ErrDupEvent:
 				return true, saveErr.Error()
