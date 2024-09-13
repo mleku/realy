@@ -11,7 +11,7 @@ require (
 	github.com/rs/cors v1.11.1
 	golang.org/x/exp v0.0.0-20240904232852-e7e105dedf7e
 	golang.org/x/time v0.6.0
-	nostr.mleku.dev v1.0.14
+	nostr.mleku.dev v1.0.15
 	store.mleku.dev v0.0.2
 	util.mleku.dev v1.0.5
 )
