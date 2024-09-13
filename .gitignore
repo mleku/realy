@@ -1,2 +1,59 @@
-*.env
-rss-bridge
+# Allowlisting gitignore template for GO projects prevents us
+# from adding various unwanted local files, such as generated
+# files, developer configurations or IDE-specific files etc.
+#
+# Recommended: Go.AllowList.gitignore
+
+# Ignore everything
+*
+
+# Especially these
+.vscode
+.vscode/
+.vscode/**
+**/.vscode
+**/.vscode/**
+.idea
+.idea/
+.idea/**
+**/.idea
+**/.idea/
+**/.idea/**
+node_modules
+node_modules/
+node_modules/**
+**/node_modules
+**/node_modules/
+**/node_modules/**
+pkg/uploader/keyfile.json
+/pkg/uploader/keyfile.json
+**/keyfile.json
+
+# But not these files...
+!/.gitignore
+!*.go
+!go.sum
+!go.mod
+!*.md
+!LICENSE
+!*.sh
+!Makefile
+!*.json
+!*.pdf
+!*.csv
+!*.py
+!*.mediawiki
+!*.did
+!*.rs
+!*.toml
+!*.file
+!.gitkeep
+!pkg/eth/**
+!*.h
+!*.c
+!*.proto
+!bundleData
+!*.item
+!*.bin
+# ...even if they are in subdirectories
+!*/
