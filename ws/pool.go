@@ -1,0 +1,391 @@
+package ws
+
+import (
+	"fmt"
+	"slices"
+	"strings"
+	"sync"
+	"time"
+	"unsafe"
+
+	"github.com/puzpuzpuz/xsync/v3"
+	realy "mleku.dev"
+	"mleku.dev/context"
+	"mleku.dev/event"
+	"mleku.dev/filter"
+	"mleku.dev/filters"
+	"mleku.dev/normalize"
+	"mleku.dev/timestamp"
+)
+
+var (
+	seenAlreadyDropTick = 60
+)
+
+type SimplePool struct {
+	Relays          *xsync.MapOf[S, *Client]
+	Context         Ctx
+	authHandler     func() realy.Signer
+	cancel          context.F
+	eventMiddleware []func(IncomingEvent)
+	// custom things not often used
+	SignatureChecker func(*event.T) bool
+}
+
+type DirectedFilters struct {
+	Filters *filters.T
+	Client  S
+}
+
+type IncomingEvent struct {
+	Event  *event.T
+	Client *Client
+}
+
+func (ie IncomingEvent) String() S {
+	return fmt.Sprintf("[%s] >> %s", ie.Client.URL, ie.Event)
+}
+
+type PoolOption interface {
+	ApplyPoolOption(*SimplePool)
+}
+
+func NewSimplePool(c Ctx, opts ...PoolOption) *SimplePool {
+	ctx, cancel := context.Cancel(c)
+
+	pool := &SimplePool{
+		Relays: xsync.NewMapOf[S, *Client](),
+
+		Context: ctx,
+		cancel:  cancel,
+	}
+
+	for _, opt := range opts {
+		opt.ApplyPoolOption(pool)
+	}
+
+	return pool
+}
+
+// WithAuthHandler must be a function that signs the auth event when called.
+// it will be called whenever any relay in the pool returns a `CLOSED` message
+// with the "auth-required:" prefix, only once for each relay
+type WithAuthHandler func() realy.Signer
+
+func (h WithAuthHandler) ApplyPoolOption(pool *SimplePool) {
+	pool.authHandler = h
+}
+
+// WithEventMiddleware is a function that will be called with all events received.
+// more than one can be passed at a time.
+type WithEventMiddleware func(IncomingEvent)
+
+func (h WithEventMiddleware) ApplyPoolOption(pool *SimplePool) {
+	pool.eventMiddleware = append(pool.eventMiddleware, h)
+}
+
+var (
+	_ PoolOption = (WithAuthHandler)(nil)
+	_ PoolOption = (WithEventMiddleware)(nil)
+)
+
+const MAX_LOCKS = 50
+
+var namedMutexPool = make([]sync.Mutex, MAX_LOCKS)
+
+//go:noescape
+//go:linkname memhash runtime.memhash
+func memhash(p unsafe.Pointer, h, s uintptr) uintptr
+
+func namedLock(name S) (unlock func()) {
+	sptr := unsafe.StringData(name)
+	idx := uint64(memhash(unsafe.Pointer(sptr), 0, uintptr(len(name)))) % MAX_LOCKS
+	namedMutexPool[idx].Lock()
+	return namedMutexPool[idx].Unlock
+}
+
+func (pool *SimplePool) EnsureRelay(url S) (*Client, error) {
+	nm := S(normalize.URL(url))
+	defer namedLock(nm)()
+
+	relay, ok := pool.Relays.Load(nm)
+	if ok && relay.IsConnected() {
+		// already connected, unlock and return
+		return relay, nil
+	} else {
+		var err error
+		// we use this ctx here so when the pool dies everything dies
+		ctx, cancel := context.Timeout(pool.Context, time.Second*15)
+		defer cancel()
+
+		opts := make([]RelayOption, 0, 1+len(pool.eventMiddleware))
+		if pool.SignatureChecker != nil {
+			opts = append(opts, WithSignatureChecker(pool.SignatureChecker))
+		}
+
+		if relay, err = RelayConnect(ctx, nm, opts...); err != nil {
+			return nil, errorf.E("failed to connect: %w", err)
+		}
+
+		pool.Relays.Store(nm, relay)
+		return relay, nil
+	}
+}
+
+// SubMany opens a subscription with the given filters to multiple relays
+// the subscriptions only end when the context is canceled
+func (pool *SimplePool) SubMany(c Ctx, urls []S, ff *filters.T) chan IncomingEvent {
+	return pool.subMany(c, urls, ff, true)
+}
+
+// SubManyNonUnique is like SubMany, but returns duplicate events if they come from different relays
+func (pool *SimplePool) SubManyNonUnique(c Ctx, urls []S, ff *filters.T) chan IncomingEvent {
+	return pool.subMany(c, urls, ff, false)
+}
+
+func (pool *SimplePool) subMany(c Ctx, urls []S, ff *filters.T,
+	unique bool) chan IncomingEvent {
+	ctx, cancel := context.Cancel(c)
+	_ = cancel // do this so `go vet` will stop complaining
+	events := make(chan IncomingEvent)
+	seenAlready := xsync.NewMapOf[S, timestamp.T]()
+	ticker := time.NewTicker(time.Duration(seenAlreadyDropTick) * time.Second)
+	eose := false
+	pending := xsync.NewCounter()
+	pending.Add(int64(len(urls)))
+	for u, url := range urls {
+		url = S(normalize.URL(url))
+		urls[u] = url
+		if idx := slices.Index(urls, url); idx != u {
+			// skip duplicate relays in the list
+			continue
+		}
+
+		go func(nm S) {
+			var err E
+			defer func() {
+				pending.Dec()
+				if pending.Value() == 0 {
+					close(events)
+				}
+				cancel()
+			}()
+			hasAuthed := false
+			interval := 3 * time.Second
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+				}
+				var sub *Subscription
+				var relay *Client
+				if relay, err = pool.EnsureRelay(nm); err != nil {
+					goto reconnect
+				}
+				hasAuthed = false
+			subscribe:
+				if sub, err = relay.Subscribe(ctx, ff); err != nil {
+					goto reconnect
+				}
+				go func() {
+					<-sub.EndOfStoredEvents
+					eose = true
+				}()
+				// reset interval when we get a good subscription
+				interval = 3 * time.Second
+
+				for {
+					select {
+					case evt, more := <-sub.Events:
+						if !more {
+							// this means the connection was closed for weird reasons, like the server shut down
+							// so we will update the filters here to include only events seem from now on
+							// and try to reconnect until we succeed
+							now := timestamp.Now()
+							for i := range ff.F {
+								ff.F[i].Since = now
+							}
+							goto reconnect
+						}
+						ie := IncomingEvent{Event: evt, Client: relay}
+						for _, mh := range pool.eventMiddleware {
+							mh(ie)
+						}
+						if unique {
+							if _, seen := seenAlready.LoadOrStore(evt.EventID().String(),
+								*evt.CreatedAt); seen {
+								continue
+							}
+						}
+						select {
+						case events <- ie:
+						case <-ctx.Done():
+						}
+					case <-ticker.C:
+						if eose {
+							old := timestamp.T(timestamp.Now().Int() - seenAlreadyDropTick)
+							seenAlready.Range(func(id S, value timestamp.T) bool {
+								if value < old {
+									seenAlready.Delete(id)
+								}
+								return true
+							})
+						}
+					case reason := <-sub.ClosedReason:
+						if strings.HasPrefix(reason,
+							"auth-required:") && pool.authHandler != nil && !hasAuthed {
+							// relay is requesting auth. if we can, we will perform auth and try again
+							if err = relay.Auth(ctx, pool.authHandler()); err == nil {
+								hasAuthed = true // so we don't keep doing AUTH again and again
+								goto subscribe
+							}
+						} else {
+							log.I.F("CLOSED from %s: '%s'\n", nm, reason)
+						}
+						return
+					case <-ctx.Done():
+						return
+					}
+				}
+			reconnect:
+				// we will go back to the beginning of the loop and try to connect again and again
+				// until the context is canceled
+				time.Sleep(interval)
+				interval = interval * 17 / 10 // the next time we try we will wait longer
+			}
+		}(url)
+	}
+
+	return events
+}
+
+// SubManyEose is like SubMany, but it stops subscriptions and closes the channel when gets a EOSE
+func (pool *SimplePool) SubManyEose(c Ctx, urls []S, ff *filters.T) chan IncomingEvent {
+	return pool.subManyEose(c, urls, ff, true)
+}
+
+// SubManyEoseNonUnique is like SubManyEose, but returns duplicate events if they come from different relays
+func (pool *SimplePool) SubManyEoseNonUnique(c Ctx, urls []S,
+	ff *filters.T) chan IncomingEvent {
+	return pool.subManyEose(c, urls, ff, false)
+}
+
+func (pool *SimplePool) subManyEose(c Ctx, urls []S, ff *filters.T,
+	unique bool) chan IncomingEvent {
+	ctx, cancel := context.Cancel(c)
+
+	events := make(chan IncomingEvent)
+	seenAlready := xsync.NewMapOf[S, bool]()
+	wg := sync.WaitGroup{}
+	wg.Add(len(urls))
+
+	go func() {
+		// this will happen when all subscriptions get an eose (or when they die)
+		wg.Wait()
+		cancel()
+		close(events)
+	}()
+
+	for _, url := range urls {
+		go func(nm B) {
+			var err E
+			defer wg.Done()
+			var client *Client
+			if client, err = pool.EnsureRelay(S(nm)); chk.E(err) {
+				return
+			}
+
+			hasAuthed := false
+
+		subscribe:
+			var sub *Subscription
+			if sub, err = client.Subscribe(ctx, ff); chk.E(err) || sub == nil {
+				log.E.F("error subscribing to %s with %v: %s", client, ff, err)
+				return
+			}
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-sub.EndOfStoredEvents:
+					return
+				case reason := <-sub.ClosedReason:
+					if strings.HasPrefix(reason,
+						"auth-required:") && pool.authHandler != nil && !hasAuthed {
+						// client is requesting auth. if we can we will perform auth and try again
+						err := client.Auth(ctx, pool.authHandler())
+						if err == nil {
+							hasAuthed = true // so we don't keep doing AUTH again and again
+							goto subscribe
+						}
+					}
+					log.I.F("CLOSED from %s: '%s'\n", nm, reason)
+					return
+				case evt, more := <-sub.Events:
+					if !more {
+						return
+					}
+
+					ie := IncomingEvent{Event: evt, Client: client}
+					for _, mh := range pool.eventMiddleware {
+						mh(ie)
+					}
+
+					if unique {
+						if _, seen := seenAlready.LoadOrStore(evt.EventID().String(),
+							true); seen {
+							continue
+						}
+					}
+
+					select {
+					case events <- ie:
+					case <-ctx.Done():
+						return
+					}
+				}
+			}
+		}(normalize.URL(url))
+	}
+
+	return events
+}
+
+// QuerySingle returns the first event returned by the first relay, cancels everything else.
+func (pool *SimplePool) QuerySingle(c Ctx, urls []S, f *filter.T) *IncomingEvent {
+	ctx, cancel := context.Cancel(c)
+	defer cancel()
+	for ievt := range pool.SubManyEose(ctx, urls, filters.New(f)) {
+		return &ievt
+	}
+	return nil
+}
+
+func (pool *SimplePool) batchedSubMany(
+	c Ctx,
+	dfs []DirectedFilters,
+	subFn func(Ctx, []S, *filters.T, bool) chan IncomingEvent,
+) chan IncomingEvent {
+	res := make(chan IncomingEvent)
+
+	for _, df := range dfs {
+		go func(df DirectedFilters) {
+			for ie := range subFn(c, []S{df.Client}, df.Filters, true) {
+				res <- ie
+			}
+		}(df)
+	}
+
+	return res
+}
+
+// BatchedSubMany fires subscriptions only to specific relays, but batches them when they are the same.
+func (pool *SimplePool) BatchedSubMany(c Ctx, dfs []DirectedFilters) chan IncomingEvent {
+	return pool.batchedSubMany(c, dfs, pool.subMany)
+}
+
+// BatchedSubManyEose is like BatchedSubMany, but ends upon receiving EOSE from all relays.
+func (pool *SimplePool) BatchedSubManyEose(c Ctx, dfs []DirectedFilters) chan IncomingEvent {
+	return pool.batchedSubMany(c, dfs, pool.subManyEose)
+}

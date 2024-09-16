@@ -25,9 +25,6 @@ node_modules/**
 **/node_modules
 **/node_modules/
 **/node_modules/**
-pkg/uploader/keyfile.json
-/pkg/uploader/keyfile.json
-**/keyfile.json
 
 # But not these files...
 !/.gitignore
@@ -55,5 +52,14 @@ pkg/uploader/keyfile.json
 !bundleData
 !*.item
 !*.bin
+!*.yml
+!*.tmpl
+!*.s
+!*.asm
+!.gitmodules
+!*.jsonl
+!*.txt
+!*.sum
+
 # ...even if they are in subdirectories
 !*/
