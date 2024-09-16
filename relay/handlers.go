@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/fasthttp/websocket"
@@ -314,7 +315,7 @@ func (s *Server) doCount(c context.Context, ws *WebSocket, req B,
 		return normalize.Error.F("COUNT has no <id>")
 	}
 
-	total := int64(0)
+	var total N
 	// ff := make(nostr.Filters, len(req)-2)
 	// ff := filters.T{F: make([]*filter.T, len(req)-2)}
 	// for i, filterReq := range req[2:] {
@@ -353,8 +354,8 @@ func (s *Server) doCount(c context.Context, ws *WebSocket, req B,
 				}
 			}
 		}
-
-		count, err := counter.CountEvents(c, f)
+		var count N
+		count, err = counter.CountEvents(c, f)
 		if err != nil {
 			log.E.F("store: %v", err)
 			continue
@@ -437,7 +438,6 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto eventstore.I) (r B) {
 						" authorization for requested filters")
 				}
 			}
-
 		}
 		var events []*event.T
 		events, err = sto.QueryEvents(c, f)
@@ -451,6 +451,10 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto eventstore.I) (r B) {
 			f.Limit = 9999999999
 		}
 		i := 0
+		// sort in reverse chronological order
+		sort.Slice(events, func(i, j int) bool {
+			return events[i].CreatedAt.Int() > events[j].CreatedAt.Int()
+		})
 		for _, ev := range events {
 			if s.options.skipEventFunc != nil && s.options.skipEventFunc(ev) {
 				continue
@@ -465,11 +469,13 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto eventstore.I) (r B) {
 			}
 		}
 
-		// exhaust the channel (in case we broke out of it early) so it is closed by the storage
-		for range events {
-		}
+		// // exhaust the channel (in case we broke out of it early) so it is closed by the storage
+		// for range events {
+		// }
 	}
-	eoseenvelope.NewFrom(env.Subscription)
+	if err = eoseenvelope.NewFrom(env.Subscription).Write(ws); chk.E(err) {
+		return
+	}
 	// ws.WriteJSON(nostr.EOSEEnvelope(id))
 	setListener(env.Subscription.String(), ws, env.Filters)
 	return

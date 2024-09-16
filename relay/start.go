@@ -70,7 +70,7 @@ func NewServer(relay Relay, path S, opts ...Option) (*Server, E) {
 	}
 
 	// init the relay
-	if err := relay.Init(); err != nil {
+	if err := relay.Init(path); err != nil {
 		return nil, fmt.Errorf("relay init: %w", err)
 	}
 

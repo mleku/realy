@@ -19,7 +19,7 @@ func TestServerStartShutdown(t *testing.T) {
 	)
 	rl := &testRelay{
 		name: "test server start",
-		init: func() E {
+		init: func(S) E {
 			inited = true
 			return nil
 		},
@@ -28,7 +28,7 @@ func TestServerStartShutdown(t *testing.T) {
 			init: func() E { storeInited = true; return nil },
 		},
 	}
-	srv, _ := NewServer(rl)
+	srv, _ := NewServer(rl, "")
 	ready := make(chan bool)
 	done := make(chan E)
 	go func() { done <- srv.Start("127.0.0.1", 0, ready); close(done) }()

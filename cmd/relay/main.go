@@ -30,7 +30,7 @@ func (r *Relay) Storage(ctx context.Context) eventstore.I {
 	return r.storage
 }
 
-func (r *Relay) Init() E {
+func (r *Relay) Init(path S) E {
 	err := envconfig.Process("", r)
 	if err != nil {
 		return fmt.Errorf("couldn't process envconfig: %w", err)

@@ -16,7 +16,7 @@ type Relay interface {
 	// Init is called at the very beginning by [Server.Start], allowing a relay
 	// to initialize its internal resources.
 	// Also see [eventstore.I.Init].
-	Init() E
+	Init(path S) E
 	// AcceptEvent is called for every nostr event received by the server.
 	// If the returned value is true, the event is passed on to [Storage.SaveEvent].
 	// Otherwise, the server responds with a negative and "blocked" message as described
@@ -83,5 +83,5 @@ type AdvancedSaver interface {
 }
 
 type EventCounter interface {
-	CountEvents(c Ctx, f *filter.T) (int64, E)
+	CountEvents(c Ctx, f *filter.T) (N, E)
 }

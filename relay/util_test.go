@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"realy.lol/event"
+	"realy.lol/eventid"
 	"realy.lol/filter"
 	eventstore "realy.lol/store"
 )
@@ -21,7 +22,7 @@ func startTestRelay(t *testing.T, tr *testRelay) *Server {
 type testRelay struct {
 	name        S
 	storage     eventstore.I
-	init        func() E
+	init        func(S) E
 	onShutdown  func(context.Context)
 	acceptEvent func(*event.T) bool
 }
@@ -29,9 +30,9 @@ type testRelay struct {
 func (tr *testRelay) Name() S                              { return tr.name }
 func (tr *testRelay) Storage(context.Context) eventstore.I { return tr.storage }
 
-func (tr *testRelay) Init() E {
+func (tr *testRelay) Init(path S) E {
 	if fn := tr.init; fn != nil {
-		return fn()
+		return fn(path)
 	}
 	return nil
 }
@@ -52,34 +53,44 @@ func (tr *testRelay) AcceptEvent(ctx context.Context, e *event.T) bool {
 type testStorage struct {
 	init        func() E
 	close       func()
-	queryEvents func(context.Context, *filter.T) (chan *event.T, E)
-	deleteEvent func(context.Context, *event.T) E
+	queryEvents func(context.Context, *filter.T) ([]*event.T, E)
+	deleteEvent func(context.Context, *eventid.T) E
 	saveEvent   func(context.Context, *event.T) E
-	countEvents func(context.Context, *filter.T) (int64, E)
+	countEvents func(context.Context, *filter.T) (N, E)
 }
 
-func (st *testStorage) Init() E {
+func (st *testStorage) Nuke() (err eventstore.E) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (st *testStorage) Path() eventstore.S {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (st *testStorage) Init(path S) E {
 	if fn := st.init; fn != nil {
 		return fn()
 	}
 	return nil
 }
 
-func (st *testStorage) Close() {
+func (st *testStorage) Close() (err E) {
 	if fn := st.close; fn != nil {
 		fn()
 	}
+	return
 }
 
-func (st *testStorage) QueryEvents(ctx context.Context, f *filter.T) (chan *event.T,
-	E) {
+func (st *testStorage) QueryEvents(ctx context.Context, f *filter.T) (evs []*event.T, err E) {
 	if fn := st.queryEvents; fn != nil {
 		return fn(ctx, f)
 	}
 	return nil, nil
 }
 
-func (st *testStorage) DeleteEvent(ctx context.Context, evt *event.T) E {
+func (st *testStorage) DeleteEvent(ctx context.Context, evt *eventid.T) E {
 	if fn := st.deleteEvent; fn != nil {
 		return fn(ctx, evt)
 	}
@@ -93,7 +104,7 @@ func (st *testStorage) SaveEvent(ctx context.Context, e *event.T) E {
 	return nil
 }
 
-func (st *testStorage) CountEvents(ctx context.Context, f *filter.T) (int64, E) {
+func (st *testStorage) CountEvents(ctx context.Context, f *filter.T) (N, E) {
 	if fn := st.countEvents; fn != nil {
 		return fn(ctx, f)
 	}
