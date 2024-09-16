@@ -1,8 +1,8 @@
 package ratel
 
 import (
-	"mleku.dev/ratel/keys/index"
-	"mleku.dev/ratel/keys/serial"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/serial"
 )
 
 // GetCounterKey returns the proper counter key for a given event ID.

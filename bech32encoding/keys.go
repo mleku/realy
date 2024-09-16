@@ -1,11 +1,11 @@
 package bech32encoding
 
 import (
-	btcec "mleku.dev/ec"
-	"mleku.dev/ec/bech32"
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/ec/secp256k1"
-	"mleku.dev/hex"
+	btcec "realy.lol/ec"
+	"realy.lol/ec/bech32"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/hex"
 )
 
 const (

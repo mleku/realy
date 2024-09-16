@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"sort"
 
-	"mleku.dev/ec"
-	"mleku.dev/ec/chainhash"
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/ec/secp256k1"
+	"realy.lol/ec"
+	"realy.lol/ec/chainhash"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
 )
 
 var (

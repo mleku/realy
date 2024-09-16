@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"testing"
 
-	"mleku.dev/bech32encoding/pointers"
-	"mleku.dev/eventid"
-	"mleku.dev/hex"
-	"mleku.dev/kind"
+	"realy.lol/bech32encoding/pointers"
+	"realy.lol/eventid"
+	"realy.lol/hex"
+	"realy.lol/kind"
 )
 
 func TestEncodeNpub(t *testing.T) {

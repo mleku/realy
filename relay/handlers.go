@@ -11,24 +11,24 @@ import (
 	"github.com/fasthttp/websocket"
 	"github.com/nbd-wtf/go-nostr/nip11"
 	"golang.org/x/time/rate"
-	"mleku.dev/auth"
-	"mleku.dev/bech32encoding"
-	"mleku.dev/ec/bech32"
-	"mleku.dev/envelopes"
-	"mleku.dev/envelopes/authenvelope"
-	"mleku.dev/envelopes/closeenvelope"
-	"mleku.dev/envelopes/countenvelope"
-	"mleku.dev/envelopes/eoseenvelope"
-	"mleku.dev/envelopes/eventenvelope"
-	"mleku.dev/envelopes/noticeenvelope"
-	"mleku.dev/envelopes/okenvelope"
-	"mleku.dev/envelopes/reqenvelope"
-	"mleku.dev/event"
-	"mleku.dev/filter"
-	"mleku.dev/kind"
-	"mleku.dev/normalize"
-	eventstore "mleku.dev/store"
-	"mleku.dev/tag"
+	"realy.lol/auth"
+	"realy.lol/bech32encoding"
+	"realy.lol/ec/bech32"
+	"realy.lol/envelopes"
+	"realy.lol/envelopes/authenvelope"
+	"realy.lol/envelopes/closeenvelope"
+	"realy.lol/envelopes/countenvelope"
+	"realy.lol/envelopes/eoseenvelope"
+	"realy.lol/envelopes/eventenvelope"
+	"realy.lol/envelopes/noticeenvelope"
+	"realy.lol/envelopes/okenvelope"
+	"realy.lol/envelopes/reqenvelope"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/kind"
+	"realy.lol/normalize"
+	eventstore "realy.lol/store"
+	"realy.lol/tag"
 )
 
 // TODO: consider moving these to Server as config params
@@ -683,7 +683,7 @@ func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 			PubKey:        "~",
 			Contact:       "~",
 			SupportedNIPs: supportedNIPs,
-			Software:      "https://mleku.dev",
+			Software:      "https://realy.lol",
 			Version:       "~",
 		}
 	}

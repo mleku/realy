@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"mleku.dev/ec/wire"
+	"realy.lol/ec/wire"
 )
 
 var (

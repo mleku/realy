@@ -8,7 +8,7 @@ package ecdsa
 import (
 	"fmt"
 
-	"mleku.dev/ec/secp256k1"
+	"realy.lol/ec/secp256k1"
 )
 
 // References:

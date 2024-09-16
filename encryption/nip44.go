@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/hkdf"
-	"mleku.dev/sha256"
+	"realy.lol/sha256"
 )
 
 const (

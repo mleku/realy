@@ -1,8 +1,8 @@
 package filters
 
 import (
-	"mleku.dev/event"
-	"mleku.dev/filter"
+	"realy.lol/event"
+	"realy.lol/filter"
 )
 
 type T struct {

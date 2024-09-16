@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"mleku.dev/ratel/keys/serial"
+	"realy.lol/ratel/keys/serial"
 
 	"lukechampine.com/frand"
 )

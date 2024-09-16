@@ -3,8 +3,8 @@
 package p256k
 
 import (
-	realy "mleku.dev"
-	btcec "mleku.dev/ec"
+	realy "realy.lol"
+	btcec "realy.lol/ec"
 )
 
 // Signer implements the nostr.Signer interface.

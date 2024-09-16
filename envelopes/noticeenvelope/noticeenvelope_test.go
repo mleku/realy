@@ -3,8 +3,8 @@ package noticeenvelope
 import (
 	"testing"
 
-	"mleku.dev/envelopes"
-	"mleku.dev/envelopes/messages"
+	"realy.lol/envelopes"
+	"realy.lol/envelopes/messages"
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {

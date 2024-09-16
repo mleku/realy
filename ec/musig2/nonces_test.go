@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"mleku.dev/hex"
+	"realy.lol/hex"
 )
 
 type nonceGenTestCase struct {

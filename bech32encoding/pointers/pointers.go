@@ -1,8 +1,8 @@
 package pointers
 
 import (
-	"mleku.dev/eventid"
-	"mleku.dev/kind"
+	"realy.lol/eventid"
+	"realy.lol/kind"
 )
 
 type Profile struct {

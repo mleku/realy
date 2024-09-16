@@ -5,13 +5,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"mleku.dev/context"
-	"mleku.dev/envelopes/closeenvelope"
-	"mleku.dev/envelopes/countenvelope"
-	"mleku.dev/envelopes/reqenvelope"
-	"mleku.dev/event"
-	"mleku.dev/filters"
-	"mleku.dev/subscriptionid"
+	"realy.lol/context"
+	"realy.lol/envelopes/closeenvelope"
+	"realy.lol/envelopes/countenvelope"
+	"realy.lol/envelopes/reqenvelope"
+	"realy.lol/event"
+	"realy.lol/filters"
+	"realy.lol/subscriptionid"
 )
 
 type Subscription struct {

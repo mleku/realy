@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"mleku.dev/ratel/keys"
+	"realy.lol/ratel/keys"
 
-	"mleku.dev/eventid"
-	"mleku.dev/hex"
+	"realy.lol/eventid"
+	"realy.lol/hex"
 )
 
 const Len = 8

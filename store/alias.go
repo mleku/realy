@@ -3,10 +3,10 @@ package eventstore
 import (
 	"net/http"
 
-	"mleku.dev/ws"
+	"realy.lol/ws"
 
-	"mleku.dev/envelopes/okenvelope"
-	"mleku.dev/subscriptionid"
+	"realy.lol/envelopes/okenvelope"
+	"realy.lol/subscriptionid"
 )
 
 type SubID = subscriptionid.T

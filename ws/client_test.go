@@ -14,16 +14,16 @@ import (
 	"time"
 
 	"golang.org/x/net/websocket"
-	"mleku.dev/envelopes/eventenvelope"
-	"mleku.dev/envelopes/okenvelope"
-	"mleku.dev/event"
-	"mleku.dev/eventid"
-	"mleku.dev/kind"
-	"mleku.dev/normalize"
-	"mleku.dev/p256k"
-	"mleku.dev/tag"
-	"mleku.dev/tags"
-	"mleku.dev/timestamp"
+	"realy.lol/envelopes/eventenvelope"
+	"realy.lol/envelopes/okenvelope"
+	"realy.lol/event"
+	"realy.lol/eventid"
+	"realy.lol/kind"
+	"realy.lol/normalize"
+	"realy.lol/p256k"
+	"realy.lol/tag"
+	"realy.lol/tags"
+	"realy.lol/timestamp"
 )
 
 func TestPublish(t *testing.T) {

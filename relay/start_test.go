@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gobwas/ws/wsutil"
-	"mleku.dev/ws"
+	"realy.lol/ws"
 )
 
 func TestServerStartShutdown(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"mleku.dev/event/examples"
-	"mleku.dev/p256k"
+	"realy.lol/event/examples"
+	"realy.lol/p256k"
 )
 
 func TestTMarshal_Unmarshal(t *testing.T) {

@@ -4,10 +4,10 @@ import (
 	"io"
 
 	"github.com/templexxx/xhex"
-	"mleku.dev/hex"
-	"mleku.dev/ints"
-	"mleku.dev/kind"
-	"mleku.dev/kinds"
+	"realy.lol/hex"
+	"realy.lol/ints"
+	"realy.lol/kind"
+	"realy.lol/kinds"
 )
 
 // JSONKey generates the JSON format for an object key and terminates with the

@@ -4,15 +4,15 @@ import (
 	"strconv"
 	"strings"
 
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/hex"
-	"mleku.dev/ratel/keys"
-	"mleku.dev/ratel/keys/arb"
-	"mleku.dev/ratel/keys/createdat"
-	"mleku.dev/ratel/keys/index"
-	"mleku.dev/ratel/keys/kinder"
-	"mleku.dev/ratel/keys/pubkey"
-	"mleku.dev/ratel/keys/serial"
+	"realy.lol/ec/schnorr"
+	"realy.lol/hex"
+	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/arb"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/kinder"
+	"realy.lol/ratel/keys/pubkey"
+	"realy.lol/ratel/keys/serial"
 )
 
 func GetTagKeyElements(tagValue string, CA *createdat.T,

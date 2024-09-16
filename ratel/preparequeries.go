@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"math"
 
-	"mleku.dev/event"
-	"mleku.dev/eventid"
-	"mleku.dev/filter"
-	"mleku.dev/ratel/keys/id"
-	"mleku.dev/ratel/keys/index"
-	"mleku.dev/ratel/keys/kinder"
-	"mleku.dev/ratel/keys/pubkey"
-	"mleku.dev/ratel/keys/serial"
-	"mleku.dev/timestamp"
+	"realy.lol/event"
+	"realy.lol/eventid"
+	"realy.lol/filter"
+	"realy.lol/ratel/keys/id"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/kinder"
+	"realy.lol/ratel/keys/pubkey"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/timestamp"
 )
 
 type Results struct {

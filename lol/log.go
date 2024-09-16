@@ -10,7 +10,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/fatih/color"
-	"mleku.dev/atomic"
+	"realy.lol/atomic"
 )
 
 const (

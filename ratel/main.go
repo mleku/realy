@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
-	"mleku.dev/context"
-	"mleku.dev/ratel/keys/index"
-	"mleku.dev/ratel/keys/serial"
-	eventstore "mleku.dev/store"
+	"realy.lol/context"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/serial"
+	eventstore "realy.lol/store"
 )
 
 type T struct {

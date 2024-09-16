@@ -2,13 +2,13 @@ package ratel
 
 import (
 	"github.com/dgraph-io/badger/v4"
-	"mleku.dev/event"
-	"mleku.dev/filter"
-	"mleku.dev/ratel/keys/createdat"
-	"mleku.dev/ratel/keys/index"
-	"mleku.dev/ratel/keys/serial"
-	"mleku.dev/sha256"
-	"mleku.dev/tag"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/sha256"
+	"realy.lol/tag"
 )
 
 func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {

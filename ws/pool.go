@@ -9,13 +9,13 @@ import (
 	"unsafe"
 
 	"github.com/puzpuzpuz/xsync/v3"
-	realy "mleku.dev"
-	"mleku.dev/context"
-	"mleku.dev/event"
-	"mleku.dev/filter"
-	"mleku.dev/filters"
-	"mleku.dev/normalize"
-	"mleku.dev/timestamp"
+	realy "realy.lol"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/filters"
+	"realy.lol/normalize"
+	"realy.lol/timestamp"
 )
 
 var (

@@ -1,6 +1,6 @@
 package btcec
 
-import "mleku.dev/ec/secp256k1"
+import "realy.lol/ec/secp256k1"
 
 // FieldVal implements optimized fixed-precision arithmetic over the secp256k1
 // finite field. This means all arithmetic is performed modulo

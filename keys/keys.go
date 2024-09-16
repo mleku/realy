@@ -3,10 +3,10 @@ package keys
 import (
 	"strings"
 
-	btcec "mleku.dev/ec"
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/hex"
-	"mleku.dev/p256k"
+	btcec "realy.lol/ec"
+	"realy.lol/ec/schnorr"
+	"realy.lol/hex"
+	"realy.lol/p256k"
 )
 
 var GeneratePrivateKey = func() B { return GenerateSecretKeyHex() }

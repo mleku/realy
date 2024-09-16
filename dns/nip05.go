@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"mleku.dev/bech32encoding/pointers"
-	"mleku.dev/keys"
+	"realy.lol/bech32encoding/pointers"
+	"realy.lol/keys"
 )
 
 var Nip05Regex = regexp.MustCompile(`^(?:([\w.+-]+)@)?([\w_-]+(\.[\w_-]+)+)$`)

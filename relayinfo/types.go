@@ -6,9 +6,9 @@ import (
 	"os"
 	"sync"
 
-	"mleku.dev/kinds"
-	"mleku.dev/number"
-	"mleku.dev/timestamp"
+	"realy.lol/kinds"
+	"realy.lol/number"
+	"realy.lol/timestamp"
 )
 
 type NIP struct {

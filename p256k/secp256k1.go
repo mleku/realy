@@ -7,9 +7,9 @@ import (
 	"crypto/rand"
 	"unsafe"
 
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/ec/secp256k1"
-	"mleku.dev/sha256"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/sha256"
 )
 
 /*

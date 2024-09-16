@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"mleku.dev/ec/secp256k1"
-	"mleku.dev/hex"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/hex"
 )
 
 // hexToBytes converts the passed hex string into bytes and will panic if there

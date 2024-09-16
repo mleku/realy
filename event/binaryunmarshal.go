@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io"
 
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/hex"
-	"mleku.dev/kind"
-	"mleku.dev/sha256"
-	"mleku.dev/tag"
-	"mleku.dev/tags"
-	"mleku.dev/timestamp"
+	"realy.lol/ec/schnorr"
+	"realy.lol/hex"
+	"realy.lol/kind"
+	"realy.lol/sha256"
+	"realy.lol/tag"
+	"realy.lol/tags"
+	"realy.lol/timestamp"
 )
 
 // Reader is a control structure for reading and writing buffers.

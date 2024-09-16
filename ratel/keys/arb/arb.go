@@ -3,7 +3,7 @@ package arb
 import (
 	"bytes"
 
-	"mleku.dev/ratel/keys"
+	"realy.lol/ratel/keys"
 )
 
 // T is an arbitrary length byte string. In any construction there can only be one with arbitrary length. Custom lengths

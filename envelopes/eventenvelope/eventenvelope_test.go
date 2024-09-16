@@ -5,10 +5,10 @@ import (
 	"bytes"
 	"testing"
 
-	"mleku.dev/envelopes"
-	"mleku.dev/event"
-	"mleku.dev/event/examples"
-	"mleku.dev/subscriptionid"
+	"realy.lol/envelopes"
+	"realy.lol/event"
+	"realy.lol/event/examples"
+	"realy.lol/subscriptionid"
 )
 
 func TestSubmission(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"mleku.dev/ratel/keys"
+	"realy.lol/ratel/keys"
 )
 
 const Len = 8

@@ -8,8 +8,8 @@ package secp256k1
 import (
 	"testing"
 
-	"mleku.dev/hex"
-	"mleku.dev/sha256"
+	"realy.lol/hex"
+	"realy.lol/sha256"
 )
 
 // hexToBytes converts the passed hex string into bytes and will panic if there

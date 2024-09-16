@@ -3,9 +3,9 @@ package relay
 import (
 	"regexp"
 
-	"mleku.dev/event"
-	"mleku.dev/normalize"
-	eventstore "mleku.dev/store"
+	"realy.lol/event"
+	"realy.lol/normalize"
+	eventstore "realy.lol/store"
 )
 
 var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)

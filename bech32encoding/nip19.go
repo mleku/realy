@@ -5,13 +5,13 @@ import (
 	"encoding/binary"
 	"reflect"
 
-	"mleku.dev/bech32encoding/pointers"
-	"mleku.dev/ec/bech32"
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/eventid"
-	"mleku.dev/hex"
-	"mleku.dev/kind"
-	"mleku.dev/sha256"
+	"realy.lol/bech32encoding/pointers"
+	"realy.lol/ec/bech32"
+	"realy.lol/ec/schnorr"
+	"realy.lol/eventid"
+	"realy.lol/hex"
+	"realy.lol/kind"
+	"realy.lol/sha256"
 )
 
 var (

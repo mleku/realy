@@ -3,8 +3,8 @@ package btcec_test
 import (
 	"bytes"
 
-	"mleku.dev/context"
-	"mleku.dev/lol"
+	"realy.lol/context"
+	"realy.lol/lol"
 )
 
 type (

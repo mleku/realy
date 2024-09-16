@@ -3,7 +3,7 @@ package kind
 import (
 	"sync"
 
-	"mleku.dev/ints"
+	"realy.lol/ints"
 )
 
 // T - which will be externally referenced as kind.T is the event type in the

@@ -4,7 +4,7 @@
 package btcec
 
 import (
-	"mleku.dev/ec/secp256k1"
+	"realy.lol/ec/secp256k1"
 )
 
 // ModNScalar implements optimized 256-bit constant-time fixed-precision

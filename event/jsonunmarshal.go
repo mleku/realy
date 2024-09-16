@@ -3,12 +3,12 @@ package event
 import (
 	"io"
 
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/kind"
-	"mleku.dev/sha256"
-	"mleku.dev/tags"
-	"mleku.dev/text"
-	"mleku.dev/timestamp"
+	"realy.lol/ec/schnorr"
+	"realy.lol/kind"
+	"realy.lol/sha256"
+	"realy.lol/tags"
+	"realy.lol/text"
+	"realy.lol/timestamp"
 )
 
 func (ev *T) UnmarshalJSON(b B) (r B, err error) {

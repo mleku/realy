@@ -3,10 +3,10 @@ package okenvelope
 import (
 	"io"
 
-	"mleku.dev"
-	"mleku.dev/envelopes"
-	"mleku.dev/eventid"
-	"mleku.dev/text"
+	"realy.lol"
+	"realy.lol/envelopes"
+	"realy.lol/eventid"
+	"realy.lol/text"
 )
 
 const (

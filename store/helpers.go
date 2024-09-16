@@ -3,7 +3,7 @@ package eventstore
 import (
 	"bytes"
 
-	"mleku.dev/event"
+	"realy.lol/event"
 )
 
 func isOlder(prev, next *event.T) bool {

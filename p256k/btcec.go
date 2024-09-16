@@ -3,7 +3,7 @@
 package p256k
 
 import (
-	"mleku.dev/p256k/btcec"
+	"realy.lol/p256k/btcec"
 )
 
 // BTCECSigner is always available but enabling it disables the use of github.com/bitcoin-core/secp256k1 CGO signature

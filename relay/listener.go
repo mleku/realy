@@ -3,10 +3,10 @@ package relay
 import (
 	"sync"
 
-	"mleku.dev/envelopes/eventenvelope"
-	"mleku.dev/event"
-	"mleku.dev/filter"
-	"mleku.dev/filters"
+	"realy.lol/envelopes/eventenvelope"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/filters"
 )
 
 type Listener struct {

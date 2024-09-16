@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
-	"mleku.dev/ec/schnorr"
+	"realy.lol/ec/schnorr"
 )
 
 func TestT(t *testing.T) {

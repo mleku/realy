@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"mleku.dev/ec/bech32"
-	"mleku.dev/ec/chaincfg"
+	"realy.lol/ec/bech32"
+	"realy.lol/ec/chaincfg"
 )
 
 // AddressSegWit is the base address type for all SegWit addresses.

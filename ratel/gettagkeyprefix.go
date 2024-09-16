@@ -1,13 +1,13 @@
 package ratel
 
 import (
-	"mleku.dev/hex"
-	"mleku.dev/ratel/keys"
-	"mleku.dev/ratel/keys/arb"
-	"mleku.dev/ratel/keys/index"
-	"mleku.dev/ratel/keys/kinder"
-	"mleku.dev/ratel/keys/pubkey"
-	eventstore "mleku.dev/store"
+	"realy.lol/hex"
+	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/arb"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/kinder"
+	"realy.lol/ratel/keys/pubkey"
+	eventstore "realy.lol/store"
 )
 
 // GetTagKeyPrefix returns tag index prefixes based on the initial field of a

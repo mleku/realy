@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
-	"mleku.dev/timestamp"
+	"realy.lol/timestamp"
 )
 
 func TestT(t *testing.T) {

@@ -8,12 +8,12 @@ import (
 	"sync"
 
 	"github.com/kelseyhightower/envconfig"
-	"mleku.dev/event"
-	"mleku.dev/lol"
-	"mleku.dev/ratel"
-	realy "mleku.dev/relay"
-	eventstore "mleku.dev/store"
-	"mleku.dev/units"
+	"realy.lol/event"
+	"realy.lol/lol"
+	"realy.lol/ratel"
+	realy "realy.lol/relay"
+	eventstore "realy.lol/store"
+	"realy.lol/units"
 )
 
 type Relay struct {

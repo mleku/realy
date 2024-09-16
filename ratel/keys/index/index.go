@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"mleku.dev/ratel/keys"
+	"realy.lol/ratel/keys"
 )
 
 const Len = 1

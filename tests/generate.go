@@ -4,11 +4,11 @@ import (
 	"encoding/base64"
 
 	"lukechampine.com/frand"
-	"mleku.dev/event"
-	"mleku.dev/hex"
-	"mleku.dev/kind"
-	"mleku.dev/p256k"
-	"mleku.dev/timestamp"
+	"realy.lol/event"
+	"realy.lol/hex"
+	"realy.lol/kind"
+	"realy.lol/p256k"
+	"realy.lol/timestamp"
 )
 
 func GenerateEvent(nsec B, maxSize int) (ev *event.T, binSize int, err E) {

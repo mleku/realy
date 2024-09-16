@@ -7,11 +7,11 @@ import (
 	"bytes"
 	"testing"
 
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/event"
-	"mleku.dev/event/examples"
-	"mleku.dev/p256k"
-	"mleku.dev/sha256"
+	"realy.lol/ec/schnorr"
+	"realy.lol/event"
+	"realy.lol/event/examples"
+	"realy.lol/p256k"
+	"realy.lol/sha256"
 )
 
 func TestVerify(t *testing.T) {

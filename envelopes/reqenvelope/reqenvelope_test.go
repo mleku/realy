@@ -3,9 +3,9 @@ package reqenvelope
 import (
 	"testing"
 
-	"mleku.dev/envelopes"
-	"mleku.dev/filters"
-	"mleku.dev/subscriptionid"
+	"realy.lol/envelopes"
+	"realy.lol/filters"
+	"realy.lol/subscriptionid"
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {

@@ -52,7 +52,7 @@ package secp256k1
 // ordinarily would.  See the documentation for FieldVal for more details.
 
 import (
-	"mleku.dev/hex"
+	"realy.lol/hex"
 )
 
 // Constants used to make the code more readable.

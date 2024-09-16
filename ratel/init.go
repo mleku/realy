@@ -7,8 +7,8 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
-	"mleku.dev/ratel/keys/index"
-	"mleku.dev/units"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/units"
 )
 
 func (r *T) Init(path S) (err E) {

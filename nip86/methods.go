@@ -4,7 +4,7 @@ import (
 	"math"
 	"net"
 
-	"mleku.dev/keys"
+	"realy.lol/keys"
 )
 
 func DecodeRequest(req Request) (MethodParams, error) {

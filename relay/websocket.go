@@ -5,7 +5,7 @@ import (
 
 	"github.com/fasthttp/websocket"
 	"golang.org/x/time/rate"
-	"mleku.dev/atomic"
+	"realy.lol/atomic"
 )
 
 type WebSocket struct {

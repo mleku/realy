@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"lukechampine.com/frand"
-	"mleku.dev/hex"
-	"mleku.dev/p256k"
+	"realy.lol/hex"
+	"realy.lol/p256k"
 )
 
 // ComputeSharedSecret returns a shared secret key used to encrypt messages. The private and public keys should be hex

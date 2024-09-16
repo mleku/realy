@@ -25,11 +25,11 @@ import (
 	"github.com/alexflint/go-arg"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/sync/errgroup"
-	"mleku.dev/cmd/lerproxy/buf"
-	"mleku.dev/cmd/lerproxy/hsts"
-	"mleku.dev/cmd/lerproxy/reverse"
-	"mleku.dev/cmd/lerproxy/tcpkeepalive"
-	"mleku.dev/cmd/lerproxy/util"
+	"realy.lol/cmd/lerproxy/buf"
+	"realy.lol/cmd/lerproxy/hsts"
+	"realy.lol/cmd/lerproxy/reverse"
+	"realy.lol/cmd/lerproxy/tcpkeepalive"
+	"realy.lol/cmd/lerproxy/util"
 )
 
 type runArgs struct {
@@ -43,7 +43,7 @@ type runArgs struct {
 	RTO   time.Duration `arg:"-r,--rto" default:"1m" help:"maximum duration before timing out read of the request"`
 	WTO   time.Duration `arg:"-w,--wto" default:"5m" help:"maximum duration before timing out write of the response"`
 	Idle  time.Duration `arg:"-i,--idle" help:"how long idle connection is kept before closing (set rto, wto to 0 to use this)"`
-	Certs []string      `arg:"--cert,separate" help:"certificates and the domain they match: eg: mleku.dev:/path/to/cert - this will indicate to load two, one with extension .key and one with .crt, each expected to be PEM encoded TLS private and public keys, respectively"`
+	Certs []string      `arg:"--cert,separate" help:"certificates and the domain they match: eg: realy.lol:/path/to/cert - this will indicate to load two, one with extension .key and one with .crt, each expected to be PEM encoded TLS private and public keys, respectively"`
 }
 
 var args runArgs

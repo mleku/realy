@@ -1,10 +1,10 @@
 package btcec
 
 import (
-	realy "mleku.dev"
-	ec "mleku.dev/ec"
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/ec/secp256k1"
+	realy "realy.lol"
+	ec "realy.lol/ec"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
 )
 
 type Signer struct {

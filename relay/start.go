@@ -12,7 +12,7 @@ import (
 	"github.com/fasthttp/websocket"
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"
-	"mleku.dev/event"
+	"realy.lol/event"
 )
 
 // Server is a base for package users to implement nostr relays.

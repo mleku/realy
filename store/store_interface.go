@@ -1,9 +1,9 @@
 package eventstore
 
 import (
-	"mleku.dev/event"
-	"mleku.dev/eventid"
-	"mleku.dev/filter"
+	"realy.lol/event"
+	"realy.lol/eventid"
+	"realy.lol/filter"
 )
 
 // I is an types for a persistence layer for nostr events handled by a relay.

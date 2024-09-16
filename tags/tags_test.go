@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
-	"mleku.dev/tag"
+	"realy.lol/tag"
 )
 
 func TestMarshalUnmarshal(t *testing.T) {

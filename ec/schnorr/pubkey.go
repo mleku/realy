@@ -8,8 +8,8 @@ package schnorr
 import (
 	"fmt"
 
-	"mleku.dev/ec"
-	"mleku.dev/ec/secp256k1"
+	"realy.lol/ec"
+	"realy.lol/ec/secp256k1"
 )
 
 // These constants define the lengths of serialized public keys.

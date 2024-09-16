@@ -2,10 +2,10 @@ package relay
 
 import (
 	"github.com/nbd-wtf/go-nostr/nip11"
-	"mleku.dev/event"
-	"mleku.dev/filter"
-	"mleku.dev/filters"
-	store "mleku.dev/store"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/filters"
+	store "realy.lol/store"
 )
 
 // Relay is the main interface for implementing a nostr relay.

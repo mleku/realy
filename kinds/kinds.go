@@ -1,8 +1,8 @@
 package kinds
 
 import (
-	"mleku.dev/ints"
-	"mleku.dev/kind"
+	"realy.lol/ints"
+	"realy.lol/kind"
 )
 
 type T struct {

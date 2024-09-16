@@ -3,10 +3,10 @@ package eventenvelope
 import (
 	"io"
 
-	"mleku.dev"
-	"mleku.dev/envelopes"
-	"mleku.dev/event"
-	sid "mleku.dev/subscriptionid"
+	"realy.lol"
+	"realy.lol/envelopes"
+	"realy.lol/event"
+	sid "realy.lol/subscriptionid"
 )
 
 const L = "EVENT"

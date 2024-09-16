@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"time"
 
-	"mleku.dev/ec/chainhash"
-	"mleku.dev/ec/wire"
+	"realy.lol/ec/chainhash"
+	"realy.lol/ec/wire"
 )
 
 var (

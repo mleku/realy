@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"mleku.dev/ratel/keys"
-	"mleku.dev/ratel/keys/serial"
-	"mleku.dev/timestamp"
+	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/timestamp"
 )
 
 const Len = 8

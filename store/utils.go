@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"mleku.dev/hex"
-	"mleku.dev/tag"
+	"realy.lol/hex"
+	"realy.lol/tag"
 )
 
 func GetAddrTagElements(tagValue S) (k uint16, pkb B, d S) {

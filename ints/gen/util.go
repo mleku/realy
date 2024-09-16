@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 
-	"mleku.dev/lol"
+	"realy.lol/lol"
 )
 
 type (

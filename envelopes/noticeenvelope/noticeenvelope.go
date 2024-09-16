@@ -3,9 +3,9 @@ package noticeenvelope
 import (
 	"io"
 
-	"mleku.dev"
-	"mleku.dev/envelopes"
-	"mleku.dev/text"
+	"realy.lol"
+	"realy.lol/envelopes"
+	"realy.lol/text"
 )
 
 const L = "NOTICE"

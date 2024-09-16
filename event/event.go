@@ -2,14 +2,14 @@ package event
 
 import (
 	"lukechampine.com/frand"
-	realy "mleku.dev"
-	"mleku.dev/eventid"
-	"mleku.dev/hex"
-	"mleku.dev/kind"
-	"mleku.dev/sha256"
-	"mleku.dev/tags"
-	"mleku.dev/text"
-	"mleku.dev/timestamp"
+	realy "realy.lol"
+	"realy.lol/eventid"
+	"realy.lol/hex"
+	"realy.lol/kind"
+	"realy.lol/sha256"
+	"realy.lol/tags"
+	"realy.lol/text"
+	"realy.lol/timestamp"
 )
 
 // T is the primary datatype of nostr. This is the form of the structure that

@@ -5,8 +5,8 @@ import (
 	"runtime"
 	"strings"
 
-	"mleku.dev/atomic"
-	"mleku.dev/lol"
+	"realy.lol/atomic"
+	"realy.lol/lol"
 )
 
 func NewLogger(logLevel int, label string) (l *logger) {

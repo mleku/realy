@@ -3,10 +3,10 @@ package authenvelope
 import (
 	"io"
 
-	"mleku.dev"
-	envs "mleku.dev/envelopes"
-	"mleku.dev/event"
-	"mleku.dev/text"
+	"realy.lol"
+	envs "realy.lol/envelopes"
+	"realy.lol/event"
+	"realy.lol/text"
 )
 
 const L = "AUTH"

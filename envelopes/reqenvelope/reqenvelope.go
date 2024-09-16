@@ -3,11 +3,11 @@ package reqenvelope
 import (
 	"io"
 
-	"mleku.dev"
-	"mleku.dev/envelopes"
-	"mleku.dev/filters"
-	sid "mleku.dev/subscriptionid"
-	"mleku.dev/text"
+	"realy.lol"
+	"realy.lol/envelopes"
+	"realy.lol/filters"
+	sid "realy.lol/subscriptionid"
+	"realy.lol/text"
 )
 
 const L = "REQ"

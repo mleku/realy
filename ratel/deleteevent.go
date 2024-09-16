@@ -2,12 +2,12 @@ package ratel
 
 import (
 	"github.com/dgraph-io/badger/v4"
-	"mleku.dev/event"
-	"mleku.dev/eventid"
-	"mleku.dev/ratel/keys"
-	"mleku.dev/ratel/keys/id"
-	"mleku.dev/ratel/keys/index"
-	"mleku.dev/ratel/keys/serial"
+	"realy.lol/event"
+	"realy.lol/eventid"
+	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/id"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/serial"
 )
 
 func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {

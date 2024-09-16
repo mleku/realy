@@ -1,8 +1,8 @@
 package event
 
 import (
-	"mleku.dev/hex"
-	"mleku.dev/text"
+	"realy.lol/hex"
+	"realy.lol/text"
 )
 
 func (ev *T) MarshalJSON(dst B) (b B, err error) {

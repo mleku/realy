@@ -1,7 +1,7 @@
 package ratel
 
 import (
-	"mleku.dev/ratel/keys/index"
+	"realy.lol/ratel/keys/index"
 )
 
 func (r *T) Nuke() (err E) {

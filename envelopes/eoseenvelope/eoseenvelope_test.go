@@ -3,8 +3,8 @@ package eoseenvelope
 import (
 	"testing"
 
-	"mleku.dev/envelopes"
-	"mleku.dev/subscriptionid"
+	"realy.lol/envelopes"
+	"realy.lol/subscriptionid"
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {

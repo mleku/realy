@@ -3,8 +3,8 @@ package secp256k1
 import (
 	"bytes"
 
-	"mleku.dev/context"
-	"mleku.dev/lol"
+	"realy.lol/context"
+	"realy.lol/lol"
 )
 
 type (

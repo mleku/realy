@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"mleku.dev/hex"
-	"mleku.dev/keys"
+	"realy.lol/hex"
+	"realy.lol/keys"
 )
 
 func assertCryptPriv(t *testing.T, sk1, sk2, conversationKey, salt, plaintext, expected S) {

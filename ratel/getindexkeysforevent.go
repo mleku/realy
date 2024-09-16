@@ -1,16 +1,16 @@
 package ratel
 
 import (
-	"mleku.dev/event"
-	"mleku.dev/eventid"
-	"mleku.dev/ratel/keys"
-	"mleku.dev/ratel/keys/createdat"
-	"mleku.dev/ratel/keys/id"
-	"mleku.dev/ratel/keys/index"
-	"mleku.dev/ratel/keys/kinder"
-	"mleku.dev/ratel/keys/pubkey"
-	"mleku.dev/ratel/keys/serial"
-	"mleku.dev/tag"
+	"realy.lol/event"
+	"realy.lol/eventid"
+	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/id"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/kinder"
+	"realy.lol/ratel/keys/pubkey"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/tag"
 )
 
 // GetIndexKeysForEvent generates all the index keys required to filter for

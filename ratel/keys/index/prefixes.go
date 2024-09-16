@@ -1,12 +1,12 @@
 package index
 
 import (
-	"mleku.dev/ratel/keys"
-	"mleku.dev/ratel/keys/createdat"
-	"mleku.dev/ratel/keys/id"
-	"mleku.dev/ratel/keys/kinder"
-	"mleku.dev/ratel/keys/pubkey"
-	"mleku.dev/ratel/keys/serial"
+	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/id"
+	"realy.lol/ratel/keys/kinder"
+	"realy.lol/ratel/keys/pubkey"
+	"realy.lol/ratel/keys/serial"
 )
 
 type P byte

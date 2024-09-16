@@ -1,8 +1,8 @@
 package ratel
 
 import (
-	"mleku.dev/event"
-	"mleku.dev/filter"
+	"realy.lol/event"
+	"realy.lol/filter"
 )
 
 func (r *T) CountEvents(c Ctx, f *filter.T) (count N, err E) {

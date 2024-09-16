@@ -11,13 +11,13 @@ import (
 	"time"
 
 	arg "github.com/alexflint/go-arg"
-	"mleku.dev/atomic"
-	"mleku.dev/bech32encoding"
-	"mleku.dev/ec/bech32"
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/ec/secp256k1"
-	"mleku.dev/interrupt"
-	"mleku.dev/qu"
+	"realy.lol/atomic"
+	"realy.lol/bech32encoding"
+	"realy.lol/ec/bech32"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/interrupt"
+	"realy.lol/qu"
 )
 
 var prefix = append(bech32encoding.PubHRP, '1')

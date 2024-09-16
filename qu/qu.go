@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"mleku.dev/atomic"
-	"mleku.dev/lol"
+	"realy.lol/atomic"
+	"realy.lol/lol"
 )
 
 // C is your basic empty struct signalling channel

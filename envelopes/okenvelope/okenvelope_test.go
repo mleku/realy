@@ -3,9 +3,9 @@ package okenvelope
 import (
 	"testing"
 
-	"mleku.dev/envelopes"
-	"mleku.dev/envelopes/messages"
-	"mleku.dev/eventid"
+	"realy.lol/envelopes"
+	"realy.lol/envelopes/messages"
+	"realy.lol/eventid"
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {

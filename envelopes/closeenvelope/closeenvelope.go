@@ -3,9 +3,9 @@ package closeenvelope
 import (
 	"io"
 
-	"mleku.dev"
-	"mleku.dev/envelopes"
-	"mleku.dev/subscriptionid"
+	"realy.lol"
+	"realy.lol/envelopes"
+	"realy.lol/subscriptionid"
 )
 
 const L = "CLOSE"

@@ -8,8 +8,8 @@ import (
 	"math/big"
 	"testing"
 
-	"mleku.dev/ec/secp256k1"
-	"mleku.dev/hex"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/hex"
 )
 
 // setHex decodes the passed big-endian hex string into the internal field value

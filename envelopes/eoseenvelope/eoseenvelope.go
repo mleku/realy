@@ -3,9 +3,9 @@ package eoseenvelope
 import (
 	"io"
 
-	"mleku.dev"
-	"mleku.dev/envelopes"
-	sid "mleku.dev/subscriptionid"
+	"realy.lol"
+	"realy.lol/envelopes"
+	sid "realy.lol/subscriptionid"
 )
 
 const L = "EOSE"

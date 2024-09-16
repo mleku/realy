@@ -11,10 +11,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"mleku.dev/ec"
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/ec/secp256k1"
-	"mleku.dev/hex"
+	"realy.lol/ec"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/hex"
 )
 
 const (

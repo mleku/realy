@@ -1,10 +1,10 @@
 package event
 
 import (
-	realy "mleku.dev"
-	sch "mleku.dev/ec/schnorr"
-	k1 "mleku.dev/ec/secp256k1"
-	"mleku.dev/p256k"
+	realy "realy.lol"
+	sch "realy.lol/ec/schnorr"
+	k1 "realy.lol/ec/secp256k1"
+	"realy.lol/p256k"
 )
 
 // Sign the event using the nostr.Signer. Uses github.com/bitcoin-core/secp256k1 if available for much faster

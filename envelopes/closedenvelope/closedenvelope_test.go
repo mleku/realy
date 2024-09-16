@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
-	"mleku.dev/envelopes"
-	"mleku.dev/subscriptionid"
+	"realy.lol/envelopes"
+	"realy.lol/subscriptionid"
 )
 
 var messages = []B{

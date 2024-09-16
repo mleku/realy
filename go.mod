@@ -1,4 +1,4 @@
-module mleku.dev
+module realy.lol
 
 go 1.23.1
 
@@ -8,7 +8,6 @@ require (
 	github.com/dgraph-io/badger/v4 v4.3.0
 	github.com/fasthttp/websocket v1.5.10
 	github.com/fatih/color v1.17.0
-	github.com/fiatjaf/eventstore v0.9.0
 	github.com/gobwas/httphead v0.1.0
 	github.com/gobwas/ws v1.4.0
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
@@ -20,7 +19,6 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/templexxx/xhex v0.0.0-20200614015412-aed53437177b
 	golang.org/x/crypto v0.27.0
-	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/net v0.29.0
 	golang.org/x/sync v0.8.0

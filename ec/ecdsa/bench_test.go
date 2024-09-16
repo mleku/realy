@@ -8,8 +8,8 @@ package ecdsa
 import (
 	"testing"
 
-	"mleku.dev/ec/secp256k1"
-	"mleku.dev/hex"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/hex"
 )
 
 // hexToModNScalar converts the passed hex string into a ModNScalar and will

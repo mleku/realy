@@ -3,8 +3,8 @@ package subscriptionid
 import (
 	"crypto/rand"
 
-	"mleku.dev/ec/bech32"
-	"mleku.dev/text"
+	"realy.lol/ec/bech32"
+	"realy.lol/text"
 )
 
 type T struct {

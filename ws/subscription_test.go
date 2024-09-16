@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"mleku.dev/filter"
-	"mleku.dev/filters"
-	"mleku.dev/kind"
-	"mleku.dev/kinds"
-	"mleku.dev/tag"
-	"mleku.dev/tags"
+	"realy.lol/filter"
+	"realy.lol/filters"
+	"realy.lol/kind"
+	"realy.lol/kinds"
+	"realy.lol/tag"
+	"realy.lol/tags"
 )
 
 const RELAY = "wss://relay.damus.io"

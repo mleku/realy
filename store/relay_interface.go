@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sort"
 
-	"mleku.dev/event"
-	"mleku.dev/filter"
-	"mleku.dev/ws"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/ws"
 )
 
 // RelayInterface is a wrapper thing that unifies Store and Relay under a// common API.

@@ -9,9 +9,9 @@ import (
 	"errors"
 	"io"
 
-	"mleku.dev/ec"
-	"mleku.dev/ec/chainhash"
-	"mleku.dev/ec/schnorr"
+	"realy.lol/ec"
+	"realy.lol/ec/chainhash"
+	"realy.lol/ec/schnorr"
 )
 
 const (

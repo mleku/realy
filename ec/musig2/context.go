@@ -5,8 +5,8 @@ package musig2
 import (
 	"fmt"
 
-	"mleku.dev/ec"
-	"mleku.dev/ec/schnorr"
+	"realy.lol/ec"
+	"realy.lol/ec/schnorr"
 )
 
 var (

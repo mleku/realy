@@ -6,7 +6,7 @@ import (
 	"errors"
 	"sort"
 
-	"mleku.dev/tag"
+	"realy.lol/tag"
 )
 
 // T is a list of T - which are lists of string elements with ordering and no

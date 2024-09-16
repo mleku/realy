@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"mleku.dev/kind"
-	"mleku.dev/ratel/keys"
+	"realy.lol/kind"
+	"realy.lol/ratel/keys"
 )
 
 const Len = 2

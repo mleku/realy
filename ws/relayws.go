@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/fasthttp/websocket"
-	"mleku.dev/atomic"
-	"mleku.dev/bech32encoding"
-	"mleku.dev/context"
-	"mleku.dev/ec/bech32"
-	"mleku.dev/qu"
+	"realy.lol/atomic"
+	"realy.lol/bech32encoding"
+	"realy.lol/context"
+	"realy.lol/ec/bech32"
+	"realy.lol/qu"
 )
 
 type MessageType int

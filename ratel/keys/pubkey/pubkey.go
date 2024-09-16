@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	"mleku.dev/ec/schnorr"
-	"mleku.dev/ratel/keys"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ratel/keys"
 )
 
 const Len = 8

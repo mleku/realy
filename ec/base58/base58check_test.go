@@ -7,7 +7,7 @@ package base58_test
 import (
 	"testing"
 
-	"mleku.dev/ec/base58"
+	"realy.lol/ec/base58"
 )
 
 var checkEncodingStringTests = []struct {

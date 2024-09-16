@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"mleku.dev/event"
-	"mleku.dev/filter"
-	eventstore "mleku.dev/store"
+	"realy.lol/event"
+	"realy.lol/filter"
+	eventstore "realy.lol/store"
 )
 
 func startTestRelay(t *testing.T, tr *testRelay) *Server {

@@ -3,9 +3,9 @@ package authenvelope
 import (
 	"testing"
 
-	"mleku.dev/auth"
-	"mleku.dev/envelopes"
-	"mleku.dev/p256k"
+	"realy.lol/auth"
+	"realy.lol/envelopes"
+	"realy.lol/p256k"
 )
 
 const relayURL = "wss://example.com"

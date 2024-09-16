@@ -6,8 +6,8 @@ import (
 	"os/signal"
 	"runtime"
 
-	"mleku.dev/atomic"
-	"mleku.dev/qu"
+	"realy.lol/atomic"
+	"realy.lol/qu"
 )
 
 type HandlerWithSource struct {

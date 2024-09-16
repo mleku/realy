@@ -5,12 +5,12 @@ import (
 	"bytes"
 	"io"
 
-	"mleku.dev"
-	"mleku.dev/envelopes"
-	"mleku.dev/filters"
-	"mleku.dev/ints"
-	sid "mleku.dev/subscriptionid"
-	"mleku.dev/text"
+	"realy.lol"
+	"realy.lol/envelopes"
+	"realy.lol/filters"
+	"realy.lol/ints"
+	sid "realy.lol/subscriptionid"
+	"realy.lol/text"
 )
 
 const L = "COUNT"

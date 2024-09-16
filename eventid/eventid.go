@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"lukechampine.com/frand"
-	"mleku.dev/hex"
-	"mleku.dev/sha256"
+	"realy.lol/hex"
+	"realy.lol/sha256"
 )
 
 // T is the SHA256 hash in hexadecimal of the canonical form of an event as
