@@ -48,6 +48,7 @@ func (r *Relay) AcceptEvent(ctx context.Context, evt *event.T) bool {
 }
 
 func main() {
+	lol.SetLogLevel("debug")
 	var err E
 	var path S
 	r := &Relay{}

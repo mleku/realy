@@ -100,7 +100,6 @@ func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store store.I) {
 	case countenvelope.L:
 		notice = s.doCount(c, ws, rem, store)
 	case reqenvelope.L:
-		log.I.F("%s", rem)
 		notice = s.doReq(c, ws, rem, store)
 	case closeenvelope.L:
 		notice = s.doClose(c, ws, rem, store)
@@ -113,39 +112,9 @@ func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store store.I) {
 			notice = B(fmt.Sprintf("unknown envelope type %s\n%s", t, rem))
 		}
 	}
-
-	// var request []json.RawMessage
-	// if err := json.Unmarshal(msg, &request); err != nil {
-	// 	// stop silently
-	// 	return
-	// }
-
-	// if len(request) < 2 {
-	// 	notice = "request has less than 2 parameters"
-	// 	return
-	// }
-
-	// var typ S
-	// json.Unmarshal(request[0], &typ)
-	//
-	// switch typ {
-	// case "EVENT":
-	// 	notice = s.doEvent(c, ws, request, store)
-	// case "COUNT":
-	// 	notice = s.doCount(c, ws, request, store)
-	// case "REQ":
-	// 	notice = s.doReq(c, ws, request, store)
-	// case "CLOSE":
-	// 	notice = s.doClose(c, ws, request, store)
-	// case "AUTH":
-	// 	notice = s.doAuth(c, ws, request, store)
-	// default:
-	// 	if cwh, ok := s.relay.(CustomWebSocketHandler); ok {
-	// 		cwh.HandleUnknownType(ws, typ, request)
-	// 	} else {
-	// 		notice = "unknown message type " + typ
-	// 	}
-	// }
+	if len(notice) > 0 {
+		log.D.F("notice %s", notice)
+	}
 }
 
 func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto store.I) (msg B) {
@@ -382,25 +351,6 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 		log.I.F("extra '%s'", rem)
 	}
 
-	// var id S
-	// json.Unmarshal(req[1], &id)
-	// rq := reqenvelope.New()
-	// rq.UnmarshalJSON(req[1])
-	// if id == "" {
-	// 	return B("REQ has no <id>")
-	// }
-
-	// ff := make(nostr.Filters, len(req)-2)
-	// ff := filters.T{F: make([]*f.T, len(req)-2)}
-	// for i, filterReq := range req[2:] {
-	// 	if err := json.Unmarshal(
-	// 		filterReq,
-	// 		ff.F[i],
-	// 	); err != nil {
-	// 		return B("failed to decode f")
-	// 	}
-	// }
-
 	if accepter, ok := s.relay.(ReqAcceptor); ok {
 		if !accepter.AcceptReq(c, env.Subscription.T, env.Filters, ws.authed) {
 			return B("REQ filters are not accepted")
@@ -409,10 +359,14 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 
 	// for _, f := range ff {
 	for _, f := range env.Filters.F {
-		if filter.Present(f.Limit) && *f.Limit == 0 {
-			log.I.F("filter explicitly zero %s\n%s", env.Subscription.String(),
-				f.String())
-			continue
+		var i uint
+		if filter.Present(f.Limit) {
+			if *f.Limit == 0 {
+				// log.I.F("filter explicitly zero %s\n%s", env.Subscription.String(),
+				// 	f.String())
+				continue
+			}
+			i = *f.Limit
 		}
 		// prevent kind-4 events from being returned to unauthed users,
 		//   only when authentication is a thing
@@ -451,7 +405,6 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 			continue
 		}
 
-		var i uint
 		// sort in reverse chronological order
 		sort.Slice(events, func(i, j int) bool {
 			return events[i].CreatedAt.Int() > events[j].CreatedAt.Int()
@@ -460,8 +413,8 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 			if s.options.skipEventFunc != nil && s.options.skipEventFunc(ev) {
 				continue
 			}
-			i++
-			if filter.Present(f.Limit) && i > *f.Limit {
+			i--
+			if i < 0 {
 				break
 			}
 			if err = eventenvelope.NewResultWith(env.Subscription.T, ev).Write(ws); chk.E(err) {
@@ -528,7 +481,8 @@ func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store store.I) (msg B) {
 			}
 			return normalize.Restricted.F("auth response does not validate")
 		} else {
-			log.D.F("%s authed to pubkey %s", ws.req.Header.Get(""))
+			log.D.F("%s authed to pubkey %0x", ws.req.Header.Get("X-Forwarded-For"),
+				env.Event.PubKey)
 			ws.authed = env.Event.PubKey
 		}
 	}

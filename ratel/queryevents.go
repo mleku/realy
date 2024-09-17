@@ -19,11 +19,9 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
 		return
 	}
-	log.T.S(queries, extraFilter)
 	// search for the keys generated from the filter
 	var eventKeys [][]byte
 	for _, q := range queries {
-		log.T.S(q, extraFilter)
 		err = r.View(func(txn *badger.Txn) (err E) {
 			// iterate only through keys and in reverse order
 			opts := badger.IteratorOptions{
@@ -56,7 +54,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 		}
 	search:
 		for _, eventKey := range eventKeys {
-			// log.I.S(eventKey)
 			var v B
 			err = r.View(func(txn *badger.Txn) (err E) {
 				opts := badger.IteratorOptions{Reverse: true}
@@ -99,7 +96,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			if rem, err = ev.UnmarshalBinary(v); chk.E(err) {
 				return
 			}
-			log.T.S(ev)
 			if len(rem) > 0 {
 				log.T.S(rem)
 			}
@@ -147,7 +143,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			}
 		}
 	}
-	log.T.S(evs)
 	log.T.Ln("query complete")
 	return
 }
