@@ -100,6 +100,7 @@ func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store store.I) {
 	case countenvelope.L:
 		notice = s.doCount(c, ws, rem, store)
 	case reqenvelope.L:
+		log.I.F("%s", rem)
 		notice = s.doReq(c, ws, rem, store)
 	case closeenvelope.L:
 		notice = s.doClose(c, ws, rem, store)
@@ -408,6 +409,11 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 
 	// for _, f := range ff {
 	for _, f := range env.Filters.F {
+		if filter.Present(f.Limit) && *f.Limit == 0 {
+			log.I.F("filter explicitly zero %s\n%s", env.Subscription.String(),
+				f.String())
+			continue
+		}
 		// prevent kind-4 events from being returned to unauthed users,
 		//   only when authentication is a thing
 		if _, ok := s.relay.(Authenticator); ok {
@@ -445,11 +451,7 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 			continue
 		}
 
-		// ensures the client won't be bombarded with events in case Storage doesn't do limits right
-		if f.Limit == 0 {
-			f.Limit = 9999999999
-		}
-		i := 0
+		var i uint
 		// sort in reverse chronological order
 		sort.Slice(events, func(i, j int) bool {
 			return events[i].CreatedAt.Int() > events[j].CreatedAt.Int()
@@ -458,14 +460,14 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 			if s.options.skipEventFunc != nil && s.options.skipEventFunc(ev) {
 				continue
 			}
+			i++
+			if filter.Present(f.Limit) && i > *f.Limit {
+				break
+			}
 			if err = eventenvelope.NewResultWith(env.Subscription.T, ev).Write(ws); chk.E(err) {
 				continue
 			}
 			// ws.WriteJSON(nostr.EventEnvelope{SubscriptionID: &id, Event: *ev})
-			i++
-			if i > f.Limit {
-				break
-			}
 		}
 
 		// // exhaust the channel (in case we broke out of it early) so it is closed by the storage

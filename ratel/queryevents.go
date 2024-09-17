@@ -19,11 +19,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
 		return
 	}
-	var limit bool
-	if f.Limit != 0 {
-		log.T.S("query has a limit")
-		limit = true
-	}
 	log.T.S(queries, extraFilter)
 	// search for the keys generated from the filter
 	var eventKeys [][]byte
@@ -136,9 +131,9 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				}
 				log.T.F("sending back result\n%s\n", ev)
 				evs = append(evs, ev)
-				if limit {
-					f.Limit--
-					if f.Limit == 0 {
+				if filter.Present(f.Limit) {
+					*f.Limit--
+					if *f.Limit == 0 {
 						return
 					}
 				} else {

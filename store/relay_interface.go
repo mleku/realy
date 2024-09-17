@@ -76,9 +76,9 @@ func (w RelayWrapper) QuerySync(c Ctx, f *filter.T,
 	if chk.E(err) {
 		return nil, fmt.Errorf("failed to query: %w", err)
 	}
-	n := f.Limit
-	if n != 0 {
-		results := make(event.Descending, 0, n)
+
+	if f.Limit != nil && *f.Limit > 0 {
+		results := make(event.Descending, 0, *f.Limit)
 		for _, ev := range evs {
 			results = append(results, ev)
 		}

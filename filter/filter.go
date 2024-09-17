@@ -19,6 +19,8 @@ import (
 	"realy.lol/timestamp"
 )
 
+func Present(i *uint) bool { return i != nil }
+
 // T is the primary query form for requesting events from a nostr relay.
 //
 // The ordering of fields of filters is not specified as in the protocol there is no requirement
@@ -36,7 +38,7 @@ type T struct {
 	Since   *timestamp.T `json:"since,omitempty"`
 	Until   *timestamp.T `json:"until,omitempty"`
 	Search  B            `json:"search,omitempty"`
-	Limit   int          `json:"limit,omitempty"`
+	Limit   *uint        `json:"limit,omitempty"`
 }
 
 func New() (f *T) {
@@ -48,7 +50,6 @@ func New() (f *T) {
 		Since:   timestamp.New(),
 		Until:   timestamp.New(),
 		Search:  nil,
-		Limit:   0,
 	}
 }
 
@@ -57,15 +58,25 @@ func New() (f *T) {
 // management code to act as a reference counter, and making a clone implicitly means 1
 // reference.
 func (f *T) Clone() (clone *T) {
+	lim := new(uint)
+	*lim = 1
+	IDs := *f.IDs
+	Kinds := *f.Kinds
+	Authors := *f.Authors
+	Tags := *f.Tags.Clone()
+	Since := *f.Since
+	Until := *f.Until
+	Search := make(B, len(f.Search))
+	copy(Search, f.Search)
 	return &T{
-		IDs:     f.IDs,
-		Kinds:   f.Kinds,
-		Authors: f.Authors,
-		Tags:    f.Tags,
-		Since:   f.Since,
-		Until:   f.Until,
-		Search:  f.Search,
-		Limit:   2,
+		IDs:     &IDs,
+		Kinds:   &Kinds,
+		Authors: &Authors,
+		Tags:    &Tags,
+		Since:   &Since,
+		Until:   &Until,
+		Search:  Search,
+		Limit:   lim,
 	}
 }
 
@@ -196,14 +207,14 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		dst = text.JSONKey(dst, Search)
 		dst = text.AppendQuote(dst, f.Search, text.NostrEscape)
 	}
-	if f.Limit > 0 {
+	if Present(f.Limit) {
 		if first {
 			dst = append(dst, ',')
 		} else {
 			first = true
 		}
 		dst = text.JSONKey(dst, Limit)
-		if dst, err = ints.New(f.Limit).MarshalJSON(dst); chk.E(err) {
+		if dst, err = ints.New(*f.Limit).MarshalJSON(dst); chk.E(err) {
 			return
 		}
 	}
@@ -337,7 +348,8 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				if r, err = l.UnmarshalJSON(r); chk.E(err) {
 					return
 				}
-				f.Limit = int(l.N)
+				u := uint(l.N)
+				f.Limit = &u
 				state = betweenKV
 			case Search[0]:
 				if len(key) < len(Since) {
@@ -440,7 +452,7 @@ func (f *T) Matches(ev *event.T) bool {
 // NIP-01.
 func (f *T) Fingerprint() (fp uint64, err E) {
 	lim := f.Limit
-	f.Limit = 0
+	f.Limit = nil
 	var b B
 	if b, err = f.MarshalJSON(b); chk.E(err) {
 		return

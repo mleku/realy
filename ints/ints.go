@@ -16,7 +16,7 @@ type T struct {
 	N uint64
 }
 
-func New[V int | uint64 | uint32 | uint16 | uint8 | int64 | int32 | int16 | int8](n V) *T {
+func New[V uint | int | uint64 | uint32 | uint16 | uint8 | int64 | int32 | int16 | int8](n V) *T {
 	return &T{uint64(n)}
 }
 
