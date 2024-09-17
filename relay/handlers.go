@@ -1,16 +1,15 @@
 package relay
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
 	"time"
 
 	"github.com/fasthttp/websocket"
-	"github.com/nbd-wtf/go-nostr/nip11"
 	"golang.org/x/time/rate"
 	"realy.lol/auth"
 	"realy.lol/bech32encoding"
@@ -28,7 +27,7 @@ import (
 	"realy.lol/filter"
 	"realy.lol/kind"
 	"realy.lol/normalize"
-	eventstore "realy.lol/store"
+	"realy.lol/store"
 	"realy.lol/tag"
 )
 
@@ -57,7 +56,7 @@ var upgrader = websocket.Upgrader{
 const ChallengeLength = 16
 const ChallengeHRP = "nchal"
 
-func challenge(conn *websocket.Conn) (ws *WebSocket) {
+func challenge(conn *websocket.Conn, req *http.Request) (ws *WebSocket) {
 	var err error
 	// create a new challenge for this connection
 	cb := make([]byte, ChallengeLength)
@@ -73,12 +72,12 @@ func challenge(conn *websocket.Conn) (ws *WebSocket) {
 	if encoded, err = bech32.Encode(bech32.B(ChallengeHRP), b5); chk.E(err) {
 		return
 	}
-	ws = &WebSocket{conn: conn}
+	ws = &WebSocket{conn: conn, req: req}
 	ws.challenge.Store(S(encoded))
 	return
 }
 
-func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store eventstore.I) {
+func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store store.I) {
 	var notice B
 	var err E
 	defer func() {
@@ -148,7 +147,7 @@ func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store eventstore.I) 
 	// }
 }
 
-func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto eventstore.I) (msg B) {
+func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto store.I) (msg B) {
 	var err E
 	var ok bool
 	var rem B
@@ -292,7 +291,7 @@ func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto eventstore.I) (msg B) 
 }
 
 func (s *Server) doCount(c context.Context, ws *WebSocket, req B,
-	store eventstore.I) (msg B) {
+	store store.I) (msg B) {
 
 	counter, ok := store.(EventCounter)
 	if !ok {
@@ -370,7 +369,7 @@ func (s *Server) doCount(c context.Context, ws *WebSocket, req B,
 	return
 }
 
-func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto eventstore.I) (r B) {
+func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 
 	var err E
 	var rem B
@@ -481,7 +480,7 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto eventstore.I) (r B) {
 	return
 }
 
-func (s *Server) doClose(c Ctx, ws *WebSocket, req B, store eventstore.I) (note B) {
+func (s *Server) doClose(c Ctx, ws *WebSocket, req B, store store.I) (note B) {
 
 	var err E
 	var rem B
@@ -499,8 +498,9 @@ func (s *Server) doClose(c Ctx, ws *WebSocket, req B, store eventstore.I) (note 
 	return
 }
 
-func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store eventstore.I) (msg B) {
+func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store store.I) (msg B) {
 	if auther, ok := s.relay.(Authenticator); ok {
+		log.I.F("received auth response\n%s", req)
 		var err E
 		var rem B
 		env := authenvelope.NewResponse()
@@ -512,7 +512,7 @@ func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store eventstore.I) (msg B)
 		}
 		var valid bool
 		if valid, err = auth.Validate(env.Event, auth.B(ws.challenge.Load()),
-			auther.ServiceURL()); chk.E(err) {
+			auther.ServiceUrl(ws.req)); chk.E(err) {
 			if err = okenvelope.NewFrom(env.Event.ID, false, normalize.Error.F(err.Error())).
 				Write(ws); chk.E(err) {
 				return B(err.Error())
@@ -526,21 +526,9 @@ func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store eventstore.I) (msg B)
 			}
 			return normalize.Restricted.F("auth response does not validate")
 		} else {
+			log.D.F("%s authed to pubkey %s", ws.req.Header.Get(""))
 			ws.authed = env.Event.PubKey
 		}
-
-		// var evt event.T
-		// if err := json.Unmarshal(req[1], &evt); err != nil {
-		// 	return "failed to decode auth event: " + err.Error()
-		// }
-		// if pubkey, ok := nip42.ValidateAuthEvent(&evt, ws.challenge, auther.ServiceURL()); ok {
-		// 	ws.authed = pubkey
-		// 	c = context.WithValue(c, AUTH_CONTEXT_KEY, pubkey)
-		// 	ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: true})
-		// } else {
-		// 	ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
-		// 		Reason: "error: failed to authenticate"})
-		// }
 	}
 	return
 }
@@ -563,9 +551,7 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 		ip = realIP
 	}
 	log.I.F("connected from %s", ip)
-
-	ws := challenge(conn)
-
+	ws := challenge(conn, r)
 	if s.options.perConnectionLimiter != nil {
 		ws.limiter = rate.NewLimiter(
 			s.options.perConnectionLimiter.Limit(),
@@ -601,10 +587,13 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 
 		// NIP-42 auth challenge
 		if _, ok := s.relay.(Authenticator); ok {
-			if err = authenvelope.NewChallengeWith(ws.challenge.String()).Write(ws); chk.E(err) {
+			env := authenvelope.NewChallengeWith(ws.challenge.String())
+			buf := bytes.NewBuffer(nil)
+			env.Write(buf)
+			log.I.F("requesting auth '%s", buf.String())
+			if err = env.Write(ws); chk.E(err) {
 				return
 			}
-			// ws.WriteJSON(nostr.AuthEnvelope{Challenge: &ws.challenge.String()})
 		}
 
 		for {
@@ -664,35 +653,4 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}()
-}
-
-func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	var info nip11.RelayInformationDocument
-	if ifmer, ok := s.relay.(Informationer); ok {
-		info = ifmer.GetNIP11InformationDocument()
-	} else {
-		supportedNIPs := []int{9, 11, 12, 15, 16, 20, 33}
-		if _, ok := s.relay.(Authenticator); ok {
-			supportedNIPs = append(supportedNIPs, 42)
-		}
-		if storage, ok := s.relay.(eventstore.I); ok && storage != nil {
-			if _, ok = storage.(EventCounter); ok {
-				supportedNIPs = append(supportedNIPs, 45)
-			}
-		}
-
-		info = nip11.RelayInformationDocument{
-			Name:          s.relay.Name(),
-			Description:   "relay powered by the relayer framework",
-			PubKey:        "~",
-			Contact:       "~",
-			SupportedNIPs: supportedNIPs,
-			Software:      "https://realy.lol",
-			Version:       "~",
-		}
-	}
-
-	json.NewEncoder(w).Encode(info)
 }

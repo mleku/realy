@@ -1,11 +1,13 @@
 package relay
 
 import (
-	"github.com/nbd-wtf/go-nostr/nip11"
+	"net/http"
+
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/filters"
-	store "realy.lol/store"
+	"realy.lol/relayinfo"
+	"realy.lol/store"
 )
 
 // Relay is the main interface for implementing a nostr relay.
@@ -37,7 +39,7 @@ type ReqAcceptor interface {
 // Authenticator is the interface for implementing NIP-42.
 // ServiceURL() returns the URL used to verify the "AUTH" event from clients.
 type Authenticator interface {
-	ServiceURL() S
+	ServiceUrl(r *http.Request) S
 }
 
 type Injector interface {
@@ -48,7 +50,7 @@ type Injector interface {
 // with application/nostr+json mime type.
 // See also [Relay.Name].
 type Informationer interface {
-	GetNIP11InformationDocument() nip11.RelayInformationDocument
+	GetNIP11InformationDocument() *relayinfo.T
 }
 
 // CustomWebSocketHandler is passed nostr message types unrecognized by the
@@ -83,5 +85,5 @@ type AdvancedSaver interface {
 }
 
 type EventCounter interface {
-	CountEvents(c Ctx, f *filter.T) (N, E)
+	CountEvents(c Ctx, f *filter.T) (count N, err E)
 }

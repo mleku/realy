@@ -128,6 +128,15 @@ func SetLoggers(level int) {
 	Level.Store(int32(level))
 }
 
+func GetLogLevel(level string) (i int) {
+	for i = range LevelNames {
+		if level == LevelNames[i] {
+			return i
+		}
+	}
+	return Info
+}
+
 func SetLogLevel(level string) {
 	for i := range LevelNames {
 		if level == LevelNames[i] {

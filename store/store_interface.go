@@ -1,4 +1,4 @@
-package eventstore
+package store
 
 import (
 	"realy.lol/event"

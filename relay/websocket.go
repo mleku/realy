@@ -1,6 +1,7 @@
 package relay
 
 import (
+	"net/http"
 	"sync"
 
 	"github.com/fasthttp/websocket"
@@ -11,7 +12,7 @@ import (
 type WebSocket struct {
 	conn  *websocket.Conn
 	mutex sync.Mutex
-
+	req   *http.Request
 	// nip42
 	challenge atomic.String
 	authed    B

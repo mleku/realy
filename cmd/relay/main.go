@@ -12,21 +12,20 @@ import (
 	"realy.lol/lol"
 	"realy.lol/ratel"
 	realy "realy.lol/relay"
-	eventstore "realy.lol/store"
+	"realy.lol/store"
 	"realy.lol/units"
 )
 
 type Relay struct {
-	RatelDbPath S `envconfig:"BADGER_DATABASE"`
-
-	storage eventstore.I
+	RatelDbPath S `envconfig:"DATABASE"`
+	storage     store.I
 }
 
 func (r *Relay) Name() S {
-	return "BasicRelay"
+	return "REALY"
 }
 
-func (r *Relay) Storage(ctx context.Context) eventstore.I {
+func (r *Relay) Storage(ctx context.Context) store.I {
 	return r.storage
 }
 
@@ -51,22 +50,27 @@ func (r *Relay) AcceptEvent(ctx context.Context, evt *event.T) bool {
 func main() {
 	var err E
 	var path S
-	// default to creating a one-time temporary database
-	if path, err = os.MkdirTemp("/tmp", "realy"); chk.E(err) {
-		os.Exit(1)
-	}
-	r := &Relay{RatelDbPath: path}
-	// if an environment variable for the database path is set, it will override the temporary.
-	if err = envconfig.Process("", r); err != nil {
+	r := &Relay{}
+	if err = envconfig.Process(r.Name(), r); err != nil {
 		log.F.F("failed to read from env: %v", err)
 		return
 	}
+	log.I.F("'%s'", r.RatelDbPath)
+	if r.RatelDbPath == "" {
+		// default to creating a one-time temporary database
+		if path, err = os.MkdirTemp("/tmp", "realy"); chk.E(err) {
+			os.Exit(1)
+		}
+		r.RatelDbPath = path
+	}
+	log.I.F("'%s'", r.RatelDbPath)
 	var wg sync.WaitGroup
 	c, cancel := context.WithCancel(context.Background())
-	r.storage = ratel.GetBackend(c, &wg, r.RatelDbPath, false, units.Gb*8, lol.Trace, 0)
+	r.storage = ratel.GetBackend(c, &wg, r.RatelDbPath, false, units.Gb*8,
+		lol.Trace, 0)
 	var server *realy.Server
 	if server, err = realy.NewServer(r, path); chk.E(err) {
-
+		return
 	}
 	if err != nil {
 		log.F.F("failed to create server: %v", err)

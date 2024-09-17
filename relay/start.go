@@ -2,6 +2,7 @@ package relay
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -31,13 +32,10 @@ import (
 // and how it works: https://github.com/nostr-protocol/nostr
 type Server struct {
 	options *Options
-
-	relay Relay
-
+	relay   Relay
 	// keep a connection reference to all connected clients for Server.Shutdown
 	clientsMu sync.Mutex
 	clients   map[*websocket.Conn]struct{}
-
 	// in case you call Server.Start
 	Addr       S
 	serveMux   *http.ServeMux
@@ -77,8 +75,8 @@ func NewServer(relay Relay, path S, opts ...Option) (*Server, E) {
 	// start listening from events from other sources, if any
 	if inj, ok := relay.(Injector); ok {
 		go func() {
-			for event := range inj.InjectEvents() {
-				notifyListeners(event)
+			for ev := range inj.InjectEvents() {
+				notifyListeners(ev)
 			}
 		}()
 	}
@@ -118,7 +116,7 @@ func (s *Server) Start(host S, port int, started ...chan bool) E {
 		close(started)
 	}
 
-	if err := s.httpServer.Serve(ln); err == http.ErrServerClosed {
+	if err = s.httpServer.Serve(ln); errors.Is(err, http.ErrServerClosed) {
 		return nil
 	} else if err != nil {
 		return err
