@@ -15,6 +15,7 @@ type WebSocket struct {
 	req   *http.Request
 	// nip42
 	challenge atomic.String
+	Remote    atomic.String
 	authed    B
 	limiter   *rate.Limiter
 }

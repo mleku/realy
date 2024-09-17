@@ -56,7 +56,7 @@ var upgrader = websocket.Upgrader{
 const ChallengeLength = 16
 const ChallengeHRP = "nchal"
 
-func challenge(conn *websocket.Conn, req *http.Request) (ws *WebSocket) {
+func challenge(conn *websocket.Conn, req *http.Request, addr string) (ws *WebSocket) {
 	var err error
 	// create a new challenge for this connection
 	cb := make([]byte, ChallengeLength)
@@ -73,6 +73,7 @@ func challenge(conn *websocket.Conn, req *http.Request) (ws *WebSocket) {
 		return
 	}
 	ws = &WebSocket{conn: conn, req: req}
+	ws.Remote.Store(addr)
 	ws.challenge.Store(S(encoded))
 	return
 }
@@ -455,7 +456,7 @@ func (s *Server) doClose(c Ctx, ws *WebSocket, req B, store store.I) (note B) {
 
 func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store store.I) (msg B) {
 	if auther, ok := s.relay.(Authenticator); ok {
-		log.I.F("received auth response\n%s", req)
+		log.D.F("received auth response\n%s", req)
 		var err E
 		var rem B
 		env := authenvelope.NewResponse()
@@ -481,7 +482,7 @@ func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store store.I) (msg B) {
 			}
 			return normalize.Restricted.F("auth response does not validate")
 		} else {
-			log.D.F("%s authed to pubkey %0x", ws.req.Header.Get("X-Forwarded-For"),
+			log.D.F("%s authed to pubkey %0x", ws.Remote.Load(),
 				env.Event.PubKey)
 			ws.authed = env.Event.PubKey
 		}
@@ -507,7 +508,7 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 		ip = realIP
 	}
 	log.I.F("connected from %s", ip)
-	ws := challenge(conn, r)
+	ws := challenge(conn, r, ip)
 	if s.options.perConnectionLimiter != nil {
 		ws.limiter = rate.NewLimiter(
 			s.options.perConnectionLimiter.Limit(),
