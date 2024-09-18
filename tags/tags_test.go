@@ -19,9 +19,9 @@ func TestMarshalUnmarshal(t *testing.T) {
 			for _ = range n1 {
 				b1 := make(B, frand.Intn(40)+2)
 				_, _ = frand.Read(b1)
-				tg.Field = append(tg.Field, b1)
+				tg = tg.Append(b1)
 			}
-			tgs.T = append(tgs.T, tg)
+			tgs.t = append(tgs.t, tg)
 		}
 		b, _ = tgs.MarshalJSON(b)
 		bo := make(B, len(b))
@@ -97,9 +97,10 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 				for _ = range n1 {
 					b1 := make(B, frand.Intn(40)+2)
 					_, _ = frand.Read(b1)
-					tg.Field = append(tg.Field, b1)
+					tg = tg.Append(b1)
+					// tg.Field = append(tg.Field, b1)
 				}
-				tgs.T = append(tgs.T, tg)
+				tgs.t = append(tgs.t, tg)
 			}
 			b, _ = tgs.MarshalJSON(b)
 			b = b[:0]
@@ -116,9 +117,9 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 				for _ = range n1 {
 					b1 := make(B, frand.Intn(40)+2)
 					_, _ = frand.Read(b1)
-					tg.Field = append(tg.Field, b1)
+					tg = tg.Append(b1)
 				}
-				tgs.T = append(tgs.T, tg)
+				tgs.t = append(tgs.t, tg)
 			}
 			b, _ = tgs.MarshalJSON(b)
 			ta := New()
@@ -146,14 +147,55 @@ func TestT_Clone_Equal(t *testing.T) {
 			for _ = range n1 {
 				b1 := make(B, frand.Intn(40)+2)
 				_, _ = frand.Read(b1)
-				tg.Field = append(tg.Field, b1)
+				tg = tg.Append(b1)
 			}
-			t1.T = append(t1.T, tg)
+			t1.t = append(t1.t, tg)
 		}
 		t2 := t1.Clone()
 		if !t1.Equal(t2) {
 			log.E.S(t1, t2)
 			t.Fatal("not equal")
 		}
+	}
+}
+
+func TestTagHelpers(t *testing.T) {
+	tags := New(
+		tag.New("x"),
+		tag.New("p", "abcdef", "wss://x.com"),
+		tag.New("p", "123456", "wss://y.com"),
+		tag.New("e", "eeeeee"),
+		tag.New("e", "ffffff"),
+	)
+
+	if tags.GetFirst(tag.New("x")) == nil {
+		t.Error("failed to get existing prefix")
+	}
+	if tags.GetFirst(tag.New("x", "")) != nil {
+		t.Error("got with wrong prefix")
+	}
+	if tags.GetFirst(tag.New("p", "abcdef", "wss://")) == nil {
+		t.Error("failed to get with existing prefix")
+	}
+	if tags.GetFirst(tag.New("p", "abcdef", "")) == nil {
+		t.Error("failed to get with existing prefix (blank last string)")
+	}
+	if S(tags.GetLast(tag.New("e")).S(1)) != "ffffff" {
+		t.Error("failed to get last")
+	}
+	if tags.GetAll(tag.New("e", "")).Len() != 2 {
+		t.Error("failed to get all")
+	}
+	if tags.AppendUnique(tag.New("e", "ffffff")).Len() != 5 {
+		t.Error("append unique changed the array size when existed")
+	}
+	if tags.AppendUnique(tag.New("e", "bbbbbb")).Len() != 6 {
+		t.Error("append unique failed to append when didn't exist")
+	}
+	if S(tags.AppendUnique(tag.New("e", "eeeeee")).N(4).S(1)) != "ffffff" {
+		t.Error("append unique changed the order")
+	}
+	if S(tags.AppendUnique(tag.New("e", "eeeeee")).N(3).S(1)) != "eeeeee" {
+		t.Error("append unique changed the order")
 	}
 }

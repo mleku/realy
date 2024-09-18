@@ -96,12 +96,12 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 	f.Sort()
 	// open parentheses
 	dst = append(dst, '{')
-	if f.IDs != nil && len(f.IDs.Field) > 0 {
+	if f.IDs != nil && f.IDs.Len() > 0 {
 		first = true
 		dst = text.JSONKey(dst, IDs)
 		dst = text.MarshalHexArray(dst, f.IDs.ToByteSlice())
 	}
-	if f.Kinds != nil && len(f.Kinds.K) > 0 {
+	if f.Kinds.Len() > 0 {
 		if first {
 			dst = append(dst, ',')
 		} else {
@@ -112,7 +112,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 			return
 		}
 	}
-	if f.Authors != nil && len(f.Authors.Field) > 0 {
+	if f.Authors.Len() > 0 {
 		if first {
 			dst = append(dst, ',')
 		} else {
@@ -121,7 +121,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		dst = text.JSONKey(dst, Authors)
 		dst = text.MarshalHexArray(dst, f.Authors.ToByteSlice())
 	}
-	if f.Tags != nil && len(f.Tags.T) > 0 {
+	if f.Tags.Len() > 0 {
 		// if first {
 		// 	dst = append(dst, ',')
 		// } else {
@@ -132,22 +132,22 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		//
 		//     [["#p","<pubkey1>","<pubkey3"],["#t","hashtag","stuff"]]
 		//
-		for _, tg := range f.Tags.T {
+		for _, tg := range f.Tags.Value() {
 			if tg == nil {
 				// nothing here
 				continue
 			}
-			if len(tg.Field) < 1 || len(tg.Field[0]) != 2 {
+			if tg.Len() < 1 || len(tg.Key()) != 2 {
 				// if there is no values, skip; the "key" field must be 2 characters long,
 				continue
 			}
-			tKey := tg.Field[0]
+			tKey := tg.F()[0]
 			if tKey[0] != '#' &&
 				(tKey[1] < 'a' && tKey[1] > 'z' || tKey[1] < 'A' && tKey[1] > 'Z') {
 				// first "key" field must begin with '#' and second be alpha
 				continue
 			}
-			values := tg.Field[1:]
+			values := tg.F()[1:]
 			if len(values) == 0 {
 				continue
 			}
@@ -157,7 +157,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 				first = true
 			}
 			// append the key
-			dst = append(dst, '"', tg.Field[0][0], tg.Field[0][1], '"', ':')
+			dst = append(dst, '"', tg.B(0)[0], tg.B(0)[1], '"', ':')
 			dst = append(dst, '[')
 			for i, value := range values {
 				_ = i
@@ -289,7 +289,8 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 						return
 					}
 					ff = append([]B{k}, ff...)
-					f.Tags.T = append(f.Tags.T, tag.New(ff...))
+					f.Tags = f.Tags.AppendTags(tag.New(ff...))
+					// f.Tags.T = append(f.Tags.T, tag.New(ff...))
 				default:
 					// other types of tags can be anything
 					var ff []B
@@ -297,7 +298,8 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 						return
 					}
 					ff = append([]B{k}, ff...)
-					f.Tags.T = append(f.Tags.T, tag.New(ff...))
+					f.Tags = f.Tags.AppendTags(tag.New(ff...))
+					// f.Tags.T = append(f.Tags.T, tag.New(ff...))
 				}
 				state = betweenKV
 			case IDs[0]:
@@ -418,26 +420,26 @@ func (f *T) Matches(ev *event.T) bool {
 		// log.T.F("nil event")
 		return false
 	}
-	if f.IDs != nil && len(f.IDs.Field) > 0 && !f.IDs.Contains(ev.ID) {
+	if f.IDs.Len() > 0 && !f.IDs.Contains(ev.ID) {
 		// log.T.F("no ids in filter match event\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if f.Kinds != nil && len(f.Kinds.K) > 0 && !f.Kinds.Contains(ev.Kind) {
+	if f.Kinds.Len() > 0 && !f.Kinds.Contains(ev.Kind) {
 		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if f.Authors != nil && len(f.Authors.Field) > 0 && !f.Authors.Contains(ev.PubKey) {
+	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.PubKey) {
 		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if f.Tags != nil && !ev.Tags.Intersects(f.Tags) {
+	if f.Tags.Len() > 0 && !ev.Tags.Intersects(f.Tags) {
 		return false
 	}
-	if f.Since != nil && f.Since.Int() != 0 && ev.CreatedAt != nil && ev.CreatedAt.I64() < f.Since.I64() {
+	if f.Since.Int() != 0 && ev.CreatedAt.I64() < f.Since.I64() {
 		// log.T.F("event is older than since\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if f.Until != nil && f.Until.Int() != 0 && ev.CreatedAt.I64() > f.Until.I64() {
+	if f.Until.Int() != 0 && ev.CreatedAt.I64() > f.Until.I64() {
 		// log.T.F("event is newer than until\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
@@ -495,7 +497,7 @@ func Equal(a, b *T) bool {
 	if !a.Kinds.Equals(b.Kinds) ||
 		!a.IDs.Equal(b.IDs) ||
 		!a.Authors.Equal(b.Authors) ||
-		len(a.Tags.T) != len(b.Tags.T) ||
+		a.Tags.Len() != b.Tags.Len() ||
 		!arePointerValuesEqual(a.Since, b.Since) ||
 		!arePointerValuesEqual(a.Until, b.Until) ||
 		!equals(a.Search, b.Search) ||
@@ -511,7 +513,8 @@ func GenFilter() (f *T, err error) {
 	for _ = range n {
 		id := make(B, sha256.Size)
 		frand.Read(id)
-		f.IDs.Field = append(f.IDs.Field, id)
+		f.IDs = f.IDs.Append(id)
+		// f.IDs.Field = append(f.IDs.Field, id)
 	}
 	n = frand.Intn(16)
 	for _ = range n {
@@ -524,7 +527,8 @@ func GenFilter() (f *T, err error) {
 			return
 		}
 		pk := sk.PubKey()
-		f.Authors.Field = append(f.Authors.Field, schnorr.SerializePubKey(pk))
+		f.Authors = f.Authors.Append(schnorr.SerializePubKey(pk))
+		// f.Authors.Field = append(f.Authors.Field, schnorr.SerializePubKey(pk))
 	}
 	a := frand.Intn(16)
 	if a < n {
@@ -532,7 +536,7 @@ func GenFilter() (f *T, err error) {
 	}
 	for i := range n {
 		p := make(B, 0, schnorr.PubKeyBytesLen*2)
-		p = hex.EncAppend(p, f.Authors.Field[i])
+		p = hex.EncAppend(p, f.Authors.B(i))
 	}
 	for b := 'a'; b <= 'z'; b++ {
 		l := frand.Intn(6)
@@ -544,7 +548,8 @@ func GenFilter() (f *T, err error) {
 				idb = append(idb, id)
 			}
 			idb = append([]B{{'#', byte(b)}}, idb...)
-			f.Tags.T = append(f.Tags.T, tag.FromBytesSlice(idb...))
+			f.Tags = f.Tags.AppendTags(tag.FromBytesSlice(idb...))
+			// f.Tags.T = append(f.Tags.T, tag.FromBytesSlice(idb...))
 		} else {
 			var idb []B
 			for range l {
@@ -555,7 +560,8 @@ func GenFilter() (f *T, err error) {
 				idb = append(idb, id)
 			}
 			idb = append([]B{{'#', byte(b)}}, idb...)
-			f.Tags.T = append(f.Tags.T, tag.FromBytesSlice(idb...))
+			f.Tags = f.Tags.AppendTags(tag.FromBytesSlice(idb...))
+			// f.Tags.T = append(f.Tags.T, tag.FromBytesSlice(idb...))
 		}
 	}
 	tn := int(timestamp.Now().I64())

@@ -37,7 +37,7 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 		return
 	}
 	var indexKeys []B
-	ev := &event.T{}
+	ev := event.New()
 	var evKey, evb, counterKey B
 	// fetch the event to get its index keys
 	err = r.View(func(txn *badger.Txn) (err error) {
@@ -50,9 +50,13 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 			if evb, err = it.Item().ValueCopy(evb); chk.E(err) {
 				return
 			}
-			if _, err = ev.MarshalJSON(evb); chk.E(err) {
+			log.I.S(evb)
+			var rem B
+			if rem, err = ev.UnmarshalBinary(evb); chk.E(err) {
 				return
 			}
+			_ = rem
+			// log.I.S(rem, ev, seri)
 			indexKeys = GetIndexKeysForEvent(ev, seri)
 			counterKey = GetCounterKey(seri)
 			return

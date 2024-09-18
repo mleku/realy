@@ -51,7 +51,7 @@ func (ev *T) Serialize() (b B) {
 	return
 }
 
-func (ev *T) String() (r S) { return S(ev.Serialize()) }
+// func (ev *T) String() (r S) { return S(ev.Serialize()) }
 
 func (ev *T) ToCanonical() (b B) {
 	b = append(b, "[0,\""...)

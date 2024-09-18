@@ -54,14 +54,14 @@ func EstimateSize(ev *T) (size int) {
 	// be used
 	size++
 	// next a byte for the length of each tag list
-	for i := range ev.Tags.T {
+	for i := range ev.Tags.F() {
 		size++
-		for j := range ev.Tags.T[i].Field {
+		for _ = range ev.Tags.N(i).F() {
 			// plus a varint16 for each tag length prefix (very often will be 1
 			// byte, occasionally 2, but no more than this
 			size += binary.MaxVarintLen16
 			// and the length of the actual tag
-			size += len(ev.Tags.T[i].Field[j])
+			size += ev.Tags.N(i).Len()
 		}
 	}
 	// length prefix of the content field
@@ -130,16 +130,16 @@ func (w *Writer) WriteCreatedAt(t *timestamp.T) (err E) {
 //	event ID is disabled because of a wrong a tag in the test events cache.
 func (w *Writer) WriteTags(t *tags.T) (err E) {
 	// first a byte for the number of tags
-	w.Buf = appendUvarint(w.Buf, uint64(len(t.T)))
-	for i := range t.T {
+	w.Buf = appendUvarint(w.Buf, uint64(t.Len()))
+	for i := range t.F() {
 		var secondIsHex, secondIsDecimalHex bool
 		// first the length of the tag
-		w.Buf = appendUvarint(w.Buf, uint64(len(t.T[i].Field)))
+		w.Buf = appendUvarint(w.Buf, uint64(t.N(i).Len()))
 	scanning:
-		for j := range t.T[i].Field {
+		for j := range t.N(i).F() {
 			// we know from this first tag certain conditions that allow
 			// data optimizations
-			ts := t.T[i].Field[j]
+			ts := t.N(i).B(j)
 			switch {
 			case j == 0 && len(ts) == 1:
 				for k := range HexInSecond {
@@ -159,12 +159,12 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 					w.Buf = appendUvarint(w.Buf, uint64(32))
 					if w.Buf, err = hex.DecAppend(w.Buf, ts); chk.E(err) {
 						// the value MUST be hex by the spec
-						log.W.Ln(t.T[i])
+						log.W.Ln(t.N(i))
 						return
 					}
 					continue scanning
 				case secondIsDecimalHex:
-					split := bytes.Split(t.T[i].Field[j], B(":"))
+					split := bytes.Split(t.N(i).B(j), B(":"))
 					// append the lengths accordingly
 					// first is 2 bytes size
 					var n int

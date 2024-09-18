@@ -15,9 +15,24 @@ type T struct {
 
 func New[V uint16 | uint32 | int](k V) (ki *T) { return &T{uint16(k)} }
 
-func (k *T) ToInt() int       { return int(k.K) }
-func (k *T) ToU16() uint16    { return k.K }
-func (k *T) ToU64() uint64    { return uint64(k.K) }
+func (k *T) ToInt() int {
+	if k == nil {
+		return 0
+	}
+	return int(k.K)
+}
+func (k *T) ToU16() uint16 {
+	if k == nil {
+		return 0
+	}
+	return k.K
+}
+func (k *T) ToU64() uint64 {
+	if k == nil {
+		return 0
+	}
+	return uint64(k.K)
+}
 func (k *T) Name() string     { return GetString(k) }
 func (k *T) Equal(k2 *T) bool { return *k == *k2 }
 

@@ -20,7 +20,12 @@ func FromIntSlice(is []int) (k *T) {
 	return
 }
 
-func (k *T) Len() (l int) { return len(k.K) }
+func (k *T) Len() (l int) {
+	if k == nil {
+		return
+	}
+	return len(k.K)
+}
 
 func (k *T) Less(i, j int) bool { return k.K[i].K < k.K[j].K }
 

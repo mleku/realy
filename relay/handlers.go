@@ -101,6 +101,7 @@ func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store store.I) {
 	case countenvelope.L:
 		notice = s.doCount(c, ws, rem, store)
 	case reqenvelope.L:
+		log.I.F("%s", rem)
 		notice = s.doReq(c, ws, rem, store)
 	case closeenvelope.L:
 		notice = s.doClose(c, ws, rem, store)
@@ -180,8 +181,8 @@ func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto store.I) (msg B) {
 
 	if env.Kind.K == kind.Deletion.K {
 		// event deletion -- nip09
-		for _, t := range env.Tags.T {
-			if len(t.Field) >= 2 && equals(t.Key(), B("e")) {
+		for _, t := range env.Tags.Value() {
+			if t.Len() >= 2 && equals(t.Key(), B("e")) {
 				ctx, cancel := context.WithTimeout(c, time.Millisecond*200)
 				defer cancel()
 
@@ -254,7 +255,7 @@ func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto store.I) (msg B) {
 	}
 
 	ok, reason := AddEvent(c, s.relay, env.T)
-	if err = okenvelope.NewFrom(env.ID, true, reason).Write(ws); chk.E(err) {
+	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
 		return
 	}
 	// ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: ok, Reason: reason})
@@ -309,11 +310,11 @@ func (s *Server) doCount(c context.Context, ws *WebSocket, req B,
 							" does your client implement NIP-42?")
 				case senders.Len() == 1 &&
 					receivers.Len() < 2 &&
-					equals(senders.Field[0], ws.authed):
+					equals(senders.F()[0], ws.authed):
 					// allowed filter: ws.authed is sole sender (filter specifies one or all receivers)
 				case receivers.Len() == 1 &&
 					senders.Len() < 2 &&
-					equals(receivers.T[0].Value(), ws.authed):
+					equals(receivers.N(0).Value(), ws.authed):
 					// allowed filter: ws.authed is sole receiver (filter specifies one or all senders)
 				default:
 					// restricted filter: do not return any events,
@@ -384,11 +385,11 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 							" does your client implement NIP-42?")
 				case senders.Len() == 1 &&
 					receivers.Len() < 2 &&
-					equals(senders.Field[0], ws.authed):
+					equals(senders.Key(), ws.authed):
 					// allowed filter: ws.authed is sole sender (filter specifies one or all receivers)
 				case receivers.Len() == 1 &&
 					senders.Len() < 2 &&
-					equals(receivers.T[0].Value(), ws.authed):
+					equals(receivers.N(0).Value(), ws.authed):
 					// allowed filter: ws.authed is sole receiver (filter specifies one or all senders)
 				default:
 					// restricted filter: do not return any events,

@@ -22,14 +22,16 @@ func GetAddrTagElements(tagValue S) (k uint16, pkb B, d S) {
 }
 
 func TagSorter(a, b tag.T) int {
-	if len(a.Field) < 2 {
-		if len(b.Field) < 2 {
+	if a.Len() < 2 {
+		if b.Len() < 2 {
 			return 0
 		}
 		return -1
 	}
-	if len(b.Field) < 2 {
+	if b.Len() < 2 {
 		return 1
 	}
-	return bytes.Compare(a.Field[1], b.Field[1])
+	return bytes.Compare(a.B(1), b.B(1))
 }
+
+func Less(a, b tag.T) bool { return TagSorter(a, b) < 0 }

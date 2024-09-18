@@ -43,9 +43,9 @@ func PrepareQueries(f *filter.T) (
 	}
 	switch {
 	// first if there is IDs, just search for them, this overrides all other filters
-	case len(f.IDs.Field) > 0:
+	case f.IDs.Len() > 0:
 		qs = make([]query, f.IDs.Len())
-		for i, idHex := range f.IDs.Field {
+		for i, idHex := range f.IDs.F() {
 			ih := id.New(eventid.NewWith(B(idHex)))
 			if ih == nil {
 				log.E.F("failed to decode event ID: %s", idHex)
@@ -67,7 +67,7 @@ func PrepareQueries(f *filter.T) (
 		// if there is no kinds, we just make the queries based on the author pub keys
 		if f.Kinds.Len() == 0 {
 			qs = make([]query, f.Authors.Len())
-			for i, pubkeyHex := range f.Authors.Field {
+			for i, pubkeyHex := range f.Authors.F() {
 				var pk *pubkey.T
 				if pk, err = pubkey.New(pubkeyHex); chk.E(err) {
 					// bogus filter, continue anyway
@@ -87,7 +87,7 @@ func PrepareQueries(f *filter.T) (
 			qs = make([]query, f.Authors.Len()*f.Kinds.Len())
 			i := 0
 		authors:
-			for _, pubkeyHex := range f.Authors.Field {
+			for _, pubkeyHex := range f.Authors.F() {
 				for _, kind := range f.Kinds.K {
 					var pk *pubkey.T
 					if pk, err = pubkey.New(pubkeyHex); chk.E(err) {
@@ -103,14 +103,14 @@ func PrepareQueries(f *filter.T) (
 			}
 			// log.T.S("authors/kinds", qs)
 		}
-		if f.Tags != nil && f.Tags.T != nil || f.Tags.Len() > 0 {
+		if f.Tags.Len() > 0 {
 			ext = &filter.T{Tags: f.Tags}
 			// log.T.S("extra filter", ext)
 		}
 	case f.Tags.Len() > 0:
 		// determine the size of the queries array by inspecting all tags sizes
 		size := 0
-		for _, values := range f.Tags.T {
+		for _, values := range f.Tags.Value() {
 			size += values.Len() - 1
 		}
 		if size == 0 {
@@ -121,10 +121,10 @@ func PrepareQueries(f *filter.T) (
 		// and any kinds mentioned as well in extra filter
 		ext = &filter.T{Kinds: f.Kinds}
 		i := 0
-		log.T.S(f.Tags.T)
-		for _, values := range f.Tags.T {
-			log.T.S(values.Field)
-			for _, value := range values.Field[1:] {
+		log.T.S(f.Tags.Value())
+		for _, values := range f.Tags.Value() {
+			log.T.S(values.F())
+			for _, value := range values.F()[1:] {
 				// get key prefix (with full length) and offset where to write the last parts
 				var prf []byte
 				if prf, err = GetTagKeyPrefix(S(value)); chk.E(err) {

@@ -12,13 +12,14 @@ import (
 )
 
 func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
-	log.T.F("query for events\n%s", f)
+	log.I.F("query for events\n%s", f)
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
 	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
 		return
 	}
+	log.I.S(queries, extraFilter)
 	// search for the keys generated from the filter
 	var eventKeys [][]byte
 	for _, q := range queries {
@@ -99,6 +100,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			if len(rem) > 0 {
 				log.T.S(rem)
 			}
+			log.I.S(ev)
 			// check if this matches the other filters that were not part of the index.
 			if extraFilter == nil || extraFilter.Matches(ev) {
 				// check if this event is replaced by one we already have in the result.

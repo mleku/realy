@@ -14,7 +14,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		for _ = range n {
 			b1 := make(B, frand.Intn(8))
 			_, _ = frand.Read(b1)
-			tg.Field = append(tg.Field, b1)
+			tg.field = append(tg.field, b1)
 		}
 		// log.I.S(tg)
 		b, _ = tg.MarshalJSON(b)
@@ -71,7 +71,7 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 	for _ = range n {
 		b1 := make(B, 128)
 		_, _ = frand.Read(b1)
-		tg.Field = append(tg.Field, b1)
+		tg.field = append(tg.field, b1)
 	}
 	bb.Run("tag.MarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
@@ -100,7 +100,7 @@ func TestT_Clone_Equal(t *testing.T) {
 		for _ = range n {
 			f := make(B, frand.Intn(128)+2)
 			_, _ = frand.Read(f)
-			t1.Field = append(t1.Field, f)
+			t1.field = append(t1.field, f)
 		}
 		t2 := t1.Clone()
 		if !t1.Equal(t2) {

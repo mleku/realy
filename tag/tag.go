@@ -27,15 +27,51 @@ type BS[Z B | S] B
 //
 // Not a set, there can be repeating elements.
 type T struct {
-	Field []BS[B]
+	field []BS[B]
 }
 
-func (t *T) Len() int { return len(t.Field) }
+func (t *T) S(i int) (s S) {
+	if t == nil {
+		return
+	}
+	if t.Len() <= i {
+		return
+	}
+	return S(t.field[i])
+}
+
+func (t *T) B(i int) (b B) {
+	if t == nil {
+		return
+	}
+	if t.Len() <= i {
+		return
+	}
+	return B(t.field[i])
+}
+
+func (t *T) F() (b []B) {
+	if t == nil {
+		return []B{}
+	}
+	b = make([]B, t.Len())
+	for i := range t.field {
+		b[i] = t.B(i)
+	}
+	return
+}
+
+func (t *T) Len() int {
+	if t == nil {
+		return 0
+	}
+	return len(t.field)
+}
 
 func (t *T) Less(i, j int) bool {
 	var cursor N
-	for len(t.Field[i]) < cursor-1 && len(t.Field[j]) < cursor-1 {
-		if bytes.Compare(t.Field[i], t.Field[j]) < 0 {
+	for len(t.field[i]) < cursor-1 && len(t.field[j]) < cursor-1 {
+		if bytes.Compare(t.field[i], t.field[j]) < 0 {
 			return true
 		}
 		cursor++
@@ -43,54 +79,63 @@ func (t *T) Less(i, j int) bool {
 	return false
 }
 
-func (t *T) Swap(i, j int) { t.Field[i], t.Field[j] = t.Field[j], t.Field[i] }
+func (t *T) Swap(i, j int) { t.field[i], t.field[j] = t.field[j], t.field[i] }
 
 func NewWithCap(c int) *T { return &T{make([]BS[B], 0, c)} }
 
 func New[V S | B](fields ...V) (t *T) {
-	t = &T{Field: make([]BS[B], len(fields))}
+	t = &T{field: make([]BS[B], len(fields))}
 	for i, field := range fields {
-		t.Field[i] = B(field)
+		t.field[i] = B(field)
 	}
 	return
 }
 
 func FromBytesSlice(fields ...B) (t *T) {
-	t = &T{Field: make([]BS[B], len(fields))}
+	t = &T{field: make([]BS[B], len(fields))}
 	for i, field := range fields {
-		t.Field[i] = field
+		t.field[i] = field
 	}
 	return
 }
 
 // Clone makes a new tag.T with the same members.
 func (t *T) Clone() (c *T) {
-	c = &T{Field: make([]BS[B], 0, len(t.Field))}
-	for _, f := range t.Field {
+	c = &T{field: make([]BS[B], 0, len(t.field))}
+	for _, f := range t.field {
 		l := len(f)
 		b := make([]byte, l)
 		copy(b, f)
-		c.Field = append(c.Field, b)
+		c.field = append(c.field, b)
 	}
 	return
 }
 
-func (t *T) Append(b B)              { t.Field = append(t.Field, b) }
-func (t *T) Cap() int                { return cap(t.Field) }
-func (t *T) Clear()                  { t.Field = t.Field[:0] }
-func (t *T) Slice(start, end int) *T { return &T{t.Field[start:end]} }
+func (t *T) Append(b ...B) (tt *T) {
+	if t == nil {
+		// we are propagating back this to tt if t was nil, else it appends
+		t = &T{make([]BS[B], 0, len(t.field))}
+	}
+	for _, bb := range b {
+		t.field = append(t.field, bb)
+	}
+	return t
+}
+func (t *T) Cap() int                { return cap(t.field) }
+func (t *T) Clear()                  { t.field = t.field[:0] }
+func (t *T) Slice(start, end int) *T { return &T{t.field[start:end]} }
 
 func (t *T) ToByteSlice() (b []B) {
-	for i := range t.Field {
-		b = append(b, t.Field[i])
+	for i := range t.field {
+		b = append(b, t.field[i])
 	}
 	return
 }
 
 func (t *T) ToStringSlice() (b []S) {
-	b = make([]S, 0, len(t.Field))
-	for i := range t.Field {
-		b = append(b, S(t.Field[i]))
+	b = make([]S, 0, len(t.field))
+	for i := range t.field {
+		b = append(b, S(t.field[i]))
 	}
 	return
 }
@@ -100,19 +145,19 @@ func (t *T) ToStringSlice() (b []S) {
 // The last element is treated specially in that it is considered to match if
 // the candidate has the same initial substring as its corresponding element.
 func (t *T) StartsWith(prefix *T) bool {
-	prefixLen := len(prefix.Field)
+	prefixLen := len(prefix.field)
 
-	if prefixLen > len(t.Field) {
+	if prefixLen > len(t.field) {
 		return false
 	}
 	// check initial elements for equality
 	for i := 0; i < prefixLen-1; i++ {
-		if !equals(prefix.Field[i], t.Field[i]) {
+		if !equals(prefix.field[i], t.field[i]) {
 			return false
 		}
 	}
 	// check last element just for a prefix
-	return bytes.HasPrefix(t.Field[prefixLen-1], prefix.Field[prefixLen-1])
+	return bytes.HasPrefix(t.field[prefixLen-1], prefix.field[prefixLen-1])
 }
 
 // Key returns the first element of the tags.
@@ -120,8 +165,8 @@ func (t *T) Key() B {
 	if t == nil {
 		return nil
 	}
-	if len(t.Field) > Key {
-		return t.Field[Key]
+	if t.Len() > Key {
+		return t.field[Key]
 	}
 	return nil
 }
@@ -131,8 +176,8 @@ func (t *T) FilterKey() B {
 	if t == nil {
 		return nil
 	}
-	if len(t.Field) > Key {
-		return t.Field[Key][1:]
+	if len(t.field) > Key {
+		return t.field[Key][1:]
 	}
 	return nil
 }
@@ -142,8 +187,8 @@ func (t *T) Value() B {
 	if t == nil {
 		return nil
 	}
-	if len(t.Field) > Value {
-		return t.Field[Value]
+	if len(t.field) > Value {
+		return t.field[Value]
 	}
 	return nil
 }
@@ -157,9 +202,9 @@ func (t *T) Relay() (s B) {
 	}
 	if (equals(t.Key(), etag) ||
 		equals(t.Key(), ptag)) &&
-		len(t.Field) >= Relay {
+		len(t.field) >= Relay {
 
-		return normalize.URL(B(t.Field[Relay]))
+		return normalize.URL(B(t.field[Relay]))
 	}
 	return
 }
@@ -167,7 +212,7 @@ func (t *T) Relay() (s B) {
 // MarshalJSON appends the JSON form to the passed bytes.
 func (t *T) MarshalJSON(dst B) (b B, err error) {
 	dst = append(dst, '[')
-	for i, s := range t.Field {
+	for i, s := range t.field {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
@@ -196,14 +241,14 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 			i++
 		} else if b[i] == '"' {
 			inQuotes = false
-			t.Field = append(t.Field, text.NostrUnescape(b[quoteStart:i]))
+			t.field = append(t.field, text.NostrUnescape(b[quoteStart:i]))
 		}
 	}
 	if !openedBracket || inQuotes {
 		log.I.F("\n%v\n%s", t, r)
 		return nil, errorf.E("tag: failed to parse tag")
 	}
-	log.I.S(t.Field)
+	log.I.S(t.field)
 	return
 }
 
@@ -214,8 +259,8 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 
 // Contains returns true if the provided element is found in the tag slice.
 func (t *T) Contains(s B) bool {
-	for i := range t.Field {
-		if equals(t.Field[i], s) {
+	for i := range t.field {
+		if equals(t.field[i], s) {
 			return true
 		}
 	}
@@ -224,11 +269,11 @@ func (t *T) Contains(s B) bool {
 
 // Equal checks that the provided tag list matches.
 func (t *T) Equal(ta *T) bool {
-	if len(t.Field) != len(ta.Field) {
+	if len(t.field) != len(ta.field) {
 		return false
 	}
-	for i := range t.Field {
-		if !equals(t.Field[i], ta.Field[i]) {
+	for i := range t.field {
+		if !equals(t.field[i], ta.field[i]) {
 			return false
 		}
 	}

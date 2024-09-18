@@ -189,6 +189,7 @@ func BreakTo80(s string) (out string) {
 		}
 	}
 	out = "\n" + strings.Join(ss, "\n")
+	strings.ReplaceAll(out, "\n\n", "\n")
 	return
 }
 
@@ -327,6 +328,13 @@ func Timestamper() (s string) {
 }
 
 var wd, _ = os.Getwd()
+
+func GetNLoc(n int) (output string) {
+	for ; n > 1; n-- {
+		output += fmt.Sprintf("%s\n", GetLoc(n))
+	}
+	return
+}
 
 func GetLoc(skip int) (output string) {
 	_, file, line, _ := runtime.Caller(skip)

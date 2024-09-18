@@ -9,7 +9,6 @@ import (
 	"realy.lol/hex"
 	"realy.lol/kind"
 	"realy.lol/sha256"
-	"realy.lol/tag"
 	"realy.lol/tags"
 	"realy.lol/timestamp"
 )
@@ -93,7 +92,8 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 	nTags := int(vi)
 	var end int
 	r.Pos += read
-	t = &tags.T{T: make([]*tag.T, nTags)}
+	t = tags.NewWithCap(nTags)
+	// t = &tags.T{T: make([]*tag.T, nTags)}
 	// t = make(tags.T, nTags)
 	// iterate through the individual tags
 	for i := 0; i < nTags; i++ {
@@ -104,7 +104,8 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 		}
 		lenTag := int(vi)
 		r.Pos += read
-		t.T[i] = tag.NewWithCap(lenTag)
+		t.AddCap(i, lenTag)
+		// t.T[i] = tag.NewWithCap(lenTag)
 		// extract the individual tag strings
 		var secondIsHex, secondIsDecimalHex bool
 	reading:
@@ -143,8 +144,11 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 			case j == 1:
 				switch {
 				case secondIsHex:
-					t.T[i].Field = append(t.T[i].Field, make(B, 0, sha256.Size*2))
-					t.T[i].Field[j] = hex.EncAppend(t.T[i].Field[j], r.Buf[r.Pos:end])
+					hh := make(B, 0, sha256.Size*2)
+					hh = hex.EncAppend(hh, r.Buf[r.Pos:end])
+					t.AppendTo(i, hh)
+					// t.N(i).Field = append(t.T[i].Field, make(B, 0, sha256.Size*2))
+					// t.N(i).Field[j] = hex.EncAppend(t.N(i).B(j), r.Buf[r.Pos:end])
 					r.Pos = end
 					continue reading
 				case secondIsDecimalHex:
@@ -165,14 +169,17 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 					}
 					pk = r.Buf[r.Pos:fieldEnd]
 					r.Pos = fieldEnd
-					t.T[i].Field = append(t.T[i].Field, B(fmt.Sprintf("%d:%0x:%s",
-						k,
-						hex.Enc(pk),
-						string(r.Buf[r.Pos:end]))))
+					t.AppendTo(i, B(fmt.Sprintf("%d:%0x:%s",
+						k, hex.Enc(pk), string(r.Buf[r.Pos:end]))))
+					// t.N(i).Field = append(t.N(i).Field, B(fmt.Sprintf("%d:%0x:%s",
+					// 	k,
+					// 	hex.Enc(pk),
+					// 	string(r.Buf[r.Pos:end]))))
 					r.Pos = end
 				}
 			}
-			t.T[i].Field = append(t.T[i].Field, r.Buf[r.Pos:r.Pos+int(vi)])
+			t.AppendTo(i, r.Buf[r.Pos:r.Pos+int(vi)])
+			// t.N(i).Field = append(t.N(i).Field, r.Buf[r.Pos:r.Pos+int(vi)])
 			r.Pos = end
 		}
 	}

@@ -7,14 +7,18 @@ import (
 
 	"realy.lol/event"
 	"realy.lol/filter"
+	"realy.lol/kinds"
+	"realy.lol/normalize"
+	"realy.lol/tag"
+	"realy.lol/tags"
 	"realy.lol/ws"
 )
 
-// RelayInterface is a wrapper thing that unifies Store and Relay under a// common API.
+// RelayInterface is a wrapper thing that unifies Store and Relay under a common
+// API.
 type RelayInterface interface {
 	Publish(c Ctx, evt *event.T) E
-	QuerySync(c Ctx, f *filter.T,
-		opts ...ws.SubscriptionOption) ([]*event.T, E)
+	QuerySync(c Ctx, f *filter.T, opts ...ws.SubscriptionOption) ([]*event.T, E)
 }
 
 type RelayWrapper struct {
@@ -24,44 +28,58 @@ type RelayWrapper struct {
 var _ RelayInterface = (*RelayWrapper)(nil)
 
 func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
-	// var ch event.C
-	// defer close(ch)
 	if evt.Kind.IsEphemeral() {
 		// do not store ephemeral events
 		return nil
 		// todo: rewrite to fit new API
-		// } else if evt.Kind.IsReplaceable() {
-		// // replaceable event, delete before storing
-		// ch, err = w.Store.QueryEvents(c, &filter.T{
-		// 	Authors: []string{evt.PubKey},
-		// 	Kinds:   kinds.T{evt.Kind},
-		// })
-		// if err != nil {
-		// 	return fmt.Errorf("failed to query before replacing: %w", err)
-		// }
-		// if previous := <-ch; previous != nil && isOlder(previous, evt) {
-		// 	if err = w.Store.DeleteEvent(c, previous); err != nil {
-		// 		return fmt.Errorf("failed to delete event for replacing: %w", err)
-		// 	}
-		// }
-		// } else if evt.Kind.IsParameterizedReplaceable() {
+	} else if evt.Kind.IsReplaceable() {
+		// replaceable event, delete before storing
+		var evs []*event.T
+		f := filter.New()
+		f.Authors = tag.New(evt.PubKey)
+		f.Kinds = kinds.New(evt.Kind)
+		evs, err = w.I.QueryEvents(c, f)
+		if err != nil {
+			return fmt.Errorf("failed to query before replacing: %w", err)
+		}
+		if len(evs) > 0 {
+			for _, ev := range evs {
+				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
+					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
+				}
+				log.I.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
+				if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
+					continue
+				}
+			}
+		}
+	} else if evt.Kind.IsParameterizedReplaceable() {
+		log.I.F("parameterized replaceable %s", evt.Serialize())
 		// parameterized replaceable event, delete before storing
-		// d := evt.Tags.GetFirst([]string{"d", ""})
-		// if d != nil {
-		// ch, err = w.Store.QueryEvents(c, &filter.T{
-		// 	Authors: []string{evt.PubKey},
-		// 	Kinds:   kinds.T{evt.Kind},
-		// 	Tags:    filter.TagMap{"d": []string{d.Value()}},
-		// })
-		// if err != nil {
-		// 	return fmt.Errorf("failed to query before parameterized replacing: %w", err)
-		// }
-		// if previous := <-ch; previous != nil && isOlder(previous, evt) {
-		// 	if err = w.Store.DeleteEvent(c, previous); chk.D(err) {
-		// 		return fmt.Errorf("failed to delete event for parameterized replacing: %w", err)
-		// 	}
-		// }
-		// }
+		var evs []*event.T
+		f := filter.New()
+		f.Authors = tag.New(evt.PubKey)
+		f.Kinds = kinds.New(evt.Kind)
+		d := evt.Tags.GetFirst(tag.New("d", ""))
+		f.Tags = tags.New(tag.New(d.Key(), d.Value()))
+		log.I.F("filter for parameterized replaceable %s", f.Serialize())
+		evs, err = w.I.QueryEvents(c, f)
+		if err != nil {
+			return fmt.Errorf("failed to query before replacing: %w", err)
+		}
+
+		if len(evs) > 0 {
+			for _, ev := range evs {
+				log.I.F("maybe replace %s", ev.Serialize())
+				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
+					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
+				}
+				log.I.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
+				if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
+					continue
+				}
+			}
+		}
 	}
 	if err = w.SaveEvent(c, evt); chk.E(err) && !errors.Is(err, ErrDupEvent) {
 		return errorf.E("failed to save: %w", err)

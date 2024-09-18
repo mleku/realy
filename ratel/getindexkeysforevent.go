@@ -49,23 +49,23 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		keyz = append(keyz, k)
 	}
 	// ~ by tag value + date
-	for i, t := range ev.Tags.T {
+	for i, t := range ev.Tags.Value() {
 		// there is no value field
-		if len(t.Field) < 2 ||
+		if t.Len() < 2 ||
 			// the tag is not a-zA-Z probably (this would permit arbitrary other
 			// single byte chars)
-			len(t.Field[0]) != 1 ||
+			len(t.F()[0]) != 1 ||
 			// the second field is zero length
-			len(t.Field[1]) == 0 ||
+			len(t.F()[1]) == 0 ||
 			// the second field is more than 100 characters long
-			len(t.Field[1]) > 100 {
+			len(t.F()[1]) > 100 {
 			// any of the above is true then the tag is not indexable
 			continue
 		}
 		var firstIndex int
 		var tt *tag.T
-		for firstIndex, tt = range ev.Tags.T {
-			if len(tt.Field) >= 2 && equals(tt.Field[1], t.Field[1]) {
+		for firstIndex, tt = range ev.Tags.Value() {
+			if tt.Len() >= 2 && equals(tt.B(1), t.B(1)) {
 				break
 			}
 		}
@@ -76,11 +76,11 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		// get key prefix (with full length) and offset where to write the last
 		// parts
 		prf, elems := index.P(0), []keys.Element(nil)
-		if prf, elems, err = GetTagKeyElements(S(t.Field[1]), CA, ser); chk.E(err) {
+		if prf, elems, err = GetTagKeyElements(S(t.F()[1]), CA, ser); chk.E(err) {
 			return
 		}
 		k := prf.Key(elems...)
-		log.T.F("tag '%s': %s key %0x", t.Field[0], t.Field[1:], k)
+		log.T.F("tag '%s': %s key %0x", t.F()[0], t.F()[1:], k)
 		keyz = append(keyz, k)
 	}
 	{ // ~ by date only

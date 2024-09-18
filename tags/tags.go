@@ -4,38 +4,113 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
 	"sort"
 
+	"realy.lol/lol"
 	"realy.lol/tag"
 )
 
 // T is a list of T - which are lists of string elements with ordering and no
 // uniqueness constraint (not a set).
 type T struct {
-	T []*tag.T
+	t []*tag.T
 }
 
 func New(fields ...*tag.T) (t *T) {
 	// t = &T{T: make([]*tag.T, 0, len(fields))}
 	t = &T{}
 	for _, field := range fields {
-		t.T = append(t.T, field)
+		t.t = append(t.t, field)
 	}
 	return
 }
 
+func NewWithCap(c int) (t *T) {
+	return &T{t: make([]*tag.T, 0, c)}
+}
+
+func (t *T) F() (tt []*tag.T) {
+	if t == nil {
+		return []*tag.T{tag.New(B{})}
+	}
+	return t.t
+}
+
+func (t *T) N(i int) (tt *tag.T) {
+	if t == nil {
+		return tag.NewWithCap(0)
+	}
+	if len(t.t) <= i {
+		return tag.New(B{})
+	}
+	return t.t[i]
+}
+
+func (t *T) AppendTo(n int, b ...B) (tt *T) {
+	if t == nil {
+		log.E.S(t, b)
+		return
+	}
+	if t.Len() < n+1 {
+		log.E.F("cannot append to nonexistent tags field %d with tags len %d",
+			n, t.Len())
+		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		return
+	}
+	for _, bb := range b {
+		t.N(n).Append(bb)
+		// t.T[n].Field = append(t.T[n].Field, bb)
+	}
+	return t
+}
+
+func (t *T) AddCap(i, c int) (tt *T) {
+	if t == nil {
+		log.E.F("cannot add capacity to index %d of nil tags", i)
+		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		return t
+	}
+	if len(t.t) == 0 && i == 0 {
+		t.t = append(t.t, tag.NewWithCap(c))
+	}
+	if len(t.t) == 1 && i == 1 {
+		t.t = append(t.t, tag.NewWithCap(c))
+	}
+	if len(t.t) == 2 && i == 2 {
+		t.t = append(t.t, tag.NewWithCap(c))
+	}
+	if len(t.t) <= i {
+		log.I.Ln("len", t.Len(), "i", i)
+		log.E.F("cannot add capacity to nonexistent tag field of tags %d of len %d",
+			i, t.Len())
+		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		return t
+	}
+	t.t[i] = tag.NewWithCap(c)
+	return t
+}
+
+func (t *T) Value() (tt []*tag.T) {
+	if t == nil {
+		return []*tag.T{}
+	}
+	return t.t
+}
+
 func (t *T) ToStringSlice() (b [][]S) {
-	b = make([][]S, 0, len(t.T))
-	for i := range t.T {
-		b = append(b, t.T[i].ToStringSlice())
+	b = make([][]S, 0, len(t.t))
+	for i := range t.t {
+		b = append(b, t.t[i].ToStringSlice())
 	}
 	return
 }
 
 func (t *T) Clone() (c *T) {
-	c = &T{T: make([]*tag.T, len(t.T))}
-	for i, field := range t.T {
-		c.T[i] = field.Clone()
+	c = &T{t: make([]*tag.T, len(t.t))}
+	for i, field := range t.t {
+		c.t[i] = field.Clone()
 	}
 	return
 }
@@ -46,8 +121,8 @@ func (t *T) Equal(ta *T) bool {
 	sort.Sort(t1)
 	t2 := ta.Clone()
 	sort.Sort(t2)
-	for i := range t.T {
-		if !t1.T[i].Equal(t2.T[i]) {
+	for i := range t.t {
+		if !t1.t[i].Equal(t2.t[i]) {
 			return false
 		}
 	}
@@ -56,33 +131,36 @@ func (t *T) Equal(ta *T) bool {
 
 // Less returns which tag's first element is first lexicographically
 func (t *T) Less(i, j int) (less bool) {
-	a, b := t.T[i], t.T[j]
-	if len(a.Field) < 1 && len(b.Field) < 1 {
+	a, b := t.t[i], t.t[j]
+	if a.Len() < 1 && b.Len() < 1 {
 		return false // they are equal
 	}
-	if len(a.Field) < 1 || len(b.Field) < 1 {
-		return len(a.Field) < len(b.Field)
+	if a.Len() < 1 || b.Len() < 1 {
+		return a.Len() < b.Len()
 	}
-	if bytes.Compare(a.Field[0], b.Field[0]) < 0 {
+	if bytes.Compare(a.Key(), b.Key()) < 0 {
 		return true
 	}
 	return
 }
 
 func (t *T) Swap(i, j int) {
-	t.T[i], t.T[j] = t.T[j], t.T[i]
+	t.t[i], t.t[j] = t.t[j], t.t[i]
 }
 
 func (t *T) Len() (l int) {
-	if t.T != nil {
-		return len(t.T)
+	if t == nil {
+		return
+	}
+	if t.t != nil {
+		return len(t.t)
 	}
 	return
 }
 
 // GetFirst gets the first tag in tags that matches the prefix, see [T.StartsWith]
 func (t *T) GetFirst(tagPrefix *tag.T) *tag.T {
-	for _, v := range t.T {
+	for _, v := range t.t {
 		if v.StartsWith(tagPrefix) {
 			return v
 		}
@@ -92,8 +170,8 @@ func (t *T) GetFirst(tagPrefix *tag.T) *tag.T {
 
 // GetLast gets the last tag in tags that matches the prefix, see [T.StartsWith]
 func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
-	for i := len(t.T) - 1; i >= 0; i-- {
-		v := t.T[i]
+	for i := len(t.t) - 1; i >= 0; i-- {
+		v := t.t[i]
 		if v.StartsWith(tagPrefix) {
 			return v
 		}
@@ -103,10 +181,10 @@ func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
 
 // GetAll gets all the tags that match the prefix, see [T.StartsWith]
 func (t *T) GetAll(tagPrefix *tag.T) *T {
-	result := &T{T: make([]*tag.T, 0, len(t.T))}
-	for _, v := range t.T {
+	result := &T{t: make([]*tag.T, 0, len(t.t))}
+	for _, v := range t.t {
 		if v.StartsWith(tagPrefix) {
-			result.T = append(result.T, v)
+			result.t = append(result.t, v)
 		}
 	}
 	return result
@@ -114,10 +192,10 @@ func (t *T) GetAll(tagPrefix *tag.T) *T {
 
 // FilterOut removes all tags that match the prefix, see [T.StartsWith]
 func (t *T) FilterOut(tagPrefix []B) *T {
-	filtered := &T{T: make([]*tag.T, 0, len(t.T))}
-	for _, v := range t.T {
+	filtered := &T{t: make([]*tag.T, 0, len(t.t))}
+	for _, v := range t.t {
 		if !v.StartsWith(tag.New(tagPrefix...)) {
-			filtered.T = append(filtered.T, v)
+			filtered.t = append(filtered.t, v)
 		}
 	}
 	return filtered
@@ -132,17 +210,29 @@ func (t *T) AppendUnique(tag *tag.T) *T {
 		n = 2
 	}
 	if t.GetFirst(tag.Slice(0, n)) == nil {
-		return &T{append(t.T, tag)}
+		return &T{append(t.t, tag)}
 	}
 	return t
 }
 
-func (t *T) Append(ttt ...*T) {
-	for _, tt := range ttt {
-		for _, v := range tt.T {
-			t.T = append(t.T, v)
+func (t *T) Append(ttt ...*T) (tt *T) {
+	if t == nil {
+		t = NewWithCap(len(ttt))
+	}
+	for _, tf := range ttt {
+		for _, v := range tf.t {
+			t.t = append(t.t, v)
 		}
 	}
+	return t
+}
+
+func (t *T) AppendTags(ttt ...*tag.T) (tt *T) {
+	if t == nil {
+		t = NewWithCap(len(ttt))
+	}
+	t.t = append(t.t, ttt...)
+	return t
 }
 
 // Scan parses a string or raw bytes that should be a string and embeds the values into the tags variable from which
@@ -173,13 +263,13 @@ func (t *T) Intersects(f *T) (has bool) {
 		// that's not the same as an intersection).
 		return
 	}
-	matches := len(f.T)
-	for _, v := range f.T {
-		for _, w := range t.T {
+	matches := len(f.t)
+	for _, v := range f.t {
+		for _, w := range t.t {
 			if equals(v.FilterKey(), w.Key()) {
 				// we have a matching tag key, and both have a first field, check if tag has any
 				// of the subsequent values in the filter tag.
-				for _, val := range v.Field[1:] {
+				for _, val := range v.F()[1:] {
 					if equals(val, w.Value()) {
 						matches--
 					}
@@ -221,7 +311,7 @@ func (t *T) Intersects(f *T) (has bool) {
 // MarshalTo appends the JSON encoded byte of T as [][]string to dst. String escaping is as described in RFC8259.
 func (t *T) MarshalTo(dst B) []byte {
 	dst = append(dst, '[')
-	for i, tt := range t.T {
+	for i, tt := range t.t {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
@@ -248,14 +338,14 @@ func (t *T) MarshalTo(dst B) []byte {
 func (t *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b = append(b, '[')
-	if t == nil || t.T == nil {
+	if t == nil || t.t == nil {
 		b = append(b, ']')
 		return
 	}
-	if len(t.T) == 0 {
+	if len(t.t) == 0 {
 		b = append(b, '[', ']')
 	}
-	for i, s := range t.T {
+	for i, s := range t.t {
 		if i > 0 {
 			b = append(b, ',')
 		}
@@ -290,7 +380,7 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 				if r, err = tt.UnmarshalJSON(r); chk.E(err) {
 					return
 				}
-				t.T = append(t.T, tt)
+				t.t = append(t.t, tt)
 			case ',':
 				r = r[1:]
 				// next
