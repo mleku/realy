@@ -10,7 +10,6 @@ import (
 	"realy.lol/kinds"
 	"realy.lol/normalize"
 	"realy.lol/tag"
-	"realy.lol/tags"
 	"realy.lol/ws"
 )
 
@@ -61,9 +60,11 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 		f.Authors = tag.New(evt.PubKey)
 		f.Kinds = kinds.New(evt.Kind)
 		d := evt.Tags.GetFirst(tag.New("d", ""))
-		f.Tags = tags.New(tag.New(d.Key(), d.Value()))
-		log.I.F("filter for parameterized replaceable %s", f.Serialize())
+		log.I.S(d)
+		// f.Tags = tags.New(tag.New(d.Key())) // ), d.Value()))
+		log.I.F("filter for parameterized replaceable %s %s", f.Tags, f.Serialize())
 		evs, err = w.I.QueryEvents(c, f)
+		log.I.S(evs)
 		if err != nil {
 			return fmt.Errorf("failed to query before replacing: %w", err)
 		}

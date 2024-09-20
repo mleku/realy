@@ -100,7 +100,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			if len(rem) > 0 {
 				log.T.S(rem)
 			}
-			log.I.S(ev)
 			// check if this matches the other filters that were not part of the index.
 			if extraFilter == nil || extraFilter.Matches(ev) {
 				// check if this event is replaced by one we already have in the result.
@@ -114,6 +113,9 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 						}
 					}
 				}
+				// log.I.S(ev.Tags.GetFirst(tag.New("d")).Value(),
+				// 	ev.Tags.GetFirst(tag.New("d")).Value())
+
 				if ev.Kind.IsParameterizedReplaceable() &&
 					ev.Tags.GetFirst(tag.New("d")) != nil {
 					for _, evc := range evs {
