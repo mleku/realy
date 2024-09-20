@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"sort"
@@ -27,6 +28,7 @@ import (
 	"realy.lol/filter"
 	"realy.lol/kind"
 	"realy.lol/normalize"
+	"realy.lol/sha256"
 	"realy.lol/store"
 	"realy.lol/tag"
 )
@@ -178,18 +180,24 @@ func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto store.I) (msg B) {
 		// return ""
 		return
 	}
-
-	if env.Kind.K == kind.Deletion.K {
+	// log.I.F("%v %s %v %v", env.T.Kind, kind.GetString(env.T.Kind), env.Kind.K, kind.Deletion.K)
+	if env.T.Kind.K == kind.Deletion.K {
 		// event deletion -- nip09
+		// log.I.S(env.Tags, env.Tags.Value())
 		for _, t := range env.Tags.Value() {
 			if t.Len() >= 2 && equals(t.Key(), B("e")) {
-				ctx, cancel := context.WithTimeout(c, time.Millisecond*200)
+				// todo: wtf
+				ctx, cancel := context.WithTimeout(c, time.Millisecond*1200)
 				defer cancel()
 
 				// fetch event to be deleted
 				var res []*event.T
+				evId := make(B, sha256.Size)
+				if _, err = hex.Decode(evId, t.Value()); chk.E(err) {
+					continue
+				}
 				res, err = s.relay.Storage(ctx).
-					QueryEvents(ctx, &filter.T{IDs: tag.New(t.Value())})
+					QueryEvents(ctx, &filter.T{IDs: tag.New(B("e"), evId)})
 				if err != nil {
 					if err = okenvelope.NewFrom(env.ID, false,
 						normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {

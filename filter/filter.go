@@ -229,7 +229,7 @@ func (f *T) Serialize() (b B) {
 	return
 }
 
-func (f *T) String() (r S) { return S(f.Serialize()) }
+// func (f *T) String() (r S) { return S(f.Serialize()) }
 
 // states of the unmarshaler
 const (

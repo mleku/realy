@@ -77,6 +77,9 @@ func (k *T) UnmarshalJSON(b B) (r B, err E) {
 
 // GetString returns a human readable identifier for a kind.T.
 func GetString(t *T) string {
+	if t == nil {
+		return ""
+	}
 	MapMx.Lock()
 	defer MapMx.Unlock()
 	return Map[t.K]

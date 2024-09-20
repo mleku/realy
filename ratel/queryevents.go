@@ -12,7 +12,7 @@ import (
 )
 
 func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
-	log.I.F("query for events\n%s", f)
+	log.I.F("query for events\n%s", f.Serialize())
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
