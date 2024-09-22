@@ -1,12 +1,12 @@
 package ws
 
 import (
-	"context"
 	"fmt"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"realy.lol/context"
 	"realy.lol/filter"
 	"realy.lol/filters"
 	"realy.lol/kind"
@@ -21,8 +21,9 @@ const RELAY = "wss://relay.damus.io"
 func TestSubscribeBasic(t *testing.T) {
 	rl := mustRelayConnect(RELAY)
 	defer rl.Close()
-	sub, err := rl.Subscribe(context.Background(),
-		filters.New(&filter.T{Kinds: kinds.New(kind.TextNote), Limit: 2}))
+	var lim uint = 2
+	sub, err := rl.Subscribe(context.Bg(),
+		filters.New(&filter.T{Kinds: kinds.New(kind.TextNote), Limit: &lim}))
 	if err != nil {
 		t.Fatalf("subscription failed: %v", err)
 		return
@@ -60,12 +61,13 @@ func TestNestedSubscriptions(t *testing.T) {
 	n := atomic.Uint32{}
 	_ = n
 	// fetch 2 replies to a note
-	sub, err := rl.Subscribe(context.Background(),
+	var lim3 uint = 3
+	sub, err := rl.Subscribe(context.Bg(),
 		filters.New(&filter.T{
 			Kinds: kinds.New(kind.TextNote),
 			Tags: tags.New(tag.New("e",
 				"0e34a74f8547e3b95d52a2543719b109fd0312aba144e2ef95cba043f42fe8c5")),
-			Limit: 3,
+			Limit: &lim3,
 		}))
 	if err != nil {
 		t.Fatalf("subscription 1 failed: %v", err)
@@ -76,9 +78,10 @@ func TestNestedSubscriptions(t *testing.T) {
 		select {
 		case event := <-sub.Events:
 			// now fetch author of this
-			sub, err := rl.Subscribe(context.Background(),
+			var lim uint = 1
+			sub, err := rl.Subscribe(context.Bg(),
 				filters.New(&filter.T{Kinds: kinds.New(kind.ProfileMetadata),
-					Authors: tag.New(event.PubKey), Limit: 1}))
+					Authors: tag.New(event.PubKey), Limit: &lim}))
 			if err != nil {
 				t.Fatalf("subscription 2 failed: %v", err)
 				return
@@ -88,7 +91,7 @@ func TestNestedSubscriptions(t *testing.T) {
 				select {
 				case <-sub.Events:
 					// do another subscription here in "sync" mode, just so we're sure things are not blocking
-					rl.QuerySync(context.Background(), &filter.T{Limit: 1})
+					rl.QuerySync(context.Bg(), &filter.T{Limit: &lim})
 
 					n.Add(1)
 					if n.Load() == 3 {

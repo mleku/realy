@@ -3,20 +3,20 @@ package eventenvelope
 import (
 	"io"
 
-	"realy.lol"
+	"realy.lol/codec"
 	"realy.lol/envelopes"
 	"realy.lol/event"
-	sid "realy.lol/subscriptionid"
+	"realy.lol/subscription"
 )
 
 const L = "EVENT"
 
-// Submission is a request from a client for a relay to store an event.
+// Submission is a request from a client for a realy to store an event.
 type Submission struct {
 	*event.T
 }
 
-var _ realy.I = (*Submission)(nil)
+var _ codec.Envelope = (*Submission)(nil)
 
 func NewSubmission() *Submission                { return &Submission{T: &event.T{}} }
 func NewSubmissionWith(ev *event.T) *Submission { return &Submission{T: ev} }
@@ -69,15 +69,18 @@ func ParseSubmission(b B) (t *Submission, rem B, err E) {
 
 // Result is an event matching a filter associated with a subscription.
 type Result struct {
-	Subscription *sid.T
+	Subscription *subscription.Id
 	Event        *event.T
 }
 
-var _ realy.I = (*Result)(nil)
+var _ codec.Envelope = (*Result)(nil)
 
-func NewResult() *Result                              { return &Result{} }
-func NewResultWith[V S | B](s V, ev *event.T) *Result { return &Result{sid.MustNew(s), ev} }
-func (en *Result) Label() S                           { return L }
+func NewResult() *Result { return &Result{} }
+func NewResultWith[V S | B](s V, ev *event.T) *Result {
+	return &Result{subscription.MustNew(s),
+		ev}
+}
+func (en *Result) Label() S { return L }
 
 func (en *Result) Write(w io.Writer) (err E) {
 	var b B
@@ -107,7 +110,7 @@ func (en *Result) MarshalJSON(dst B) (b B, err error) {
 
 func (en *Result) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	if en.Subscription, err = sid.New(B{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId(B{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {

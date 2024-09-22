@@ -1,10 +1,10 @@
 package btcec
 
 import (
-	realy "realy.lol"
 	ec "realy.lol/ec"
 	"realy.lol/ec/schnorr"
 	"realy.lol/ec/secp256k1"
+	"realy.lol/signer"
 )
 
 type Signer struct {
@@ -13,7 +13,7 @@ type Signer struct {
 	pkb, skb  B
 }
 
-var _ realy.Signer = &Signer{}
+var _ signer.I = &Signer{}
 
 func (s *Signer) Generate() (err E) {
 	for {

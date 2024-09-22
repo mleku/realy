@@ -154,7 +154,7 @@ func (ws *Serv) setRemoteFromReq(r *http.Request) {
 			rr = r.RemoteAddr
 		}
 	} else {
-		// if that fails, fall back to the remote (probably the proxy, unless the relay is
+		// if that fails, fall back to the remote (probably the proxy, unless the realy is
 		// actually directly listening)
 		rr = ws.Conn.NetConn().RemoteAddr().String()
 	}

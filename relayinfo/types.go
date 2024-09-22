@@ -294,17 +294,17 @@ type Limits struct {
 	// MinPowDifficulty new events will require at least this difficulty of PoW,
 	// based on NIP-13, or they will be rejected by this server.
 	MinPowDifficulty int `json:"min_pow_difficulty,omitempty"`
-	// AuthRequired means the relay requires NIP-42 authentication to happen
+	// AuthRequired means the realy requires NIP-42 authentication to happen
 	// before a new connection may perform any other action. Even if set to
 	// False, authentication may be required for specific actions.
 	AuthRequired bool `json:"auth_required"`
-	// PaymentRequired this relay requires payment before a new connection may
+	// PaymentRequired this realy requires payment before a new connection may
 	// perform any action.
 	PaymentRequired bool `json:"payment_required"`
-	// RestrictedWrites this relay requires some kind of condition to be
+	// RestrictedWrites this realy requires some kind of condition to be
 	// fulfilled in order to accept events (not necessarily, but including
 	// payment_required and min_pow_difficulty). This should only be set to true
-	// when users are expected to know the relay policy before trying to write
+	// when users are expected to know the realy policy before trying to write
 	// to it -- like belonging to a special pubkey-based whitelist or writing
 	// only events of a specific niche kind or content. Normal anti-spam
 	// heuristics, for example, do not qualify.q
@@ -327,7 +327,7 @@ type Pub struct {
 	Payment
 }
 
-// T is the relay information document.
+// T is the realy information document.
 type T struct {
 	Name           string      `json:"name"`
 	Description    string      `json:"description"`
@@ -398,7 +398,7 @@ func (ri *T) HasNIP(n int) (ok bool) {
 // Save the relayinfo.T to a given file as JSON.
 func (ri *T) Save(filename string) (err error) {
 	if ri == nil {
-		err = errors.New("cannot save nil relay info document")
+		err = errors.New("cannot save nil realy info document")
 		log.E.Ln(err)
 		return
 	}
@@ -423,7 +423,7 @@ func (ri *T) Load(filename string) (err error) {
 	if b, err = os.ReadFile(filename); chk.E(err) {
 		return
 	}
-	// log.T.F("relay information document\n%s", string(b))
+	// log.T.F("realy information document\n%s", string(b))
 	if err = json.Unmarshal(b, ri); chk.E(err) {
 		return
 	}

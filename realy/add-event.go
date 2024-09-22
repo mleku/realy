@@ -1,4 +1,4 @@
-package relay
+package realy
 
 import (
 	"regexp"
@@ -6,23 +6,24 @@ import (
 
 	"realy.lol/event"
 	"realy.lol/normalize"
+	"realy.lol/relay"
 	eventstore "realy.lol/store"
 )
 
 var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
 
 // AddEvent has a business rule to add an event to the relayer
-func AddEvent(c Ctx, relay Relay, evt *event.T) (accepted bool, message B) {
+func AddEvent(c Ctx, rl relay.I, evt *event.T) (accepted bool, message B) {
 	if evt == nil {
 		return false, normalize.Blocked.F("empty event")
 	}
 
-	store := relay.Storage(c)
+	store := rl.Storage(c)
 	wrapper := &eventstore.RelayWrapper{I: store}
-	advancedSaver, _ := store.(AdvancedSaver)
+	advancedSaver, _ := store.(relay.AdvancedSaver)
 
-	if !relay.AcceptEvent(c, evt) {
-		return false, normalize.Blocked.F("event blocked by relay")
+	if !rl.AcceptEvent(c, evt) {
+		return false, normalize.Blocked.F("event blocked by realy")
 	}
 
 	if evt.Kind.IsEphemeral() {

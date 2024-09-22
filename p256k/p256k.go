@@ -3,11 +3,11 @@
 package p256k
 
 import (
-	realy "realy.lol"
 	btcec "realy.lol/ec"
+	realy "realy.lol/signer"
 )
 
-// Signer implements the nostr.Signer interface.
+// Signer implements the nostr.I interface.
 //
 // Either the Sec or Pub must be populated, the former is for generating
 // signatures, the latter is for verifying them.
@@ -22,7 +22,7 @@ type Signer struct {
 	skb, pkb    B
 }
 
-var _ realy.Signer = &Signer{}
+var _ realy.I = &Signer{}
 
 func (s *Signer) Generate() (err E) {
 	var cs *Sec
@@ -72,7 +72,7 @@ func (s *Signer) ECPub() (b B) { return s.pkb }
 
 func (s *Signer) Sign(msg B) (sig B, err error) {
 	if s.SecretKey == nil {
-		err = errorf.E("p256k: Signer secret not initialized")
+		err = errorf.E("p256k: I secret not initialized")
 		return
 	}
 	u := ToUchar(msg)

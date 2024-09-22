@@ -5,7 +5,7 @@ import (
 
 	"lukechampine.com/frand"
 	"realy.lol/envelopes"
-	"realy.lol/subscriptionid"
+	"realy.lol/subscription"
 )
 
 var messages = []B{
@@ -13,7 +13,7 @@ var messages = []B{
 	B("pow: difficulty 25>=24"),
 	B("duplicate: already have this event"),
 	B("blocked: you are banned from posting here"),
-	B("blocked: please register your pubkey at https://my-expensive-relay.example.com"),
+	B("blocked: please register your pubkey at https://my-expensive-realy.example.com"),
 	B("rate-limited: slow down there chief"),
 	B("invalid: event creation date is too far off from the current time"),
 	B("pow: difficulty 26 is less than 30"),
@@ -28,8 +28,8 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 	var err error
 	rb, rb1, rb2 := make(B, 0, 65535), make(B, 0, 65535), make(B, 0, 65535)
 	for _ = range 1000 {
-		var s *subscriptionid.T
-		if s = subscriptionid.NewStd(); chk.E(err) {
+		var s *subscription.Id
+		if s = subscription.NewStd(); chk.E(err) {
 			t.Fatal(err)
 		}
 		req := NewFrom(s, RandomMessage())

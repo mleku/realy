@@ -3,7 +3,7 @@ package authenvelope
 import (
 	"io"
 
-	"realy.lol"
+	"realy.lol/codec"
 	envs "realy.lol/envelopes"
 	"realy.lol/event"
 	"realy.lol/text"
@@ -67,7 +67,7 @@ type Response struct {
 	Event *event.T
 }
 
-var _ realy.I = (*Response)(nil)
+var _ codec.Envelope = (*Response)(nil)
 
 func NewResponse() *Response                   { return &Response{} }
 func NewResponseWith(event *event.T) *Response { return &Response{Event: event} }

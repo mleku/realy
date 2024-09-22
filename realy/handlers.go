@@ -1,4 +1,4 @@
-package relay
+package realy
 
 import (
 	"bytes"
@@ -29,9 +29,11 @@ import (
 	"realy.lol/ints"
 	"realy.lol/kind"
 	"realy.lol/normalize"
+	"realy.lol/relay"
 	"realy.lol/sha256"
 	"realy.lol/store"
 	"realy.lol/tag"
+	"realy.lol/web"
 )
 
 // TODO: consider moving these to Server as config params
@@ -59,7 +61,7 @@ var upgrader = websocket.Upgrader{
 const ChallengeLength = 16
 const ChallengeHRP = "nchal"
 
-func challenge(conn *websocket.Conn, req *http.Request, addr string) (ws *WebSocket) {
+func challenge(conn *websocket.Conn, req *http.Request, addr string) (ws *web.Socket) {
 	var err error
 	// create a new challenge for this connection
 	cb := make([]byte, ChallengeLength)
@@ -75,13 +77,11 @@ func challenge(conn *websocket.Conn, req *http.Request, addr string) (ws *WebSoc
 	if encoded, err = bech32.Encode(bech32.B(ChallengeHRP), b5); chk.E(err) {
 		return
 	}
-	ws = &WebSocket{conn: conn, req: req}
-	ws.Remote.Store(addr)
-	ws.challenge.Store(S(encoded))
+	ws = web.NewSocket(conn, req, encoded)
 	return
 }
 
-func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store store.I) {
+func (s *Server) handleMessage(c Ctx, ws *web.Socket, msg B, sto store.I) {
 	var notice B
 	var err E
 	defer func() {
@@ -100,18 +100,18 @@ func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store store.I) {
 
 	switch t {
 	case eventenvelope.L:
-		notice = s.doEvent(c, ws, rem, store)
+		notice = s.doEvent(c, ws, rem, sto)
 	case countenvelope.L:
-		notice = s.doCount(c, ws, rem, store)
+		notice = s.doCount(c, ws, rem, sto)
 	case reqenvelope.L:
 		log.I.F("%s", rem)
-		notice = s.doReq(c, ws, rem, store)
+		notice = s.doReq(c, ws, rem, sto)
 	case closeenvelope.L:
-		notice = s.doClose(c, ws, rem, store)
+		notice = s.doClose(c, ws, rem, sto)
 	case authenvelope.L:
-		notice = s.doAuth(c, ws, rem, store)
+		notice = s.doAuth(c, ws, rem, sto)
 	default:
-		if cwh, ok := s.relay.(CustomWebSocketHandler); ok {
+		if cwh, ok := s.relay.(relay.WebSocketHandler); ok {
 			cwh.HandleUnknownType(ws, t, rem)
 		} else {
 			notice = B(fmt.Sprintf("unknown envelope type %s\n%s", t, rem))
@@ -122,11 +122,11 @@ func (s *Server) handleMessage(c Ctx, ws *WebSocket, msg B, store store.I) {
 	}
 }
 
-func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto store.I) (msg B) {
+func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 	var err E
 	var ok bool
 	var rem B
-	advancedDeleter, _ := sto.(AdvancedDeleter)
+	advancedDeleter, _ := sto.(relay.AdvancedDeleter)
 
 	env := eventenvelope.NewSubmission()
 	if rem, err = env.UnmarshalJSON(req); chk.E(err) {
@@ -304,12 +304,12 @@ func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto store.I) (msg B) {
 	return
 }
 
-func (s *Server) doCount(c context.Context, ws *WebSocket, req B,
+func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 	store store.I) (msg B) {
 
-	counter, ok := store.(EventCounter)
+	counter, ok := store.(relay.EventCounter)
 	if !ok {
-		return normalize.Restricted.F("this relay does not support NIP-45")
+		return normalize.Restricted.F("this realy does not support NIP-45")
 	}
 
 	var err E
@@ -339,24 +339,24 @@ func (s *Server) doCount(c context.Context, ws *WebSocket, req B,
 
 		// prevent kind-4 events from being returned to unauthed users,
 		//   only when authentication is a thing
-		if _, ok = s.relay.(Authenticator); ok {
+		if _, ok = s.relay.(relay.Authenticator); ok {
 			if f.Kinds.Contains(kind.EncryptedDirectMessage) {
 				// if slices.Contains(f.Kinds.K, kind.EncryptedDirectMessage) {
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("p"))
 				switch {
-				case len(ws.authed) == 0:
+				case len(ws.Authed()) == 0:
 					// not authenticated
 					return normalize.Restricted.F(
-						"this relay does not serve kind-4 to unauthenticated users," +
+						"this realy does not serve kind-4 to unauthenticated users," +
 							" does your client implement NIP-42?")
 				case senders.Len() == 1 &&
 					receivers.Len() < 2 &&
-					equals(senders.F()[0], ws.authed):
+					equals(senders.F()[0], B(ws.Authed())):
 					// allowed filter: ws.authed is sole sender (filter specifies one or all receivers)
 				case receivers.Len() == 1 &&
 					senders.Len() < 2 &&
-					equals(receivers.N(0).Value(), ws.authed):
+					equals(receivers.N(0).Value(), B(ws.Authed())):
 					// allowed filter: ws.authed is sole receiver (filter specifies one or all senders)
 				default:
 					// restricted filter: do not return any events,
@@ -383,7 +383,7 @@ func (s *Server) doCount(c context.Context, ws *WebSocket, req B,
 	return
 }
 
-func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
+func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 
 	var err E
 	var rem B
@@ -395,8 +395,8 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 		log.I.F("extra '%s'", rem)
 	}
 
-	if accepter, ok := s.relay.(ReqAcceptor); ok {
-		if !accepter.AcceptReq(c, env.Subscription.T, env.Filters, ws.authed) {
+	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
+		if !accepter.AcceptReq(c, env.Subscription.T, env.Filters, B(ws.Authed())) {
 			return B("REQ filters are not accepted")
 		}
 	}
@@ -414,24 +414,24 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 		}
 		// prevent kind-4 events from being returned to unauthed users,
 		//   only when authentication is a thing
-		if _, ok := s.relay.(Authenticator); ok {
+		if _, ok := s.relay.(relay.Authenticator); ok {
 			if f.Kinds.Contains(kind.EncryptedDirectMessage) {
 				// if slices.Contains(f.Kinds.K, kind.EncryptedDirectMessage) {
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("p"))
 				switch {
-				case len(ws.authed) == 0:
+				case len(ws.Authed()) == 0:
 					// not authenticated
 					return normalize.Restricted.F(
-						"this relay does not serve kind-4 to unauthenticated users," +
+						"this realy does not serve kind-4 to unauthenticated users," +
 							" does your client implement NIP-42?")
 				case senders.Len() == 1 &&
 					receivers.Len() < 2 &&
-					equals(senders.Key(), ws.authed):
+					equals(senders.Key(), B(ws.Authed())):
 					// allowed filter: ws.authed is sole sender (filter specifies one or all receivers)
 				case receivers.Len() == 1 &&
 					senders.Len() < 2 &&
-					equals(receivers.N(0).Value(), ws.authed):
+					equals(receivers.N(0).Value(), B(ws.Authed())):
 					// allowed filter: ws.authed is sole receiver (filter specifies one or all senders)
 				default:
 					// restricted filter: do not return any events,
@@ -479,7 +479,7 @@ func (s *Server) doReq(c Ctx, ws *WebSocket, req B, sto store.I) (r B) {
 	return
 }
 
-func (s *Server) doClose(c Ctx, ws *WebSocket, req B, store store.I) (note B) {
+func (s *Server) doClose(c Ctx, ws *web.Socket, req B, store store.I) (note B) {
 
 	var err E
 	var rem B
@@ -497,8 +497,8 @@ func (s *Server) doClose(c Ctx, ws *WebSocket, req B, store store.I) (note B) {
 	return
 }
 
-func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store store.I) (msg B) {
-	if auther, ok := s.relay.(Authenticator); ok {
+func (s *Server) doAuth(c Ctx, ws *web.Socket, req B, store store.I) (msg B) {
+	if auther, ok := s.relay.(relay.Authenticator); ok {
 		log.D.F("received auth response\n%s", req)
 		var err E
 		var rem B
@@ -510,9 +510,9 @@ func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store store.I) (msg B) {
 			log.I.F("extra '%s'", rem)
 		}
 		var valid bool
-		if valid, err = auth.Validate(env.Event, auth.B(ws.challenge.Load()),
-			auther.ServiceUrl(ws.req)); chk.E(err) {
-			if err = okenvelope.NewFrom(env.Event.ID, false, normalize.Error.F(err.Error())).
+		if valid, err = auth.Validate(env.Event, auth.B(ws.Challenge()),
+			auther.ServiceUrl(ws.Req())); chk.E(err) {
+			if err := okenvelope.NewFrom(env.Event.ID, false, normalize.Error.F(err.Error())).
 				Write(ws); chk.E(err) {
 				return B(err.Error())
 			}
@@ -525,9 +525,9 @@ func (s *Server) doAuth(c Ctx, ws *WebSocket, req B, store store.I) (msg B) {
 			}
 			return normalize.Restricted.F("auth response does not validate")
 		} else {
-			log.D.F("%s authed to pubkey %0x", ws.Remote.Load(),
+			log.D.F("%s authed to pubkey %0x", ws.RealRemote(),
 				env.Event.PubKey)
-			ws.authed = env.Event.PubKey
+			ws.SetAuthed(web.S(env.Event.PubKey))
 		}
 	}
 	return
@@ -553,10 +553,10 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 	log.I.F("connected from %s", ip)
 	ws := challenge(conn, r, ip)
 	if s.options.perConnectionLimiter != nil {
-		ws.limiter = rate.NewLimiter(
+		ws.SetLimiter(rate.NewLimiter(
 			s.options.perConnectionLimiter.Limit(),
 			s.options.perConnectionLimiter.Burst(),
-		)
+		))
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -586,8 +586,8 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 		})
 
 		// NIP-42 auth challenge
-		if _, ok := s.relay.(Authenticator); ok {
-			env := authenvelope.NewChallengeWith(ws.challenge.String())
+		if _, ok := s.relay.(relay.Authenticator); ok {
+			env := authenvelope.NewChallengeWith(ws.Challenge())
 			buf := bytes.NewBuffer(nil)
 			env.Write(buf)
 			log.I.F("requesting auth '%s", buf.String())
@@ -611,10 +611,10 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			if ws.limiter != nil {
+			if ws.Limiter() != nil {
 				// NOTE: Wait will throttle the requests.
 				// To reject requests exceeding the limit, use if !ws.limiter.Allow()
-				if err := ws.limiter.Wait(context.TODO()); err != nil {
+				if err := ws.Limiter().Wait(context.TODO()); err != nil {
 					log.W.F("unexpected limiter error %v", err)
 					continue
 				}

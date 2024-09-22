@@ -5,28 +5,28 @@ import (
 	"bytes"
 	"io"
 
-	"realy.lol"
+	"realy.lol/codec"
 	"realy.lol/envelopes"
 	"realy.lol/filters"
 	"realy.lol/ints"
-	sid "realy.lol/subscriptionid"
+	"realy.lol/subscription"
 	"realy.lol/text"
 )
 
 const L = "COUNT"
 
 type Request struct {
-	ID      *sid.T
+	ID      *subscription.Id
 	Filters *filters.T
 }
 
-var _ realy.I = (*Request)(nil)
+var _ codec.Envelope = (*Request)(nil)
 
 func New() *Request {
-	return &Request{ID: sid.NewStd(),
+	return &Request{ID: subscription.NewStd(),
 		Filters: filters.New()}
 }
-func NewRequest(id *sid.T, filters *filters.T) *Request {
+func NewRequest(id *subscription.Id, filters *filters.T) *Request {
 	return &Request{ID: id,
 		Filters: filters}
 }
@@ -59,7 +59,7 @@ func (en *Request) MarshalJSON(dst B) (b B, err error) {
 
 func (en *Request) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	if en.ID, err = sid.New(B{0}); chk.E(err) {
+	if en.ID, err = subscription.NewId(B{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.ID.UnmarshalJSON(r); chk.E(err) {
@@ -84,20 +84,20 @@ func ParseRequest(b B) (t *Request, rem B, err E) {
 }
 
 type Response struct {
-	ID          *sid.T
+	ID          *subscription.Id
 	Count       int
 	Approximate bool
 }
 
-var _ realy.I = (*Response)(nil)
+var _ codec.Envelope = (*Response)(nil)
 
-func NewResponse() *Response { return &Response{ID: sid.NewStd()} }
+func NewResponse() *Response { return &Response{ID: subscription.NewStd()} }
 func NewResponseFrom[V S | B](id V, cnt int, approx ...bool) *Response {
 	var a bool
 	if len(approx) > 0 {
 		a = approx[0]
 	}
-	return &Response{sid.MustNew(id), cnt, a}
+	return &Response{subscription.MustNew(id), cnt, a}
 }
 func (en *Response) Label() string { return L }
 func (en *Response) Write(w io.Writer) (err E) {
@@ -148,8 +148,8 @@ func (en *Response) UnmarshalJSON(b B) (r B, err error) {
 							continue
 						}
 					}
-					if en.ID, err = sid.
-						New(text.NostrUnescape(r[:i])); chk.E(err) {
+					if en.ID, err = subscription.
+						NewId(text.NostrUnescape(r[:i])); chk.E(err) {
 
 						return
 					}

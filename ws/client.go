@@ -10,7 +10,6 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/puzpuzpuz/xsync/v3"
-	realy "realy.lol"
 	"realy.lol/atomic"
 	"realy.lol/auth"
 	"realy.lol/context"
@@ -27,6 +26,7 @@ import (
 	"realy.lol/filters"
 	"realy.lol/kind"
 	"realy.lol/normalize"
+	"realy.lol/signer"
 )
 
 type Status int
@@ -319,9 +319,9 @@ func (r *Client) Write(msg []byte) <-chan error {
 func (r *Client) Publish(c Ctx, ev *event.T) E { return r.publish(c, ev) }
 
 // Auth sends an "AUTH" command client->relay as in NIP-42 and waits for an OK response.
-func (r *Client) Auth(c Ctx, signer realy.Signer) error {
-	authEvent := auth.CreateUnsigned(signer.Pub(), r.challenge, r.URL)
-	if err := authEvent.Sign(signer); err != nil {
+func (r *Client) Auth(c Ctx, sign signer.I) error {
+	authEvent := auth.CreateUnsigned(sign.Pub(), r.challenge, r.URL)
+	if err := authEvent.Sign(sign); err != nil {
 		return errorf.E("error signing auth event: %w", err)
 	}
 	return r.publish(c, authEvent)

@@ -1,4 +1,4 @@
-package relay
+package realy
 
 import (
 	"context"
@@ -14,6 +14,7 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"
 	"realy.lol/event"
+	"realy.lol/relay"
 )
 
 // Server is a base for package users to implement nostr relays.
@@ -32,7 +33,7 @@ import (
 // and how it works: https://github.com/nostr-protocol/nostr
 type Server struct {
 	options *Options
-	relay   Relay
+	relay   relay.I
 	// keep a connection reference to all connected clients for Server.Shutdown
 	clientsMu sync.Mutex
 	clients   map[*websocket.Conn]struct{}
@@ -46,34 +47,34 @@ func (s *Server) Router() *http.ServeMux {
 	return s.serveMux
 }
 
-// NewServer initializes the relay and its storage using their respective Init methods,
+// NewServer initializes the realy and its storage using their respective Init methods,
 // returning any non-nil errors, and returns a Server ready to listen for HTTP requests.
-func NewServer(relay Relay, path S, opts ...Option) (*Server, E) {
+func NewServer(rl relay.I, path S, opts ...Option) (*Server, E) {
 	options := DefaultOptions()
 	for _, opt := range opts {
 		opt(options)
 	}
 
 	srv := &Server{
-		relay:    relay,
+		relay:    rl,
 		clients:  make(map[*websocket.Conn]struct{}),
 		serveMux: &http.ServeMux{},
 		options:  options,
 	}
 
-	if storage := relay.Storage(context.Background()); storage != nil {
+	if storage := rl.Storage(context.Background()); storage != nil {
 		if err := storage.Init(path); err != nil {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
 	}
 
-	// init the relay
-	if err := relay.Init(path); err != nil {
-		return nil, fmt.Errorf("relay init: %w", err)
+	// init the realy
+	if err := rl.Init(path); err != nil {
+		return nil, fmt.Errorf("realy init: %w", err)
 	}
 
 	// start listening from events from other sources, if any
-	if inj, ok := relay.(Injector); ok {
+	if inj, ok := rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
 				notifyListeners(ev)
@@ -127,7 +128,7 @@ func (s *Server) Start(host S, port int, started ...chan bool) E {
 
 // Shutdown sends a websocket close control message to all connected clients.
 //
-// If the relay is ShutdownAware, Shutdown calls its OnShutdown, passing the context as is.
+// If the realy is ShutdownAware, Shutdown calls its OnShutdown, passing the context as is.
 // Note that the HTTP server make some time to shutdown and so the context deadline,
 // if any, may have been shortened by the time OnShutdown is called.
 func (s *Server) Shutdown(ctx context.Context) {
@@ -141,7 +142,7 @@ func (s *Server) Shutdown(ctx context.Context) {
 		delete(s.clients, conn)
 	}
 
-	if f, ok := s.relay.(ShutdownAware); ok {
+	if f, ok := s.relay.(relay.ShutdownAware); ok {
 		f.OnShutdown(ctx)
 	}
 }
@@ -168,9 +169,3 @@ func WithSkipEventFunc(skipEventFunc func(*event.T) bool) Option {
 		o.skipEventFunc = skipEventFunc
 	}
 }
-
-type stdLogger struct{}
-
-func (l stdLogger) Infof(format S, v ...any)    { log.I.F(format, v...) }
-func (l stdLogger) Warningf(format S, v ...any) { log.I.F(format, v...) }
-func (l stdLogger) Errorf(format S, v ...any)   { log.I.F(format, v...) }

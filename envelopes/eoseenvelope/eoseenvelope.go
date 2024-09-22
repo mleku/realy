@@ -3,22 +3,22 @@ package eoseenvelope
 import (
 	"io"
 
-	"realy.lol"
+	"realy.lol/codec"
 	"realy.lol/envelopes"
-	sid "realy.lol/subscriptionid"
+	"realy.lol/subscription"
 )
 
 const L = "EOSE"
 
 type T struct {
-	Subscription *sid.T
+	Subscription *subscription.Id
 }
 
-var _ realy.I = (*T)(nil)
+var _ codec.Envelope = (*T)(nil)
 
-func New() *T               { return &T{Subscription: sid.NewStd()} }
-func NewFrom(id *sid.T) *T  { return &T{Subscription: id} }
-func (en *T) Label() string { return L }
+func New() *T                        { return &T{Subscription: subscription.NewStd()} }
+func NewFrom(id *subscription.Id) *T { return &T{Subscription: id} }
+func (en *T) Label() string          { return L }
 
 func (en *T) Write(w io.Writer) (err E) {
 	var b B
@@ -45,7 +45,7 @@ func (en *T) MarshalJSON(dst B) (b B, err error) {
 
 func (en *T) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	if en.Subscription, err = sid.New(B{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId(B{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {

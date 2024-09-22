@@ -11,7 +11,7 @@ import (
 	"realy.lol/envelopes/reqenvelope"
 	"realy.lol/event"
 	"realy.lol/filters"
-	"realy.lol/subscriptionid"
+	"realy.lol/subscription"
 )
 
 type Subscription struct {
@@ -69,9 +69,9 @@ var _ SubscriptionOption = (WithLabel)("")
 
 // GetID return the Nostr subscription ID as given to the Client
 // it is a concatenation of the label and a serial number.
-func (sub *Subscription) GetID() (id *subscriptionid.T) {
+func (sub *Subscription) GetID() (id *subscription.Id) {
 	var err E
-	if id, err = subscriptionid.New(sub.label + ":" + strconv.Itoa(sub.counter)); chk.E(err) {
+	if id, err = subscription.NewId(sub.label + ":" + strconv.Itoa(sub.counter)); chk.E(err) {
 		return
 	}
 	return
@@ -130,12 +130,12 @@ func (sub *Subscription) dispatchClosed(reason string) {
 	}
 }
 
-// Unsub closes the subscription, sending "CLOSE" to relay as in NIP-01. Unsub() also closes the
+// Unsub closes the subscription, sending "CLOSE" to realy as in NIP-01. Unsub() also closes the
 // channel sub.Events and makes a new one.
 func (sub *Subscription) Unsub() {
 	// cancel the context (if it's not canceled already)
 	sub.cancel()
-	// mark subscription as closed and send a CLOSE to the relay (naïve sync.Once
+	// mark subscription as closed and send a CLOSE to the realy (naïve sync.Once
 	// implementation)
 	if sub.live.CompareAndSwap(true, false) {
 		sub.Close()
@@ -166,7 +166,7 @@ func (sub *Subscription) Sub(_ Ctx, ff *filters.T) {
 	sub.Fire()
 }
 
-// Fire sends the "REQ" command to the relay.
+// Fire sends the "REQ" command to the realy.
 func (sub *Subscription) Fire() (err E) {
 	id := sub.GetID()
 

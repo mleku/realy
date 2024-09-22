@@ -1,51 +1,16 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
 	"os"
 	"sync"
 
 	"github.com/kelseyhightower/envconfig"
-	"realy.lol/event"
+	"realy.lol/context"
 	"realy.lol/lol"
 	"realy.lol/ratel"
-	realy "realy.lol/relay"
-	"realy.lol/store"
+	"realy.lol/realy"
 	"realy.lol/units"
 )
-
-type Relay struct {
-	RatelDbPath S `envconfig:"DATABASE"`
-	storage     store.I
-}
-
-func (r *Relay) Name() S {
-	return "REALY"
-}
-
-func (r *Relay) Storage(ctx context.Context) store.I {
-	return r.storage
-}
-
-func (r *Relay) Init(path S) E {
-	err := envconfig.Process("", r)
-	if err != nil {
-		return fmt.Errorf("couldn't process envconfig: %w", err)
-	}
-	return nil
-}
-
-func (r *Relay) AcceptEvent(ctx context.Context, evt *event.T) bool {
-	// block events that are too large
-	jsonb, _ := json.Marshal(evt)
-	if len(jsonb) > 10000 {
-		return false
-	}
-
-	return true
-}
 
 func main() {
 	lol.SetLogLevel("debug")
@@ -66,7 +31,7 @@ func main() {
 	}
 	log.I.F("'%s'", r.RatelDbPath)
 	var wg sync.WaitGroup
-	c, cancel := context.WithCancel(context.Background())
+	c, cancel := context.Cancel(context.Bg())
 	r.storage = ratel.GetBackend(c, &wg, r.RatelDbPath, false, units.Gb*8,
 		lol.Trace, 0)
 	var server *realy.Server

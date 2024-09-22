@@ -1,4 +1,4 @@
-package relay
+package realy
 
 type Notice struct {
 	Kind    S `json:"kind"`

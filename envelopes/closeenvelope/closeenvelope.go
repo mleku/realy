@@ -3,22 +3,22 @@ package closeenvelope
 import (
 	"io"
 
-	"realy.lol"
+	"realy.lol/codec"
 	"realy.lol/envelopes"
-	"realy.lol/subscriptionid"
+	"realy.lol/subscription"
 )
 
 const L = "CLOSE"
 
 type T struct {
-	ID *subscriptionid.T
+	ID *subscription.Id
 }
 
-var _ realy.I = (*T)(nil)
+var _ codec.Envelope = (*T)(nil)
 
-func New() *T                         { return &T{ID: subscriptionid.NewStd()} }
-func NewFrom(id *subscriptionid.T) *T { return &T{ID: id} }
-func (en *T) Label() string           { return L }
+func New() *T                        { return &T{ID: subscription.NewStd()} }
+func NewFrom(id *subscription.Id) *T { return &T{ID: id} }
+func (en *T) Label() string          { return L }
 func (en *T) Write(w io.Writer) (err E) {
 	var b B
 	if b, err = en.MarshalJSON(b); chk.E(err) {
@@ -43,7 +43,7 @@ func (en *T) MarshalJSON(dst B) (b B, err error) {
 
 func (en *T) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	if en.ID, err = subscriptionid.New(B{0}); chk.E(err) {
+	if en.ID, err = subscription.NewId(B{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.ID.UnmarshalJSON(r); chk.E(err) {

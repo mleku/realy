@@ -4,15 +4,15 @@ import (
 	"testing"
 
 	"realy.lol/envelopes"
-	"realy.lol/subscriptionid"
+	"realy.lol/subscription"
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 	var err error
 	rb, rb1, rb2 := make(B, 0, 65535), make(B, 0, 65535), make(B, 0, 65535)
 	for _ = range 1000 {
-		var s *subscriptionid.T
-		if s = subscriptionid.NewStd(); chk.E(err) {
+		var s *subscription.Id
+		if s = subscription.NewStd(); chk.E(err) {
 			t.Fatal(err)
 		}
 		req := NewFrom(s)

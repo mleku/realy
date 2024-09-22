@@ -5,7 +5,7 @@ import (
 
 	"realy.lol/envelopes"
 	"realy.lol/filters"
-	"realy.lol/subscriptionid"
+	"realy.lol/subscription"
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {
@@ -16,8 +16,8 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		if f, err = filters.GenFilters(5); chk.E(err) {
 			t.Fatal(err)
 		}
-		var s *subscriptionid.T
-		if s = subscriptionid.NewStd(); chk.E(err) {
+		var s *subscription.Id
+		if s = subscription.NewStd(); chk.E(err) {
 			t.Fatal(err)
 		}
 		req := NewFrom(s, f)

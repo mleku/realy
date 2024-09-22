@@ -1,4 +1,4 @@
-package relay
+package realy
 
 import (
 	"sync"
@@ -7,6 +7,7 @@ import (
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/filters"
+	"realy.lol/web"
 )
 
 type Listener struct {
@@ -14,7 +15,7 @@ type Listener struct {
 }
 
 var (
-	listeners      = make(map[*WebSocket]map[S]*Listener)
+	listeners      = make(map[*web.Socket]map[S]*Listener)
 	listenersMutex sync.Mutex
 )
 
@@ -49,7 +50,7 @@ func GetListeningFilters() *filters.T {
 	return respfilters
 }
 
-func setListener(id S, ws *WebSocket, ff *filters.T) {
+func setListener(id S, ws *web.Socket, ff *filters.T) {
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
 
@@ -63,7 +64,7 @@ func setListener(id S, ws *WebSocket, ff *filters.T) {
 }
 
 // Remove a specific subscription id from listeners for a given ws client
-func removeListenerId(ws *WebSocket, id S) {
+func removeListenerId(ws *web.Socket, id S) {
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
 
@@ -75,8 +76,8 @@ func removeListenerId(ws *WebSocket, id S) {
 	}
 }
 
-// Remove WebSocket conn from listeners
-func removeListener(ws *WebSocket) {
+// Remove T conn from listeners
+func removeListener(ws *web.Socket) {
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
 	clear(listeners[ws])

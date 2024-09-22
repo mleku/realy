@@ -8,7 +8,7 @@ import (
 	"realy.lol/envelopes"
 	"realy.lol/event"
 	"realy.lol/event/examples"
-	"realy.lol/subscriptionid"
+	"realy.lol/subscription"
 )
 
 func TestSubmission(t *testing.T) {
@@ -69,7 +69,7 @@ func TestResult(t *testing.T) {
 			t.Fatalf("some of input remaining after marshal/unmarshal: '%s'",
 				rem)
 		}
-		ea := NewResultWith(subscriptionid.NewStd().String(), ev)
+		ea := NewResultWith(subscription.NewStd().String(), ev)
 		if rem, err = ea.MarshalJSON(rem); chk.E(err) {
 			t.Fatal(err)
 		}

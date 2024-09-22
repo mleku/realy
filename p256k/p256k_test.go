@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	realy "realy.lol"
 	"realy.lol/ec/schnorr"
 	"realy.lol/event"
 	"realy.lol/event/examples"
 	"realy.lol/p256k"
+	realy "realy.lol/signer"
 )
 
 func TestSigner_Generate(t *testing.T) {
@@ -122,7 +122,7 @@ func TestSignerSign(t *testing.T) {
 func TestECDH(t *testing.T) {
 	n := time.Now()
 	var err error
-	var s1, s2 realy.Signer
+	var s1, s2 realy.I
 	var counter int
 	const total = 100
 	for _ = range total {

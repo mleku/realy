@@ -1,4 +1,4 @@
-package subscriptionid
+package subscription
 
 import (
 	"testing"
@@ -13,16 +13,16 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		_, _ = frand.Read(b)
 		copy(bc, b)
 		var err error
-		var si *T
-		if si, err = New(b); chk.E(err) {
+		var si *Id
+		if si, err = NewId(b); chk.E(err) {
 			t.Fatal(err)
 		}
 		var m B
 		if m, err = si.MarshalJSON(nil); chk.E(err) {
 			t.Fatal(err)
 		}
-		var ui *T
-		ui, _ = New("")
+		var ui *Id
+		ui, _ = NewId("")
 		var rem B
 		if rem, err = ui.UnmarshalJSON(m); chk.E(err) {
 			t.Fatal(err)

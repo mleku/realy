@@ -2,11 +2,11 @@ package event
 
 import (
 	"lukechampine.com/frand"
-	realy "realy.lol"
 	"realy.lol/eventid"
 	"realy.lol/hex"
 	"realy.lol/kind"
 	"realy.lol/sha256"
+	"realy.lol/signer"
 	"realy.lol/tags"
 	"realy.lol/text"
 	"realy.lol/timestamp"
@@ -94,18 +94,18 @@ func Hash(in []byte) (out []byte) {
 // GetIDBytes returns the raw SHA256 hash of the canonical form of an T.
 func (ev *T) GetIDBytes() []byte { return Hash(ev.ToCanonical()) }
 
-func GenerateRandomTextNoteEvent(signer realy.Signer, maxSize int) (ev *T,
+func GenerateRandomTextNoteEvent(sign signer.I, maxSize int) (ev *T,
 	err error) {
 
 	l := frand.Intn(maxSize * 6 / 8) // account for base64 expansion
 	ev = &T{
-		PubKey:    signer.Pub(),
+		PubKey:    sign.Pub(),
 		Kind:      kind.TextNote,
 		CreatedAt: timestamp.Now(),
 		Content:   text.NostrEscape(nil, frand.Bytes(l)),
 		Tags:      tags.New(),
 	}
-	if err = ev.Sign(signer); chk.E(err) {
+	if err = ev.Sign(sign); chk.E(err) {
 		return
 	}
 	return

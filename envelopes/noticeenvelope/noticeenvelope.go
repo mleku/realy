@@ -3,7 +3,7 @@ package noticeenvelope
 import (
 	"io"
 
-	"realy.lol"
+	"realy.lol/codec"
 	"realy.lol/envelopes"
 	"realy.lol/text"
 )
@@ -14,7 +14,7 @@ type T struct {
 	Message B
 }
 
-var _ realy.I = (*T)(nil)
+var _ codec.Envelope = (*T)(nil)
 
 func New() *T                   { return &T{} }
 func NewFrom[V S | B](msg V) *T { return &T{Message: B(msg)} }

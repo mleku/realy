@@ -3,7 +3,7 @@ package okenvelope
 import (
 	"io"
 
-	"realy.lol"
+	"realy.lol/codec"
 	"realy.lol/envelopes"
 	"realy.lol/eventid"
 	"realy.lol/text"
@@ -19,7 +19,7 @@ type T struct {
 	Reason  B
 }
 
-var _ realy.I = (*T)(nil)
+var _ codec.Envelope = (*T)(nil)
 
 func New() *T { return &T{} }
 func NewFrom[V S | B](eid V, ok bool, msg ...B) *T {

@@ -1,6 +1,6 @@
-package realy
+package signer
 
-type Signer interface {
+type I interface {
 	// Generate creates a fresh new key pair from system entropy, and ensures it is even (so
 	// ECDH works).
 	Generate() (err E)
@@ -22,9 +22,21 @@ type Signer interface {
 	Verify(msg, sig B) (valid bool, err E)
 	// Zero wipes the secret key to prevent memory leaks.
 	Zero()
-	// ECDH returns a shared secret derived using Elliptic Curve Diffie Hellman on the Signer
+	// ECDH returns a shared secret derived using Elliptic Curve Diffie Hellman on the I
 	// secret and provided pubkey.
 	ECDH(pub B) (secret B, err E)
 	// Negate flips the the secret key to change between odd and even compressed public key.
 	Negate()
+}
+
+// Gen is an interface for nostr BIP-340 key generation.
+type Gen interface {
+	// Generate gathers entropy and derives pubkey bytes for matching, this returns the 33 byte
+	// compressed form for checking the oddness of the Y coordinate.
+	Generate() (pubBytes B, err E)
+	// Negate flips the public key Y coordinate between odd and even.
+	Negate()
+	// KeyPairBytes returns the raw bytes of the secret and public key, this returns the 32 byte
+	// X-only pubkey.
+	KeyPairBytes() (secBytes, cmprPubBytes B)
 }

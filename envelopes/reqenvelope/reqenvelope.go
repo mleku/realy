@@ -3,28 +3,31 @@ package reqenvelope
 import (
 	"io"
 
-	"realy.lol"
+	"realy.lol/codec"
 	"realy.lol/envelopes"
 	"realy.lol/filters"
-	sid "realy.lol/subscriptionid"
+	"realy.lol/subscription"
 	"realy.lol/text"
 )
 
 const L = "REQ"
 
 type T struct {
-	Subscription *sid.T
+	Subscription *subscription.Id
 	Filters      *filters.T
 }
 
-var _ realy.I = (*T)(nil)
+var _ codec.Envelope = (*T)(nil)
 
 func New() *T {
-	return &T{Subscription: sid.NewStd(),
+	return &T{Subscription: subscription.NewStd(),
 		Filters: filters.New()}
 }
-func NewFrom(id *sid.T, filters *filters.T) *T { return &T{Subscription: id, Filters: filters} }
-func (en *T) Label() string                    { return L }
+func NewFrom(id *subscription.Id, filters *filters.T) *T {
+	return &T{Subscription: id,
+		Filters: filters}
+}
+func (en *T) Label() string { return L }
 
 func (en *T) Write(w io.Writer) (err E) {
 	var b B
@@ -56,7 +59,7 @@ func (en *T) MarshalJSON(dst B) (b B, err error) {
 
 func (en *T) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	if en.Subscription, err = sid.New(B{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId(B{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {

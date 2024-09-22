@@ -6,10 +6,10 @@ import (
 	"realy.lol/ws"
 
 	"realy.lol/envelopes/okenvelope"
-	"realy.lol/subscriptionid"
+	"realy.lol/subscription"
 )
 
-type SubID = subscriptionid.T
+type SubID = subscription.Id
 type WS = *ws.Serv
 type Responder = http.ResponseWriter
 type Req = *http.Request

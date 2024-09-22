@@ -1,4 +1,14 @@
-package realy
+package codec
+
+import (
+	"io"
+)
+
+type Envelope interface {
+	Label() string
+	Write(w io.Writer) (err E)
+	JSON
+}
 
 type JSON interface {
 	// MarshalJSON converts the data of the type into JSON, appending it to the

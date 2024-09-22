@@ -1,15 +1,15 @@
 package event
 
 import (
-	realy "realy.lol"
 	sch "realy.lol/ec/schnorr"
 	k1 "realy.lol/ec/secp256k1"
 	"realy.lol/p256k"
+	"realy.lol/signer"
 )
 
-// Sign the event using the nostr.Signer. Uses github.com/bitcoin-core/secp256k1 if available for much faster
+// Sign the event using the signer.I. Uses github.com/bitcoin-core/secp256k1 if available for much faster
 // signatures.
-func (ev *T) Sign(keys realy.Signer) (err error) {
+func (ev *T) Sign(keys signer.I) (err error) {
 	ev.ID = ev.GetIDBytes()
 	if ev.Sig, err = keys.Sign(ev.ID); chk.E(err) {
 		return
@@ -44,7 +44,7 @@ func (ev *T) Verify() (valid bool, err error) {
 
 // SignWithSecKey signs an event with a given *secp256xk1.SecretKey.
 //
-// Deprecated: use Sign and nostr.Signer and p256k.Signer / p256k.BTCECSigner
+// Deprecated: use Sign and nostr.I and p256k.Signer / p256k.BTCECSigner
 // implementations.
 func (ev *T) SignWithSecKey(sk *k1.SecretKey,
 	so ...sch.SignOption) (err error) {

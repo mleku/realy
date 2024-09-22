@@ -1,4 +1,4 @@
-package relay
+package realy
 
 import "realy.lol/event"
 

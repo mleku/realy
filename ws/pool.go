@@ -9,12 +9,12 @@ import (
 	"unsafe"
 
 	"github.com/puzpuzpuz/xsync/v3"
-	realy "realy.lol"
 	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/filters"
 	"realy.lol/normalize"
+	"realy.lol/signer"
 	"realy.lol/timestamp"
 )
 
@@ -25,7 +25,7 @@ var (
 type SimplePool struct {
 	Relays          *xsync.MapOf[S, *Client]
 	Context         Ctx
-	authHandler     func() realy.Signer
+	authHandler     func() signer.I
 	cancel          context.F
 	eventMiddleware []func(IncomingEvent)
 	// custom things not often used
@@ -70,7 +70,7 @@ func NewSimplePool(c Ctx, opts ...PoolOption) *SimplePool {
 // WithAuthHandler must be a function that signs the auth event when called.
 // it will be called whenever any relay in the pool returns a `CLOSED` message
 // with the "auth-required:" prefix, only once for each relay
-type WithAuthHandler func() realy.Signer
+type WithAuthHandler func() signer.I
 
 func (h WithAuthHandler) ApplyPoolOption(pool *SimplePool) {
 	pool.authHandler = h
