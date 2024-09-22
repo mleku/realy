@@ -2,6 +2,7 @@ package relay
 
 import (
 	"regexp"
+	"strings"
 
 	"realy.lol/event"
 	"realy.lol/normalize"
@@ -38,6 +39,10 @@ func AddEvent(c Ctx, relay Relay, evt *event.T) (accepted bool, message B) {
 			default:
 				errmsg := saveErr.Error()
 				if nip20prefixmatcher.MatchString(errmsg) {
+					if strings.Contains(errmsg, "tombstone") {
+						return false, normalize.Blocked.F(
+							"event was deleted, not storing it again")
+					}
 					return false, normalize.Error.F(errmsg)
 				} else {
 					return false, normalize.Error.F("failed to save (%s)", errmsg)

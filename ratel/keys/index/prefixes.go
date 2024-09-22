@@ -99,6 +99,15 @@ const (
 	//
 	//   [ 9 ][ 8 bytes Serial ] : value: [ 8 bytes timestamp ]
 	Counter
+
+	// Tombstone is an index that contains the left half of an event ID that has
+	// been deleted. The purpose of this event is to stop the event being
+	// republished, as a delete event may not be respected by other relays and
+	// eventually lead to a republication. The timestamp is added at the end to
+	// enable pruning the oldest tombstones.
+	//
+	// [ 10 ][ 16 bytes first/left half of event ID ][ 8 bytes timestamp ]
+	Tombstone
 )
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop

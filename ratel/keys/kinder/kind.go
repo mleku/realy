@@ -19,8 +19,8 @@ var _ keys.Element = &T{}
 // New creates a new kinder.T for reading/writing kind.T values.
 func New[V uint16 | int](c V) (p *T) { return &T{Val: kind.New(c)} }
 
-func Make(c *kind.T) (v []byte) {
-	v = make([]byte, Len)
+func Make(c *kind.T) (v B) {
+	v = make(B, Len)
 	binary.BigEndian.PutUint16(v, c.K)
 	return
 }

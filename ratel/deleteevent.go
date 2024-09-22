@@ -5,9 +5,12 @@ import (
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/id"
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/keys/tombstone"
+	"realy.lol/timestamp"
 )
 
 func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
@@ -38,7 +41,7 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 	}
 	var indexKeys []B
 	ev := event.New()
-	var evKey, evb, counterKey B
+	var evKey, evb, counterKey, tombstoneKey B
 	// fetch the event to get its index keys
 	err = r.View(func(txn *badger.Txn) (err error) {
 		// retrieve the event record
@@ -59,6 +62,8 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 			// log.I.S(rem, ev, seri)
 			indexKeys = GetIndexKeysForEvent(ev, seri)
 			counterKey = GetCounterKey(seri)
+			ts := tombstone.NewWith(ev.EventID())
+			tombstoneKey = index.Tombstone.Key(ts, createdat.New(timestamp.Now()))
 			return
 		}
 		return
@@ -74,6 +79,10 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 			}
 		}
 		if err = txn.Delete(counterKey); chk.E(err) {
+			return
+		}
+		// write tombstone
+		if err = txn.Set(tombstoneKey, nil); chk.E(err) {
 			return
 		}
 		return

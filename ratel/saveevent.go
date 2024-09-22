@@ -31,6 +31,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	defer r.WG.Done()
 	// first, search to see if the event ID already exists.
 	var foundSerial []byte
+	var deleted bool
 	seri := serial.New(nil)
 	err = r.View(func(txn *badger.Txn) (err error) {
 		// query event by id to ensure we don't try to save duplicates
@@ -47,10 +48,19 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 			// save into foundSerial
 			foundSerial = seri.Val
 		}
+		// if the event was deleted we don't want to save it again
+		prf = index.Tombstone.Key(id.New(eventid.NewWith(ev.ID)))
+		it.Seek(prf)
+		if it.ValidForPrefix(prf) {
+			deleted = true
+		}
 		return
 	})
 	if chk.E(err) {
 		return
+	}
+	if deleted {
+		return errorf.W("tombstone found, event will not be saved")
 	}
 	if foundSerial != nil {
 		log.T.Ln("found possible duplicate or stub for %s", ev)
