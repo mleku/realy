@@ -122,6 +122,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		dst = text.MarshalHexArray(dst, f.Authors.ToByteSlice())
 	}
 	if f.Tags.Len() > 0 {
+		log.I.S(f.Tags)
 		// if first {
 		// 	dst = append(dst, ',')
 		// } else {
@@ -160,7 +161,6 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 			dst = append(dst, '"', tg.B(0)[0], tg.B(0)[1], '"', ':')
 			dst = append(dst, '[')
 			for i, value := range values {
-				_ = i
 				dst = append(dst, '"')
 				if tKey[1] == 'e' || tKey[1] == 'p' {
 					// event and pubkey tags are binary 32 bytes

@@ -13,13 +13,14 @@ import (
 
 func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	log.I.F("query for events\n%s", f.Serialize())
+	// log.I.S(f)
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
 	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
 		return
 	}
-	log.I.S(queries, extraFilter)
+	// log.I.S(queries, extraFilter)
 	// search for the keys generated from the filter
 	var eventKeys [][]byte
 	for _, q := range queries {

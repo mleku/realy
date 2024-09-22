@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"net/http"
 	"sort"
@@ -26,6 +25,8 @@ import (
 	"realy.lol/envelopes/reqenvelope"
 	"realy.lol/event"
 	"realy.lol/filter"
+	"realy.lol/hex"
+	"realy.lol/ints"
 	"realy.lol/kind"
 	"realy.lol/normalize"
 	"realy.lol/sha256"
@@ -185,72 +186,101 @@ func (s *Server) doEvent(c Ctx, ws *WebSocket, req B, sto store.I) (msg B) {
 		// event deletion -- nip09
 		// log.I.S(env.Tags, env.Tags.Value())
 		for _, t := range env.Tags.Value() {
-			if t.Len() >= 2 && equals(t.Key(), B("e")) {
-				// todo: wtf
-				ctx, cancel := context.WithTimeout(c, time.Millisecond*1200)
-				defer cancel()
-
-				// fetch event to be deleted
-				var res []*event.T
-				evId := make(B, sha256.Size)
-				if _, err = hex.Decode(evId, t.Value()); chk.E(err) {
-					continue
-				}
-				res, err = s.relay.Storage(ctx).
-					QueryEvents(ctx, &filter.T{IDs: tag.New(B("e"), evId)})
-				if err != nil {
-					if err = okenvelope.NewFrom(env.ID, false,
-						normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {
+			var res []*event.T
+			if t.Len() >= 2 {
+				switch {
+				case equals(t.Key(), B("e")):
+					// fetch event to be deleted
+					evId := make(B, sha256.Size)
+					if _, err = hex.DecBytes(evId, t.Value()); chk.E(err) {
+						continue
+					}
+					res, err = s.relay.Storage(c).
+						QueryEvents(c, &filter.T{IDs: tag.New(evId)})
+					if err != nil {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {
+							return
+						}
 						return
 					}
+				case equals(t.Key(), B("a")):
+					split := bytes.Split(t.Value(), B{':'})
+					log.I.S(split)
+					if len(split) != 3 {
+						continue
+					}
+					kin := ints.New(uint16(0))
+					if _, err = kin.UnmarshalJSON(split[0]); chk.E(err) {
+						return
+					}
+					f := filter.New()
+					aut := make(B, 0, len(split[1])/2)
+					if aut, err = hex.DecAppend(aut, split[1]); chk.E(err) {
+						return
+					}
+					f.Authors.Append(aut)
+					f.Tags.AppendTags(tag.New(B{'#', 'd'}, split[2]))
+					log.I.S(f)
+					res, err = s.relay.Storage(c).QueryEvents(c, f)
+					if err != nil {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {
+							return
+						}
+						return
+					}
+					log.I.S(res)
+				}
+			}
 
-					// ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
-					// 	Reason: "failed to query for target event"})
+			// var target *event.T
+			// exists := false
+			// select {
+			// case target, exists = <-res:
+			// case <-ctx.Done():
+			// }
+			if len(res) < 1 {
+				// this will happen if event is not in the database
+				// or when when the query is taking too long, so we just give up
+				continue
+			}
+			log.I.S(res)
+			// there can only be one
+			target := res[0]
+			if target.CreatedAt.Int() > env.T.CreatedAt.Int() {
+				log.I.F("not replacing\n%s%\nbecause delete event is older\n%s",
+					target.CreatedAt.Int(), env.T.CreatedAt.Int())
+				continue
+			}
+			// check if this can be deleted
+			if !equals(target.PubKey, env.PubKey) {
+				if err = okenvelope.NewFrom(env.ID, false,
+					normalize.Error.F("only author can delete event")).Write(ws); chk.E(err) {
+					return
+				}
+				// ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
+				// 	Reason: "insufficient permissions"})
+				return
+			}
+
+			if advancedDeleter != nil {
+				advancedDeleter.BeforeDelete(c, t.Value(), env.PubKey)
+			}
+
+			if err = sto.DeleteEvent(c, target.EventID()); err != nil {
+				if err = okenvelope.NewFrom(env.ID, false,
+					normalize.Error.F(err.Error())).Write(ws); chk.E(err) {
 					return
 				}
 
-				// var target *event.T
-				// exists := false
-				// select {
-				// case target, exists = <-res:
-				// case <-ctx.Done():
-				// }
-				if len(res) < 1 {
-					// this will happen if event is not in the database
-					// or when when the query is taking too long, so we just give up
-					continue
-				}
-				// there can only be one
-				target := res[0]
-				// check if this can be deleted
-				if !equals(target.PubKey, env.PubKey) {
-					if err = okenvelope.NewFrom(env.ID, false,
-						normalize.Error.F("only author can delete event")).Write(ws); chk.E(err) {
-						return
-					}
-					// ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
-					// 	Reason: "insufficient permissions"})
-					return
-				}
+				// ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
+				// 	Reason: fmt.Sprintf("error: %s", err.Error())})
+				return
+			}
 
-				if advancedDeleter != nil {
-					advancedDeleter.BeforeDelete(ctx, t.Value(), env.PubKey)
-				}
-
-				if err = sto.DeleteEvent(ctx, target.EventID()); err != nil {
-					if err = okenvelope.NewFrom(env.ID, false,
-						normalize.Error.F(err.Error())).Write(ws); chk.E(err) {
-						return
-					}
-
-					// ws.WriteJSON(nostr.OKEnvelope{EventID: evt.ID, OK: false,
-					// 	Reason: fmt.Sprintf("error: %s", err.Error())})
-					return
-				}
-
-				if advancedDeleter != nil {
-					advancedDeleter.AfterDelete(t.Value(), env.PubKey)
-				}
+			if advancedDeleter != nil {
+				advancedDeleter.AfterDelete(t.Value(), env.PubKey)
 			}
 		}
 
