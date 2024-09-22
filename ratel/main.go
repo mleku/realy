@@ -52,9 +52,8 @@ var _ eventstore.I = (*T)(nil)
 //
 // Note that the cancel function for the context needs to be managed by the
 // caller.
-func GetBackend(Ctx context.T, WG *sync.WaitGroup, path S, hasL2 bool,
-	blockCacheSize, logLevel,
-	maxLimit int, params ...int) (b *T) {
+func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2 bool,
+	blockCacheSize, logLevel, maxLimit int, params ...int) (b *T) {
 	var sizeLimit, lw, hw, freq = 0, 86, 92, 60
 	switch len(params) {
 	case 4:
@@ -84,7 +83,6 @@ func GetBackend(Ctx context.T, WG *sync.WaitGroup, path S, hasL2 bool,
 		BlockCacheSize: blockCacheSize,
 		InitLogLevel:   logLevel,
 		MaxLimit:       maxLimit,
-		dataDir:        path,
 	}
 	return
 }

@@ -1,38 +1,30 @@
-package main
+package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/kelseyhightower/envconfig"
 	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/store"
 )
 
 type Relay struct {
-	RatelDbPath S `envconfig:"DATABASE"`
-	storage     store.I
+	*Config
+	Store store.I
 }
 
 func (r *Relay) Name() S {
 	return "REALY"
 }
 
-func (r *Relay) Storage(ctx context.T) store.I {
-	return r.storage
+func (r *Relay) Storage(c context.T) store.I {
+	return r.Store
 }
 
-func (r *Relay) Init(path S) E {
-	err := envconfig.Process("", r)
-	if err != nil {
-		return fmt.Errorf("couldn't process envconfig: %w", err)
-	}
-	return nil
-}
+func (r *Relay) Init() E { return nil }
 
 func (r *Relay) AcceptEvent(c context.T, evt *event.T) bool {
 	// block events that are too large

@@ -1,10 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 
-	"github.com/kelseyhightower/envconfig"
+	"go-simpler.org/env"
+	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
 	"realy.lol/lol"
 	"realy.lol/ratel"
@@ -12,28 +16,39 @@ import (
 	"realy.lol/units"
 )
 
+const AppName = "realy"
+
 func main() {
-	lol.SetLogLevel("debug")
 	var err E
-	var path S
-	r := &Relay{}
-	if err = envconfig.Process(r.Name(), r); err != nil {
-		log.F.F("failed to read from env: %v", err)
-		return
-	}
-	log.I.F("'%s'", r.RatelDbPath)
-	if r.RatelDbPath == "" {
-		// default to creating a one-time temporary database
-		if path, err = os.MkdirTemp("/tmp", "realy"); chk.E(err) {
-			os.Exit(1)
+	var cfg *app.Config
+	var help bool
+	if len(os.Args) > 1 {
+		arg := strings.ToLower(os.Args[1])
+		switch arg {
+
+		case "help", "-h", "--h", "-help", "--help", "?":
+			help = true
 		}
-		r.RatelDbPath = path
 	}
-	log.I.F("'%s'", r.RatelDbPath)
+	if cfg, err = app.NewConfig(); err != nil || help {
+		// log.I.S(cfg)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
+		}
+		fmt.Fprintf(os.Stderr, "Environment variables that configure %s:\n\n", AppName)
+		env.Usage(cfg, os.Stderr, nil)
+		fmt.Fprintf(os.Stderr, "\nCLI parameter 'help' also prints this information\n")
+		fmt.Fprintf(os.Stderr,
+			"\n.env file found at the ROOT_DIR/PROFILE path will be automatically loaded for configuration; set these two variables for a custom load path\n")
+		os.Exit(0)
+	}
+	lol.SetLogLevel(cfg.LogLevel)
+	log.T.S(cfg)
 	var wg sync.WaitGroup
 	c, cancel := context.Cancel(context.Bg())
-	r.storage = ratel.GetBackend(c, &wg, r.RatelDbPath, false, units.Gb*8,
-		lol.Trace, 0)
+	path := filepath.Join(cfg.Root, cfg.Profile)
+	storage := ratel.GetBackend(c, &wg, false, units.Gb*8, lol.Trace, 0)
+	r := &app.Relay{Config: cfg, Store: storage}
 	var server *realy.Server
 	if server, err = realy.NewServer(r, path); chk.E(err) {
 		return
@@ -41,8 +56,9 @@ func main() {
 	if err != nil {
 		log.F.F("failed to create server: %v", err)
 	}
-	if err = server.Start("0.0.0.0", 3334); chk.E(err) {
+	if err = server.Start(cfg.Listen, cfg.Port); chk.E(err) {
 		log.F.F("server terminated: %v", err)
 	}
+
 	cancel()
 }

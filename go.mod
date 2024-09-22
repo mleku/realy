@@ -17,6 +17,7 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.9.0
 	github.com/templexxx/xhex v0.0.0-20200614015412-aed53437177b
+	go-simpler.org/env v0.12.0
 	golang.org/x/crypto v0.27.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/net v0.29.0

@@ -19,7 +19,7 @@ type I interface {
 	// Init is called at the very beginning by [Server.Start], allowing a realy
 	// to initialize its internal resources.
 	// Also see [eventstore.I.Init].
-	Init(path S) E
+	Init() E
 	// AcceptEvent is called for every nostr event received by the server.
 	// If the returned value is true, the event is passed on to [Storage.SaveEvent].
 	// Otherwise, the server responds with a negative and "blocked" message as described

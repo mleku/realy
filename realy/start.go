@@ -49,7 +49,7 @@ func (s *Server) Router() *http.ServeMux {
 
 // NewServer initializes the realy and its storage using their respective Init methods,
 // returning any non-nil errors, and returns a Server ready to listen for HTTP requests.
-func NewServer(rl relay.I, path S, opts ...Option) (*Server, E) {
+func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 	options := DefaultOptions()
 	for _, opt := range opts {
 		opt(options)
@@ -63,13 +63,13 @@ func NewServer(rl relay.I, path S, opts ...Option) (*Server, E) {
 	}
 
 	if storage := rl.Storage(context.Background()); storage != nil {
-		if err := storage.Init(path); err != nil {
+		if err := storage.Init(dbPath); err != nil {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
 	}
 
 	// init the realy
-	if err := rl.Init(path); err != nil {
+	if err := rl.Init(); err != nil {
 		return nil, fmt.Errorf("realy init: %w", err)
 	}
 
@@ -98,6 +98,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) Start(host S, port int, started ...chan bool) E {
 	addr := net.JoinHostPort(host, strconv.Itoa(port))
+	log.I.F("starting relay listener at %s", addr)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
