@@ -122,7 +122,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		dst = text.MarshalHexArray(dst, f.Authors.ToByteSlice())
 	}
 	if f.Tags.Len() > 0 {
-		log.I.S(f.Tags)
+		// log.I.S(f.Tags)
 		// if first {
 		// 	dst = append(dst, ',')
 		// } else {

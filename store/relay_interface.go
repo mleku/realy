@@ -64,7 +64,7 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 		// f.Tags = tags.New(tag.New(d.Key())) // ), d.Value()))
 		log.I.F("filter for parameterized replaceable %s %s", f.Tags, f.Serialize())
 		evs, err = w.I.QueryEvents(c, f)
-		log.I.S(evs)
+		// log.I.S(evs)
 		if err != nil {
 			return fmt.Errorf("failed to query before replacing: %w", err)
 		}
@@ -74,6 +74,12 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 				log.I.F("maybe replace %s", ev.Serialize())
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
 					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
+				}
+				evdt := ev.Tags.GetFirst(tag.New("d"))
+				evtdt := evt.Tags.GetFirst(tag.New("d"))
+				log.I.F("%s != %s", evdt.Value(), evtdt.Value())
+				if !equals(evdt.Value(), evtdt.Value()) {
+					continue
 				}
 				log.I.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
 				if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {

@@ -50,7 +50,7 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 			if evb, err = it.Item().ValueCopy(evb); chk.E(err) {
 				return
 			}
-			log.I.S(evb)
+			// log.I.S(evb)
 			var rem B
 			if rem, err = ev.UnmarshalBinary(evb); chk.E(err) {
 				return
