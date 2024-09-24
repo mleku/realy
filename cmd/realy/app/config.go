@@ -1,14 +1,19 @@
 package app
 
 import (
+	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"go-simpler.org/env"
 	"realy.lol/apputil"
+	"realy.lol/config"
 )
 
 type Config struct {
+	AppName  string `env:"APP_NAME" default:"realy"`
 	Root     string `env:"ROOT_DIR" usage:"root path for all other path configurations (defaults OS user home if empty)"`
 	Profile  string `env:"PROFILE" default:".realy" usage:"name of directory in root path to store relay state data and database"`
 	Listen   string `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
@@ -28,40 +33,40 @@ func NewConfig() (cfg *Config, err E) {
 		}
 		cfg.Root = dir
 	}
-	var envPath S
+	envPath := filepath.Join(filepath.Join(cfg.Root, cfg.Profile), ".env")
 	if apputil.FileExists(envPath) {
-		var e Env
-		if e, err = GetEnv(envPath); err != nil {
+		var e config.Env
+		if e, err = config.GetEnv(envPath); err != nil {
 			return
 		}
 		if err = env.Load(cfg, &env.Options{Source: e}); chk.E(err) {
 			return
 		}
-	}
-	return
-}
-
-type Env map[string]string
-
-func GetEnv(path string) (env Env, err error) {
-	var s B
-	if s, err = os.ReadFile(path); err != nil {
-		return
-	}
-	lines := strings.Split(S(s), "\n")
-	for i, line := range lines {
-		line = strings.TrimSpace(line)
-		split := strings.Split(line, "=")
-		if len(split) != 2 {
-			log.E.F("invalid line %d in config %s:\n%s", i, path, line)
-			continue
+		// load the environment vars again so they can override the .env file
+		if err = env.Load(cfg, nil); err != nil {
+			return
 		}
-		env[strings.TrimSpace(split[0])] = strings.TrimSpace(split[1])
 	}
 	return
 }
 
-func (env Env) LookupEnv(key string) (value string, ok bool) {
-	value, ok = env[key]
+func HelpRequested() (help bool) {
+	if len(os.Args) > 1 {
+		switch strings.ToLower(os.Args[1]) {
+		case "help", "-h", "--h", "-help", "--help", "?":
+			help = true
+		}
+	}
+	return
+}
+
+func PrintHelp(cfg *Config, printer io.Writer) (s S) {
+	_, _ = fmt.Fprintf(printer,
+		"Environment variables that configure %s:\n\n", cfg.AppName)
+	env.Usage(cfg, printer, nil)
+	_, _ = fmt.Fprintf(printer,
+		"\nCLI parameter 'help' also prints this information\n"+
+			"\n.env file found at the ROOT_DIR/PROFILE path will be automatically "+
+			"loaded for configuration; set these two variables for a custom load path\n")
 	return
 }
