@@ -25,7 +25,4 @@ func GetEnv(path string) (env Env, err error) {
 	return
 }
 
-func (env Env) LookupEnv(key string) (value string, ok bool) {
-	value, ok = env[key]
-	return
-}
+func (env Env) LookupEnv(key string) (value string, ok bool) { value, ok = env[key]; return }

@@ -81,6 +81,12 @@ func (t *T) AddCap(i, c int) (tt *T) {
 	if len(t.t) == 2 && i == 2 {
 		t.t = append(t.t, tag.NewWithCap(c))
 	}
+	if len(t.t) == 3 && i == 3 {
+		t.t = append(t.t, tag.NewWithCap(c))
+	}
+	if len(t.t) == 4 && i == 4 {
+		t.t = append(t.t, tag.NewWithCap(c))
+	}
 	if len(t.t) <= i {
 		log.I.Ln("len", t.Len(), "i", i)
 		log.E.F("cannot add capacity to nonexistent tag field of tags %d of len %d",

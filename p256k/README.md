@@ -21,7 +21,7 @@ The directory `pkg/libsecp256k1/secp256k1` needs to be initialized and built
 and installed, like so:
 
 ```bash
-cd crypto/p256k
+cd p256k
 git clone https://github.com/bitcoin-core/secp256k1.git
 cd secp256k1
 git submodule init

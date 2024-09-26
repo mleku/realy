@@ -26,7 +26,8 @@ import (
 // via GC processing. This avoids data copy as the content fields are the
 // biggest in the event.T structure and dominate the size of the whole event
 // anyway, so either way this is done there is a tradeoff. This can be mitigated
-// by changing the event.T to be a []byte instead.
+// by changing the event.T to be a []byte instead. Or alternatively, copy the
+// binary buffer out and the database can manage recycling this buffer.
 type Reader struct {
 	Pos int
 	Buf B

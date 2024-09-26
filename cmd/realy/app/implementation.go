@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -16,27 +15,13 @@ type Relay struct {
 	Store store.I
 }
 
-func (r *Relay) Name() S {
-	return "REALY"
-}
-
-func (r *Relay) Storage(c context.T) store.I {
-	return r.Store
-}
-
-func (r *Relay) Init() E { return nil }
-
-func (r *Relay) AcceptEvent(c context.T, evt *event.T) bool {
-	// block events that are too large
-	jsonb, _ := json.Marshal(evt)
-	if len(jsonb) > 10000 {
-		return false
-	}
-
-	return true
-}
+func (r *Relay) Name() S                                    { return "REALY" }
+func (r *Relay) Storage(c context.T) store.I                { return r.Store }
+func (r *Relay) Init() E                                    { return nil }
+func (r *Relay) AcceptEvent(c context.T, evt *event.T) bool { return true }
 
 func (r *Relay) ServiceUrl(req *http.Request) (s S) {
+	log.I.S(req)
 	host := req.Header.Get("X-Forwarded-Host")
 	if host == "" {
 		host = req.Host
@@ -45,7 +30,7 @@ func (r *Relay) ServiceUrl(req *http.Request) (s S) {
 	if proto == "" {
 		if host == "localhost" {
 			proto = "ws"
-		} else if strings.Index(host, ":") != -1 {
+		} else if strings.Contains(host, ":") {
 			// has a port number
 			proto = "ws"
 		} else if _, err := strconv.Atoi(strings.ReplaceAll(host, ".",
@@ -55,6 +40,10 @@ func (r *Relay) ServiceUrl(req *http.Request) (s S) {
 		} else {
 			proto = "wss"
 		}
+	} else if proto == "https" {
+		proto = "wss"
+	} else if proto == "http" {
+		proto = "ws"
 	}
 	return proto + "://" + host
 }
