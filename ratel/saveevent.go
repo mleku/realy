@@ -105,7 +105,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	if bin, err = ev.MarshalBinary(bin); chk.E(err) {
 		return
 	}
-	log.T.F("saving event to badger %s", ev)
+	log.I.F("saving event to ratel %s", ev.Serialize())
 	// otherwise, save new event record.
 	if err = r.Update(func(txn *badger.Txn) (err error) {
 		var idx []byte

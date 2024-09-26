@@ -88,7 +88,6 @@ func notifyListeners(ev *event.T) {
 	var err E
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
-
 	for ws, subs := range listeners {
 		for id, listener := range subs {
 			if !listener.filters.Match(ev) {
@@ -97,7 +96,6 @@ func notifyListeners(ev *event.T) {
 			if err = eventenvelope.NewResultWith(id, ev).Write(ws); chk.E(err) {
 				return
 			}
-			// ws.WriteJSON(nostr.EventEnvelope{SubscriptionID: &id, Event: *ev})
 		}
 	}
 }
