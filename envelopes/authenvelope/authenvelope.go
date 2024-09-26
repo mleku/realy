@@ -24,6 +24,7 @@ func (en *Challenge) Write(w io.Writer) (err E) {
 	if b, err = en.MarshalJSON(b); chk.E(err) {
 		return
 	}
+	log.I.F("writing out challenge envelope: '%s'", b)
 	_, err = w.Write(b)
 	return
 }

@@ -16,6 +16,7 @@ import (
 	"realy.lol/ec/bech32"
 	"realy.lol/envelopes"
 	"realy.lol/envelopes/authenvelope"
+	"realy.lol/envelopes/closedenvelope"
 	"realy.lol/envelopes/closeenvelope"
 	"realy.lol/envelopes/countenvelope"
 	"realy.lol/envelopes/eoseenvelope"
@@ -119,6 +120,7 @@ func (s *Server) handleMessage(c Ctx, ws *web.Socket, msg B, sto store.I) {
 	}
 	if len(notice) > 0 {
 		log.D.F("notice %s", notice)
+
 	}
 }
 
@@ -397,7 +399,19 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
 		if !accepter.AcceptReq(c, env.Subscription.T, env.Filters, B(ws.Authed())) {
-			return B("REQ filters are not accepted")
+			if _, ok = s.relay.(relay.Authenticator); ok {
+				if err = closedenvelope.NewFrom(env.Subscription,
+					normalize.AuthRequired.F("auth required for request processing")).
+					Write(ws); chk.E(err) {
+				}
+				log.I.F("requesting auth from client")
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+					return
+				}
+				// } else {
+				// return B("REQ filters are not accepted")
+				return
+			}
 		}
 	}
 
@@ -499,7 +513,7 @@ func (s *Server) doClose(c Ctx, ws *web.Socket, req B, store store.I) (note B) {
 
 func (s *Server) doAuth(c Ctx, ws *web.Socket, req B, store store.I) (msg B) {
 	if auther, ok := s.relay.(relay.Authenticator); ok {
-		log.D.F("received auth response\n%s", req)
+		log.I.F("received auth response\n%s", req)
 		var err E
 		var rem B
 		env := authenvelope.NewResponse()
@@ -510,7 +524,7 @@ func (s *Server) doAuth(c Ctx, ws *web.Socket, req B, store store.I) (msg B) {
 			log.I.F("extra '%s'", rem)
 		}
 		var valid bool
-		if valid, err = auth.Validate(env.Event, auth.B(ws.Challenge()),
+		if valid, err = auth.Validate(env.Event, B(ws.Challenge()),
 			auther.ServiceUrl(ws.Req())); chk.E(err) {
 			if err := okenvelope.NewFrom(env.Event.ID, false, normalize.Error.F(err.Error())).
 				Write(ws); chk.E(err) {
@@ -525,7 +539,10 @@ func (s *Server) doAuth(c Ctx, ws *web.Socket, req B, store store.I) (msg B) {
 			}
 			return normalize.Restricted.F("auth response does not validate")
 		} else {
-			log.D.F("%s authed to pubkey %0x", ws.RealRemote(),
+			if err = okenvelope.NewFrom(env.Event.ID, true, B{}).Write(ws); chk.E(err) {
+				return
+			}
+			log.I.F("%s authed to pubkey %0x", ws.RealRemote(),
 				env.Event.PubKey)
 			ws.SetAuthed(web.S(env.Event.PubKey))
 		}
@@ -587,10 +604,8 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 
 		// NIP-42 auth challenge
 		if _, ok := s.relay.(relay.Authenticator); ok {
+			log.I.F("requesting auth from client")
 			env := authenvelope.NewChallengeWith(ws.Challenge())
-			buf := bytes.NewBuffer(nil)
-			env.Write(buf)
-			log.I.F("requesting auth '%s", buf.String())
 			if err = env.Write(ws); chk.E(err) {
 				return
 			}

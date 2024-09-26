@@ -64,8 +64,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				// for it.Rewind(); it.Valid(); it.Next() {
 				for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 					item := it.Item()
-					k := item.KeyCopy(nil)
-					log.T.S(k)
+					// k := item.KeyCopy(nil)
+					// log.T.S(k)
 					if v, err = item.ValueCopy(nil); chk.E(err) {
 						continue
 					}
@@ -98,6 +98,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			if rem, err = ev.UnmarshalBinary(v); chk.E(err) {
 				return
 			}
+			log.T.F("%s", ev.Serialize())
 			if len(rem) > 0 {
 				log.T.S(rem)
 			}
@@ -130,7 +131,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 						}
 					}
 				}
-				log.T.F("sending back result\n%s\n", ev)
+				log.T.F("sending back result\n%s\n", ev.Serialize())
 				evs = append(evs, ev)
 				if filter.Present(f.Limit) {
 					*f.Limit--
