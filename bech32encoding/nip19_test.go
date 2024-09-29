@@ -77,7 +77,7 @@ func TestDecodeNprofile(t *testing.T) {
 	}
 	if !equals(pp.Relays[0], B("wss://r.x.com")) ||
 		!equals(pp.Relays[1], B("wss://djbas.sadkb.com")) {
-		t.Error("decoded realy URLs wrongly")
+		t.Error("decoded relay URLs wrongly")
 	}
 }
 
@@ -103,9 +103,9 @@ func TestDecodeOtherNprofile(t *testing.T) {
 		t.Error("decoded wrong number of relays")
 	}
 	if !equals(pp.Relays[0], B("wss://nostr-pub.wellorder.net")) ||
-		!equals(pp.Relays[1], B("wss://nostr-realy.untethr.me")) {
+		!equals(pp.Relays[1], B("wss://nostr-relay.untethr.me")) {
 
-		t.Error("decoded realy URLs wrongly")
+		t.Error("decoded relay URLs wrongly")
 	}
 }
 
@@ -132,7 +132,7 @@ func TestEncodeDecodeNaddr(t *testing.T) {
 		kind.Article,
 		B("banana"),
 		[]B{
-			B("wss://realy.nostr.example.mydomain.example.com"),
+			B("wss://relay.nostr.example.mydomain.example.com"),
 			B("wss://nostr.banana.com"),
 		})
 	if err != nil {
@@ -167,7 +167,7 @@ func TestEncodeDecodeNaddr(t *testing.T) {
 		t.Error("returned wrong identifier")
 	}
 	if !equals(ep.Relays[0],
-		B("wss://realy.nostr.example.mydomain.example.com")) ||
+		B("wss://relay.nostr.example.mydomain.example.com")) ||
 		!equals(ep.Relays[1], B("wss://nostr.banana.com")) {
 		t.Error("returned wrong relays")
 	}
@@ -232,7 +232,7 @@ func TestEncodeDecodeNEventTestEncodeDecodeNEvent(t *testing.T) {
 
 	if len(ep.Relays) != 1 ||
 		!equals(ep.Relays[0], B("wss://banana.com")) {
-		t.Error("wrong realy")
+		t.Error("wrong relay")
 	}
 }
 

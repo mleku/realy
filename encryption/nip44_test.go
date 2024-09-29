@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"realy.lol/hex"
 	"realy.lol/keys"
+	"realy.lol/sha256"
 )
 
 func assertCryptPriv(t *testing.T, sk1, sk2, conversationKey, salt, plaintext, expected S) {

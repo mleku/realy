@@ -19,7 +19,7 @@ func TestServerStartShutdown(t *testing.T) {
 	)
 	rl := &testRelay{
 		name: "test server start",
-		init: func(S) E {
+		init: func() E {
 			inited = true
 			return nil
 		},

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"realy.lol/context"
 	"realy.lol/relay"
 	ri "realy.lol/relayinfo"
 	"realy.lol/store"
@@ -36,7 +37,7 @@ func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 			supportedNIPs = append(supportedNIPs, ri.Authentication.N())
 		}
 		var storage store.I
-		if s.relay.Storage != nil {
+		if s.relay.Storage(context.Bg()) != nil {
 			if _, ok = storage.(relay.EventCounter); ok {
 				supportedNIPs = append(supportedNIPs, ri.CountingResults.N())
 			}

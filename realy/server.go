@@ -26,11 +26,6 @@ import (
 //
 // The basic usage is to call Start or StartConf, which starts serving immediately.
 // For a more fine-grained control, use NewServer.
-// See [basic/main.go], [whitelisted/main.go], [expensive/main.go] and [rss-bridge/main.go]
-// for example implementations.
-//
-// The following resource is a good starting point for details on what nostr protocol is
-// and how it works: https://github.com/nostr-protocol/nostr
 type Server struct {
 	options *Options
 	relay   relay.I
@@ -54,11 +49,10 @@ func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 	for _, opt := range opts {
 		opt(options)
 	}
-
 	srv := &Server{
 		relay:    rl,
 		clients:  make(map[*websocket.Conn]struct{}),
-		serveMux: &http.ServeMux{},
+		serveMux: http.NewServeMux(),
 		options:  options,
 	}
 

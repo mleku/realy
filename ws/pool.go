@@ -43,7 +43,7 @@ type IncomingEvent struct {
 }
 
 func (ie IncomingEvent) String() S {
-	return fmt.Sprintf("[%s] >> %s", ie.Client.URL, ie.Event)
+	return fmt.Sprintf("[%s] >> %s", ie.Client.URL, ie.Event.Serialize())
 }
 
 type PoolOption interface {

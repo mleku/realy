@@ -1,9 +1,10 @@
 package realy
 
 import (
-	"context"
+	"net/http"
 	"testing"
 
+	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/filter"
@@ -22,30 +23,31 @@ func startTestRelay(t *testing.T, tr *testRelay) *Server {
 type testRelay struct {
 	name        S
 	storage     eventstore.I
-	init        func(S) E
-	onShutdown  func(context.Context)
+	init        func() E
+	onShutdown  func(context.T)
 	acceptEvent func(*event.T) bool
 }
 
-func (tr *testRelay) Name() S                              { return tr.name }
-func (tr *testRelay) Storage(context.Context) eventstore.I { return tr.storage }
+func (tr *testRelay) Name() S                        { return tr.name }
+func (tr *testRelay) Storage(context.T) eventstore.I { return tr.storage }
 
-func (tr *testRelay) Init(path S) E {
+func (tr *testRelay) Init() E {
 	if fn := tr.init; fn != nil {
-		return fn(path)
+		return fn()
 	}
 	return nil
 }
 
-func (tr *testRelay) OnShutdown(ctx context.Context) {
+func (tr *testRelay) OnShutdown(ctx context.T) {
 	if fn := tr.onShutdown; fn != nil {
 		fn(ctx)
 	}
 }
 
-func (tr *testRelay) AcceptEvent(ctx context.Context, e *event.T) bool {
+func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
+	authedPubkey B) bool {
 	if fn := tr.acceptEvent; fn != nil {
-		return fn(e)
+		return fn(evt)
 	}
 	return true
 }
@@ -53,10 +55,10 @@ func (tr *testRelay) AcceptEvent(ctx context.Context, e *event.T) bool {
 type testStorage struct {
 	init        func() E
 	close       func()
-	queryEvents func(context.Context, *filter.T) ([]*event.T, E)
-	deleteEvent func(context.Context, *eventid.T) E
-	saveEvent   func(context.Context, *event.T) E
-	countEvents func(context.Context, *filter.T) (N, E)
+	queryEvents func(context.T, *filter.T) ([]*event.T, E)
+	deleteEvent func(context.T, *eventid.T) E
+	saveEvent   func(context.T, *event.T) E
+	countEvents func(context.T, *filter.T) (N, E)
 }
 
 func (st *testStorage) Nuke() (err eventstore.E) {
@@ -83,28 +85,28 @@ func (st *testStorage) Close() (err E) {
 	return
 }
 
-func (st *testStorage) QueryEvents(ctx context.Context, f *filter.T) (evs []*event.T, err E) {
+func (st *testStorage) QueryEvents(ctx context.T, f *filter.T) (evs []*event.T, err E) {
 	if fn := st.queryEvents; fn != nil {
 		return fn(ctx, f)
 	}
 	return nil, nil
 }
 
-func (st *testStorage) DeleteEvent(ctx context.Context, evt *eventid.T) E {
+func (st *testStorage) DeleteEvent(ctx context.T, evt *eventid.T) E {
 	if fn := st.deleteEvent; fn != nil {
 		return fn(ctx, evt)
 	}
 	return nil
 }
 
-func (st *testStorage) SaveEvent(ctx context.Context, e *event.T) E {
+func (st *testStorage) SaveEvent(ctx context.T, e *event.T) E {
 	if fn := st.saveEvent; fn != nil {
 		return fn(ctx, e)
 	}
 	return nil
 }
 
-func (st *testStorage) CountEvents(ctx context.Context, f *filter.T) (N, E) {
+func (st *testStorage) CountEvents(ctx context.T, f *filter.T) (N, E) {
 	if fn := st.countEvents; fn != nil {
 		return fn(ctx, f)
 	}
