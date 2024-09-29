@@ -63,7 +63,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		return errorf.W("tombstone found, event will not be saved")
 	}
 	if foundSerial != nil {
-		log.T.Ln("found possible duplicate or stub for %s", ev)
+		log.T.F("found possible duplicate or stub for %s", ev.Serialize())
 		err = r.Update(func(txn *badger.Txn) (err error) {
 			// retrieve the event record
 			evKey := keys.Write(index.New(index.Event), seri)
@@ -73,7 +73,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 			if it.ValidForPrefix(evKey) {
 				if it.Item().ValueSize() != sha256.Size {
 					// not a stub, we already have it
-					log.T.Ln("duplicate event", ev.ID)
+					log.T.F("duplicate event %0x", ev.ID)
 					return eventstore.ErrDupEvent
 				}
 				// we only need to restore the event binary and write the access counter key
@@ -105,7 +105,6 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	if bin, err = ev.MarshalBinary(bin); chk.E(err) {
 		return
 	}
-	log.I.F("saving event to ratel %s", ev.Serialize())
 	// otherwise, save new event record.
 	if err = r.Update(func(txn *badger.Txn) (err error) {
 		var idx []byte
@@ -130,7 +129,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		if err = txn.Set(counterKey, val); chk.E(err) {
 			return
 		}
-		log.T.F("event saved %0x %s", ev.ID, r.dataDir)
+		log.I.F("saved event to ratel\n%s:\n%s", ev.Serialize(), r.dataDir)
 		return
 	}); chk.E(err) {
 		return

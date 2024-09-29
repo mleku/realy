@@ -24,7 +24,7 @@ type I interface {
 	// If the returned value is true, the event is passed on to [Storage.SaveEvent].
 	// Otherwise, the server responds with a negative and "blocked" message as described
 	// in NIP-20.
-	AcceptEvent(Ctx, *event.T) bool
+	AcceptEvent(c Ctx, ev *event.T, hr *http.Request, authedPubkey B) bool
 	// Storage returns the realy storage implementation.
 	Storage(Ctx) store.I
 }
@@ -34,12 +34,13 @@ type ReqAcceptor interface {
 	// AcceptReq is called for every nostr request filters received by the
 	// server. If the returned value is true, the filtres is passed on to
 	// [Storage.QueryEvent].
-	AcceptReq(ctx Ctx, id B, ff *filters.T, authedPubkey B) bool
+	AcceptReq(ctx Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) bool
 }
 
 // Authenticator is the interface for implementing NIP-42.
 // ServiceURL() returns the URL used to verify the "AUTH" event from clients.
 type Authenticator interface {
+	AuthEnabled() bool
 	ServiceUrl(r *http.Request) S
 }
 

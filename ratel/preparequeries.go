@@ -131,7 +131,7 @@ func PrepareQueries(f *filter.T) (
 					continue
 				}
 				// remove the last part to get just the prefix we want here
-				log.T.F("search for tags from %0x", prf)
+				log.T.F("search tags %0x", prf)
 				qs[i] = query{index: i, queryFilter: f, searchPrefix: prf}
 				i++
 			}

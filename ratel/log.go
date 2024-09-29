@@ -30,7 +30,7 @@ func (l *logger) Errorf(s string, i ...interface{}) {
 		s = l.Label + ": " + s
 		txt := fmt.Sprintf(s, i...)
 		_, file, line, _ := runtime.Caller(2)
-		log.E.F("%s %s:%d", strings.TrimSpace(txt), file, line)
+		log.E.F("%s\n%s:%d", strings.TrimSpace(txt), file, line)
 	}
 }
 
@@ -39,7 +39,7 @@ func (l *logger) Warningf(s string, i ...interface{}) {
 		s = l.Label + ": " + s
 		txt := fmt.Sprintf(s, i...)
 		_, file, line, _ := runtime.Caller(2)
-		log.W.F("%s %s:%d", strings.TrimSpace(txt), file, line)
+		log.W.F("%s\n%s:%d", strings.TrimSpace(txt), file, line)
 	}
 }
 
@@ -48,7 +48,7 @@ func (l *logger) Infof(s string, i ...interface{}) {
 		s = l.Label + ": " + s
 		txt := fmt.Sprintf(s, i...)
 		_, file, line, _ := runtime.Caller(2)
-		log.T.F("%s %s:%d", strings.TrimSpace(txt), file, line)
+		log.T.F("%s\n%s:%d", strings.TrimSpace(txt), file, line)
 	}
 }
 
@@ -57,6 +57,6 @@ func (l *logger) Debugf(s string, i ...interface{}) {
 		s = l.Label + ": " + s
 		txt := fmt.Sprintf(s, i...)
 		_, file, line, _ := runtime.Caller(2)
-		log.T.F("%s %s:%d", strings.TrimSpace(txt), file, line)
+		log.T.F("%s\n%s:%d", strings.TrimSpace(txt), file, line)
 	}
 }

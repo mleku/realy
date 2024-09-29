@@ -35,12 +35,12 @@ type Server struct {
 	options *Options
 	relay   relay.I
 	// keep a connection reference to all connected clients for Server.Shutdown
-	clientsMu sync.Mutex
-	clients   map[*websocket.Conn]struct{}
-	// in case you call Server.Start
-	Addr       S
-	serveMux   *http.ServeMux
-	httpServer *http.Server
+	clientsMu    sync.Mutex
+	clients      map[*websocket.Conn]struct{}
+	Addr         S
+	serveMux     *http.ServeMux
+	httpServer   *http.Server
+	authRequired bool
 }
 
 func (s *Server) Router() *http.ServeMux {

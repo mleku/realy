@@ -9,7 +9,6 @@ import (
 	"realy.lol/ec/schnorr"
 	"realy.lol/event"
 	"realy.lol/filters"
-	"realy.lol/relay"
 	"realy.lol/store"
 )
 
@@ -21,23 +20,46 @@ type Relay struct {
 func (r *Relay) Name() S                     { return "REALY" }
 func (r *Relay) Storage(c context.T) store.I { return r.Store }
 func (r *Relay) Init() E                     { return nil }
-func (r *Relay) AcceptEvent(c context.T, evt *event.T) bool {
-	// c.Value()
-	return true
+func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedPubkey B) bool {
+	// if the authenticator is enabled we require auth to accept events
+	if !r.AuthEnabled() {
+		return true
+	}
+	// check for moderator npubs follow/mute lists if they exist, and accept based on this
+	if len(r.Moderators) > 0 {
+		// need to search DB for moderator npub follow and mute lists and allow access
+		// accordingly
+		return true
+	}
+	// if auth is enabled and there is no moderators we just check that the pubkey
+	// has been loaded via the auth function.
+	return len(authedPubkey) == schnorr.PubKeyBytesLen
 }
 
-func (r *Relay) AcceptReq(c Ctx, id B, ff *filters.T, authedPubkey B) bool {
+func (r *Relay) AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) bool {
 	// if the authenticator is enabled we require auth to process requests
-	if _, ok := (relay.I)(r).(relay.Authenticator); ok {
-		return len(authedPubkey) == schnorr.PubKeyBytesLen
+	if !r.AuthEnabled() {
+		return true
 	}
-	return true
+	// check for moderator npubs follow/mute lists if they exist, and accept based on this
+	if len(r.Moderators) > 0 {
+		// need to search DB for moderator npub follow and mute lists and allow access
+		// accordingly
+		return true
+	}
+	// if auth is enabled and there is no moderators we just check that the pubkey
+	// has been loaded via the auth function.
+	return len(authedPubkey) == schnorr.PubKeyBytesLen
 }
+
+func (r *Relay) AuthEnabled() bool { return r.Config.AuthRequired }
 
 // ServiceUrl returns the address of the relay to send back in auth responses.
-// If this is implemented it enables auth-required.
+// If auth is disabled this returns an empty string.
 func (r *Relay) ServiceUrl(req *http.Request) (s S) {
-	log.I.S(req)
+	if !r.Config.AuthRequired {
+		return
+	}
 	host := req.Header.Get("X-Forwarded-Host")
 	if host == "" {
 		host = req.Host

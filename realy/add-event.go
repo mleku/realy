@@ -1,6 +1,7 @@
 package realy
 
 import (
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -13,7 +14,8 @@ import (
 var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
 
 // AddEvent has a business rule to add an event to the relayer
-func AddEvent(c Ctx, rl relay.I, evt *event.T) (accepted bool, message B) {
+func AddEvent(c Ctx, rl relay.I, evt *event.T, hr *http.Request, authedPubkey B) (accepted bool,
+	message B) {
 	if evt == nil {
 		return false, normalize.Blocked.F("empty event")
 	}
@@ -22,7 +24,7 @@ func AddEvent(c Ctx, rl relay.I, evt *event.T) (accepted bool, message B) {
 	wrapper := &eventstore.RelayWrapper{I: store}
 	advancedSaver, _ := store.(relay.AdvancedSaver)
 
-	if !rl.AcceptEvent(c, evt) {
+	if !rl.AcceptEvent(c, evt, hr, authedPubkey) {
 		return false, normalize.Blocked.F("event blocked by realy")
 	}
 

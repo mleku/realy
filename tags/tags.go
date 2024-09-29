@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"realy.lol/lol"
+	"realy.lol/sha256"
 	"realy.lol/tag"
 )
 
@@ -53,11 +54,12 @@ func (t *T) AppendTo(n int, b ...B) (tt *T) {
 		log.E.S(t, b)
 		return
 	}
-	if t.Len() < n+1 {
-		log.E.F("cannot append to nonexistent tags field %d with tags len %d",
-			n, t.Len())
-		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
-		return
+	for t.Len() < n+1 {
+		t.N(n).Append(make(B, 0, sha256.Size*2))
+		// log.E.F("cannot append to nonexistent tags field %d with tags len %d",
+		// 	n, t.Len())
+		// fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		// return
 	}
 	for _, bb := range b {
 		t.N(n).Append(bb)
@@ -72,27 +74,8 @@ func (t *T) AddCap(i, c int) (tt *T) {
 		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
 		return t
 	}
-	if len(t.t) == 0 && i == 0 {
+	for len(t.t) <= i {
 		t.t = append(t.t, tag.NewWithCap(c))
-	}
-	if len(t.t) == 1 && i == 1 {
-		t.t = append(t.t, tag.NewWithCap(c))
-	}
-	if len(t.t) == 2 && i == 2 {
-		t.t = append(t.t, tag.NewWithCap(c))
-	}
-	if len(t.t) == 3 && i == 3 {
-		t.t = append(t.t, tag.NewWithCap(c))
-	}
-	if len(t.t) == 4 && i == 4 {
-		t.t = append(t.t, tag.NewWithCap(c))
-	}
-	if len(t.t) <= i {
-		log.I.Ln("len", t.Len(), "i", i)
-		log.E.F("cannot add capacity to nonexistent tag field of tags %d of len %d",
-			i, t.Len())
-		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
-		return t
 	}
 	t.t[i] = tag.NewWithCap(c)
 	return t

@@ -30,7 +30,7 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 	if evt.Kind.IsEphemeral() {
 		// do not store ephemeral events
 		return nil
-		// todo: rewrite to fit new API
+
 	} else if evt.Kind.IsReplaceable() {
 		// replaceable event, delete before storing
 		var evs []*event.T
@@ -61,14 +61,11 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 		f.Kinds = kinds.New(evt.Kind)
 		d := evt.Tags.GetFirst(tag.New("d", ""))
 		log.I.S(d)
-		// f.Tags = tags.New(tag.New(d.Key())) // ), d.Value()))
 		log.I.F("filter for parameterized replaceable %s %s", f.Tags, f.Serialize())
 		evs, err = w.I.QueryEvents(c, f)
-		// log.I.S(evs)
 		if err != nil {
 			return fmt.Errorf("failed to query before replacing: %w", err)
 		}
-
 		if len(evs) > 0 {
 			for _, ev := range evs {
 				log.I.F("maybe replace %s", ev.Serialize())
@@ -91,6 +88,7 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 	if err = w.SaveEvent(c, evt); chk.E(err) && !errors.Is(err, ErrDupEvent) {
 		return errorf.E("failed to save: %w", err)
 	}
+
 	return nil
 }
 

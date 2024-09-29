@@ -13,12 +13,14 @@ import (
 )
 
 type Config struct {
-	AppName  string `env:"APP_NAME" default:"realy"`
-	Root     string `env:"ROOT_DIR" usage:"root path for all other path configurations (defaults OS user home if empty)"`
-	Profile  string `env:"PROFILE" default:".realy" usage:"name of directory in root path to store relay state data and database"`
-	Listen   string `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
-	Port     int    `env:"PORT" default:"3334" usage:"port to listen on"`
-	LogLevel string `env:"LOGLEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	AppName      S    `env:"APP_NAME" default:"realy"`
+	Root         S    `env:"ROOT_DIR" usage:"root path for all other path configurations (defaults OS user home if empty)"`
+	Profile      S    `env:"PROFILE" default:".realy" usage:"name of directory in root path to store relay state data and database"`
+	Listen       S    `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
+	Port         N    `env:"PORT" default:"3334" usage:"port to listen on"`
+	LogLevel     S    `env:"LOGLEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	AuthRequired bool `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
+	Moderators   []S  `env:"MODERATORS" usage:"list of npubs of users whose follow and mute list dictate accepting requests and events"`
 }
 
 func NewConfig() (cfg *Config, err E) {

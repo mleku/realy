@@ -15,12 +15,14 @@ var version S
 
 func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
+	log.W.Ln("handling relay information document")
 	var info *ri.T
 	if informationer, ok := s.relay.(relay.Informationer); ok {
 		info = informationer.GetNIP11InformationDocument()
 	} else {
+		// 1, 11, 42, 70, 86, 9
 		supportedNIPs := ri.GetList(
+			ri.BasicProtocol,
 			ri.EventDeletion,
 			ri.RelayInformationDocument,
 			ri.GenericTagQueries,
@@ -29,16 +31,17 @@ func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 			ri.CommandResults,
 			ri.ParameterizedReplaceableEvents,
 		)
-		if _, ok = s.relay.(relay.Authenticator); ok {
+		var auther relay.Authenticator
+		if auther, ok = s.relay.(relay.Authenticator); ok && auther.ServiceUrl(r) != "" {
 			supportedNIPs = append(supportedNIPs, ri.Authentication.N())
 		}
 		var storage store.I
-		if storage, ok = s.relay.(store.I); ok && storage != nil {
+		if s.relay.Storage != nil {
 			if _, ok = storage.(relay.EventCounter); ok {
 				supportedNIPs = append(supportedNIPs, ri.CountingResults.N())
 			}
 		}
-
+		log.I.Ln("supported NIPs", supportedNIPs)
 		info = &ri.T{
 			Name:        s.relay.Name(),
 			Description: "relay powered by the realy framework",

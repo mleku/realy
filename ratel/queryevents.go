@@ -12,7 +12,7 @@ import (
 )
 
 func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
-	log.I.F("query for events\n%s", f.Serialize())
+	log.T.F("query,%s", f.Serialize())
 	// log.I.S(f)
 	var queries []query
 	var extraFilter *filter.T
@@ -35,13 +35,13 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
 				item := it.Item()
 				k := item.KeyCopy(nil)
-				log.T.S(k)
+				// log.T.S(k)
 				if !q.skipTS {
 					if len(k) < createdat.Len+serial.Len {
 						continue
 					}
 					createdAt := createdat.FromKey(k)
-					log.T.F("%d < %d", createdAt.Val.U64(), since)
+					// log.T.F("%d < %d", createdAt.Val.U64(), since)
 					if createdAt.Val.U64() < since {
 						break
 					}
@@ -98,7 +98,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			if rem, err = ev.UnmarshalBinary(v); chk.E(err) {
 				return
 			}
-			log.T.F("%s", ev.Serialize())
+			// log.T.F("%s", ev.Serialize())
 			if len(rem) > 0 {
 				log.T.S(rem)
 			}
@@ -131,24 +131,32 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 						}
 					}
 				}
-				log.T.F("sending back result\n%s\n", ev.Serialize())
 				evs = append(evs, ev)
 				if filter.Present(f.Limit) {
 					*f.Limit--
 					if *f.Limit == 0 {
-						return
+						break search
 					}
 				} else {
 					// if there is no limit, cap it at the MaxLimit, assume this was the intent
 					// or the client is erroneous, if any limit greater is requested this will
 					// be used instead as the previous clause.
 					if len(evs) > r.MaxLimit {
-						return
+						break search
 					}
 				}
 			}
 		}
 	}
-	log.T.Ln("query complete")
+	// if len(evs) > 0 {
+	// 	log.T.C(func() (o string) {
+	// 		o = "sending events\n"
+	// 		for _, ev := range evs {
+	// 			o += fmt.Sprintf("%0x,", ev.ID)
+	// 		}
+	// 		return
+	// 	})
+	log.T.F("query complete, %d events found", len(evs))
+	// }
 	return
 }
