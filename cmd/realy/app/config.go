@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"go-simpler.org/env"
@@ -22,7 +23,7 @@ type Config struct {
 	AdminPort    N    `env:"ADMIN_PORT" default:"3337" usage:"admin listen port"`
 	LogLevel     S    `env:"LOGLEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
 	AuthRequired bool `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
-	Moderators   []S  `env:"MODERATORS" usage:"list of npubs of users whose follow and mute list dictate accepting requests and events"`
+	Owners       []S  `env:"OWNERS" usage:"list of npubs of users in hex format whose follow and mute list dictate accepting requests and events - follows and follows follows are allowed, mutes and follows mutes are rejected"`
 }
 
 func NewConfig() (cfg *Config, err E) {
@@ -46,10 +47,10 @@ func NewConfig() (cfg *Config, err E) {
 		if err = env.Load(cfg, &env.Options{Source: e}); chk.E(err) {
 			return
 		}
-		// load the environment vars again so they can override the .env file
-		if err = env.Load(cfg, nil); err != nil {
-			return
-		}
+		// // load the environment vars again so they can override the .env file
+		// if err = env.Load(cfg, nil); err != nil {
+		// 	return
+		// }
 	}
 	return
 }
@@ -66,9 +67,41 @@ func HelpRequested() (help bool) {
 	return
 }
 
+func GetEnv() (requested bool) {
+	if len(os.Args) > 1 {
+		switch strings.ToLower(os.Args[1]) {
+		case "env":
+			requested = true
+		}
+	}
+	return
+}
+
+func PrintEnv(cfg *Config, printer io.Writer) {
+	t := reflect.TypeOf(*cfg)
+
+	for i := 0; i < t.NumField(); i++ {
+		k := t.Field(i).Tag.Get("env")
+		v := reflect.ValueOf(*cfg).Field(i).Interface()
+		var val S
+		switch v.(type) {
+		case string:
+			val = v.(string)
+		case int, bool:
+			val = fmt.Sprint(v)
+		case []string:
+			arr := v.([]string)
+			if len(arr) > 0 {
+				val = strings.Join(arr, ",")
+			}
+		}
+		fmt.Fprintf(printer, "%s=%v\n", k, val)
+	}
+}
+
 // PrintHelp outputs a help text listing the configuration options and default
 // values to a provided io.Writer (usually os.Stderr or os.Stdout).
-func PrintHelp(cfg *Config, printer io.Writer) (s string) {
+func PrintHelp(cfg *Config, printer io.Writer) {
 	_, _ = fmt.Fprintf(printer,
 		"Environment variables that configure %s:\n\n", cfg.AppName)
 	env.Usage(cfg, printer, &env.Options{SliceSep: ","})
@@ -77,6 +110,9 @@ func PrintHelp(cfg *Config, printer io.Writer) (s string) {
 			"\n.env file found at the ROOT_DIR/PROFILE path will be automatically "+
 			"loaded for configuration.\nset these two variables for a custom load path,"+
 			" this file will be created on first startup.\nenvironment overrides it and "+
-			"you can also edit the file to set configuration options\n")
+			"you can also edit the file to set configuration options\n\n"+
+			"use the parameter 'env' to print out the current configuration to the terminal\n\n"+
+			"set the environment using\n\n\t%s env>%s/%s/.env\n\n", os.Args[0], cfg.Root,
+		cfg.Profile)
 	return
 }

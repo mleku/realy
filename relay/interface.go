@@ -21,9 +21,17 @@ type I interface {
 	// Also see [eventstore.I.Init].
 	Init() E
 	// AcceptEvent is called for every nostr event received by the server.
+	//
 	// If the returned value is true, the event is passed on to [Storage.SaveEvent].
 	// Otherwise, the server responds with a negative and "blocked" message as described
 	// in NIP-20.
+	//
+	// Moderation via follow/mute lists of moderator npubs should deny events from
+	// npubs listed in moderator mute lists. Events submitted by users not on the
+	// moderator follow lists but submitting events containing p tags for direct
+	// messages, that are not on the mute list, that do not yet have a reply, should accept
+	// direct and group message events until there is three and thereafter will be restricted
+	// until the user adds them to their follow list.
 	AcceptEvent(c Ctx, ev *event.T, hr *http.Request, authedPubkey B) bool
 	// Storage returns the realy storage implementation.
 	Storage(Ctx) store.I
@@ -32,8 +40,18 @@ type I interface {
 // ReqAcceptor is the main interface for implementing a nostr
 type ReqAcceptor interface {
 	// AcceptReq is called for every nostr request filters received by the
-	// server. If the returned value is true, the filtres is passed on to
+	// server. If the returned value is true, the filters is passed on to
 	// [Storage.QueryEvent].
+	//
+	// If moderation of access by follow/mute list of moderator npubs is enabled,
+	// only users in the follow lists of mods are allowed read access (accepting
+	// requests), all others should receive an OK,false,restricted response if
+	// authed and if not authed CLOSED,restricted.
+	//
+	// If a user is not whitelisted by follow and not blacklisted by mute and the
+	// request is for a message that contains their npub in a `p` tag that are
+	// direct or group chat messages they also can be accepted, enabling full
+	// support for in/outbox access.
 	AcceptReq(ctx Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) bool
 }
 

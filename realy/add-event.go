@@ -14,31 +14,31 @@ import (
 var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
 
 // AddEvent has a business rule to add an event to the relayer
-func AddEvent(c Ctx, rl relay.I, evt *event.T, hr *http.Request, authedPubkey B) (accepted bool,
+func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, authedPubkey B) (accepted bool,
 	message B) {
-	if evt == nil {
-		return false, normalize.Blocked.F("empty event")
+	if ev == nil {
+		return false, normalize.Invalid.F("empty event")
 	}
 
 	store := rl.Storage(c)
 	wrapper := &eventstore.RelayWrapper{I: store}
 	advancedSaver, _ := store.(relay.AdvancedSaver)
 
-	if !rl.AcceptEvent(c, evt, hr, authedPubkey) {
-		return false, normalize.Blocked.F("event blocked by realy")
+	if !rl.AcceptEvent(c, ev, hr, authedPubkey) {
+		return false, normalize.Blocked.F("event rejected by relay")
 	}
 
-	if evt.Kind.IsEphemeral() {
+	if ev.Kind.IsEphemeral() {
 		// do not store ephemeral events
 	} else {
 		if advancedSaver != nil {
-			advancedSaver.BeforeSave(c, evt)
+			advancedSaver.BeforeSave(c, ev)
 		}
 
-		if saveErr := wrapper.Publish(c, evt); saveErr != nil {
+		if saveErr := wrapper.Publish(c, ev); chk.E(saveErr) {
 			switch saveErr {
 			case eventstore.ErrDupEvent:
-				return true, normalize.Error.F(saveErr.Error())
+				return false, normalize.Error.F(saveErr.Error())
 			default:
 				errmsg := saveErr.Error()
 				if nip20prefixmatcher.MatchString(errmsg) {
@@ -51,14 +51,16 @@ func AddEvent(c Ctx, rl relay.I, evt *event.T, hr *http.Request, authedPubkey B)
 					return false, normalize.Error.F("failed to save (%s)", errmsg)
 				}
 			}
+			// } else {
+			// 	log.D.F("saved event %s", ev.Serialize())
 		}
 
 		if advancedSaver != nil {
-			advancedSaver.AfterSave(evt)
+			advancedSaver.AfterSave(ev)
 		}
 	}
 
-	notifyListeners(evt)
+	notifyListeners(ev)
 
 	accepted = true
 	return

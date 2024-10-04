@@ -68,6 +68,7 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 		}
 		if len(evs) > 0 {
 			for _, ev := range evs {
+				err = nil
 				log.I.F("maybe replace %s", ev.Serialize())
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
 					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
@@ -89,7 +90,7 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 		return errorf.E("failed to save: %w", err)
 	}
 
-	return nil
+	return
 }
 
 func (w RelayWrapper) QuerySync(c Ctx, f *filter.T,

@@ -116,6 +116,7 @@ func (s *Server) handleMessage(c Ctx, ws *web.Socket, msg B, sto store.I) {
 }
 
 func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
+	log.D.F("doEvent %s %s", ws.RealRemote(), req)
 	var err E
 	var ok bool
 	var rem B
@@ -271,7 +272,6 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
 		return
 	}
-	log.I.F("accepted event\n%s", env.T.Serialize())
 	return
 }
 
@@ -429,10 +429,20 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 				receivers := f.Tags.GetAll(tag.New("p"))
 				switch {
 				case len(ws.Authed()) == 0:
+					ws.RequestAuth()
+					if err = closedenvelope.NewFrom(env.Subscription,
+						normalize.AuthRequired.F("auth required for request processing")).
+						Write(ws); chk.E(err) {
+					}
+					log.I.F("requesting auth from client from %s", ws.RealRemote())
+					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+						return
+					}
 					// not authenticated
-					return normalize.Restricted.F(
+					notice := normalize.Restricted.F(
 						"this realy does not serve kind-4 to unauthenticated users," +
 							" does your client implement NIP-42?")
+					return notice
 				case senders.Len() == 1 &&
 					receivers.Len() < 2 &&
 					equals(senders.Key(), B(ws.Authed())):
@@ -445,8 +455,8 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 					// restricted filter: do not return any events,
 					//   even if other elements in filters array were not restricted).
 					//   client should know better.
-					return normalize.Restricted.F("authenticated user does not have" +
-						" authorization for requested filters")
+					return normalize.Restricted.F("authenticated user %s does not have"+
+						" authorization for requested filters", ws.Authed())
 				}
 			}
 		}
@@ -519,6 +529,7 @@ func (s *Server) doAuth(c Ctx, ws *web.Socket, req B, store store.I) (msg B) {
 		if len(rem) > 0 {
 			log.I.F("extra '%s'", rem)
 		}
+
 		var valid bool
 		if valid, err = auth.Validate(env.Event, B(ws.Challenge()), svcUrl); chk.E(err) {
 

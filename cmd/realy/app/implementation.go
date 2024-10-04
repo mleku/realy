@@ -25,10 +25,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 	if !r.AuthEnabled() {
 		return true
 	}
-	// check for moderator npubs follow/mute lists if they exist, and accept based on this
-	if len(r.Moderators) > 0 {
-		// need to search DB for moderator npub follow and mute lists and allow access
-		// accordingly
+	if len(r.Owners) > 0 {
+		// moderator mute lists designate denied npubs.
 		return true
 	}
 	// if auth is enabled and there is no moderators we just check that the pubkey
@@ -41,10 +39,8 @@ func (r *Relay) AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T, authedPu
 	if !r.AuthEnabled() {
 		return true
 	}
-	// check for moderator npubs follow/mute lists if they exist, and accept based on this
-	if len(r.Moderators) > 0 {
-		// need to search DB for moderator npub follow and mute lists and allow access
-		// accordingly
+	if len(r.Owners) > 0 {
+		// need to search DB for moderator npub follow lists, followed npubs are allowed access.
 		return true
 	}
 	// if auth is enabled and there is no moderators we just check that the pubkey

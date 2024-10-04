@@ -156,7 +156,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	// 		}
 	// 		return
 	// 	})
-	log.T.F("query complete, %d events found", len(evs))
+	log.D.F("query complete, %d events found", len(evs))
 	// }
 	return
 }

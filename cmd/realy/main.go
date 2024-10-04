@@ -24,8 +24,12 @@ func main() {
 		app.PrintHelp(cfg, os.Stderr)
 		os.Exit(0)
 	}
+	if app.GetEnv() {
+		app.PrintEnv(cfg, os.Stdout)
+		os.Exit(0)
+	}
 	lol.SetLogLevel(cfg.LogLevel)
-	log.T.S(cfg)
+	log.D.S(cfg)
 	var wg sync.WaitGroup
 	c, cancel := context.Cancel(context.Bg())
 	path := filepath.Join(cfg.Root, cfg.Profile)
