@@ -32,6 +32,8 @@ func NewId[V S | B](s V) (*Id, error) {
 }
 
 // MustNew is the same as NewId except it doesn't check if you feed it rubbish.
+//
+// DO NOT USE WITHOUT CHECKING THE ID IS NOT NIL AND > 0 AND <= 64
 func MustNew[V S | B](s V) *Id {
 	return &Id{T: B(s)}
 }

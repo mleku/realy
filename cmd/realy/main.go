@@ -38,7 +38,7 @@ func main() {
 	if err != nil {
 		log.F.F("failed to create server: %v", err)
 	}
-	if err = server.Start(cfg.Listen, cfg.Port); chk.E(err) {
+	if err = server.Start(cfg.Listen, cfg.Port, cfg.AdminListen, cfg.AdminPort); chk.E(err) {
 		log.F.F("server terminated: %v", err)
 	}
 	cancel()

@@ -92,12 +92,16 @@ type Response struct {
 var _ codec.Envelope = (*Response)(nil)
 
 func NewResponse() *Response { return &Response{ID: subscription.NewStd()} }
-func NewResponseFrom[V S | B](id V, cnt int, approx ...bool) *Response {
+func NewResponseFrom[V S | B](s V, cnt N, approx ...bool) (res *Response, err E) {
 	var a bool
 	if len(approx) > 0 {
 		a = approx[0]
 	}
-	return &Response{subscription.MustNew(id), cnt, a}
+	if len(s) < 0 || len(s) > 64 {
+		err = errorf.E("subscription id must be length > 0 and <= 64")
+		return
+	}
+	return &Response{subscription.MustNew(s), cnt, a}, nil
 }
 func (en *Response) Label() string { return L }
 func (en *Response) Write(w io.Writer) (err E) {

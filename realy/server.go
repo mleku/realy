@@ -27,15 +27,14 @@ import (
 // The basic usage is to call Start or StartConf, which starts serving immediately.
 // For a more fine-grained control, use NewServer.
 type Server struct {
-	options *Options
-	relay   relay.I
-	// keep a connection reference to all connected clients for Server.Shutdown
-	clientsMu    sync.Mutex
-	clients      map[*websocket.Conn]struct{}
-	Addr         S
-	serveMux     *http.ServeMux
-	httpServer   *http.Server
-	authRequired bool
+	options                 *Options
+	relay                   relay.I
+	clientsMu               sync.Mutex
+	clients                 map[*websocket.Conn]struct{}
+	Addr, AdminAddr         S
+	serveMux                *http.ServeMux
+	httpServer, adminServer *http.Server
+	authRequired            bool
 }
 
 func (s *Server) Router() *http.ServeMux {
@@ -62,7 +61,7 @@ func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 		}
 	}
 
-	// init the realy
+	// init the relay
 	if err := rl.Init(); err != nil {
 		return nil, fmt.Errorf("realy init: %w", err)
 	}
@@ -81,6 +80,7 @@ func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 
 // ServeHTTP implements http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.I.S(r)
 	if r.Header.Get("Upgrade") == "websocket" {
 		s.HandleWebsocket(w, r)
 	} else if r.Header.Get("Accept") == "application/nostr+json" {
@@ -90,15 +90,22 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) Start(host S, port int, started ...chan bool) E {
+func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...chan bool) E {
 	addr := net.JoinHostPort(host, strconv.Itoa(port))
 	log.I.F("starting relay listener at %s", addr)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
-
+	adminAddr := net.JoinHostPort(adminHost, strconv.Itoa(adminPort))
+	log.I.F("starting relay admin listener at %s", adminAddr)
+	var aln net.Listener
+	aln, err = net.Listen("tcp", adminAddr)
+	if err != nil {
+		return err
+	}
 	s.Addr = ln.Addr().String()
+	s.AdminAddr = aln.Addr().String()
 	s.httpServer = &http.Server{
 		Handler:      cors.Default().Handler(s),
 		Addr:         addr,
@@ -106,11 +113,23 @@ func (s *Server) Start(host S, port int, started ...chan bool) E {
 		ReadTimeout:  2 * time.Second,
 		IdleTimeout:  30 * time.Second,
 	}
+	s.adminServer = &http.Server{
+		Handler:      cors.Default().Handler(s),
+		Addr:         adminAddr,
+		WriteTimeout: 2 * time.Second,
+		ReadTimeout:  2 * time.Second,
+		IdleTimeout:  30 * time.Second,
+	}
 
 	// notify caller that we're starting
-	for _, started := range started {
-		close(started)
+	for _, startedC := range started {
+		close(startedC)
 	}
+
+	go func() {
+		if err = s.adminServer.Serve(aln); errors.Is(err, http.ErrServerClosed) {
+		}
+	}()
 
 	if err = s.httpServer.Serve(ln); errors.Is(err, http.ErrServerClosed) {
 		return nil
@@ -126,8 +145,9 @@ func (s *Server) Start(host S, port int, started ...chan bool) E {
 // If the realy is ShutdownAware, Shutdown calls its OnShutdown, passing the context as is.
 // Note that the HTTP server make some time to shutdown and so the context deadline,
 // if any, may have been shortened by the time OnShutdown is called.
-func (s *Server) Shutdown(ctx context.Context) {
-	s.httpServer.Shutdown(ctx)
+func (s *Server) Shutdown(c context.Context) {
+	s.httpServer.Shutdown(c)
+	s.adminServer.Shutdown(c)
 
 	s.clientsMu.Lock()
 	defer s.clientsMu.Unlock()
@@ -138,7 +158,7 @@ func (s *Server) Shutdown(ctx context.Context) {
 	}
 
 	if f, ok := s.relay.(relay.ShutdownAware); ok {
-		f.OnShutdown(ctx)
+		f.OnShutdown(c)
 	}
 }
 

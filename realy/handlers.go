@@ -147,7 +147,6 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 		log.W.F("rejecting event\n%s", env.T.Serialize())
 		return
 	}
-
 	// check id
 	if !equals(env.GetIDBytes(), env.ID) {
 		if err = okenvelope.NewFrom(env.ID, false,
@@ -272,6 +271,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
 		return
 	}
+	log.I.F("accepted event\n%s", env.T.Serialize())
 	return
 }
 
@@ -364,8 +364,12 @@ func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 		}
 		total += count
 	}
-	if err = countenvelope.NewResponseFrom(env.ID.String(), N(total),
-		false).Write(ws); chk.E(err) {
+	var res *countenvelope.Response
+	if res, err = countenvelope.NewResponseFrom(env.ID.String(), N(total),
+		false); chk.E(err) {
+		return
+	}
+	if err = res.Write(ws); chk.E(err) {
 		return
 	}
 	return
@@ -465,20 +469,18 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 			if i < 0 {
 				break
 			}
-			if err = eventenvelope.NewResultWith(env.Subscription.T, ev).Write(ws); chk.E(err) {
-				continue
+			var res *eventenvelope.Result
+			if res, err = eventenvelope.NewResultWith(env.Subscription.T, ev); chk.E(err) {
+				return
 			}
-			// ws.WriteJSON(nostr.EventEnvelope{SubscriptionID: &id, Event: *ev})
+			if err = res.Write(ws); chk.E(err) {
+				return
+			}
 		}
-
-		// // exhaust the channel (in case we broke out of it early) so it is closed by the storage
-		// for range events {
-		// }
 	}
 	if err = eoseenvelope.NewFrom(env.Subscription).Write(ws); chk.E(err) {
 		return
 	}
-	// ws.WriteJSON(nostr.EOSEEnvelope(id))
 	setListener(env.Subscription.String(), ws, env.Filters)
 	return
 }
@@ -520,7 +522,7 @@ func (s *Server) doAuth(c Ctx, ws *web.Socket, req B, store store.I) (msg B) {
 		var valid bool
 		if valid, err = auth.Validate(env.Event, B(ws.Challenge()), svcUrl); chk.E(err) {
 
-			if err = okenvelope.NewFrom(env.Event.ID, false,
+			if err := okenvelope.NewFrom(env.Event.ID, false,
 				normalize.Error.F(err.Error())).Write(ws); chk.E(err) {
 
 				return B(err.Error())

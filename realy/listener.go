@@ -93,7 +93,11 @@ func notifyListeners(ev *event.T) {
 			if !listener.filters.Match(ev) {
 				continue
 			}
-			if err = eventenvelope.NewResultWith(id, ev).Write(ws); chk.E(err) {
+			var res *eventenvelope.Result
+			if res, err = eventenvelope.NewResultWith(id, ev); chk.E(err) {
+				return
+			}
+			if err = res.Write(ws); chk.E(err) {
 				return
 			}
 		}
