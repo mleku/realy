@@ -47,10 +47,6 @@ func NewConfig() (cfg *Config, err E) {
 		if err = env.Load(cfg, &env.Options{Source: e}); chk.E(err) {
 			return
 		}
-		// // load the environment vars again so they can override the .env file
-		// if err = env.Load(cfg, nil); err != nil {
-		// 	return
-		// }
 	}
 	return
 }

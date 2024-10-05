@@ -116,7 +116,7 @@ func (s *Server) handleMessage(c Ctx, ws *web.Socket, msg B, sto store.I) {
 }
 
 func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
-	log.D.F("doEvent %s %s", ws.RealRemote(), req)
+	log.T.F("doEvent %s %s", ws.RealRemote(), req)
 	var err E
 	var ok bool
 	var rem B
