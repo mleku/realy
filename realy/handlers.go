@@ -403,7 +403,8 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 					normalize.AuthRequired.F("auth required for request processing")).
 					Write(ws); chk.E(err) {
 				}
-				log.I.F("requesting auth from client from %s", ws.RealRemote())
+				log.I.F("requesting auth from client from %s - challenge '%s'",
+					ws.RealRemote(), ws.Challenge())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
 				}

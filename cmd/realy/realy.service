@@ -1,0 +1,16 @@
+# systemd unit to run realy as a service
+[Unit]
+Description=realy
+
+[Service]
+Type=simple
+User=mleku
+ExecStart=/home/mleku/.local/bin/realy
+Restart=on-failure
+Wants=network-online.target
+# waits for wireguard service to come up before starting, remove if running it directly on an
+# internet routeable connection
+After=network.target network-online.target wg-quick@wg1.service
+
+[Install]
+WantedBy=multi-user.target

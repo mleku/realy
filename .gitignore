@@ -61,6 +61,7 @@ node_modules/**
 !*.txt
 !*.sum
 !version
+!*.service
 
 # ...even if they are in subdirectories
 !*/
