@@ -1,8 +1,6 @@
 package ratel
 
 import (
-	"fmt"
-
 	"github.com/dgraph-io/badger/v4"
 	"realy.lol/event"
 	"realy.lol/eventid"
@@ -21,10 +19,6 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		log.T.F("not saving ephemeral event\n%s", ev.Serialize())
 		return
 	}
-	log.T.C(func() S {
-		evs, _ := ev.MarshalJSON(nil)
-		return fmt.Sprintf("saving event\n%d %s", len(evs), evs)
-	})
 	// make sure Close waits for this to complete
 	r.WG.Add(1)
 	defer r.WG.Done()
@@ -32,6 +26,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	var foundSerial []byte
 	var deleted bool
 	seri := serial.New(nil)
+	var ts B
 	err = r.View(func(txn *badger.Txn) (err error) {
 		// query event by id to ensure we don't try to save duplicates
 		prf := index.Id.Key(id.New(eventid.NewWith(ev.ID)))
@@ -48,9 +43,9 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 			foundSerial = seri.Val
 		}
 		// if the event was deleted we don't want to save it again
-		prf = index.Tombstone.Key(id.New(eventid.NewWith(ev.ID)))
-		it.Seek(prf)
-		if it.ValidForPrefix(prf) {
+		ts = index.Tombstone.Key(id.New(eventid.NewWith(ev.ID)))
+		it.Seek(ts)
+		if it.ValidForPrefix(ts) {
 			deleted = true
 		}
 		return
@@ -59,7 +54,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		return
 	}
 	if deleted {
-		return errorf.W("tombstone found, event will not be saved")
+		return errorf.W("tombstone found %0x, event will not be saved", ts)
 	}
 	if foundSerial != nil {
 		// log.D.F("found possible duplicate or stub for %s", ev.Serialize())

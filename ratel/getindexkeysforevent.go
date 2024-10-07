@@ -80,7 +80,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 			return
 		}
 		k := prf.Key(elems...)
-		log.T.F("tag '%s': %s key %0x", t.F()[0], t.F()[1:], k)
+		// log.T.F("tag '%s': %s key %0x", t.F()[0], t.F()[1:], k)
 		keyz = append(keyz, k)
 	}
 	{ // ~ by date only

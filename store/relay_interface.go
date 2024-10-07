@@ -42,7 +42,11 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 			return fmt.Errorf("failed to query before replacing: %w", err)
 		}
 		if len(evs) > 0 {
+			log.I.F("found events %d", len(evs))
 			for _, ev := range evs {
+				if equals(ev.ID, evt.ID) {
+					continue
+				}
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
 					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
 				}

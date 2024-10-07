@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -36,11 +37,13 @@ func (r *Relay) Init() (err E) {
 		}
 		r.Owners = append(r.Owners, dst)
 	}
+	r.CheckOwnerLists(context.Bg())
 	return nil
 }
 func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedPubkey B) bool {
 	// if the authenticator is enabled we require auth to accept events
 	if !r.AuthEnabled() {
+		log.I.F("auth not enabled")
 		return true
 	}
 	if len(r.Owners) > 0 {
@@ -48,29 +51,43 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 		defer r.Unlock()
 		if evt.Kind.Equal(kind.FollowList) || evt.Kind.Equal(kind.MuteList) {
 			for _, o := range r.Owners {
+				log.I.F("own %0x\npub %0x", o, evt.PubKey)
 				if equals(o, evt.PubKey) {
 					// owner has updated follows or mute list, so we zero those lists so they
 					// are regenerated for the next AcceptReq/AcceptEvent
 					r.Followed = make(map[S]struct{})
 					r.Muted = make(map[S]struct{})
+					log.I.F("clearing owner follow/mute lists because of update from %0x",
+						evt.PubKey)
 					return true
 				}
+			}
+		}
+		for _, o := range r.Owners {
+			log.I.F("%0x %0x", o, evt.PubKey)
+			if equals(o, evt.PubKey) {
+				log.W.Ln("event is from owner")
+				return true
 			}
 		}
 		// check the mute list, and reject events authored by muted pubkeys, even if
 		// they come from a pubkey that is on the follow list.
 		for pk := range r.Muted {
 			if equals(evt.PubKey, B(pk)) {
+				log.I.F("rejecting event with pubkey %v because on owner mute list",
+					evt.PubKey)
 				return false
 			}
 		}
 		// for all else, check the authed pubkey is in the follow list
 		for pk := range r.Followed {
 			if equals(authedPubkey, B(pk)) {
+				log.I.F("accepting event %0x because on owner follow list", evt.ID)
 				return true
 			}
 		}
 		// if the authed pubkey was not found, reject the request.
+		log.I.F("authed pubkey %0x not found, rejecting event", authedPubkey)
 		return false
 	}
 	// if auth is enabled and there is no moderators we just check that the pubkey
@@ -139,9 +156,6 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 					}
 				}
 			}
-			for pk := range r.Followed {
-				log.I.F("follow %x", pk)
-			}
 		}
 		if len(r.Muted) < 1 {
 			var err error
@@ -172,9 +186,15 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 					}
 				}
 			}
-			for pk := range r.Muted {
-				log.I.F("muted %x", pk)
+			o := "followed:\n"
+			for pk := range r.Followed {
+				o += fmt.Sprintf("%x,", pk)
 			}
+			o += "\nmuted:\n"
+			for pk := range r.Muted {
+				o += fmt.Sprintf("%x,", pk)
+			}
+			log.I.F("%s\n", o)
 		}
 	}
 }

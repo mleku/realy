@@ -82,6 +82,7 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 			return
 		}
 		// write tombstone
+		log.W.F("writing tombstone %0x for event %0x", tombstoneKey, ev.ID)
 		if err = txn.Set(tombstoneKey, nil); chk.E(err) {
 			return
 		}

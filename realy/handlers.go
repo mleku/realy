@@ -132,20 +132,34 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 
 	if !s.relay.AcceptEvent(c, env.T, ws.Req(), B(ws.Authed())) {
 		var auther relay.Authenticator
-		if auther, ok = s.relay.(relay.Authenticator); ok &&
-			auther.AuthEnabled() && !ws.AuthRequested() {
-
-			if err = okenvelope.NewFrom(env.ID, false,
-				normalize.AuthRequired.F("auth required for count request processing")).
-				Write(ws); chk.E(err) {
-			}
-			log.D.F("requesting auth from client")
-			if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+			if !ws.AuthRequested() {
+				if err = okenvelope.NewFrom(env.ID, false,
+					normalize.AuthRequired.F("auth required for request processing")).
+					Write(ws); chk.E(err) {
+				}
+				log.D.F("requesting auth from client")
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+					return
+				}
+				ws.RequestAuth()
+				return
+			} else {
+				if err = okenvelope.NewFrom(env.ID, false,
+					normalize.AuthRequired.F("auth required for request processing")).
+					Write(ws); chk.E(err) {
+				}
+				log.D.F("requesting auth again from client")
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+					return
+				}
 				return
 			}
-			return
 		}
-		log.W.F("rejecting event\n%s", env.T.Serialize())
+
+		// log.W.F("rejecting event from %s %0x\n%s", ws.RealRemote(), ws.Authed(),
+		// 	env.T.Serialize())
+
 		return
 	}
 	// check id
