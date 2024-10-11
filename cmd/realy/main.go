@@ -28,12 +28,13 @@ func main() {
 		app.PrintEnv(cfg, os.Stdout)
 		os.Exit(0)
 	}
+	log.I.Ln("log level", cfg.LogLevel)
 	lol.SetLogLevel(cfg.LogLevel)
 	log.D.S(cfg)
 	var wg sync.WaitGroup
 	c, cancel := context.Cancel(context.Bg())
 	path := filepath.Join(cfg.Root, cfg.Profile)
-	storage := ratel.GetBackend(c, &wg, false, units.Gb*8, lol.Trace, 0)
+	storage := ratel.GetBackend(c, &wg, false, units.Gb*8, lol.GetLogLevel(cfg.DbLogLevel), 0)
 	r := &app.Relay{Config: cfg, Store: storage}
 	var server *realy.Server
 	if server, err = realy.NewServer(r, path); chk.E(err) {

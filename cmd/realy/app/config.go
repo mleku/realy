@@ -21,7 +21,8 @@ type Config struct {
 	Port         N    `env:"PORT" default:"3334" usage:"port to listen on"`
 	AdminListen  S    `env:"ADMIN_LISTEN" default:"127.0.0.1" usage:"admin listen address"`
 	AdminPort    N    `env:"ADMIN_PORT" default:"3337" usage:"admin listen port"`
-	LogLevel     S    `env:"LOGLEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	LogLevel     S    `env:"LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	DbLogLevel   S    `env:"DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
 	AuthRequired bool `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
 	Owners       []S  `env:"OWNERS" usage:"list of npubs of users in hex format whose follow and mute list dictate accepting requests and events - follows and follows follows are allowed, mutes and follows mutes are rejected"`
 }
@@ -47,9 +48,9 @@ func NewConfig() (cfg *Config, err E) {
 		if err = env.Load(cfg, &env.Options{Source: e}); chk.E(err) {
 			return
 		}
-		if err = env.Load(cfg, nil); err != nil {
-			return
-		}
+		// if err = env.Load(cfg, nil); err != nil {
+		// 	return
+		// }
 	}
 	return
 }

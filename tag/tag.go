@@ -145,6 +145,7 @@ func (t *T) ToStringSlice() (b []S) {
 // The last element is treated specially in that it is considered to match if
 // the candidate has the same initial substring as its corresponding element.
 func (t *T) StartsWith(prefix *T) bool {
+	// log.I.S("StartsWith", prefix)
 	prefixLen := len(prefix.field)
 
 	if prefixLen > len(t.field) {
@@ -258,7 +259,21 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 // }
 
 // Contains returns true if the provided element is found in the tag slice.
-func (t *T) Contains(s B) bool {
+func (t *T) Contains(s B) (b bool) {
+	// var isHex bool
+	// if t.Len() > 1 && (t.S(0) == "e" || t.S(0) == "p") {
+	// 	isHex = true
+	// }
+	// if isHex {
+	// 	o := "contains,["
+	// 	for _, i := range t.field {
+	// 		o += "\""
+	// 		o += hex.Enc(i)
+	// 		o += "\","
+	// 	}
+	// } else {
+	// 	log.I.F("contains %v\n%v", s, t.field)
+	// }
 	for i := range t.field {
 		if equals(t.field[i], s) {
 			return true

@@ -15,9 +15,9 @@ import (
 // T is the primary datatype of nostr. This is the form of the structure that
 // defines its JSON string based format.
 type T struct {
-	// ID is the SHA256 hash of the canonical encoding of the event
+	// ID is the SHA256 hash of the canonical encoding of the event in binary format
 	ID B `json:"id"`
-	// PubKey is the public key of the event creator
+	// PubKey is the public key of the event creator in binary format
 	PubKey B `json:"pubkey"`
 	// CreatedAt is the UNIX timestamp of the event according to the event
 	// creator (never trust a timestamp!)
@@ -31,7 +31,7 @@ type T struct {
 	// conforming to a specification relating to the Kind and the Tags.
 	Content B `json:"content"`
 	// Sig is the signature on the ID hash that validates as coming from the
-	// Pubkey.
+	// Pubkey in binary format.
 	Sig B `json:"sig"`
 }
 

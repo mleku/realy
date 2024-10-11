@@ -84,10 +84,14 @@ func (ws *Socket) WriteMessage(t int, b B) E {
 	return ws.conn.WriteMessage(t, b)
 }
 
-func (ws *Socket) Challenge() S               { return ws.challenge.Load() }
-func (ws *Socket) RealRemote() S              { return ws.remote.Load() }
-func (ws *Socket) Authed() S                  { return ws.authed.Load() }
-func (ws *Socket) SetAuthed(s S)              { ws.authed.Store(s) }
+func (ws *Socket) Challenge() S   { return ws.challenge.Load() }
+func (ws *Socket) RealRemote() S  { return ws.remote.Load() }
+func (ws *Socket) Authed() S      { return ws.authed.Load() }
+func (ws *Socket) AuthedBytes() B { return B(ws.authed.Load()) }
+func (ws *Socket) SetAuthed(s S) {
+	log.T.F("setting authed %0x", s)
+	ws.authed.Store(s)
+}
 func (ws *Socket) Req() *http.Request         { return ws.req }
 func (ws *Socket) Limiter() *rate.Limiter     { return ws.limiter }
 func (ws *Socket) SetLimiter(l *rate.Limiter) { ws.limiter = l }

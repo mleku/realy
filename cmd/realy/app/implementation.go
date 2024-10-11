@@ -46,6 +46,10 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 		log.I.F("auth not enabled")
 		return true
 	}
+	if len(authedPubkey) != 32 {
+		// log.E.F("client not authed with auth required")
+		return false
+	}
 	if len(r.Owners) > 0 {
 		r.Lock()
 		defer r.Unlock()
@@ -64,7 +68,7 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 			}
 		}
 		for _, o := range r.Owners {
-			log.I.F("%0x %0x", o, evt.PubKey)
+			log.T.F("%0x,%0x", o, evt.PubKey)
 			if equals(o, evt.PubKey) {
 				log.W.Ln("event is from owner")
 				return true
@@ -194,7 +198,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			for pk := range r.Muted {
 				o += fmt.Sprintf("%x,", pk)
 			}
-			log.I.F("%s\n", o)
+			// log.T.F("%s\n", o)
 		}
 	}
 }

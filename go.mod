@@ -12,6 +12,7 @@ require (
 	github.com/gobwas/ws v1.4.0
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/klauspost/cpuid/v2 v2.2.8
+	github.com/kopoli/go-terminal-size v0.0.0-20170219200355-5c97524c8b54
 	github.com/puzpuzpuz/xsync/v3 v3.4.0
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.9.0

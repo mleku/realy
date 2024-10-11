@@ -170,6 +170,7 @@ func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
 
 // GetAll gets all the tags that match the prefix, see [T.StartsWith]
 func (t *T) GetAll(tagPrefix *tag.T) *T {
+	// log.I.S("GetAll", tagPrefix, t)
 	result := &T{t: make([]*tag.T, 0, len(t.t))}
 	for _, v := range t.t {
 		if v.StartsWith(tagPrefix) {
@@ -269,33 +270,41 @@ func (t *T) Intersects(f *T) (has bool) {
 	return matches == 0
 }
 
-// // ContainsAny returns true if any of the strings given in `values` matches any of the tag
-// // elements.
-// func (t *T) ContainsAny(tagName B, values *tag.T) bool {
-// 	for _, v := range t.T {
-// 		if v.Len() < 2 {
-// 			continue
-// 		}
-// 		if !equals(v.Key(), tagName) {
-// 			continue
-// 		}
-// 		for _, candidate := range values.Field {
-// 			if equals(v.Value(), candidate) {
-// 				return true
-// 			}
-// 		}
-// 	}
-// 	return false
-// }
-//
-// func (t *T) Contains(filterTags *T) (has bool) {
-// 	for _, v := range filterTags.T {
-// 		if t.ContainsAny(v.FilterKey(), v) {
-// 			return true
-// 		}
-// 	}
-// 	return
-// }
+// ContainsAny returns true if any of the strings given in `values` matches any of the tag
+// elements.
+func (t *T) ContainsAny(tagName B, values *tag.T) bool {
+	if len(tagName) < 1 {
+		return false
+	}
+	if tagName[0] == 'e' || tagName[0] == 'p' {
+		log.I.S(t)
+	} else {
+		log.I.F("contains any '%s',%0x,%v", tagName, values.F(), t.t)
+	}
+	for _, v := range t.t {
+		if v.Len() < 2 {
+			continue
+		}
+		if !equals(v.Key(), tagName) {
+			continue
+		}
+		for _, candidate := range values.F() {
+			if equals(v.Value(), candidate) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (t *T) Contains(filterTags *T) (has bool) {
+	for _, v := range filterTags.t {
+		if t.ContainsAny(v.FilterKey(), v) {
+			return true
+		}
+	}
+	return
+}
 
 // MarshalTo appends the JSON encoded byte of T as [][]string to dst. String escaping is as described in RFC8259.
 func (t *T) MarshalTo(dst B) []byte {

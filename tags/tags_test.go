@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
+	"realy.lol/hex"
 	"realy.lol/tag"
 )
 
@@ -198,4 +199,23 @@ func TestTagHelpers(t *testing.T) {
 	if S(tags.AppendUnique(tag.New("e", "eeeeee")).N(3).S(1)) != "eeeeee" {
 		t.Error("append unique changed the order")
 	}
+}
+
+func TestT_ContainsAny(t *testing.T) {
+	var v, a, b, c B
+	var err error
+	v, err = hex.Dec("4c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f")
+	a, err = hex.Dec("3c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f")
+	b, err = hex.Dec("2c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f")
+	c, err = hex.Dec("1c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f")
+	w := tag.New(B{'b'}, v, a, b, c)
+	x := tag.New(B{'b'}, c, b, a)
+	y := tag.New(B{'b'}, b, a, c)
+	z := tag.New(B{'b'}, v)
+	_, _ = v, err
+	tt := New(w, x, y)
+	ttt := New(x, y)
+	log.I.S(tt.ContainsAny(B{'b'}, z))
+	log.I.S(ttt.ContainsAny(B{'b'}, z))
+
 }

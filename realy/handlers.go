@@ -136,7 +136,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 			if !ws.AuthRequested() {
 				if err = okenvelope.NewFrom(env.ID, false,
 					normalize.AuthRequired.F("auth required for request processing")).
-					Write(ws); chk.E(err) {
+					Write(ws); err != nil {
 				}
 				log.D.F("requesting auth from client")
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
@@ -147,10 +147,10 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 			} else {
 				if err = okenvelope.NewFrom(env.ID, false,
 					normalize.AuthRequired.F("auth required for request processing")).
-					Write(ws); chk.E(err) {
+					Write(ws); err != nil {
 				}
-				log.D.F("requesting auth again from client")
-				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+				log.T.F("requesting auth again from client")
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); err != nil {
 					return
 				}
 				return
@@ -417,7 +417,7 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 					normalize.AuthRequired.F("auth required for request processing")).
 					Write(ws); chk.E(err) {
 				}
-				log.I.F("requesting auth from client from %s - challenge '%s'",
+				log.I.F("requesting auth from client from %s, challenge '%s'",
 					ws.RealRemote(), ws.Challenge())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
@@ -438,10 +438,14 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 		// prevent kind-4 events from being returned to unauthed users,
 		//   only when authentication is a thing
 		if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
-			if f.Kinds.Contains(kind.EncryptedDirectMessage) {
-				// if slices.Contains(f.Kinds.K, kind.EncryptedDirectMessage) {
+			if f.Kinds.IsPrivileged() {
+
+				log.I.Ln("privileged request with auth enabled")
 				senders := f.Authors
-				receivers := f.Tags.GetAll(tag.New("p"))
+				receivers := f.Tags.GetAll(tag.New("#p"))
+				// log.I.S(senders, receivers)
+				// log.I.F("%0x\n%s\nsender:%v\nreceiver:%v", ws.AuthedBytes(), f.Serialize(), senders.Contains(ws.AuthedBytes()),
+				// 	receivers.ContainsAny(B("#p"), tag.New(ws.AuthedBytes())))
 				switch {
 				case len(ws.Authed()) == 0:
 					ws.RequestAuth()
@@ -458,20 +462,15 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 						"this realy does not serve kind-4 to unauthenticated users," +
 							" does your client implement NIP-42?")
 					return notice
-				case senders.Len() == 1 &&
-					receivers.Len() < 2 &&
-					equals(senders.Key(), B(ws.Authed())):
-					// allowed filter: ws.authed is sole sender (filter specifies one or all receivers)
-				case receivers.Len() == 1 &&
-					senders.Len() < 2 &&
-					equals(receivers.N(0).Value(), B(ws.Authed())):
+				case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny(B("#p"), tag.New(ws.AuthedBytes())):
+					log.I.F("user %0x allowed to query for DM", ws.AuthedBytes())
 					// allowed filter: ws.authed is sole receiver (filter specifies one or all senders)
 				default:
 					// restricted filter: do not return any events,
 					//   even if other elements in filters array were not restricted).
 					//   client should know better.
-					return normalize.Restricted.F("authenticated user %s does not have"+
-						" authorization for requested filters", ws.Authed())
+					return normalize.Restricted.F("authenticated user %0x does not have"+
+						" authorization for requested filters", ws.AuthedBytes())
 				}
 			}
 		}
@@ -568,7 +567,7 @@ func (s *Server) doAuth(c Ctx, ws *web.Socket, req B, store store.I) (msg B) {
 				return
 			}
 			log.I.F("%s authed to pubkey,%0x", ws.RealRemote(), env.Event.PubKey)
-			ws.SetAuthed(web.S(env.Event.PubKey))
+			ws.SetAuthed(S(env.Event.PubKey))
 		}
 	}
 	return
@@ -586,9 +585,10 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 	ticker := time.NewTicker(pingPeriod)
 
 	ip := conn.RemoteAddr().String()
-	if realIP := r.Header.Get("X-Forwarded-For"); realIP != "" {
+	var realIP S
+	if realIP = r.Header.Get("X-Forwarded-For"); realIP != "" {
 		ip = realIP // possible to be multiple comma separated
-	} else if realIP := r.Header.Get("X-Real-Ip"); realIP != "" {
+	} else if realIP = r.Header.Get("X-Real-Ip"); realIP != "" {
 		ip = realIP
 	}
 	log.I.F("connected from %s", ip)
@@ -634,10 +634,11 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 			// ignore requests until request is responded to
 			return
 		}
-
+		var message B
+		var typ N
 		for {
-			typ, message, err := conn.ReadMessage()
-			if chk.E(err) {
+			typ, message, err = conn.ReadMessage()
+			if err != nil {
 				if websocket.IsUnexpectedCloseError(
 					err,
 					websocket.CloseGoingAway,        // 1001
