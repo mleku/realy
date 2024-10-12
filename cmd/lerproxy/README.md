@@ -6,12 +6,12 @@ DNS verification [NIP-05](https://github.com/nostr-protocol/nips/blob/master/05.
 
 ## Install
 
-	go install mleku.dev/lerproxy@latest
+	go install lerproxy.mleku.dev@latest
 
 ## Run
 
 ```
-Usage: mleku.dev/lerproxy [--listen LISTEN] [--map MAP] [--rewrites REWRITES] [--cachedir CACHEDIR] [--hsts] [--email EMAIL] [--http HTTP] [--rto RTO] [--wto WTO] [--idle IDLE] [--cert CERT]
+Usage: lerproxy.mleku.dev [--listen LISTEN] [--map MAP] [--rewrites REWRITES] [--cachedir CACHEDIR] [--hsts] [--email EMAIL] [--http HTTP] [--rto RTO] [--wto WTO] [--idle IDLE] [--cert CERT]
 
 Options:
   --listen LISTEN, -l LISTEN
@@ -49,7 +49,7 @@ as:
 * in the launch parameters for `lerproxy` you can now add any number of `--cert` parameters with
   the domain (including for wildcards), and the path to the `.crt`/`.key` files:
 
-      mleku.dev/lerproxy --cert <domain>:/path/to/TLS_cert
+      lerproxy.mleku.dev --cert <domain>:/path/to/TLS_cert
 
   this will then, if found, load and parse the TLS certificate and secret key if the suffix of
   the domain matches. The certificate path is expanded to two files with the above filename
@@ -57,6 +57,17 @@ as:
 
   > Note that the match is greedy, so you can explicitly separately give a subdomain
   certificate and it will be selected even if there is a wildcard that also matches.
+
+# IMPORTANT
+
+With Comodo SSL (sectigo RSA) certificates you also need to append the intermediate certificate 
+to the `.crt` file in order to get it to work properly with openssl library based tools like 
+wget, curl and the go tool, which is quite important if you want to do subdomains on a wildcard
+certificate.
+
+Probably the same applies to some of the other certificate authorities. If you sometimes get 
+issues with CLI tools refusing to accept these certificates on your web server or other, this 
+may be the problem.
 
 ## example mapping.txt
 
@@ -85,7 +96,7 @@ Description=lerproxy
 [Service]
 Type=simple
 User=username
-ExecStart=/usr/local/bin/mleku.dev/lerproxy -m /path/to/mapping.txt -l xxx.xxx.xxx.xxx:443 --http xxx.xxx.xxx.6:80 -m /path/to/mapping.txt -e email@example.com -c /path/to/letsencrypt/cache --cert example.com:/path/to/tls/certs
+ExecStart=/usr/local/bin/lerproxy.mleku.dev -m /path/to/mapping.txt -l xxx.xxx.xxx.xxx:443 --http xxx.xxx.xxx.6:80 -m /path/to/mapping.txt -e email@example.com -c /path/to/letsencrypt/cache --cert example.com:/path/to/tls/certs
 Restart=on-failure
 Wants=network-online.target
 After=network.target network-online.target wg-quick@wg0.service
@@ -103,7 +114,7 @@ a tunnel, such as your dev machine (something I do for nostr relay development) 
 
 The simplest way to allow `lerproxy` to bind to port 80 and 443 is as follows:
 
-    setcap 'cap_net_bind_service=+ep' /path/to/mleku.dev/lerproxy
+    setcap 'cap_net_bind_service=+ep' /path/to/lerproxy.mleku.dev
 
 ## todo
 
