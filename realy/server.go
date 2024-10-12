@@ -48,11 +48,16 @@ func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 	for _, opt := range opts {
 		opt(options)
 	}
+	var authRequired bool
+	if ar, ok := rl.(relay.Authenticator); ok {
+		authRequired = ar.AuthEnabled()
+	}
 	srv := &Server{
-		relay:    rl,
-		clients:  make(map[*websocket.Conn]struct{}),
-		serveMux: http.NewServeMux(),
-		options:  options,
+		relay:        rl,
+		clients:      make(map[*websocket.Conn]struct{}),
+		serveMux:     http.NewServeMux(),
+		options:      options,
+		authRequired: authRequired,
 	}
 
 	if storage := rl.Storage(context.Background()); storage != nil {
@@ -70,7 +75,7 @@ func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 	if inj, ok := rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
-				notifyListeners(ev)
+				notifyListeners(srv.authRequired, ev)
 			}
 		}()
 	}

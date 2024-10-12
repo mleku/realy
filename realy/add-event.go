@@ -60,7 +60,11 @@ func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, authedPubkey B) 
 		}
 	}
 
-	notifyListeners(ev)
+	var authRequired bool
+	if ar, ok := rl.(relay.Authenticator); ok {
+		authRequired = ar.AuthEnabled()
+	}
+	notifyListeners(authRequired, ev)
 
 	accepted = true
 	return

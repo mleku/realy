@@ -138,15 +138,15 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 					normalize.AuthRequired.F("auth required for request processing")).
 					Write(ws); err != nil {
 				}
-				log.D.F("requesting auth from client")
-				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+				log.T.F("requesting auth from client")
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); err != nil {
 					return
 				}
 				ws.RequestAuth()
 				return
 			} else {
 				if err = okenvelope.NewFrom(env.ID, false,
-					normalize.AuthRequired.F("auth required for request processing")).
+					normalize.AuthRequired.F("auth required for storing events")).
 					Write(ws); err != nil {
 				}
 				log.T.F("requesting auth again from client")
@@ -156,10 +156,6 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 				return
 			}
 		}
-
-		// log.W.F("rejecting event from %s %0x\n%s", ws.RealRemote(), ws.Authed(),
-		// 	env.T.Serialize())
-
 		return
 	}
 	// check id
@@ -417,7 +413,7 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 					normalize.AuthRequired.F("auth required for request processing")).
 					Write(ws); chk.E(err) {
 				}
-				log.I.F("requesting auth from client from %s, challenge '%s'",
+				log.T.F("requesting auth from client from %s, challenge '%s'",
 					ws.RealRemote(), ws.Challenge())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
@@ -440,7 +436,7 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 		if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 			if f.Kinds.IsPrivileged() {
 
-				log.I.Ln("privileged request with auth enabled")
+				log.T.Ln("privileged request with auth enabled")
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("#p"))
 				// log.I.S(senders, receivers)
@@ -463,7 +459,7 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 							" does your client implement NIP-42?")
 					return notice
 				case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny(B("#p"), tag.New(ws.AuthedBytes())):
-					log.I.F("user %0x allowed to query for DM", ws.AuthedBytes())
+					log.T.F("user %0x allowed to query for DM", ws.AuthedBytes())
 					// allowed filter: ws.authed is sole receiver (filter specifies one or all senders)
 				default:
 					// restricted filter: do not return any events,
@@ -533,7 +529,7 @@ func (s *Server) doAuth(c Ctx, ws *web.Socket, req B, store store.I) (msg B) {
 		if svcUrl == "" {
 			return
 		}
-		log.I.F("received auth response,%s", req)
+		log.T.F("received auth response,%s", req)
 		var err E
 		var rem B
 		env := authenvelope.NewResponse()
@@ -566,7 +562,7 @@ func (s *Server) doAuth(c Ctx, ws *web.Socket, req B, store store.I) (msg B) {
 			if err = okenvelope.NewFrom(env.Event.ID, true, B{}).Write(ws); chk.E(err) {
 				return
 			}
-			log.I.F("%s authed to pubkey,%0x", ws.RealRemote(), env.Event.PubKey)
+			log.D.F("%s authed to pubkey,%0x", ws.RealRemote(), env.Event.PubKey)
 			ws.SetAuthed(S(env.Event.PubKey))
 		}
 	}
@@ -591,7 +587,7 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 	} else if realIP = r.Header.Get("X-Real-Ip"); realIP != "" {
 		ip = realIP
 	}
-	log.I.F("connected from %s", ip)
+	log.T.F("connected from %s", ip)
 	ws := challenge(conn, r, ip)
 	if s.options.perConnectionLimiter != nil {
 		ws.SetLimiter(rate.NewLimiter(
@@ -616,7 +612,7 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 				removeListener(ws)
 			}
 			s.clientsMu.Unlock()
-			log.I.F("disconnected from %s", ip)
+			log.T.F("disconnected from %s", ip)
 		}()
 
 		conn.SetReadLimit(maxMessageSize)
@@ -641,6 +637,7 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(
 					err,
+					websocket.CloseNormalClosure,
 					websocket.CloseGoingAway,        // 1001
 					websocket.CloseNoStatusReceived, // 1005
 					websocket.CloseAbnormalClosure,  // 1006

@@ -88,6 +88,7 @@ func (ws *Socket) Challenge() S   { return ws.challenge.Load() }
 func (ws *Socket) RealRemote() S  { return ws.remote.Load() }
 func (ws *Socket) Authed() S      { return ws.authed.Load() }
 func (ws *Socket) AuthedBytes() B { return B(ws.authed.Load()) }
+func (ws *Socket) IsAuthed() bool { return ws.authed.Load() != "" }
 func (ws *Socket) SetAuthed(s S) {
 	log.T.F("setting authed %0x", s)
 	ws.authed.Store(s)

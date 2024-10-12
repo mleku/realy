@@ -63,9 +63,7 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 		f := filter.New()
 		f.Authors = tag.New(evt.PubKey)
 		f.Kinds = kinds.New(evt.Kind)
-		d := evt.Tags.GetFirst(tag.New("d", ""))
-		log.I.S(d)
-		log.I.F("filter for parameterized replaceable %s %s", f.Tags, f.Serialize())
+		log.I.F("filter for parameterized replaceable %v %s", f.Tags.ToStringSlice(), f.Serialize())
 		evs, err = w.I.QueryEvents(c, f)
 		if err != nil {
 			return fmt.Errorf("failed to query before replacing: %w", err)

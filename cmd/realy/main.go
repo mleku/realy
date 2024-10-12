@@ -36,9 +36,10 @@ func main() {
 	path := filepath.Join(cfg.Root, cfg.Profile)
 	storage := ratel.GetBackend(c, &wg, false, units.Gb*8, lol.GetLogLevel(cfg.DbLogLevel), 0)
 	r := &app.Relay{Config: cfg, Store: storage}
+	go app.MonitorResources(c)
 	var server *realy.Server
 	if server, err = realy.NewServer(r, path); chk.E(err) {
-		return
+		os.Exit(1)
 	}
 	if err != nil {
 		log.F.F("failed to create server: %v", err)

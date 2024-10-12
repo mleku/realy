@@ -7,6 +7,7 @@ import (
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/filters"
+	"realy.lol/tag"
 	"realy.lol/web"
 )
 
@@ -84,14 +85,34 @@ func removeListener(ws *web.Socket) {
 	delete(listeners, ws)
 }
 
-func notifyListeners(ev *event.T) {
+func notifyListeners(authRequired bool, ev *event.T) {
+	if ev == nil {
+		// nothing to do
+		return
+	}
 	var err E
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
 	for ws, subs := range listeners {
 		for id, listener := range subs {
+			if authRequired && !ws.IsAuthed() {
+				continue
+			}
 			if !listener.filters.Match(ev) {
 				continue
+			}
+			// is the subscriber authorized to see privileged event?
+			if ev.Kind.IsPrivileged() {
+				ab := ws.AuthedBytes()
+				var containsPubkey bool
+				if ev.Tags != nil {
+					containsPubkey = ev.Tags.ContainsAny(B{'p'}, tag.New(ab))
+				}
+				if !equals(ev.PubKey, ab) || containsPubkey {
+					log.I.F("authed user %0x not privileged to receive event\n%s",
+						ws.AuthedBytes(), ev.Serialize())
+					continue
+				}
 			}
 			var res *eventenvelope.Result
 			if res, err = eventenvelope.NewResultWith(id, ev); chk.E(err) {

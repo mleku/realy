@@ -2,6 +2,6 @@ package realy
 
 import "realy.lol/event"
 
-func BroadcastEvent(evt *event.T) {
-	notifyListeners(evt)
+func BroadcastEvent(authRequired bool, ev *event.T) {
+	notifyListeners(authRequired, ev)
 }

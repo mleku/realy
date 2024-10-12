@@ -16,7 +16,7 @@ var version S
 
 func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	log.W.Ln("handling relay information document")
+	log.T.Ln("handling relay information document")
 	var info *ri.T
 	if informationer, ok := s.relay.(relay.Informationer); ok {
 		info = informationer.GetNIP11InformationDocument()
@@ -42,7 +42,7 @@ func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 				supportedNIPs = append(supportedNIPs, ri.CountingResults.N())
 			}
 		}
-		log.I.Ln("supported NIPs", supportedNIPs)
+		log.T.Ln("supported NIPs", supportedNIPs)
 		info = &ri.T{
 			Name:        s.relay.Name(),
 			Description: "relay powered by the realy framework",
