@@ -132,6 +132,14 @@ var (
 	Reaction = &T{7}
 	// BadgeAward is an event type
 	BadgeAward = &T{8}
+	// Seal is an event that wraps a PrivateDirectMessage and is placed inside a
+	// GiftWrap or GiftWrapWithKind4
+	Seal = &T{13}
+	// PrivateDirectMessage is a nip-17 direct message with a different
+	// construction. It doesn't actually appear as an event a relay might receive
+	// but only as the stringified content of a GiftWrap or GiftWrapWithKind4 inside
+	// a
+	PrivateDirectMessage = &T{14}
 	// ReadReceipt is a type of event that marks a list of tagged events (e
 	// tags) as being seen by the client, its distinctive feature is the
 	// "expiration" tag which indicates a time after which the marking expires
