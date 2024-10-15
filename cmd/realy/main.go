@@ -30,7 +30,6 @@ func main() {
 	}
 	log.I.Ln("log level", cfg.LogLevel)
 	lol.SetLogLevel(cfg.LogLevel)
-	log.D.S(cfg)
 	var wg sync.WaitGroup
 	c, cancel := context.Cancel(context.Bg())
 	path := filepath.Join(cfg.Root, cfg.Profile)

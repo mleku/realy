@@ -41,7 +41,6 @@ var Privileged = []*T{
 	GiftWrap,
 	GiftWrapWithKind4,
 	ApplicationSpecificData,
-	Deletion,
 }
 
 func (k *T) IsPrivileged() (is bool) {

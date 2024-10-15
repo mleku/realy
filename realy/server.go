@@ -114,15 +114,15 @@ func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...
 	s.httpServer = &http.Server{
 		Handler:      cors.Default().Handler(s),
 		Addr:         addr,
-		WriteTimeout: 2 * time.Second,
-		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 4 * time.Second,
+		ReadTimeout:  4 * time.Second,
 		IdleTimeout:  30 * time.Second,
 	}
 	s.adminServer = &http.Server{
 		Handler:      cors.Default().Handler(s),
 		Addr:         adminAddr,
-		WriteTimeout: 2 * time.Second,
-		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 4 * time.Second,
+		ReadTimeout:  4 * time.Second,
 		IdleTimeout:  30 * time.Second,
 	}
 

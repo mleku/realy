@@ -138,7 +138,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 					normalize.AuthRequired.F("auth required for request processing")).
 					Write(ws); err != nil {
 				}
-				log.T.F("requesting auth from client")
+				log.T.F("requesting auth from client %s", ws.RealRemote())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); err != nil {
 					return
 				}
@@ -149,7 +149,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 					normalize.AuthRequired.F("auth required for storing events")).
 					Write(ws); err != nil {
 				}
-				log.T.F("requesting auth again from client")
+				log.T.F("requesting auth again from client %s", ws.RealRemote())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); err != nil {
 					return
 				}
@@ -436,7 +436,7 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 		if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 			if f.Kinds.IsPrivileged() {
 
-				log.T.Ln("privileged request with auth enabled")
+				log.T.F("privileged request with auth enabled\n%s", f.Serialize())
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("#p"))
 				// log.I.S(senders, receivers)
