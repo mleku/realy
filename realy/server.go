@@ -85,11 +85,12 @@ func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 
 // ServeHTTP implements http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// log.T.S(r)
 	if r.Header.Get("Upgrade") == "websocket" {
 		s.HandleWebsocket(w, r)
 	} else if r.Header.Get("Accept") == "application/nostr+json" {
 		s.HandleNIP11(w, r)
+	} else if s.AdminAddr == r.Host {
+		s.HandleAdmin(w, r)
 	} else {
 		s.serveMux.ServeHTTP(w, r)
 	}

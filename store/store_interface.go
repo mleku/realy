@@ -1,6 +1,8 @@
 package store
 
 import (
+	"io"
+
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/filter"
@@ -30,4 +32,8 @@ type I interface {
 	DeleteEvent(c Ctx, ev *eventid.T) (err E)
 	// SaveEvent is called once Relay.AcceptEvent reports true.
 	SaveEvent(c Ctx, ev *event.T) (err E)
+	// Import reads in a stream of line structured JSON of events to save into the store.
+	Import(r io.Reader)
+	// Export writes a stream of line structured JSON of all events in the store.
+	Export(w io.Writer)
 }
