@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -89,7 +90,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.HandleWebsocket(w, r)
 	} else if r.Header.Get("Accept") == "application/nostr+json" {
 		s.HandleNIP11(w, r)
-	} else if s.AdminAddr == r.Host {
+	} else if s.AdminAddr == r.Host ||
+		strings.HasPrefix(s.AdminAddr, "127.0.0.1") &&
+			strings.HasPrefix(r.Host, "localhost") {
 		s.HandleAdmin(w, r)
 	} else {
 		s.serveMux.ServeHTTP(w, r)
@@ -120,11 +123,11 @@ func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...
 		IdleTimeout:  30 * time.Second,
 	}
 	s.adminServer = &http.Server{
-		Handler:      cors.Default().Handler(s),
-		Addr:         adminAddr,
-		WriteTimeout: 4 * time.Second,
-		ReadTimeout:  4 * time.Second,
-		IdleTimeout:  30 * time.Second,
+		Handler: cors.Default().Handler(s),
+		Addr:    adminAddr,
+		// WriteTimeout: 4 * time.Second,
+		// ReadTimeout:  4 * time.Second,
+		// IdleTimeout:  30 * time.Second,
 	}
 
 	// notify caller that we're starting

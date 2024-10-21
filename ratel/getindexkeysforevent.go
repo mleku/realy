@@ -38,8 +38,8 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 	}
 	{ // ~ by kind+date
 		k := index.Kind.Key(K, CA, ser)
-		log.T.F("kind + date key: %x %0x %0x %0x",
-			k[0], k[1:3], k[3:11], k[11:])
+		// log.T.F("kind + date key: %x %0x %0x %0x",
+		// 	k[0], k[1:3], k[3:11], k[11:])
 		keyz = append(keyz, k)
 	}
 	{ // ~ by pubkey+kind+date

@@ -47,7 +47,7 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 		return true
 	}
 	if len(authedPubkey) != 32 {
-		// log.E.F("client not authed with auth required")
+		log.E.F("client not authed with auth required")
 		return false
 	}
 	if len(r.Owners) > 0 {

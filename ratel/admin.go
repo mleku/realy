@@ -1,15 +1,37 @@
 package ratel
 
 import (
+	"bufio"
 	"io"
 
 	"github.com/dgraph-io/badger/v4"
+	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/ratel/keys/index"
 )
 
-func (r *T) Import(rr io.Reader) {
+const maxLen = 500000000
 
+// Import accepts an event
+func (r *T) Import(rr io.Reader) {
+	scan := bufio.NewScanner(rr)
+	buf := make(B, maxLen)
+	scan.Buffer(buf, maxLen)
+	var err E
+	ev := &event.T{}
+	for scan.Scan() {
+		b := scan.Bytes()
+		// log.I.Ln("saving", string(b))
+		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
+			continue
+		}
+		if err = r.SaveEvent(context.Bg(), ev); err != nil {
+			continue
+		}
+	}
+	err = scan.Err()
+	if chk.E(err) {
+	}
 	return
 }
 

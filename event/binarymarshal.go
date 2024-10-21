@@ -178,17 +178,19 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 							len(split[1]))
 						return
 					}
-					// prepend with the appropriate length prefix (we don't need
-					// a separate length prefix for the string component)
-					w.Buf = appendUvarint(w.Buf, uint64(2+32+len(split[2])))
-					// encode a 16 bit kind value
-					w.Buf = binary.LittleEndian.
-						AppendUint16(w.Buf, uint16(n))
-					// encode the 32 byte binary value
-					if w.Buf, err = hex.DecAppend(w.Buf, split[1]); chk.E(err) {
-						return
+					if len(split) > 2 {
+						// prepend with the appropriate length prefix (we don't need
+						// a separate length prefix for the string component)
+						w.Buf = appendUvarint(w.Buf, uint64(2+32+len(split[2])))
+						// encode a 16 bit kind value
+						w.Buf = binary.LittleEndian.
+							AppendUint16(w.Buf, uint16(n))
+						// encode the 32 byte binary value
+						if w.Buf, err = hex.DecAppend(w.Buf, split[1]); chk.E(err) {
+							return
+						}
+						w.Buf = append(w.Buf, split[2]...)
 					}
-					w.Buf = append(w.Buf, split[2]...)
 					continue scanning
 				}
 			}

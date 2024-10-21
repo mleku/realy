@@ -57,7 +57,6 @@ node_modules/**
 !*.s
 !*.asm
 !.gitmodules
-!*.jsonl
 !*.txt
 !*.sum
 !version
