@@ -1,6 +1,7 @@
 package realy
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
@@ -15,10 +16,13 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 		store := s.relay.Storage(context.Bg())
 		store.Export(w)
 	case "/import":
-		log.I.F("import of event data requested on admin port", r.RequestURI)
+		log.I.F("import of event data requested on admin port %s", r.RequestURI)
 		store := s.relay.Storage(context.Bg())
 		read := io.LimitReader(r.Body, r.ContentLength)
 		store.Import(read)
-		w.Write(B("ok"))
+	case "/shutdown":
+		fmt.Fprintf(w, "shutting down")
+		defer r.Body.Close()
+		s.Shutdown(context.Bg())
 	}
 }

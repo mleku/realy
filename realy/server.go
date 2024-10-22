@@ -1,7 +1,6 @@
 package realy
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -14,6 +13,7 @@ import (
 	"github.com/fasthttp/websocket"
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"
+	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/relay"
 )
@@ -61,7 +61,7 @@ func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 		authRequired: authRequired,
 	}
 
-	if storage := rl.Storage(context.Background()); storage != nil {
+	if storage := rl.Storage(context.Bg()); storage != nil {
 		if err := storage.Init(dbPath); err != nil {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
@@ -118,9 +118,9 @@ func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...
 	s.httpServer = &http.Server{
 		Handler:      cors.Default().Handler(s),
 		Addr:         addr,
-		WriteTimeout: 4 * time.Second,
-		ReadTimeout:  4 * time.Second,
-		IdleTimeout:  30 * time.Second,
+		WriteTimeout: 7 * time.Second,
+		ReadTimeout:  7 * time.Second,
+		IdleTimeout:  28 * time.Second,
 	}
 	s.adminServer = &http.Server{
 		Handler: cors.Default().Handler(s),
@@ -139,14 +139,10 @@ func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...
 		if err = s.adminServer.Serve(aln); errors.Is(err, http.ErrServerClosed) {
 		}
 	}()
-
 	if err = s.httpServer.Serve(ln); errors.Is(err, http.ErrServerClosed) {
-		return nil
 	} else if err != nil {
-		return err
-	} else {
-		return nil
 	}
+	return nil
 }
 
 // Shutdown sends a websocket close control message to all connected clients.
@@ -154,18 +150,22 @@ func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...
 // If the realy is ShutdownAware, Shutdown calls its OnShutdown, passing the context as is.
 // Note that the HTTP server make some time to shutdown and so the context deadline,
 // if any, may have been shortened by the time OnShutdown is called.
-func (s *Server) Shutdown(c context.Context) {
-	s.httpServer.Shutdown(c)
-	s.adminServer.Shutdown(c)
-
+func (s *Server) Shutdown(c context.T) {
+	log.I.Ln("shutting down relay")
 	s.clientsMu.Lock()
 	defer s.clientsMu.Unlock()
 	for conn := range s.clients {
+		log.I.Ln("disconnecting", conn.RemoteAddr())
 		conn.WriteControl(websocket.CloseMessage, nil, time.Now().Add(time.Second))
 		conn.Close()
 		delete(s.clients, conn)
 	}
-
+	log.W.Ln("closing event store")
+	s.relay.Storage(c).Close()
+	log.W.Ln("shutting down relay listener")
+	s.httpServer.Shutdown(c)
+	log.W.S("shutting down admin listener")
+	s.adminServer.Shutdown(c)
 	if f, ok := s.relay.(relay.ShutdownAware); ok {
 		f.OnShutdown(c)
 	}

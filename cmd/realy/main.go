@@ -8,6 +8,7 @@ import (
 
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
+	"realy.lol/interrupt"
 	"realy.lol/lol"
 	"realy.lol/ratel"
 	"realy.lol/realy"
@@ -43,6 +44,7 @@ func main() {
 	if err != nil {
 		log.F.F("failed to create server: %v", err)
 	}
+	interrupt.AddHandler(func() { server.Shutdown(c) })
 	if err = server.Start(cfg.Listen, cfg.Port, cfg.AdminListen, cfg.AdminPort); chk.E(err) {
 		log.F.F("server terminated: %v", err)
 	}

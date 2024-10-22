@@ -36,4 +36,6 @@ type I interface {
 	Import(r io.Reader)
 	// Export writes a stream of line structured JSON of all events in the store.
 	Export(w io.Writer)
+	// Sync signals the event store to flush its buffers.
+	Sync() (err E)
 }

@@ -16,7 +16,7 @@ import (
 
 func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	if ev.Kind.IsEphemeral() {
-		log.T.F("not saving ephemeral event\n%s", ev.Serialize())
+		// log.T.F("not saving ephemeral event\n%s", ev.Serialize())
 		return
 	}
 	// make sure Close waits for this to complete
@@ -130,3 +130,5 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	}
 	return
 }
+
+func (r *T) Sync() (err E) { return r.DB.Sync() }
