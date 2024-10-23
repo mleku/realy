@@ -105,7 +105,7 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 		}
 		lenTag := int(vi)
 		r.Pos += read
-		t.AddCap(i, lenTag)
+		// t.AddCap(i, lenTag)
 		// t.T[i] = tag.NewWithCap(lenTag)
 		// extract the individual tag strings
 		var secondIsHex, secondIsDecimalHex bool
