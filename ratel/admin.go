@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/dgraph-io/badger/v4"
-	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/ratel/keys/index"
 )
@@ -18,14 +17,16 @@ func (r *T) Import(rr io.Reader) {
 	buf := make(B, maxLen)
 	scan.Buffer(buf, maxLen)
 	var err E
-	ev := &event.T{}
 	for scan.Scan() {
 		b := scan.Bytes()
-		// log.I.Ln("saving", string(b))
+		if len(b) > 8192 {
+			log.I.F("saving,%s", b)
+		}
+		ev := &event.T{}
 		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
 			continue
 		}
-		if err = r.SaveEvent(context.Bg(), ev); err != nil {
+		if err = r.SaveEvent(r.Ctx, ev); err != nil {
 			continue
 		}
 	}

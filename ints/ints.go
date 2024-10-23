@@ -78,6 +78,10 @@ func (n *T) MarshalJSON(dst B) (b B, err error) {
 // to read a positive json integer, and a leading zero is decoded as a zero, and the remainder
 // returned.
 func (n *T) UnmarshalJSON(b B) (r B, err error) {
+	if len(b) < 1 {
+		err = errorf.E("zero length number")
+		return
+	}
 	var sLen int
 	if b[0] == zero {
 		r = b[1:]

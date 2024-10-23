@@ -91,8 +91,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 			}
 		}
 		// if the authed pubkey was not found, reject the request.
-		log.I.F("authed pubkey %0x not found, rejecting event", authedPubkey)
-		return false
+		// log.I.F("authed pubkey %0x not found, rejecting event", authedPubkey)
+		// return false
 	}
 	// if auth is enabled and there is no moderators we just check that the pubkey
 	// has been loaded via the auth function.
@@ -132,6 +132,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 		defer r.Unlock()
 		// need to search DB for moderator npub follow lists, followed npubs are allowed access.
 		if len(r.Followed) < 1 {
+			log.I.Ln("regenerating owners follow lists")
 			var err error
 			var evs []*event.T
 			if evs, err = r.Store.QueryEvents(c,
@@ -162,6 +163,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			}
 		}
 		if len(r.Muted) < 1 {
+			log.I.Ln("regenerating owners mute lists")
 			var err error
 			var evs []*event.T
 			if evs, err = r.Store.QueryEvents(c,
@@ -169,15 +171,15 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 					Kinds: kinds.New(kind.MuteList)}); chk.E(err) {
 
 			}
-			// preallocate sufficient elements
-			var count int
-			for _, ev := range evs {
-				for _, t := range ev.Tags.F() {
-					if equals(t.Key(), B{'p'}) {
-						count++
-					}
-				}
-			}
+			// // preallocate sufficient elements
+			// var count int
+			// for _, ev := range evs {
+			// 	for _, t := range ev.Tags.F() {
+			// 		if equals(t.Key(), B{'p'}) {
+			// 			count++
+			// 		}
+			// 	}
+			// }
 			r.Muted = make(map[S]struct{})
 			for _, ev := range evs {
 				for _, t := range ev.Tags.F() {

@@ -26,6 +26,13 @@ func EncAppend(dst, src B) (b B) {
 }
 
 func DecAppend(dst, src B) (b B, err error) {
+	if src == nil || len(src) < 2 {
+		err = errorf.E("nothing to decode")
+		return
+	}
+	if dst == nil {
+		dst = B{}
+	}
 	l := len(dst)
 	b = dst
 	b = append(b, make(B, len(src)/2)...)
