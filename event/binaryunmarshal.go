@@ -93,6 +93,9 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 	nTags := int(vi)
 	var end int
 	r.Pos += read
+	// if nTags > 500 {
+	// 	log.I.F("new tags with %d elements (follow list probably)", nTags)
+	// }
 	t = tags.NewWithCap(nTags)
 	// t = &tags.T{T: make([]*tag.T, nTags)}
 	// t = make(tags.T, nTags)
@@ -105,6 +108,7 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 		}
 		lenTag := int(vi)
 		r.Pos += read
+		// log.I.F("adding capacity %d at tag %d", lenTag, i)
 		t.AddCap(i, lenTag)
 		// t.T[i] = tag.NewWithCap(lenTag)
 		// extract the individual tag strings
@@ -172,11 +176,12 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 					r.Pos = fieldEnd
 					t.AppendTo(i, B(fmt.Sprintf("%d:%0x:%s",
 						k, hex.Enc(pk), string(r.Buf[r.Pos:end]))))
+					r.Pos = end
 					// t.N(i).Field = append(t.N(i).Field, B(fmt.Sprintf("%d:%0x:%s",
 					// 	k,
 					// 	hex.Enc(pk),
 					// 	string(r.Buf[r.Pos:end]))))
-					r.Pos = end
+					continue reading
 				}
 			}
 			t.AppendTo(i, r.Buf[r.Pos:r.Pos+int(vi)])

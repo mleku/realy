@@ -1,6 +1,8 @@
 package ratel
 
 import (
+	"errors"
+
 	"github.com/dgraph-io/badger/v4"
 	"realy.lol/event"
 	"realy.lol/filter"
@@ -24,6 +26,11 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	// search for the keys generated from the filter
 	var eventKeys [][]byte
 	for _, q := range queries {
+		select {
+		case <-c.Done():
+			return
+		default:
+		}
 		err = r.View(func(txn *badger.Txn) (err E) {
 			// iterate only through keys and in reverse order
 			opts := badger.IteratorOptions{
@@ -52,11 +59,24 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			return
 		})
 		if chk.E(err) {
-			// this can't actually happen because the View function above does not set err.
+			// this means shutdown, probably
+			if errors.Is(err, badger.ErrDBClosed) {
+				return
+			}
+		}
+		select {
+		case <-c.Done():
+			return
+		default:
 		}
 	search:
 		for _, eventKey := range eventKeys {
 			var v B
+			select {
+			case <-c.Done():
+				return
+			default:
+			}
 			err = r.View(func(txn *badger.Txn) (err E) {
 				opts := badger.IteratorOptions{Reverse: true}
 				it := txn.NewIterator(opts)
@@ -66,10 +86,11 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 					item := it.Item()
 					// k := item.KeyCopy(nil)
 					// log.T.S(k)
-					if v, err = item.ValueCopy(nil); chk.E(err) {
-						continue
-					}
-					if r.HasL2 && len(v) == sha256.Size {
+					// if v, err = item.ValueCopy(nil); chk.E(err) {
+					// 	continue
+					// }
+
+					if r.HasL2 && item.ValueSize() == sha256.Size {
 						// this is a stub entry that indicates an L2 needs to be accessed for it, so
 						// we populate only the event.T.ID and return the result, the caller will
 						// expect this as a signal to query the L2 event store.
@@ -90,8 +111,19 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				}
 				return
 			})
+			if err != nil {
+				// this means shutdown, probably
+				if errors.Is(err, badger.ErrDBClosed) {
+					return
+				}
+			}
 			if v == nil {
 				continue
+			}
+			select {
+			case <-c.Done():
+				return
+			default:
 			}
 			ev := &event.T{}
 			var rem B
@@ -148,6 +180,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			}
 		}
 	}
+	// todo: this should filter out mutes
 	// if len(evs) > 0 {
 	// 	log.T.C(func() (o string) {
 	// 		o = "sending events\n"

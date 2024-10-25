@@ -1,13 +1,13 @@
 package realy
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/gobwas/ws/wsutil"
+	"realy.lol/context"
 	"realy.lol/ws"
 )
 
@@ -23,15 +23,19 @@ func TestServerStartShutdown(t *testing.T) {
 			inited = true
 			return nil
 		},
-		onShutdown: func(context.Context) { shutdown = true },
+		onShutdown: func(context.T) { shutdown = true },
 		storage: &testStorage{
 			init: func() E { storeInited = true; return nil },
 		},
 	}
-	srv, _ := NewServer(rl, "")
+	srv, _ := NewServer(context.Bg(), rl, "")
 	ready := make(chan bool)
 	done := make(chan E)
-	go func() { done <- srv.Start("127.0.0.1", 0, ready); close(done) }()
+	go func() {
+		done <- srv.Start("127.0.0.1", 0,
+			"127.0.0.1", 9999, ready)
+		close(done)
+	}()
 	<-ready
 
 	// verify everything's initialized
@@ -48,7 +52,7 @@ func TestServerStartShutdown(t *testing.T) {
 	}
 
 	// verify server shuts down
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.Timeout(context.Bg(), 3*time.Second)
 	defer cancel()
 	srv.Shutdown(ctx)
 	if !shutdown {
@@ -66,10 +70,10 @@ func TestServerStartShutdown(t *testing.T) {
 
 func TestServerShutdownWebsocket(t *testing.T) {
 	// set up a new relay server
-	srv := startTestRelay(t, &testRelay{storage: &testStorage{}})
+	srv := startTestRelay(context.Bg(), t, &testRelay{storage: &testStorage{}})
 
 	// connect a client to it
-	ctx1, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx1, cancel := context.Timeout(context.Bg(), 2*time.Second)
 	defer cancel()
 	client, err := ws.RelayConnect(ctx1, "ws://"+srv.Addr)
 	if err != nil {
@@ -77,7 +81,7 @@ func TestServerShutdownWebsocket(t *testing.T) {
 	}
 
 	// now, shut down the server
-	ctx2, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx2, cancel := context.Timeout(context.Bg(), 2*time.Second)
 	defer cancel()
 	srv.Shutdown(ctx2)
 

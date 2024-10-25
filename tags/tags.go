@@ -74,10 +74,11 @@ func (t *T) AddCap(i, c int) (tt *T) {
 		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
 		return t
 	}
-	for len(t.t) <= i {
-		t.t = append(t.t, tag.NewWithCap(c))
+
+	n := i - len(t.t) + 1
+	for range n {
+		t.t = append(t.t, &tag.T{})
 	}
-	t.t[i] = tag.NewWithCap(c)
 	return t
 }
 

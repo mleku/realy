@@ -96,7 +96,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		return
 	}
 	var bin B
-	if bin, err = ev.MarshalBinary(bin); chk.E(err) {
+	if bin, err = ev.MarshalBinary(bin); err != nil {
 		return
 	}
 	// otherwise, save new event record.

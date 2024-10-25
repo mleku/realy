@@ -11,11 +11,11 @@ import (
 	eventstore "realy.lol/store"
 )
 
-func startTestRelay(t *testing.T, tr *testRelay) *Server {
+func startTestRelay(c context.T, t *testing.T, tr *testRelay) *Server {
 	t.Helper()
-	srv, _ := NewServer(tr, "")
+	srv, _ := NewServer(c, tr, "")
 	started := make(chan bool)
-	go srv.Start("127.0.0.1", 0, started)
+	go srv.Start("127.0.0.1", 0, "127.0.0.1", 0, started)
 	<-started
 	return srv
 }
@@ -71,7 +71,7 @@ func (st *testStorage) Path() eventstore.S {
 	panic("implement me")
 }
 
-func (st *testStorage) Init(path S) E {
+func (st *testStorage) Init() E {
 	if fn := st.init; fn != nil {
 		return fn()
 	}
@@ -85,23 +85,23 @@ func (st *testStorage) Close() (err E) {
 	return
 }
 
-func (st *testStorage) QueryEvents(ctx context.T, f *filter.T) (evs []*event.T, err E) {
+func (st *testStorage) QueryEvents(c context.T, f *filter.T) (evs []*event.T, err E) {
 	if fn := st.queryEvents; fn != nil {
-		return fn(ctx, f)
+		return fn(c, f)
 	}
 	return nil, nil
 }
 
-func (st *testStorage) DeleteEvent(ctx context.T, evt *eventid.T) E {
+func (st *testStorage) DeleteEvent(c context.T, evt *eventid.T) E {
 	if fn := st.deleteEvent; fn != nil {
-		return fn(ctx, evt)
+		return fn(c, evt)
 	}
 	return nil
 }
 
-func (st *testStorage) SaveEvent(ctx context.T, e *event.T) E {
+func (st *testStorage) SaveEvent(c context.T, e *event.T) E {
 	if fn := st.saveEvent; fn != nil {
-		return fn(ctx, e)
+		return fn(c, e)
 	}
 	return nil
 }

@@ -157,9 +157,8 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 				switch {
 				case secondIsHex:
 					w.Buf = appendUvarint(w.Buf, uint64(32))
-					if w.Buf, err = hex.DecAppend(w.Buf, ts); chk.E(err) {
+					if w.Buf, err = hex.DecAppend(w.Buf, ts); err != nil {
 						// the value MUST be hex by the spec
-						log.W.Ln(t.N(i))
 						return
 					}
 					continue scanning
@@ -169,7 +168,7 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 					// first is 2 bytes size
 					var n int
 					k := kind.New(0)
-					if _, err = k.UnmarshalJSON(split[0]); chk.E(err) {
+					if _, err = k.UnmarshalJSON(split[0]); err != nil {
 						return
 					}
 					if len(split) > 1 {
@@ -232,7 +231,7 @@ func (w *Writer) WriteEvent(ev *T) (err error) {
 	if err = w.WriteKind(ev.Kind); chk.E(err) {
 		return
 	}
-	if err = w.WriteTags(ev.Tags); chk.E(err) {
+	if err = w.WriteTags(ev.Tags); err != nil {
 		return
 	}
 	if err = w.WriteContent(ev.Content); chk.E(err) {

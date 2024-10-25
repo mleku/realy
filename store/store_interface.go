@@ -35,7 +35,7 @@ type I interface {
 	// Import reads in a stream of line structured JSON of events to save into the store.
 	Import(r io.Reader)
 	// Export writes a stream of line structured JSON of all events in the store.
-	Export(w io.Writer)
+	Export(c Ctx, w io.Writer)
 	// Sync signals the event store to flush its buffers.
 	Sync() (err E)
 }

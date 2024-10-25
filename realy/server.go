@@ -28,6 +28,8 @@ import (
 // The basic usage is to call Start or StartConf, which starts serving immediately.
 // For a more fine-grained control, use NewServer.
 type Server struct {
+	Ctx
+	Cancel                  context.F
 	options                 *Options
 	relay                   relay.I
 	clientsMu               sync.Mutex
@@ -38,13 +40,11 @@ type Server struct {
 	authRequired            bool
 }
 
-func (s *Server) Router() *http.ServeMux {
-	return s.serveMux
-}
+func (s *Server) Router() *http.ServeMux { return s.serveMux }
 
 // NewServer initializes the realy and its storage using their respective Init methods,
 // returning any non-nil errors, and returns a Server ready to listen for HTTP requests.
-func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
+func NewServer(c Ctx, cancel context.F, rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 	options := DefaultOptions()
 	for _, opt := range opts {
 		opt(options)
@@ -54,6 +54,8 @@ func NewServer(rl relay.I, dbPath S, opts ...Option) (*Server, E) {
 		authRequired = ar.AuthEnabled()
 	}
 	srv := &Server{
+		Ctx:          c,
+		Cancel:       cancel,
 		relay:        rl,
 		clients:      make(map[*websocket.Conn]struct{}),
 		serveMux:     http.NewServeMux(),
@@ -150,8 +152,10 @@ func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...
 // If the realy is ShutdownAware, Shutdown calls its OnShutdown, passing the context as is.
 // Note that the HTTP server make some time to shutdown and so the context deadline,
 // if any, may have been shortened by the time OnShutdown is called.
-func (s *Server) Shutdown(c context.T) {
+func (s *Server) Shutdown() {
+	c := s.Ctx
 	log.I.Ln("shutting down relay")
+	s.Cancel()
 	s.clientsMu.Lock()
 	defer s.clientsMu.Unlock()
 	for conn := range s.clients {

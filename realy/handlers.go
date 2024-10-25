@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"net/http"
 	"sort"
 	"time"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/fasthttp/websocket"
 	"golang.org/x/time/rate"
 	"realy.lol/auth"
@@ -458,7 +460,8 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 						"this realy does not serve kind-4 to unauthenticated users," +
 							" does your client implement NIP-42?")
 					return notice
-				case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny(B("#p"), tag.New(ws.AuthedBytes())):
+				case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny(B("#p"),
+					tag.New(ws.AuthedBytes())):
 					log.T.F("user %0x allowed to query for DM", ws.AuthedBytes())
 					// allowed filter: ws.authed is sole receiver (filter specifies one or all senders)
 				default:
@@ -474,6 +477,9 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 		events, err = sto.QueryEvents(c, f)
 		if err != nil {
 			log.E.F("eventstore: %v", err)
+			if errors.Is(err, badger.ErrDBClosed) {
+				return
+			}
 			continue
 		}
 

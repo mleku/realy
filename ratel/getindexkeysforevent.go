@@ -77,6 +77,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		// parts
 		prf, elems := index.P(0), []keys.Element(nil)
 		if prf, elems, err = GetTagKeyElements(S(t.F()[1]), CA, ser); chk.E(err) {
+			log.I.F("%v", t.ToStringSlice())
 			return
 		}
 		k := prf.Key(elems...)

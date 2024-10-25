@@ -78,7 +78,7 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 		// they come from a pubkey that is on the follow list.
 		for pk := range r.Muted {
 			if equals(evt.PubKey, B(pk)) {
-				log.I.F("rejecting event with pubkey %v because on owner mute list",
+				log.I.F("rejecting event with pubkey %0x because on owner mute list",
 					evt.PubKey)
 				return false
 			}
@@ -86,7 +86,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 		// for all else, check the authed pubkey is in the follow list
 		for pk := range r.Followed {
 			if equals(authedPubkey, B(pk)) {
-				log.I.F("accepting event %0x because on owner follow list", evt.ID)
+				log.I.F("accepting event %0x because %0x on owner follow list",
+					evt.ID, B(pk))
 				return true
 			}
 		}

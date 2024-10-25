@@ -43,9 +43,9 @@ type T struct {
 
 func New() (f *T) {
 	return &T{
-		IDs:     tag.NewWithCap(100),
+		IDs:     tag.NewWithCap(10),
 		Kinds:   kinds.NewWithCap(10),
-		Authors: tag.NewWithCap(100),
+		Authors: tag.NewWithCap(10),
 		Tags:    tags.New(),
 		Since:   timestamp.New(),
 		Until:   timestamp.New(),

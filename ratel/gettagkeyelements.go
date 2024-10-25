@@ -32,6 +32,8 @@ func GetTagKeyElements(tagValue string, CA *createdat.T,
 			}
 			prf, elems = index.Tag32, keys.Make(pkk, ser)
 			return
+		} else {
+			err = nil
 		}
 	}
 	// check for a tag

@@ -14,7 +14,7 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 	case "/export":
 		log.I.F("export of event data requested on admin port")
 		store := s.relay.Storage(context.Bg())
-		store.Export(w)
+		store.Export(s.Ctx, w)
 	case "/import":
 		log.I.F("import of event data requested on admin port %s", r.RequestURI)
 		store := s.relay.Storage(context.Bg())
@@ -23,6 +23,6 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 	case "/shutdown":
 		fmt.Fprintf(w, "shutting down")
 		defer r.Body.Close()
-		s.Shutdown(context.Bg())
+		s.Shutdown()
 	}
 }
