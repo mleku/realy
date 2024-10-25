@@ -52,7 +52,7 @@ func main() {
 	arg.MustParse(&args)
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
-	if err := run(ctx, args); err != nil {
+	if err := run(ctx, args); chk.T(err) {
 		log.F.Ln(err)
 	}
 }

@@ -185,7 +185,7 @@ func NewContext(signingKey *btcec.SecretKey, shouldSort bool,
 	// with all the other intermediate state we need to do signing and
 	// verification.
 	case opts.keySet != nil:
-		if err := ctx.combineSignerKeys(); err != nil {
+		if err := ctx.combineSignerKeys(); chk.T(err) {
 			return nil, err
 		}
 	// The total signers are known, so we add ourselves, and skip key
@@ -292,7 +292,7 @@ func (c *Context) RegisterSigner(pub *btcec.PublicKey) (bool, error) {
 	// generate the aggregated key and other necessary information.
 	haveAllSigners = len(c.opts.keySet) == c.opts.numSigners
 	if haveAllSigners {
-		if err := c.combineSignerKeys(); err != nil {
+		if err := c.combineSignerKeys(); chk.T(err) {
 			return false, err
 		}
 	}

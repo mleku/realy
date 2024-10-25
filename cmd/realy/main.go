@@ -27,7 +27,7 @@ func main() {
 
 	var err E
 	var cfg *app.Config
-	if cfg, err = app.NewConfig(); err != nil || app.HelpRequested() {
+	if cfg, err = app.NewConfig(); chk.T(err) || app.HelpRequested() {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
 		}

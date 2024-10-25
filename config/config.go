@@ -14,7 +14,7 @@ type Env map[string]string
 func GetEnv(path string) (env Env, err error) {
 	var s []byte
 	env = make(Env)
-	if s, err = os.ReadFile(path); err != nil {
+	if s, err = os.ReadFile(path); chk.T(err) {
 		return
 	}
 	lines := strings.Split(string(s), "\n")

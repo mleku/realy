@@ -187,7 +187,7 @@ func (r *Client) ConnectWithTLS(ctx Ctx, tlsConfig *tls.Config) error {
 			case writeRequest := <-r.writeQueue:
 				// all write requests will go through this to prevent races
 				if err := r.Connection.WriteMessage(r.connectionContext,
-					writeRequest.msg); err != nil {
+					writeRequest.msg); chk.T(err) {
 					writeRequest.answer <- err
 				}
 				close(writeRequest.answer)
@@ -202,7 +202,7 @@ func (r *Client) ConnectWithTLS(ctx Ctx, tlsConfig *tls.Config) error {
 		buf := new(bytes.Buffer)
 		for {
 			buf.Reset()
-			if err := conn.ReadMessage(r.connectionContext, buf); err != nil {
+			if err := conn.ReadMessage(r.connectionContext, buf); chk.T(err) {
 				r.ConnectionError = err
 				r.Close()
 				break
@@ -321,7 +321,7 @@ func (r *Client) Publish(c Ctx, ev *event.T) E { return r.publish(c, ev) }
 // Auth sends an "AUTH" command client->relay as in NIP-42 and waits for an OK response.
 func (r *Client) Auth(c Ctx, sign signer.I) error {
 	authEvent := auth.CreateUnsigned(sign.Pub(), r.challenge, r.URL)
-	if err := authEvent.Sign(sign); err != nil {
+	if err := authEvent.Sign(sign); chk.T(err) {
 		return errorf.E("error signing auth event: %w", err)
 	}
 	return r.publish(c, authEvent)
@@ -363,7 +363,7 @@ func (r *Client) publish(ctx Ctx, ev *event.T) (err E) {
 		}
 	}
 	log.T.F("{%s} sending %s\n", r.URL, b)
-	if err = <-r.Write(b); err != nil {
+	if err = <-r.Write(b); chk.T(err) {
 		return err
 	}
 	for {
@@ -393,7 +393,7 @@ func (r *Client) Subscribe(c Ctx, ff *filters.T,
 	if r.Connection == nil {
 		return nil, errorf.E("not connected to %s", r.URL)
 	}
-	if err := sub.Fire(); err != nil {
+	if err := sub.Fire(); chk.T(err) {
 		return nil, errorf.E("couldn't subscribe to %v at %s: %w", ff, r.URL, err)
 	}
 	return sub, nil
@@ -467,7 +467,7 @@ func (r *Client) Count(c Ctx, ff *filters.T, opts ...SubscriptionOption) (int, e
 	sub := r.PrepareSubscription(c, ff, opts...)
 	sub.countResult = make(chan int)
 
-	if err := sub.Fire(); err != nil {
+	if err := sub.Fire(); chk.T(err) {
 		return 0, err
 	}
 

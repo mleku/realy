@@ -47,7 +47,7 @@ func TestSignerVerify(t *testing.T) {
 		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
 			t.Errorf("failed to marshal\n%s", b)
 		} else {
-			if valid, err = ev.Verify(); err != nil || !valid {
+			if valid, err = ev.Verify(); chk.T(err) || !valid {
 				t.Errorf("invalid signature\n%s", bc)
 				continue
 			}
@@ -57,7 +57,7 @@ func TestSignerVerify(t *testing.T) {
 			t.Errorf("id should be 32 bytes, got %d", len(id))
 			continue
 		}
-		if err = signer.InitPub(ev.PubKey); err != nil {
+		if err = signer.InitPub(ev.PubKey); chk.T(err) {
 			t.Errorf("failed to init pub key: %s\n%0x", err, ev.PubKey)
 			continue
 		}

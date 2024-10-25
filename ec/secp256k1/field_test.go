@@ -38,7 +38,7 @@ func (f *FieldVal) SetHex(hexString string) *FieldVal {
 func randFieldVal(t *testing.T, rng *rand.Rand) *FieldVal {
 	t.Helper()
 	var buf [32]byte
-	if _, err := rng.Read(buf[:]); err != nil {
+	if _, err := rng.Read(buf[:]); chk.T(err) {
 		t.Fatalf("failed to read random: %v", err)
 	}
 	// Create and return a field value.
@@ -52,7 +52,7 @@ func randFieldVal(t *testing.T, rng *rand.Rand) *FieldVal {
 func randIntAndFieldVal(t *testing.T, rng *rand.Rand) (*big.Int, *FieldVal) {
 	t.Helper()
 	var buf [32]byte
-	if _, err := rng.Read(buf[:]); err != nil {
+	if _, err := rng.Read(buf[:]); chk.T(err) {
 		t.Fatalf("failed to read random: %v", err)
 	}
 	// Create and return both a big integer and a field value.

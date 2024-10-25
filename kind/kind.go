@@ -67,7 +67,7 @@ func (k *T) MarshalJSON(dst B) (b B, err E) { return ints.New(k.ToU64()).Marshal
 
 func (k *T) UnmarshalJSON(b B) (r B, err E) {
 	n := ints.New(0)
-	if r, err = n.UnmarshalJSON(b); err != nil {
+	if r, err = n.UnmarshalJSON(b); chk.T(err) {
 		return
 	}
 	k.K = n.Uint16()

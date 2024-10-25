@@ -29,12 +29,12 @@ type Config struct {
 
 func NewConfig() (cfg *Config, err E) {
 	cfg = &Config{}
-	if err = env.Load(cfg, nil); err != nil {
+	if err = env.Load(cfg, nil); chk.T(err) {
 		return
 	}
 	if cfg.Root == "" {
 		var dir string
-		if dir, err = os.UserHomeDir(); err != nil {
+		if dir, err = os.UserHomeDir(); chk.T(err) {
 			return
 		}
 		cfg.Root = dir
@@ -42,14 +42,14 @@ func NewConfig() (cfg *Config, err E) {
 	envPath := filepath.Join(filepath.Join(cfg.Root, cfg.Profile), ".env")
 	if apputil.FileExists(envPath) {
 		var e config.Env
-		if e, err = config.GetEnv(envPath); err != nil {
+		if e, err = config.GetEnv(envPath); chk.T(err) {
 			return
 		}
 		if err = env.Load(cfg, &env.Options{Source: e}); chk.E(err) {
 			return
 		}
 		log.I.S(cfg)
-		// if err = env.Load(cfg, nil); err != nil {
+		// if err = env.Load(cfg, nil); chk.T(err) {
 		// 	return
 		// }
 	}

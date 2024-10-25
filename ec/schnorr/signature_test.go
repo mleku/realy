@@ -299,7 +299,7 @@ func TestSchnorrSignNoMutate(t *testing.T) {
 		}
 		return true
 	}
-	if err := quick.Check(f, nil); err != nil {
+	if err := quick.Check(f, nil); chk.T(err) {
 		t.Fatalf("secret key modified: %v", err)
 	}
 }

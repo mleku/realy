@@ -311,7 +311,7 @@ func schnorrSign(privKey, nonce *btcec.ModNScalar, pubKey *btcec.PublicKey,
 	//
 	// If Verify(bytes(P), m, sig) fails, abort.
 	if !opts.fastSign {
-		if err := schnorrVerify(sig, hash, pBytes); err != nil {
+		if err := schnorrVerify(sig, hash, pBytes); chk.T(err) {
 			return nil, err
 		}
 	}

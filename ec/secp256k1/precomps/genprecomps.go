@@ -302,7 +302,7 @@ func deriveEndomorphismParams() [2]endomorphismParams {
 }
 
 func main() {
-	if _, err := os.Stat(".git"); err != nil {
+	if _, err := os.Stat(".git"); chk.T(err) {
 		fmt.Printf("File exists\n")
 		_, _ = fmt.Fprintln(os.Stderr,
 			"This generator must be run with working directory at the root of"+

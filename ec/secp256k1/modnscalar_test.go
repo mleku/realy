@@ -37,7 +37,7 @@ func (s *ModNScalar) SetHex(hexString string) *ModNScalar {
 func randModNScalar(t *testing.T, rng *rand.Rand) *ModNScalar {
 	t.Helper()
 	var buf [32]byte
-	if _, err := rng.Read(buf[:]); err != nil {
+	if _, err := rng.Read(buf[:]); chk.T(err) {
 		t.Fatalf("failed to read random: %v", err)
 	}
 	// Create and return a mod N scalar.
@@ -52,7 +52,7 @@ func randIntAndModNScalar(t *testing.T, rng *rand.Rand) (*big.Int,
 	*ModNScalar) {
 	t.Helper()
 	var buf [32]byte
-	if _, err := rng.Read(buf[:]); err != nil {
+	if _, err := rng.Read(buf[:]); chk.T(err) {
 		t.Fatalf("failed to read random: %v", err)
 	}
 	// Create and return both a big integer and a mod N scalar.

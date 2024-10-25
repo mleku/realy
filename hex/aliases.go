@@ -36,7 +36,7 @@ func DecAppend(dst, src B) (b B, err error) {
 	l := len(dst)
 	b = dst
 	b = append(b, make(B, len(src)/2)...)
-	if err = xhex.Decode(b[l:], src); err != nil {
+	if err = xhex.Decode(b[l:], src); chk.T(err) {
 		return
 	}
 	return

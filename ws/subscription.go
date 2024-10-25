@@ -182,7 +182,7 @@ func (sub *Subscription) Fire() (err E) {
 	}
 	log.I.F("{%s} sending %s", sub.Relay.URL, b)
 	sub.live.Store(true)
-	if err := <-sub.Relay.Write(b); err != nil {
+	if err := <-sub.Relay.Write(b); chk.T(err) {
 		sub.cancel()
 		return errorf.E("failed to write: %w", err)
 	}

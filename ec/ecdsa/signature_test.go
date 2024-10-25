@@ -586,7 +586,7 @@ func TestSignAndVerifyRandom(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		// Generate a random secret key.
 		var buf [32]byte
-		if _, err := rng.Read(buf[:]); err != nil {
+		if _, err := rng.Read(buf[:]); chk.T(err) {
 			t.Fatalf("failed to read random secret key: %v", err)
 		}
 		var secKeyScalar secp256k1.ModNScalar
@@ -594,7 +594,7 @@ func TestSignAndVerifyRandom(t *testing.T) {
 		secKey := secp256k1.NewSecretKey(&secKeyScalar)
 		// Generate a random hash to sign.
 		var hash [32]byte
-		if _, err := rng.Read(hash[:]); err != nil {
+		if _, err := rng.Read(hash[:]); chk.T(err) {
 			t.Fatalf("failed to read random hash: %v", err)
 		}
 		// Sign the hash with the secret key and then ensure the produced
@@ -986,7 +986,7 @@ func TestSignAndRecoverCompactRandom(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		// Generate a random secret key.
 		var buf [32]byte
-		if _, err := rng.Read(buf[:]); err != nil {
+		if _, err := rng.Read(buf[:]); chk.T(err) {
 			t.Fatalf("failed to read random secret key: %v", err)
 		}
 		var secKeyScalar secp256k1.ModNScalar
@@ -995,7 +995,7 @@ func TestSignAndRecoverCompactRandom(t *testing.T) {
 		wantPubKey := secKey.PubKey()
 		// Generate a random hash to sign.
 		var hash [32]byte
-		if _, err := rng.Read(hash[:]); err != nil {
+		if _, err := rng.Read(hash[:]); chk.T(err) {
 			t.Fatalf("failed to read random hash: %v", err)
 		}
 		// Test compact signatures for both the compressed and uncompressed

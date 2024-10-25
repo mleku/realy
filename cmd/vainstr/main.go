@@ -68,7 +68,7 @@ Options:
 	if args.Threads == 0 {
 		args.Threads = runtime.NumCPU()
 	}
-	if err := Vanity(args.String, where, args.Threads); err != nil {
+	if err := Vanity(args.String, where, args.Threads); chk.T(err) {
 		log.F.F("error: %s", err)
 	}
 }

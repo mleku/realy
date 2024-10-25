@@ -37,6 +37,15 @@ func (r *Relay) Init() (err E) {
 		}
 		r.Owners = append(r.Owners, dst)
 	}
+	log.T.C(func() string {
+		ownerIds := make([]string, len(r.Owners))
+		for i, npub := range r.Owners {
+			ownerIds[i] = hex.Enc(npub)
+		}
+		return fmt.Sprintf("%v", ownerIds)
+	})
+
+	log.I.S(r.Owners)
 	r.CheckOwnerLists(context.Bg())
 	return nil
 }

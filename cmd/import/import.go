@@ -249,7 +249,7 @@ func randomString(length int) string {
 
 // pathExists returns true iff path exists in the filesystem.
 func pathExists(path string) (result bool, err error) {
-	if _, err := os.Stat(path); err != nil {
+	if _, err := os.Stat(path); chk.T(err) {
 		if os.IsNotExist(err) {
 			return false, nil
 		} else {

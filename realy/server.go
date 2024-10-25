@@ -64,13 +64,13 @@ func NewServer(c Ctx, cancel context.F, rl relay.I, dbPath S, opts ...Option) (*
 	}
 
 	if storage := rl.Storage(context.Bg()); storage != nil {
-		if err := storage.Init(dbPath); err != nil {
+		if err := storage.Init(dbPath); chk.T(err) {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
 	}
 
 	// init the relay
-	if err := rl.Init(); err != nil {
+	if err := rl.Init(); chk.T(err) {
 		return nil, fmt.Errorf("realy init: %w", err)
 	}
 

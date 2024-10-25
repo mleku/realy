@@ -76,7 +76,7 @@ func (p *PartialSignature) Encode(w io.Writer) error {
 	var sBytes [32]byte
 	p.S.PutBytes(&sBytes)
 
-	if _, err := w.Write(sBytes[:]); err != nil {
+	if _, err := w.Write(sBytes[:]); chk.T(err) {
 		return err
 	}
 
@@ -89,7 +89,7 @@ func (p *PartialSignature) Decode(r io.Reader) error {
 	p.S = new(btcec.ModNScalar)
 
 	var sBytes [32]byte
-	if _, err := io.ReadFull(r, sBytes[:]); err != nil {
+	if _, err := io.ReadFull(r, sBytes[:]); chk.T(err) {
 		return nil
 	}
 

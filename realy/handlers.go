@@ -138,10 +138,10 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 			if !ws.AuthRequested() {
 				if err = okenvelope.NewFrom(env.ID, false,
 					normalize.AuthRequired.F("auth required for request processing")).
-					Write(ws); err != nil {
+					Write(ws); chk.T(err) {
 				}
 				log.T.F("requesting auth from client %s", ws.RealRemote())
-				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); err != nil {
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
 					return
 				}
 				ws.RequestAuth()
@@ -149,10 +149,10 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 			} else {
 				if err = okenvelope.NewFrom(env.ID, false,
 					normalize.AuthRequired.F("auth required for storing events")).
-					Write(ws); err != nil {
+					Write(ws); chk.T(err) {
 				}
 				log.T.F("requesting auth again from client %s", ws.RealRemote())
-				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); err != nil {
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
 					return
 				}
 				return
@@ -170,7 +170,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 	}
 
 	// check signature
-	if ok, err = env.Verify(); err != nil {
+	if ok, err = env.Verify(); chk.T(err) {
 		if err = okenvelope.NewFrom(env.ID, false,
 			normalize.Error.F("failed to verify signature")).Write(ws); chk.E(err) {
 			return
@@ -262,7 +262,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 				}
 
 				// delete the event
-				if err = sto.DeleteEvent(c, target.EventID()); err != nil {
+				if err = sto.DeleteEvent(c, target.EventID()); chk.T(err) {
 					if err = okenvelope.NewFrom(env.ID, false,
 						normalize.Error.F(err.Error())).Write(ws); chk.E(err) {
 						return
@@ -657,7 +657,7 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 			if ws.Limiter() != nil {
 				// NOTE: Wait will throttle the requests.
 				// To reject requests exceeding the limit, use if !ws.limiter.Allow()
-				if err := ws.Limiter().Wait(context.TODO()); err != nil {
+				if err := ws.Limiter().Wait(context.TODO()); chk.T(err) {
 					log.W.F("unexpected limiter error %v", err)
 					continue
 				}

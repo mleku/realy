@@ -114,20 +114,20 @@ func (c *Connection) WriteMessage(ctx context.Context, data []byte) error {
 
 	if c.msgStateW.IsCompressed() && c.enableCompression {
 		c.flateWriter.Reset(c.writer)
-		if _, err := io.Copy(c.flateWriter, bytes.NewReader(data)); err != nil {
+		if _, err := io.Copy(c.flateWriter, bytes.NewReader(data)); chk.T(err) {
 			return errorf.E("failed to write message: %w", err)
 		}
 
-		if err := c.flateWriter.Close(); err != nil {
+		if err := c.flateWriter.Close(); chk.T(err) {
 			return errorf.E("failed to close flate writer: %w", err)
 		}
 	} else {
-		if _, err := io.Copy(c.writer, bytes.NewReader(data)); err != nil {
+		if _, err := io.Copy(c.writer, bytes.NewReader(data)); chk.T(err) {
 			return errorf.E("failed to write message: %w", err)
 		}
 	}
 
-	if err := c.writer.Flush(); err != nil {
+	if err := c.writer.Flush(); chk.T(err) {
 		return errorf.E("failed to flush writer: %w", err)
 	}
 
@@ -149,7 +149,7 @@ func (c *Connection) ReadMessage(ctx context.Context, buf io.Writer) error {
 		}
 
 		if h.OpCode.IsControl() {
-			if err := c.controlHandler(h, c.reader); err != nil {
+			if err := c.controlHandler(h, c.reader); chk.T(err) {
 				return errorf.E("failed to handle control frame: %w", err)
 			}
 		} else if h.OpCode == ws.OpBinary ||
@@ -157,18 +157,18 @@ func (c *Connection) ReadMessage(ctx context.Context, buf io.Writer) error {
 			break
 		}
 
-		if err := c.reader.Discard(); err != nil {
+		if err := c.reader.Discard(); chk.T(err) {
 			return errorf.E("failed to discard: %w", err)
 		}
 	}
 
 	if c.msgStateR.IsCompressed() && c.enableCompression {
 		c.flateReader.Reset(c.reader)
-		if _, err := io.Copy(buf, c.flateReader); err != nil {
+		if _, err := io.Copy(buf, c.flateReader); chk.T(err) {
 			return errorf.E("failed to read message: %w", err)
 		}
 	} else {
-		if _, err := io.Copy(buf, c.reader); err != nil {
+		if _, err := io.Copy(buf, c.reader); chk.T(err) {
 			return errorf.E("failed to read message: %w", err)
 		}
 	}

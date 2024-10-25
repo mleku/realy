@@ -28,7 +28,7 @@ func (r *T) Import(rr io.Reader) {
 			log.I.F("%s", b)
 			continue
 		}
-		if err = r.SaveEvent(r.Ctx, ev); err != nil {
+		if err = r.SaveEvent(r.Ctx, ev); chk.T(err) {
 			continue
 		}
 	}

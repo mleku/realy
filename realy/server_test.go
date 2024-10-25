@@ -47,7 +47,7 @@ func TestServerStartShutdown(t *testing.T) {
 	}
 
 	// check that http requests are served
-	if _, err := http.Get("http://" + srv.Addr); err != nil {
+	if _, err := http.Get("http://" + srv.Addr); chk.T(err) {
 		t.Errorf("GET %s: %v", srv.Addr, err)
 	}
 

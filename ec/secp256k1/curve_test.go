@@ -426,7 +426,7 @@ func TestNAF(t *testing.T) {
 		// they sum back to the original value.
 		result := naf(hexToBytes(test.in))
 		pos, neg := result.Pos(), result.Neg()
-		if err := checkNAFEncoding(pos, neg, fromHex(test.in)); err != nil {
+		if err := checkNAFEncoding(pos, neg, fromHex(test.in)); chk.T(err) {
 			t.Errorf("%q: %v", test.name, err)
 		}
 	}
@@ -451,7 +451,7 @@ func TestNAFRandom(t *testing.T) {
 		valBytes := modNVal.Bytes()
 		result := naf(valBytes[:])
 		pos, neg := result.Pos(), result.Neg()
-		if err := checkNAFEncoding(pos, neg, bigIntVal); err != nil {
+		if err := checkNAFEncoding(pos, neg, bigIntVal); chk.T(err) {
 			t.Fatalf("encoding err: %v\nin: %x\npos: %x\nneg: %x", err,
 				bigIntVal, pos, neg)
 		}
@@ -696,7 +696,7 @@ func TestSplitK(t *testing.T) {
 		// the required equation and consists of scalars that are small in
 		// magnitude.
 		k1, k2 := splitK(test.k)
-		if err := checkLambdaDecomposition(test.k, &k1, &k2); err != nil {
+		if err := checkLambdaDecomposition(test.k, &k1, &k2); chk.T(err) {
 			t.Errorf("%q: %v", test.name, err)
 		}
 	}
@@ -719,7 +719,7 @@ func TestSplitKRandom(t *testing.T) {
 		// that are small in magnitude.
 		origK := randModNScalar(t, rng)
 		k1, k2 := splitK(origK)
-		if err := checkLambdaDecomposition(origK, &k1, &k2); err != nil {
+		if err := checkLambdaDecomposition(origK, &k1, &k2); chk.T(err) {
 			t.Fatalf("decomposition err: %v\nin: %v\nk1: %v\nk2: %v", err,
 				origK, k1, k2)
 		}

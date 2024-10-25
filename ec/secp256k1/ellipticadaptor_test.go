@@ -17,7 +17,7 @@ func randBytes(t *testing.T, rng *rand.Rand, numBytes uint8) []byte {
 	t.Helper()
 
 	buf := make([]byte, numBytes)
-	if _, err := rng.Read(buf); err != nil {
+	if _, err := rng.Read(buf); chk.T(err) {
 		t.Fatalf("failed to read random: %v", err)
 	}
 

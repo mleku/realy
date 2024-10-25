@@ -123,7 +123,7 @@ func (pool *SimplePool) EnsureRelay(url S) (*Client, error) {
 			opts = append(opts, WithSignatureChecker(pool.SignatureChecker))
 		}
 
-		if relay, err = RelayConnect(ctx, nm, opts...); err != nil {
+		if relay, err = RelayConnect(ctx, nm, opts...); chk.T(err) {
 			return nil, errorf.E("failed to connect: %w", err)
 		}
 
@@ -180,12 +180,12 @@ func (pool *SimplePool) subMany(c Ctx, urls []S, ff *filters.T,
 				}
 				var sub *Subscription
 				var relay *Client
-				if relay, err = pool.EnsureRelay(nm); err != nil {
+				if relay, err = pool.EnsureRelay(nm); chk.T(err) {
 					goto reconnect
 				}
 				hasAuthed = false
 			subscribe:
-				if sub, err = relay.Subscribe(ctx, ff); err != nil {
+				if sub, err = relay.Subscribe(ctx, ff); chk.T(err) {
 					goto reconnect
 				}
 				go func() {

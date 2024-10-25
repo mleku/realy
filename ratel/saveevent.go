@@ -96,7 +96,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		return
 	}
 	var bin B
-	if bin, err = ev.MarshalBinary(bin); err != nil {
+	if bin, err = ev.MarshalBinary(bin); chk.T(err) {
 		return
 	}
 	// otherwise, save new event record.
@@ -112,6 +112,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		// 	add the indexes
 		var indexKeys [][]byte
 		indexKeys = GetIndexKeysForEvent(ev, ser)
+		log.I.S(indexKeys)
 		for _, k := range indexKeys {
 			if err = txn.Set(k, nil); chk.E(err) {
 				return
@@ -119,11 +120,12 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		}
 		// initialise access counter key
 		counterKey := GetCounterKey(ser)
+		// log.I.S(counterKey)
 		val := keys.Write(createdat.New(timestamp.Now()))
 		if err = txn.Set(counterKey, val); chk.E(err) {
 			return
 		}
-		// log.D.F("saved event to ratel\n%s:\n%s", ev.Serialize(), r.dataDir)
+		log.D.F("saved event to ratel %s:\n%s", r.dataDir, ev.Serialize())
 		return
 	}); chk.E(err) {
 		return

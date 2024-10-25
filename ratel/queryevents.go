@@ -2,10 +2,12 @@ package ratel
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
 	"realy.lol/event"
 	"realy.lol/filter"
+	"realy.lol/hex"
 	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
@@ -15,14 +17,13 @@ import (
 
 func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	log.T.F("query,%s", f.Serialize())
-	// log.I.S(f)
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
 	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
 		return
 	}
-	// log.I.S(queries, extraFilter)
+	// log.T.S(queries, extraFilter)
 	// search for the keys generated from the filter
 	var eventKeys [][]byte
 	for _, q := range queries {
@@ -54,10 +55,13 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 					}
 				}
 				ser := serial.FromKey(k)
-				eventKeys = append(eventKeys, index.Event.Key(ser))
+				idx := index.Event.Key(ser)
+				// log.T.S(ser, idx)
+				eventKeys = append(eventKeys, idx)
 			}
 			return
 		})
+		// log.T.S(eventKeys)
 		if chk.E(err) {
 			// this means shutdown, probably
 			if errors.Is(err, badger.ErrDBClosed) {
@@ -71,7 +75,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 		}
 	search:
 		for _, eventKey := range eventKeys {
-			var v B
+			var eventValue B
 			select {
 			case <-c.Done():
 				return
@@ -86,17 +90,17 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 					item := it.Item()
 					// k := item.KeyCopy(nil)
 					// log.T.S(k)
-					// if v, err = item.ValueCopy(nil); chk.E(err) {
-					// 	continue
-					// }
-
+					if eventValue, err = item.ValueCopy(nil); chk.E(err) {
+						continue
+					}
+					// log.T.S(eventValue)
 					if r.HasL2 && item.ValueSize() == sha256.Size {
 						// this is a stub entry that indicates an L2 needs to be accessed for it, so
 						// we populate only the event.T.ID and return the result, the caller will
 						// expect this as a signal to query the L2 event store.
 						ev := &event.T{}
-						log.T.F("found event stub %0x must seek in L2", v)
-						ev.ID = v
+						log.T.F("found event stub %0x must seek in L2", eventValue)
+						ev.ID = eventValue
 						select {
 						case <-c.Done():
 							return
@@ -117,7 +121,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 					return
 				}
 			}
-			if v == nil {
+			if eventValue == nil {
 				continue
 			}
 			select {
@@ -127,7 +131,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			}
 			ev := &event.T{}
 			var rem B
-			if rem, err = ev.UnmarshalBinary(v); chk.E(err) {
+			if rem, err = ev.UnmarshalBinary(eventValue); chk.E(err) {
 				return
 			}
 			// log.T.F("%s", ev.Serialize())
@@ -147,7 +151,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 						}
 					}
 				}
-				// log.I.S(ev.Tags.GetFirst(tag.New("d")).Value(),
+				// log.T.S(ev.Tags.GetFirst(tag.New("d")).Value(),
 				// 	ev.Tags.GetFirst(tag.New("d")).Value())
 
 				if ev.Kind.IsParameterizedReplaceable() &&
@@ -190,6 +194,16 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	// 		return
 	// 	})
 	log.D.F("query complete, %d events found", len(evs))
+	if len(evs) > 0 {
+		log.T.C(func() string {
+
+			evIds := make([]string, len(evs))
+			for i, ev := range evs {
+				evIds[i] = hex.Enc(ev.ID)
+			}
+			return fmt.Sprintf("%v", evIds)
+		})
+	}
 	// }
 	return
 }

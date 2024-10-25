@@ -52,7 +52,7 @@ func TestPublish(t *testing.T) {
 		mu.Unlock()
 		// verify the client sent exactly the textNote
 		var raw []json.RawMessage
-		if err := websocket.JSON.Receive(conn, &raw); err != nil {
+		if err := websocket.JSON.Receive(conn, &raw); chk.T(err) {
 			t.Errorf("websocket.JSON.Receive: %v", err)
 		}
 
@@ -76,7 +76,7 @@ func TestPublish(t *testing.T) {
 		if res, err = okenvelope.NewFrom(eid.Bytes(), true, nil).MarshalJSON(res); chk.E(err) {
 			t.Fatal(err)
 		}
-		if err := websocket.Message.Send(conn, res); err != nil {
+		if err := websocket.Message.Send(conn, res); chk.T(err) {
 			t.Errorf("websocket.JSON.Send: %v", err)
 		}
 	})
@@ -112,7 +112,7 @@ func TestPublishBlocked(t *testing.T) {
 	ws := newWebsocketServer(func(conn *websocket.Conn) {
 		// discard received message; not interested
 		var raw []json.RawMessage
-		if err := websocket.JSON.Receive(conn, &raw); err != nil {
+		if err := websocket.JSON.Receive(conn, &raw); chk.T(err) {
 			t.Errorf("websocket.JSON.Receive: %v", err)
 		}
 		// send back a not ok nip-20 command result
@@ -125,7 +125,7 @@ func TestPublishBlocked(t *testing.T) {
 			normalize.Msg(normalize.Blocked, "no reason")).MarshalJSON(res); chk.E(err) {
 			t.Fatal(err)
 		}
-		if err := websocket.Message.Send(conn, res); err != nil {
+		if err := websocket.Message.Send(conn, res); chk.T(err) {
 			t.Errorf("websocket.JSON.Send: %v", err)
 		}
 		// res := []any{"OK", textNote.ID, false, "blocked"}

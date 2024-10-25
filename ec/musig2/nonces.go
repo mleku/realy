@@ -213,10 +213,10 @@ func uint64Writer(w io.Writer, b []byte) error {
 func writeBytesPrefix(w io.Writer, b []byte, lenWriter lengthWriter) error {
 	// Write out the length of the byte first, followed by the set of bytes
 	// itself.
-	if err := lenWriter(w, b); err != nil {
+	if err := lenWriter(w, b); chk.T(err) {
 		return err
 	}
-	if _, err := w.Write(b); err != nil {
+	if _, err := w.Write(b); chk.T(err) {
 		return err
 	}
 	return nil
@@ -236,7 +236,7 @@ func genNonceAuxBytes(rand []byte, pubkey []byte, i int,
 
 	var w bytes.Buffer
 	// First, write out the randomness generated in the prior step.
-	if _, err := w.Write(rand); err != nil {
+	if _, err := w.Write(rand); chk.T(err) {
 		return nil, err
 	}
 	// Next, we'll write out: len(pk) || pk
@@ -253,7 +253,7 @@ func genNonceAuxBytes(rand []byte, pubkey []byte, i int,
 	// If the message isn't present, then we'll just write out a single
 	// uint8 of a zero byte: m_prefixed = bytes(1, 0).
 	case opts.msg == nil:
-		if _, err := w.Write([]byte{0x00}); err != nil {
+		if _, err := w.Write([]byte{0x00}); chk.T(err) {
 			return nil, err
 		}
 	// Otherwise, we'll write a single byte of 0x01 with a 1 byte length
@@ -262,7 +262,7 @@ func genNonceAuxBytes(rand []byte, pubkey []byte, i int,
 	case len(opts.msg) == 0:
 		fallthrough
 	default:
-		if _, err := w.Write([]byte{0x01}); err != nil {
+		if _, err := w.Write([]byte{0x01}); chk.T(err) {
 			return nil, err
 		}
 		err = writeBytesPrefix(&w, opts.msg, uint64Writer)
@@ -278,7 +278,7 @@ func genNonceAuxBytes(rand []byte, pubkey []byte, i int,
 	// Next we'll write out the interaction/index number which will
 	// uniquely generate two nonces given the rest of the possibly static
 	// parameters.
-	if err := binary.Write(&w, byteOrder, uint8(i)); err != nil {
+	if err := binary.Write(&w, byteOrder, uint8(i)); chk.T(err) {
 		return nil, err
 	}
 	// With the message buffer complete, we'll now derive the tagged hash
@@ -300,7 +300,7 @@ func GenNonces(options ...NonceGenOption) (*Nonces, error) {
 	// First, we'll start out by generating 32 random bytes drawn from our
 	// CSPRNG.
 	var randBytes [32]byte
-	if _, err := opts.randReader.Read(randBytes[:]); err != nil {
+	if _, err := opts.randReader.Read(randBytes[:]); chk.T(err) {
 		return nil, err
 	}
 	// If the options contain a secret key, we XOR it with with the tagged

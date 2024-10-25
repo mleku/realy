@@ -157,7 +157,7 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 				switch {
 				case secondIsHex:
 					w.Buf = appendUvarint(w.Buf, uint64(32))
-					if w.Buf, err = hex.DecAppend(w.Buf, ts); err != nil {
+					if w.Buf, err = hex.DecAppend(w.Buf, ts); chk.T(err) {
 						// the value MUST be hex by the spec
 						return
 					}
@@ -168,7 +168,7 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 					// first is 2 bytes size
 					var n int
 					k := kind.New(0)
-					if _, err = k.UnmarshalJSON(split[0]); err != nil {
+					if _, err = k.UnmarshalJSON(split[0]); chk.T(err) {
 						return
 					}
 					if len(split) > 1 {
@@ -231,7 +231,7 @@ func (w *Writer) WriteEvent(ev *T) (err error) {
 	if err = w.WriteKind(ev.Kind); chk.E(err) {
 		return
 	}
-	if err = w.WriteTags(ev.Tags); err != nil {
+	if err = w.WriteTags(ev.Tags); chk.T(err) {
 		return
 	}
 	if err = w.WriteContent(ev.Content); chk.E(err) {
@@ -245,7 +245,7 @@ func (w *Writer) WriteEvent(ev *T) (err error) {
 
 func (ev *T) MarshalBinary(dst B) (b B, err E) {
 	w := NewBufForEvent(dst, ev)
-	if err = w.WriteEvent(ev); err != nil {
+	if err = w.WriteEvent(ev); chk.T(err) {
 		return
 	}
 	b = w.Bytes()
