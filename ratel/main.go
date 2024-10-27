@@ -12,6 +12,8 @@ import (
 	eventstore "realy.lol/store"
 )
 
+const DefaultMaxLimit = 512
+
 type T struct {
 	Ctx     context.T
 	WG      *sync.WaitGroup
