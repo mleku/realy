@@ -25,7 +25,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
 		return
 	}
-	// log.T.S(queries, extraFilter)
 	// search for the keys generated from the filter
 	// out:
 	for loop, q := range queries {
@@ -35,22 +34,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			return
 		default:
 		}
-		// if filter.Present(f.Limit) {
-		// 	*f.Limit--
-		// 	// log.I.F("limit %d", *f.Limit)
-		// 	if *f.Limit <= 0 {
-		// 		log.I.F("found events: %d", len(evs))
-		// 		break
-		// 	}
-		// } else {
-		// 	// if there is no limit, cap it at the MaxLimit, assume this was the intent
-		// 	// or the client is erroneous, if any limit greater is requested this will
-		// 	// be used instead as the previous clause.
-		// 	if len(evs) > r.MaxLimit {
-		// 		log.I.F("found MaxLimit events: %d", len(evs))
-		// 		break
-		// 	}
-		// }
 		err = r.View(func(txn *badger.Txn) (err E) {
 			// iterate only through keys and in reverse order
 			opts := badger.IteratorOptions{
@@ -58,29 +41,24 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			}
 			it := txn.NewIterator(opts)
 			defer it.Close()
-			// for it.Rewind(); it.Valid(); it.Next() {
 			for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
 				item := it.Item()
 				k := item.KeyCopy(nil)
-				// log.T.S(k)
 				if !q.skipTS {
 					if len(k) < createdat.Len+serial.Len {
 						continue
 					}
 					createdAt := createdat.FromKey(k)
-					// log.T.F("%d < %d", createdAt.Val.U64(), since)
 					if createdAt.Val.U64() < since {
 						break
 					}
 				}
 				ser := serial.FromKey(k)
 				idx := index.Event.Key(ser)
-				// log.T.S(ser, idx)
 				eventKeys = append(eventKeys, idx)
 			}
 			return
 		})
-		// log.T.S(eventKeys)
 		if chk.E(err) {
 			// this means shutdown, probably
 			if errors.Is(err, badger.ErrDBClosed) {
@@ -92,59 +70,22 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			return
 		default:
 		}
-		// log.I.F("eventkeys: %d", len(eventKeys))
 		for _, eventKey := range eventKeys {
 			select {
 			case <-c.Done():
 				return
 			default:
 			}
-			// if filter.Present(f.Limit) {
-			// 	*f.Limit--
-			// 	// log.I.F("limit %d", *f.Limit)
-			// 	if *f.Limit <= 0 {
-			// 		log.I.F("found events: %d", len(evs))
-			// 		break out
-			// 	}
-			// } else {
-			// 	// if there is no limit, cap it at the MaxLimit, assume this was the intent
-			// 	// or the client is erroneous, if any limit greater is requested this will
-			// 	// be used instead as the previous clause.
-			// 	if len(evs) > r.MaxLimit {
-			// 		log.I.F("found MaxLimit events: %d", len(evs))
-			// 		break out
-			// 	}
-			// }
 			err = r.View(func(txn *badger.Txn) (err E) {
-				// if filter.Present(f.Limit) {
-				// 	*f.Limit--
-				// 	if *f.Limit <= 0 {
-				// 		log.I.F("found events: %d", len(evs))
-				// 		return
-				// 	}
-				// } else {
-				// 	// if there is no limit, cap it at the MaxLimit, assume this was the intent
-				// 	// or the client is erroneous, if any limit greater is requested this will
-				// 	// be used instead as the previous clause.
-				// 	if len(evs) > r.MaxLimit {
-				// 		log.I.F("found MaxLimit events: %d", len(evs))
-				// 		return
-				// 	}
-				// }
-				// log.I.F("query for %0x found %d", eventKey, len(evs))
 				opts := badger.IteratorOptions{Reverse: true}
 				it := txn.NewIterator(opts)
 				defer it.Close()
-				// for it.Rewind(); it.Valid(); it.Next() {
 				for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 					item := it.Item()
-					// k := item.KeyCopy(nil)
-					// log.T.S(k)
-					// log.T.S(eventValue)
 					if r.HasL2 && item.ValueSize() == sha256.Size {
-						// this is a stub entry that indicates an L2 needs to be accessed for it, so
-						// we populate only the event.T.ID and return the result, the caller will
-						// expect this as a signal to query the L2 event store.
+						// this is a stub entry that indicates an L2 needs to be accessed for
+						// it, so we populate only the event.T.ID and return the result, the
+						// caller will expect this as a signal to query the L2 event store.
 						var eventValue B
 						ev := &event.T{}
 						if eventValue, err = item.ValueCopy(nil); chk.E(err) {
@@ -161,7 +102,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 						default:
 						}
 						evMap[hex.Enc(ev.ID)] = ev
-						// evs = append(evs, ev)
 						return
 					}
 					ev := &event.T{}
@@ -178,8 +118,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 						// check if this event is replaced by one we already have in the result.
 						if ev.Kind.IsReplaceable() {
 							for _, evc := range evs {
-								// replaceable means there should be only the newest for the pubkey and
-								// kind.
+								// replaceable means there should be only the newest for the
+								// pubkey and kind.
 								if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
 									// we won't add it to the results slice
 									eventValue = eventValue[:0]
@@ -191,8 +131,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 						if ev.Kind.IsParameterizedReplaceable() &&
 							ev.Tags.GetFirst(tag.New("d")) != nil {
 							for _, evc := range evs {
-								// parameterized replaceable means there should only be the newest for a
-								// pubkey, kind and the value field of the `d` tag.
+								// parameterized replaceable means there should only be the
+								// newest for a pubkey, kind and the value field of the `d` tag.
 								if ev.Kind.Equal(evc.Kind) && equals(ev.PubKey, evc.PubKey) &&
 									equals(ev.Tags.GetFirst(tag.New("d")).Value(),
 										ev.Tags.GetFirst(tag.New("d")).Value()) {
@@ -220,9 +160,9 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 								return
 							}
 						} else {
-							// if there is no limit, cap it at the MaxLimit, assume this was the intent
-							// or the client is erroneous, if any limit greater is requested this will
-							// be used instead as the previous clause.
+							// if there is no limit, cap it at the MaxLimit, assume this was the
+							// intent or the client is erroneous, if any limit greater is
+							// requested this will be used instead as the previous clause.
 							if len(evMap) > r.MaxLimit {
 								log.I.F("found MaxLimit events: %d", len(evs))
 								return
@@ -247,15 +187,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 		}
 		log.I.Ln("loop", loop, "queries", len(queries))
 	}
-	// todo: this should filter out mutes
-	// if len(evs) > 0 {
-	// 	log.T.C(func() (o string) {
-	// 		o = "sending events\n"
-	// 		for _, ev := range evs {
-	// 			o += fmt.Sprintf("%0x,", ev.ID)
-	// 		}
-	// 		return
-	// 	})
 	for i := range evMap {
 		evs = append(evs, evMap[i])
 	}
