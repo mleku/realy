@@ -27,8 +27,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	}
 	// search for the keys generated from the filter
 	// out:
-	for loop, q := range queries {
-		var eventKeys [][]byte
+	var eventKeys [][]byte
+	for _, q := range queries {
 		select {
 		case <-c.Done():
 			return
@@ -65,127 +65,126 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				return
 			}
 		}
+	}
+	select {
+	case <-c.Done():
+		return
+	default:
+	}
+	for _, eventKey := range eventKeys {
 		select {
 		case <-c.Done():
 			return
 		default:
 		}
-		for _, eventKey := range eventKeys {
-			select {
-			case <-c.Done():
-				return
-			default:
-			}
-			err = r.View(func(txn *badger.Txn) (err E) {
-				opts := badger.IteratorOptions{Reverse: true}
-				it := txn.NewIterator(opts)
-				defer it.Close()
-				for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
-					item := it.Item()
-					if r.HasL2 && item.ValueSize() == sha256.Size {
-						// this is a stub entry that indicates an L2 needs to be accessed for
-						// it, so we populate only the event.T.ID and return the result, the
-						// caller will expect this as a signal to query the L2 event store.
-						var eventValue B
-						ev := &event.T{}
-						if eventValue, err = item.ValueCopy(nil); chk.E(err) {
-							continue
-						}
-						log.T.F("found event stub %0x must seek in L2", eventValue)
-						ev.ID = eventValue
-						select {
-						case <-c.Done():
-							return
-						case <-r.Ctx.Done():
-							log.T.Ln("backend context canceled")
-							return
-						default:
-						}
-						evMap[hex.Enc(ev.ID)] = ev
-						return
-					}
+		err = r.View(func(txn *badger.Txn) (err E) {
+			opts := badger.IteratorOptions{Reverse: true}
+			it := txn.NewIterator(opts)
+			defer it.Close()
+			for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
+				item := it.Item()
+				if r.HasL2 && item.ValueSize() == sha256.Size {
+					// this is a stub entry that indicates an L2 needs to be accessed for
+					// it, so we populate only the event.T.ID and return the result, the
+					// caller will expect this as a signal to query the L2 event store.
+					var eventValue B
 					ev := &event.T{}
-					if err = item.Value(func(eventValue []byte) (err E) {
-						var rem B
-						if rem, err = ev.UnmarshalBinary(eventValue); chk.E(err) {
-							ev = nil
-							eventValue = eventValue[:0]
-							return
-						}
-						if len(rem) > 0 {
-							log.T.S(rem)
-						}
-						// check if this event is replaced by one we already have in the result.
-						if ev.Kind.IsReplaceable() {
-							for _, evc := range evs {
-								// replaceable means there should be only the newest for the
-								// pubkey and kind.
-								if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
-									// we won't add it to the results slice
-									eventValue = eventValue[:0]
-									ev = nil
-									return
-								}
-							}
-						}
-						if ev.Kind.IsParameterizedReplaceable() &&
-							ev.Tags.GetFirst(tag.New("d")) != nil {
-							for _, evc := range evs {
-								// parameterized replaceable means there should only be the
-								// newest for a pubkey, kind and the value field of the `d` tag.
-								if ev.Kind.Equal(evc.Kind) && equals(ev.PubKey, evc.PubKey) &&
-									equals(ev.Tags.GetFirst(tag.New("d")).Value(),
-										ev.Tags.GetFirst(tag.New("d")).Value()) {
-									// we won't add it to the results slice
-									eventValue = eventValue[:0]
-									ev = nil
-									return
-								}
-							}
-						}
+					if eventValue, err = item.ValueCopy(nil); chk.E(err) {
+						continue
+					}
+					log.T.F("found event stub %0x must seek in L2", eventValue)
+					ev.ID = eventValue
+					select {
+					case <-c.Done():
 						return
-					}); chk.E(err) {
-						continue
+					case <-r.Ctx.Done():
+						log.T.Ln("backend context canceled")
+						return
+					default:
 					}
-					if ev == nil {
-						continue
-					}
-					if extraFilter == nil || extraFilter.Matches(ev) {
-						evMap[hex.Enc(ev.ID)] = ev
-						// evs = append(evs, ev)
-						if filter.Present(f.Limit) {
-							*f.Limit--
-							if *f.Limit <= 0 {
-								log.I.F("found events: %d", len(evs))
-								return
-							}
-						} else {
-							// if there is no limit, cap it at the MaxLimit, assume this was the
-							// intent or the client is erroneous, if any limit greater is
-							// requested this will be used instead as the previous clause.
-							if len(evMap) > r.MaxLimit {
-								log.I.F("found MaxLimit events: %d", len(evs))
-								return
-							}
-						}
-					}
-				}
-				return
-			})
-			if err != nil {
-				// this means shutdown, probably
-				if errors.Is(err, badger.ErrDBClosed) {
+					evMap[hex.Enc(ev.ID)] = ev
 					return
 				}
+				ev := &event.T{}
+				if err = item.Value(func(eventValue []byte) (err E) {
+					var rem B
+					if rem, err = ev.UnmarshalBinary(eventValue); chk.E(err) {
+						ev = nil
+						eventValue = eventValue[:0]
+						return
+					}
+					if len(rem) > 0 {
+						log.T.S(rem)
+					}
+					// check if this event is replaced by one we already have in the result.
+					if ev.Kind.IsReplaceable() {
+						for _, evc := range evs {
+							// replaceable means there should be only the newest for the
+							// pubkey and kind.
+							if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
+								// we won't add it to the results slice
+								eventValue = eventValue[:0]
+								ev = nil
+								return
+							}
+						}
+					}
+					if ev.Kind.IsParameterizedReplaceable() &&
+						ev.Tags.GetFirst(tag.New("d")) != nil {
+						for _, evc := range evs {
+							// parameterized replaceable means there should only be the
+							// newest for a pubkey, kind and the value field of the `d` tag.
+							if ev.Kind.Equal(evc.Kind) && equals(ev.PubKey, evc.PubKey) &&
+								equals(ev.Tags.GetFirst(tag.New("d")).Value(),
+									ev.Tags.GetFirst(tag.New("d")).Value()) {
+								// we won't add it to the results slice
+								eventValue = eventValue[:0]
+								ev = nil
+								return
+							}
+						}
+					}
+					return
+				}); chk.E(err) {
+					continue
+				}
+				if ev == nil {
+					continue
+				}
+				if extraFilter == nil || extraFilter.Matches(ev) {
+					evMap[hex.Enc(ev.ID)] = ev
+					// evs = append(evs, ev)
+					if filter.Present(f.Limit) {
+						*f.Limit--
+						if *f.Limit <= 0 {
+							log.I.F("found events: %d", len(evs))
+							return
+						}
+					} else {
+						// if there is no limit, cap it at the MaxLimit, assume this was the
+						// intent or the client is erroneous, if any limit greater is
+						// requested this will be used instead as the previous clause.
+						if len(evMap) > r.MaxLimit {
+							log.I.F("found MaxLimit events: %d", len(evs))
+							return
+						}
+					}
+				}
 			}
-			select {
-			case <-c.Done():
+			return
+		})
+		if err != nil {
+			// this means shutdown, probably
+			if errors.Is(err, badger.ErrDBClosed) {
 				return
-			default:
 			}
-			// check if this matches the other filters that were not part of the index.
 		}
-		log.I.Ln("loop", loop, "queries", len(queries))
+		select {
+		case <-c.Done():
+			return
+		default:
+		}
+		// check if this matches the other filters that were not part of the index.
 	}
 	for i := range evMap {
 		evs = append(evs, evMap[i])
@@ -202,6 +201,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				f.Serialize())
 			return fmt.Sprintf("%s\nevents,%v", heading, evIds)
 		})
+	} else {
+		log.T.F("no events found,%s", f.Serialize())
 	}
 	// }
 	return

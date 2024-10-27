@@ -23,14 +23,16 @@ func (r *T) Import(rr io.Reader) {
 		// if len(b) > 8192 {
 		// 	log.I.F("saving,%s", b)
 		// }
+		log.I.F("importing,%s", b)
 		ev := &event.T{}
 		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
 			log.I.F("%s", b)
 			continue
 		}
-		if err = r.SaveEvent(r.Ctx, ev); err != nil {
+		if err = r.SaveEvent(r.Ctx, ev); chk.E(err) {
 			continue
 		}
+		log.I.F("saved,%0x", ev.ID)
 	}
 	err = scan.Err()
 	if chk.E(err) {
