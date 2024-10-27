@@ -114,13 +114,15 @@ func (t *T) Clone() (c *T) {
 func (t *T) Append(b ...B) (tt *T) {
 	if t == nil {
 		// we are propagating back this to tt if t was nil, else it appends
-		t = &T{make([]BS[B], 0, len(t.field))}
+		// t = &T{make([]BS[B], 0, len(t.field))}
+		t = &T{}
 	}
 	for _, bb := range b {
 		t.field = append(t.field, bb)
 	}
 	return t
 }
+
 func (t *T) Cap() int                { return cap(t.field) }
 func (t *T) Clear()                  { t.field = t.field[:0] }
 func (t *T) Slice(start, end int) *T { return &T{t.field[start:end]} }

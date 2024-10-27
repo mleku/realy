@@ -274,6 +274,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 					advancedDeleter.AfterDelete(t.Value(), env.PubKey)
 				}
 			}
+			res = nil
 		}
 		if err = okenvelope.NewFrom(env.ID, true).Write(ws); chk.E(err) {
 			return

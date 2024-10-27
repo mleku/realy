@@ -35,6 +35,8 @@ type Reader struct {
 
 // NewReadBuffer returns a new buffer containing the provided slice.
 func NewReadBuffer(b []byte) (buf *Reader) {
+	// rb := make(B, len(b))
+	// copy(rb, b)
 	return &Reader{Buf: b}
 }
 
@@ -44,7 +46,9 @@ func (r *Reader) ReadID() (id B, err E) {
 		err = io.EOF
 		return
 	}
-	id = r.Buf[r.Pos:end]
+	id = make(B, end-r.Pos)
+	copy(id, r.Buf[r.Pos:end])
+	// id = r.Buf[r.Pos:end]
 	r.Pos = end
 	return
 }
@@ -55,7 +59,8 @@ func (r *Reader) ReadPubKey() (pk B, err E) {
 		err = io.EOF
 		return
 	}
-	pk = r.Buf[r.Pos:end]
+	pk = make(B, end-r.Pos)
+	copy(pk, r.Buf[r.Pos:end])
 	r.Pos = end
 	return
 }
@@ -96,7 +101,8 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 	// if nTags > 500 {
 	// 	log.I.F("new tags with %d elements (follow list probably)", nTags)
 	// }
-	t = tags.NewWithCap(nTags)
+	// t = tags.NewWithCap(nTags)
+	t = tags.New()
 	// t = &tags.T{T: make([]*tag.T, nTags)}
 	// t = make(tags.T, nTags)
 	// iterate through the individual tags
@@ -109,7 +115,7 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 		lenTag := int(vi)
 		r.Pos += read
 		// log.I.F("adding capacity %d at tag %d", lenTag, i)
-		t.AddCap(i, lenTag)
+		// t.AddCap(i, lenTag)
 		// t.T[i] = tag.NewWithCap(lenTag)
 		// extract the individual tag strings
 		var secondIsHex, secondIsDecimalHex bool
@@ -249,7 +255,7 @@ func (r *Reader) ReadEvent() (ev *T, err error) {
 }
 
 func (ev *T) UnmarshalBinary(b B) (r B, err E) {
-	er := &Reader{Buf: b}
+	er := NewReadBuffer(b)
 	var re *T
 	if re, err = er.ReadEvent(); chk.E(err) {
 		return

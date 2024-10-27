@@ -9,7 +9,6 @@ import (
 	"sort"
 
 	"realy.lol/lol"
-	"realy.lol/sha256"
 	"realy.lol/tag"
 )
 
@@ -54,13 +53,13 @@ func (t *T) AppendTo(n int, b ...B) (tt *T) {
 		log.E.S(t, b)
 		return
 	}
-	for t.Len() < n+1 {
-		t.N(n).Append(make(B, 0, sha256.Size*2))
-		// log.E.F("cannot append to nonexistent tags field %d with tags len %d",
-		// 	n, t.Len())
-		// fmt.Fprint(os.Stderr, lol.GetNLoc(7))
-		// return
-	}
+	// for t.Len() < n+1 {
+	// 	t.N(n).Append(B{})
+	// 	// log.E.F("cannot append to nonexistent tags field %d with tags len %d",
+	// 	// 	n, t.Len())
+	// 	// fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+	// 	// return
+	// }
 	for _, bb := range b {
 		t.N(n).Append(bb)
 		// t.T[n].Field = append(t.T[n].Field, bb)
