@@ -201,6 +201,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				f.Serialize())
 			return fmt.Sprintf("%s\nevents,%v", heading, evIds)
 		})
+		// log.I.S(evs)
 	} else {
 		log.T.F("no events found,%s", f.Serialize())
 	}

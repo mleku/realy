@@ -619,7 +619,7 @@ func (s *Server) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 				removeListener(ws)
 			}
 			s.clientsMu.Unlock()
-			log.T.F("disconnected from %s", ip)
+			// log.T.F("disconnected from %s", ip)
 		}()
 
 		conn.SetReadLimit(maxMessageSize)

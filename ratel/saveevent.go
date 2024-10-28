@@ -112,7 +112,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		// 	add the indexes
 		var indexKeys [][]byte
 		indexKeys = GetIndexKeysForEvent(ev, ser)
-		log.I.S(indexKeys)
+		// log.I.S(indexKeys)
 		for _, k := range indexKeys {
 			if err = txn.Set(k, nil); chk.E(err) {
 				return
