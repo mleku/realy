@@ -43,7 +43,8 @@ func main() {
 	var wg sync.WaitGroup
 	c, cancel := context.Cancel(context.Bg())
 	path := filepath.Join(cfg.Root, cfg.Profile)
-	storage := ratel.GetBackend(c, &wg, false, units.Gb*166, lol.GetLogLevel(cfg.DbLogLevel), 0)
+	storage := ratel.GetBackend(c, &wg, false, units.Gb*166, lol.GetLogLevel(cfg.DbLogLevel),
+		ratel.DefaultMaxLimit)
 	r := &app.Relay{Config: cfg, Store: storage}
 	go app.MonitorResources(c)
 	var server *realy.Server
