@@ -45,18 +45,17 @@ func (r *Relay) Init() (err E) {
 		return fmt.Sprintf("%v", ownerIds)
 	})
 
-	log.I.S(r.Owners)
 	r.CheckOwnerLists(context.Bg())
 	return nil
 }
-func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedPubkey B) bool {
+func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin S,
+	authedPubkey B) bool {
 	// if the authenticator is enabled we require auth to accept events
 	if !r.AuthEnabled() {
-		log.I.F("auth not enabled")
 		return true
 	}
 	if len(authedPubkey) != 32 {
-		log.E.F("client not authed with auth required")
+		log.E.F("client not authed with auth required %s", origin)
 		return false
 	}
 	if len(r.Owners) > 0 {
@@ -70,8 +69,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 					// are regenerated for the next AcceptReq/AcceptEvent
 					r.Followed = make(map[S]struct{})
 					r.Muted = make(map[S]struct{})
-					log.I.F("clearing owner follow/mute lists because of update from %0x",
-						evt.PubKey)
+					log.I.F("clearing owner follow/mute lists because of update from %s %0x",
+						origin, evt.PubKey)
 					return true
 				}
 			}
@@ -94,15 +93,16 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, authedP
 		}
 		// for all else, check the authed pubkey is in the follow list
 		for pk := range r.Followed {
+			// allow all events from follows of owners
 			if equals(authedPubkey, B(pk)) {
 				log.I.F("accepting event %0x because %0x on owner follow list",
 					evt.ID, B(pk))
 				return true
 			}
+			// todo: allow accepting events with p tag of a follow that the follow has not muted
+			// todo: this will allow outsiders to send messages to users
+			// todo: users will mute the user if they don't want to receive from this sender
 		}
-		// if the authed pubkey was not found, reject the request.
-		// log.I.F("authed pubkey %0x not found, rejecting event", authedPubkey)
-		// return false
 	}
 	// if auth is enabled and there is no moderators we just check that the pubkey
 	// has been loaded via the auth function.
@@ -167,7 +167,8 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 						if dst, err = hex.DecAppend(dst, t.Value()); chk.E(err) {
 							continue
 						}
-						r.Followed[S(dst)] = struct{}{}
+						f := S(dst)
+						r.Followed[f] = struct{}{}
 					}
 				}
 			}
@@ -181,16 +182,9 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 					Kinds: kinds.New(kind.MuteList)}); chk.E(err) {
 
 			}
-			// // preallocate sufficient elements
-			// var count int
-			// for _, ev := range evs {
-			// 	for _, t := range ev.Tags.F() {
-			// 		if equals(t.Key(), B{'p'}) {
-			// 			count++
-			// 		}
-			// 	}
-			// }
 			r.Muted = make(map[S]struct{})
+			mutes := "mutes(access blacklist),["
+			var first bool
 			for _, ev := range evs {
 				for _, t := range ev.Tags.F() {
 					if equals(t.Key(), B{'p'}) {
@@ -198,19 +192,26 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 						if dst, err = hex.DecAppend(dst, t.Value()); chk.E(err) {
 							continue
 						}
-						r.Muted[S(dst)] = struct{}{}
+						if !first {
+							mutes += ","
+						} else {
+							first = true
+						}
+						m := S(dst)
+						mutes += `"` + m + `"`
+						r.Muted[m] = struct{}{}
 					}
 				}
 			}
 			o := "followed:\n"
 			for pk := range r.Followed {
-				o += fmt.Sprintf("%x,", pk)
+				o += fmt.Sprintf("%0x,", pk)
 			}
 			o += "\nmuted:\n"
 			for pk := range r.Muted {
-				o += fmt.Sprintf("%x,", pk)
+				o += fmt.Sprintf("%0x,", pk)
 			}
-			// log.T.F("%s\n", o)
+			log.D.F("%s\n", o)
 		}
 	}
 }

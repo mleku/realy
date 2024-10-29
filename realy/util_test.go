@@ -11,6 +11,8 @@ import (
 	eventstore "realy.lol/store"
 )
 
+// todo: this needs updating
+
 func startTestRelay(c context.T, t *testing.T, tr *testRelay) *Server {
 	t.Helper()
 	srv, _ := NewServer(c, tr, "")
@@ -30,7 +32,7 @@ type testRelay struct {
 
 func (tr *testRelay) Name() S                        { return tr.name }
 func (tr *testRelay) Storage(context.T) eventstore.I { return tr.storage }
-
+func (tr *testRelay) Origin() S                      { return "example.com" }
 func (tr *testRelay) Init() E {
 	if fn := tr.init; fn != nil {
 		return fn()

@@ -1,14 +1,121 @@
 package ratel
 
 import (
+	"errors"
+
+	"github.com/dgraph-io/badger/v4"
 	"realy.lol/event"
 	"realy.lol/filter"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/sha256"
+	"realy.lol/tag"
 )
 
-func (r *T) CountEvents(c Ctx, f *filter.T) (count N, err E) {
-	var evs []*event.T
-	evs, err = r.QueryEvents(c, f)
-	count = len(evs)
-	evs = nil
+func (r *T) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) {
+	log.T.F("QueryEvents,%s", f.Serialize())
+	var queries []query
+	var extraFilter *filter.T
+	var since uint64
+	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
+		return
+	}
+	// search for the keys generated from the filter
+	for _, q := range queries {
+		select {
+		case <-c.Done():
+			return
+		default:
+		}
+		var eventKey B
+		err = r.View(func(txn *badger.Txn) (err E) {
+			// iterate only through keys and in reverse order
+			opts := badger.IteratorOptions{
+				Reverse: true,
+			}
+			it := txn.NewIterator(opts)
+			defer it.Close()
+			for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
+				item := it.Item()
+				k := item.KeyCopy(nil)
+				if !q.skipTS {
+					if len(k) < createdat.Len+serial.Len {
+						continue
+					}
+					createdAt := createdat.FromKey(k)
+					if createdAt.Val.U64() < since {
+						break
+					}
+				}
+				ser := serial.FromKey(k)
+				eventKey = index.Event.Key(ser)
+				// eventKeys = append(eventKeys, idx)
+			}
+			return
+		})
+		if chk.E(err) {
+			// this means shutdown, probably
+			if errors.Is(err, badger.ErrDBClosed) {
+				return
+			}
+		}
+		if extraFilter != nil {
+			// if there is an extra filter we need to fetch and decode the event to determine a
+			// match.
+			err = r.View(func(txn *badger.Txn) (err E) {
+				opts := badger.IteratorOptions{Reverse: true}
+				it := txn.NewIterator(opts)
+				defer it.Close()
+				for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
+					item := it.Item()
+					if r.HasL2 && item.ValueSize() == sha256.Size {
+						// we will count this though it may not match in fact. for general,
+						// simple filters there isn't likely to be an extrafilter anyway. the
+						// count result can have an "approximate" flag so we flip this now.
+						approx = true
+						return
+					}
+					ev := &event.T{}
+					var appr bool
+					if err = item.Value(func(eventValue []byte) (err E) {
+						var rem B
+						if rem, err = ev.UnmarshalBinary(eventValue); chk.E(err) {
+							ev = nil
+							eventValue = eventValue[:0]
+							return
+						}
+						if len(rem) > 0 {
+							log.T.S(rem)
+						}
+						if ev.Kind.IsReplaceable() ||
+							(ev.Kind.IsParameterizedReplaceable() &&
+								ev.Tags.GetFirst(tag.New("d")) != nil) {
+							// we aren't going to spend this extra time so this just flips the
+							// approximate flag. generally clients are asking for counts to get
+							// an outside estimate anyway, to avoid exceeding MaxLimit
+							appr = true
+						}
+						return
+					}); chk.E(err) {
+						continue
+					}
+					if ev == nil {
+						continue
+					}
+					if extraFilter.Matches(ev) {
+						count++
+						if appr {
+							approx = true
+						}
+						return
+					}
+				}
+				return
+			})
+		} else {
+			count++
+		}
+	}
 	return
 }

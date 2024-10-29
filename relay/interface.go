@@ -32,7 +32,7 @@ type I interface {
 	// messages, that are not on the mute list, that do not yet have a reply, should accept
 	// direct and group message events until there is three and thereafter will be restricted
 	// until the user adds them to their follow list.
-	AcceptEvent(c Ctx, ev *event.T, hr *http.Request, authedPubkey B) bool
+	AcceptEvent(c Ctx, ev *event.T, hr *http.Request, origin S, authedPubkey B) bool
 	// Storage returns the realy storage implementation.
 	Storage(Ctx) store.I
 }
@@ -105,5 +105,5 @@ type AdvancedSaver interface {
 }
 
 type EventCounter interface {
-	CountEvents(c Ctx, f *filter.T) (count N, err E)
+	CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E)
 }

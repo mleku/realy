@@ -8,8 +8,11 @@ import (
 
 	"github.com/gobwas/ws/wsutil"
 	"realy.lol/context"
+	"realy.lol/ratel"
 	"realy.lol/ws"
 )
+
+// todo: this needs updating
 
 func TestServerStartShutdown(t *testing.T) {
 	var (
@@ -28,7 +31,7 @@ func TestServerStartShutdown(t *testing.T) {
 			init: func() E { storeInited = true; return nil },
 		},
 	}
-	srv, _ := NewServer(context.Bg(), rl, "")
+	srv, _ := NewServer(context.Bg(), nil, rl, "", ratel.DefaultMaxLimit)
 	ready := make(chan bool)
 	done := make(chan E)
 	go func() {

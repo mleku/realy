@@ -14,7 +14,8 @@ import (
 var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
 
 // AddEvent has a business rule to add an event to the relayer
-func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, authedPubkey B) (accepted bool,
+func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, origin S,
+	authedPubkey B) (accepted bool,
 	message B) {
 	if ev == nil {
 		return false, normalize.Invalid.F("empty event")
@@ -24,7 +25,7 @@ func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, authedPubkey B) 
 	wrapper := &eventstore.RelayWrapper{I: store}
 	advancedSaver, _ := store.(relay.AdvancedSaver)
 
-	if !rl.AcceptEvent(c, ev, hr, authedPubkey) {
+	if !rl.AcceptEvent(c, ev, hr, origin, authedPubkey) {
 		return false, normalize.Blocked.F("event rejected by relay")
 	}
 

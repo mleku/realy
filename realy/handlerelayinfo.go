@@ -49,6 +49,7 @@ func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 			Nips:        supportedNIPs,
 			Software:    "https://realy.lol",
 			Version:     version,
+			Limitation:  ri.Limits{MaxLimit: s.maxLimit},
 		}
 	}
 	if err := json.NewEncoder(w).Encode(info); chk.E(err) {

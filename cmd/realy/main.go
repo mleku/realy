@@ -48,7 +48,7 @@ func main() {
 	r := &app.Relay{Config: cfg, Store: storage}
 	go app.MonitorResources(c)
 	var server *realy.Server
-	if server, err = realy.NewServer(c, cancel, r, path); chk.E(err) {
+	if server, err = realy.NewServer(c, cancel, r, path, ratel.DefaultMaxLimit); chk.E(err) {
 		os.Exit(1)
 	}
 	if err != nil {

@@ -27,7 +27,7 @@ type I interface {
 	QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E)
 	// CountEvents performs the same work as QueryEvents but instead of delivering the events
 	// that were found it just returns the count of events
-	CountEvents(c Ctx, f *filter.T) (count N, err E)
+	CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E)
 	// DeleteEvent is used to handle deletion events, as per NIP-09.
 	DeleteEvent(c Ctx, ev *eventid.T) (err E)
 	// SaveEvent is called once Relay.AcceptEvent reports true.

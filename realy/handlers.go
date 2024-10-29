@@ -132,7 +132,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 		log.I.F("extra '%s'", rem)
 	}
 
-	if !s.relay.AcceptEvent(c, env.T, ws.Req(), B(ws.Authed())) {
+	if !s.relay.AcceptEvent(c, env.T, ws.Req(), ws.RealRemote(), B(ws.Authed())) {
 		var auther relay.Authenticator
 		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 			if !ws.AuthRequested() {
@@ -281,7 +281,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 		}
 		// if the event is a delete we still want to save it.
 	}
-	ok, reason := AddEvent(c, s.relay, env.T, ws.Req(), B(ws.Authed()))
+	ok, reason := AddEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(), B(ws.Authed()))
 	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
 		return
 	}
@@ -337,6 +337,7 @@ func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 	}
 
 	var total N
+	var approx bool
 	for _, f := range env.Filters.F {
 		// prevent kind-4 events from being returned to unauthed users, only when
 		// authentication is a thing
@@ -370,7 +371,7 @@ func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 			}
 		}
 		var count N
-		count, err = counter.CountEvents(c, f)
+		count, approx, err = counter.CountEvents(c, f)
 		if err != nil {
 			log.E.F("store: %v", err)
 			continue
@@ -379,7 +380,7 @@ func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 	}
 	var res *countenvelope.Response
 	if res, err = countenvelope.NewResponseFrom(env.ID.String(), N(total),
-		false); chk.E(err) {
+		approx); chk.E(err) {
 		return
 	}
 	if err = res.Write(ws); chk.E(err) {
@@ -461,10 +462,10 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 						"this realy does not serve kind-4 to unauthenticated users," +
 							" does your client implement NIP-42?")
 					return notice
-				case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny(B("#p"),
-					tag.New(ws.AuthedBytes())):
-					log.T.F("user %0x allowed to query for DM", ws.AuthedBytes())
-					// allowed filter: ws.authed is sole receiver (filter specifies one or all senders)
+				case senders.Contains(ws.AuthedBytes()) ||
+					receivers.ContainsAny(B("#p"), tag.New(ws.AuthedBytes())):
+					log.T.F("user %0x from %s allowed to query for privileged event",
+						ws.AuthedBytes(), ws.RealRemote())
 				default:
 					// restricted filter: do not return any events,
 					//   even if other elements in filters array were not restricted).
@@ -475,8 +476,7 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 			}
 		}
 		var events []*event.T
-		events, err = sto.QueryEvents(c, f)
-		if err != nil {
+		if events, err = sto.QueryEvents(c, f); err != nil {
 			log.E.F("eventstore: %v", err)
 			if errors.Is(err, badger.ErrDBClosed) {
 				return

@@ -26,8 +26,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 		return
 	}
 	// search for the keys generated from the filter
-	// out:
-	var eventKeys [][]byte
+	eventKeys := make(map[S]struct{})
 	for _, q := range queries {
 		select {
 		case <-c.Done():
@@ -55,7 +54,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				}
 				ser := serial.FromKey(k)
 				idx := index.Event.Key(ser)
-				eventKeys = append(eventKeys, idx)
+				eventKeys[S(idx)] = struct{}{}
+				// eventKeys = append(eventKeys, idx)
 			}
 			return
 		})
@@ -66,17 +66,20 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			}
 		}
 	}
+	log.T.F("found %d event indexes", len(eventKeys))
 	select {
 	case <-c.Done():
 		return
 	default:
 	}
-	for _, eventKey := range eventKeys {
+	for ek := range eventKeys {
+		eventKey := B(ek)
 		select {
 		case <-c.Done():
 			return
 		default:
 		}
+		var done bool
 		err = r.View(func(txn *badger.Txn) (err E) {
 			opts := badger.IteratorOptions{Reverse: true}
 			it := txn.NewIterator(opts)
@@ -153,21 +156,21 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				}
 				if extraFilter == nil || extraFilter.Matches(ev) {
 					evMap[hex.Enc(ev.ID)] = ev
-					// evs = append(evs, ev)
+
 					if filter.Present(f.Limit) {
 						*f.Limit--
 						if *f.Limit <= 0 {
-							log.I.F("found events: %d", len(evs))
+							log.I.F("found events: %d", len(evMap))
 							return
 						}
-					} else {
-						// if there is no limit, cap it at the MaxLimit, assume this was the
-						// intent or the client is erroneous, if any limit greater is
-						// requested this will be used instead as the previous clause.
-						if len(evMap) > r.MaxLimit {
-							log.I.F("found MaxLimit events: %d", len(evs))
-							return
-						}
+					}
+					// if there is no limit, cap it at the MaxLimit, assume this was the
+					// intent or the client is erroneous, if any limit greater is
+					// requested this will be used instead as the previous clause.
+					if len(evMap) >= r.MaxLimit {
+						log.T.F("found MaxLimit events: %d", len(evMap))
+						done = true
+						return
 					}
 				}
 			}
@@ -178,6 +181,10 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			if errors.Is(err, badger.ErrDBClosed) {
 				return
 			}
+		}
+		if done {
+			err = nil
+			return
 		}
 		select {
 		case <-c.Done():

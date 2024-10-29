@@ -43,6 +43,9 @@ type T struct {
 	// ActuallyDelete sets whether we actually delete or rewrite deleted entries with a modified
 	// deleted prefix value (8th bit set)
 	ActuallyDelete bool
+	// Flatten should be set to true to trigger a flatten at close... this is mainly
+	// triggered by running an import
+	Flatten bool
 }
 
 var _ eventstore.I = (*T)(nil)

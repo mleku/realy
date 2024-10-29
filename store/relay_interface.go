@@ -50,7 +50,7 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
 					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
 				}
-				log.I.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
+				log.T.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
 				if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
 					continue
 				}
@@ -63,7 +63,8 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 		f := filter.New()
 		f.Authors = tag.New(evt.PubKey)
 		f.Kinds = kinds.New(evt.Kind)
-		log.I.F("filter for parameterized replaceable %v %s", f.Tags.ToStringSlice(), f.Serialize())
+		log.I.F("filter for parameterized replaceable %v %s", f.Tags.ToStringSlice(),
+			f.Serialize())
 		evs, err = w.I.QueryEvents(c, f)
 		if err != nil {
 			return fmt.Errorf("failed to query before replacing: %w", err)

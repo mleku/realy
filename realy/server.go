@@ -38,13 +38,15 @@ type Server struct {
 	serveMux                *http.ServeMux
 	httpServer, adminServer *http.Server
 	authRequired            bool
+	maxLimit                N
 }
 
 func (s *Server) Router() *http.ServeMux { return s.serveMux }
 
 // NewServer initializes the realy and its storage using their respective Init methods,
 // returning any non-nil errors, and returns a Server ready to listen for HTTP requests.
-func NewServer(c Ctx, cancel context.F, rl relay.I, dbPath S, opts ...Option) (*Server, E) {
+func NewServer(c Ctx, cancel context.F, rl relay.I, dbPath S, maxLimit N,
+	opts ...Option) (*Server, E) {
 	options := DefaultOptions()
 	for _, opt := range opts {
 		opt(options)
@@ -61,6 +63,7 @@ func NewServer(c Ctx, cancel context.F, rl relay.I, dbPath S, opts ...Option) (*
 		serveMux:     http.NewServeMux(),
 		options:      options,
 		authRequired: authRequired,
+		maxLimit:     maxLimit,
 	}
 
 	if storage := rl.Storage(context.Bg()); storage != nil {
