@@ -14,12 +14,12 @@ import (
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/sha256"
 	"realy.lol/tag"
+	"realy.lol/timestamp"
 )
 
 func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	log.T.F("QueryEvents,%s", f.Serialize())
 	evMap := make(map[S]*event.T)
-	// accessMap := make(map[S]struct{})
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
@@ -73,6 +73,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 		return
 	default:
 	}
+	accessed := make(map[S]struct{})
 	for ek := range eventKeys {
 		eventKey := B(ek)
 		select {
@@ -135,17 +136,16 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 									)
 									// replace the event, it is newer
 									delete(evMap, i)
-									return
+									break
 								} else {
 									// we won't add it to the results slice
 									eventValue = eventValue[:0]
 									ev = nil
+									return
 								}
-								return
 							}
 						}
-					}
-					if ev.Kind.IsParameterizedReplaceable() &&
+					} else if ev.Kind.IsParameterizedReplaceable() &&
 						ev.Tags.GetFirst(tag.New("d")) != nil {
 						for i, evc := range evMap {
 							// parameterized replaceable means there should only be the
@@ -162,7 +162,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 									)
 									// replace the event, it is newer
 									delete(evMap, i)
-									return
+									break
 								} else {
 									// we won't add it to the results slice
 									eventValue = eventValue[:0]
@@ -181,7 +181,9 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				}
 				if extraFilter == nil || extraFilter.Matches(ev) {
 					evMap[hex.Enc(ev.ID)] = ev
-
+					// add event counter key to accessed
+					ser := serial.FromKey(eventKey)
+					accessed[S(ser.Val)] = struct{}{}
 					if filter.Present(f.Limit) {
 						*f.Limit--
 						if *f.Limit <= 0 {
@@ -232,8 +234,27 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				f.Serialize())
 			return fmt.Sprintf("%s\nevents,%v", heading, evIds)
 		})
-		// bump the access times on all of the retrieved events
-
+		// bump the access times on all of the retrieved events.
+		// do this in a goroutine so the user's events are delivered immediately
+		go func() {
+			for ser := range accessed {
+				seri := serial.New(B(ser))
+				now := timestamp.Now()
+				err = r.Update(func(txn *badger.Txn) (err error) {
+					key := GetCounterKey(seri)
+					it := txn.NewIterator(badger.IteratorOptions{})
+					defer it.Close()
+					if it.Seek(key); it.ValidForPrefix(key) {
+						// update access record
+						if err = txn.Set(key, now.Bytes()); chk.E(err) {
+							return
+						}
+					}
+					log.T.Ln("last access for", seri.Uint64(), now.U64())
+					return nil
+				})
+			}
+		}()
 	} else {
 		log.T.F("no events found,%s", f.Serialize())
 	}
