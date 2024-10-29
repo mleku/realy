@@ -142,7 +142,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 		defer r.Unlock()
 		// need to search DB for moderator npub follow lists, followed npubs are allowed access.
 		if len(r.Followed) < 1 {
-			log.I.Ln("regenerating owners follow lists")
+			log.D.Ln("regenerating owners follow lists")
 			var err error
 			var evs []*event.T
 			if evs, err = r.Store.QueryEvents(c,
@@ -174,7 +174,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			}
 		}
 		if len(r.Muted) < 1 {
-			log.I.Ln("regenerating owners mute lists")
+			log.D.Ln("regenerating owners mute lists")
 			var err error
 			var evs []*event.T
 			if evs, err = r.Store.QueryEvents(c,
@@ -211,7 +211,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			for pk := range r.Muted {
 				o += fmt.Sprintf("%0x,", pk)
 			}
-			log.D.F("%s\n", o)
+			log.T.F("%s\n", o)
 		}
 	}
 }

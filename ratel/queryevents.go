@@ -128,7 +128,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 							// pubkey and kind.
 							if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
-									log.D.F("event %0x,%s\nreplaces %0x,%s",
+									log.T.F("event %0x,%s\nreplaces %0x,%s",
 										ev.ID,
 										ev.Serialize(),
 										evc.ID,
@@ -154,7 +154,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 								equals(ev.Tags.GetFirst(tag.New("d")).Value(),
 									ev.Tags.GetFirst(tag.New("d")).Value()) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
-									log.D.F("event %0x,%s\nreplaces %0x,%s",
+									log.T.F("event %0x,%s\nreplaces %0x,%s",
 										ev.ID,
 										ev.Serialize(),
 										evc.ID,

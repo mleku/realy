@@ -37,7 +37,7 @@ func (r *T) Init(path S) (err E) {
 	if r.DBSizeLimit > 0 {
 		// go r.GarbageCollector()
 	} else {
-		// go r.GCCount()
+		go r.GCCount()
 	}
 	return nil
 
