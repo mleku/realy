@@ -19,6 +19,7 @@ import (
 func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	log.T.F("QueryEvents,%s", f.Serialize())
 	evMap := make(map[S]*event.T)
+	// accessMap := make(map[S]struct{})
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
@@ -121,29 +122,53 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 					}
 					// check if this event is replaced by one we already have in the result.
 					if ev.Kind.IsReplaceable() {
-						for _, evc := range evs {
+						for i, evc := range evMap {
 							// replaceable means there should be only the newest for the
 							// pubkey and kind.
 							if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
-								// we won't add it to the results slice
-								eventValue = eventValue[:0]
-								ev = nil
+								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
+									log.D.F("event %0x,%s\nreplaces %0x,%s",
+										ev.ID,
+										ev.Serialize(),
+										evc.ID,
+										evc.Serialize(),
+									)
+									// replace the event, it is newer
+									delete(evMap, i)
+									return
+								} else {
+									// we won't add it to the results slice
+									eventValue = eventValue[:0]
+									ev = nil
+								}
 								return
 							}
 						}
 					}
 					if ev.Kind.IsParameterizedReplaceable() &&
 						ev.Tags.GetFirst(tag.New("d")) != nil {
-						for _, evc := range evs {
+						for i, evc := range evMap {
 							// parameterized replaceable means there should only be the
 							// newest for a pubkey, kind and the value field of the `d` tag.
 							if ev.Kind.Equal(evc.Kind) && equals(ev.PubKey, evc.PubKey) &&
 								equals(ev.Tags.GetFirst(tag.New("d")).Value(),
 									ev.Tags.GetFirst(tag.New("d")).Value()) {
-								// we won't add it to the results slice
-								eventValue = eventValue[:0]
-								ev = nil
-								return
+								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
+									log.D.F("event %0x,%s\nreplaces %0x,%s",
+										ev.ID,
+										ev.Serialize(),
+										evc.ID,
+										evc.Serialize(),
+									)
+									// replace the event, it is newer
+									delete(evMap, i)
+									return
+								} else {
+									// we won't add it to the results slice
+									eventValue = eventValue[:0]
+									ev = nil
+									return
+								}
 							}
 						}
 					}
@@ -193,13 +218,12 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 		}
 		// check if this matches the other filters that were not part of the index.
 	}
-	for i := range evMap {
-		evs = append(evs, evMap[i])
-	}
-	sort.Sort(event.Descending(evs))
-	if len(evs) > 0 {
+	if len(evMap) > 0 {
+		for i := range evMap {
+			evs = append(evs, evMap[i])
+		}
+		sort.Sort(event.Descending(evs))
 		log.T.C(func() string {
-
 			evIds := make([]string, len(evs))
 			for i, ev := range evs {
 				evIds[i] = hex.Enc(ev.ID)
@@ -208,7 +232,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				f.Serialize())
 			return fmt.Sprintf("%s\nevents,%v", heading, evIds)
 		})
-		// log.I.S(evs)
+		// bump the access times on all of the retrieved events
+
 	} else {
 		log.T.F("no events found,%s", f.Serialize())
 	}
