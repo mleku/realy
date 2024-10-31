@@ -19,12 +19,6 @@ import (
 )
 
 func main() {
-	defer profile.Start(profile.MemProfile).Stop()
-
-	go func() {
-		http.ListenAndServe(":8080", nil)
-	}()
-
 	var err E
 	var cfg *app.Config
 	if cfg, err = app.NewConfig(); chk.T(err) || app.HelpRequested() {
@@ -40,6 +34,12 @@ func main() {
 	}
 	log.I.Ln("log level", cfg.LogLevel)
 	lol.SetLogLevel(cfg.LogLevel)
+	if cfg.Pprof {
+		defer profile.Start(profile.MemProfile).Stop()
+		go func() {
+			http.ListenAndServe("127.0.0.1:6060", nil)
+		}()
+	}
 	var wg sync.WaitGroup
 	c, cancel := context.Cancel(context.Bg())
 	path := filepath.Join(cfg.Root, cfg.Profile)

@@ -31,6 +31,9 @@ func (r *Relay) Name() S                     { return "REALY" }
 func (r *Relay) Storage(c context.T) store.I { return r.Store }
 func (r *Relay) Init() (err E) {
 	for _, src := range r.Config.Owners {
+		if len(src) < 1 {
+			continue
+		}
 		dst := make(B, len(src)/2)
 		if _, err = hex.DecBytes(dst, B(src)); chk.E(err) {
 			continue

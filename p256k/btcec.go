@@ -1,4 +1,4 @@
-//go:build btcec
+//go:build !cgo
 
 package p256k
 

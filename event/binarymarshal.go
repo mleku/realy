@@ -158,6 +158,7 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 				case secondIsHex:
 					w.Buf = appendUvarint(w.Buf, uint64(32))
 					if w.Buf, err = hex.DecAppend(w.Buf, ts); chk.T(err) {
+						log.I.S(w.Buf)
 						// the value MUST be hex by the spec
 						return
 					}

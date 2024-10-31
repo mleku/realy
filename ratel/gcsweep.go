@@ -1,0 +1,126 @@
+package ratel
+
+import (
+	"time"
+
+	"github.com/dgraph-io/badger/v4"
+	"realy.lol/event"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/sha256"
+)
+
+func (r *T) GCSweep(evs, idxs DelItems) (err error) {
+	// first we must gather all the indexes of the relevant events
+	batch := r.DB.NewWriteBatch()
+	defer batch.Cancel()
+	started := time.Now()
+	// var wg sync.WaitGroup
+	// go func() {
+	// 	wg.Add(1)
+	// 	defer wg.Done()
+	stream := r.DB.NewStream()
+	// get all the event indexes to delete/prune
+	stream.Prefix = []byte{index.Event.B()}
+	stream.ChooseKey = func(item *badger.Item) (bo bool) {
+		if item.KeySize() != 1+serial.Len {
+			return
+		}
+		if item.IsDeletedOrExpired() {
+			return
+		}
+		key := item.KeyCopy(nil)
+		ser := serial.FromKey(key).Uint64()
+		var found bool
+		for i := range evs {
+			if evs[i] == ser {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return
+		}
+		if r.HasL2 {
+			// if it's already pruned, skip
+			if item.ValueSize() == sha256.Size {
+				return
+			}
+			// if there is L2 we are only pruning (replacing event with the ID hash)
+			var evb []byte
+			if evb, err = item.ValueCopy(nil); chk.E(err) {
+				return
+			}
+			var ev *event.T
+			var rem B
+			if rem, err = ev.UnmarshalBinary(evb); chk.E(err) {
+				return
+			}
+			if len(rem) != 0 {
+				log.I.S(rem)
+			}
+			if err = batch.Set(key, ev.ID); chk.E(err) {
+				return
+			}
+			return
+		} else {
+			// otherwise we are deleting
+			if err = batch.Delete(key); chk.E(err) {
+				return
+			}
+		}
+		return
+	}
+	// execute the event prune/delete
+	if err = stream.Orchestrate(r.Ctx); chk.E(err) {
+		return
+	}
+	// }()
+	// next delete all the indexes
+	if len(idxs) > 0 && r.HasL2 {
+		log.T.Ln("pruning indexes")
+		// we have to remove everything
+		prfs := [][]byte{{index.Event.B()}}
+		prfs = append(prfs, index.FilterPrefixes...)
+		prfs = append(prfs, []byte{index.Counter.B()})
+		for _, prf := range prfs {
+			stream = r.DB.NewStream()
+			stream.Prefix = prf
+			stream.ChooseKey = func(item *badger.Item) (bo bool) {
+				if item.IsDeletedOrExpired() || item.KeySize() < serial.Len+1 {
+					return
+				}
+				key := item.KeyCopy(nil)
+				ser := serial.FromKey(key).Uint64()
+				var found bool
+				for _, idx := range idxs {
+					if idx == ser {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return
+				}
+				// log.I.F("deleting index %x %d", prf, ser)
+				if err = batch.Delete(key); chk.E(err) {
+					return
+				}
+				return
+			}
+			if err = stream.Orchestrate(r.Ctx); chk.E(err) {
+				return
+			}
+			log.T.Ln("completed index prefix", prf)
+		}
+	}
+	log.T.Ln("flushing batch")
+	if err = batch.Flush(); chk.E(err) {
+		return
+	}
+	if vlerr := r.DB.RunValueLogGC(0.5); vlerr == nil {
+		log.I.Ln("value log cleaned up")
+	}
+	log.I.Ln("completed sweep in", time.Now().Sub(started), r.Path)
+	return
+}
