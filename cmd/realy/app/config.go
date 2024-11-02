@@ -55,7 +55,6 @@ func NewConfig() (cfg *Config, err E) {
 		if err = env.Load(cfg, &env.Options{Source: e}); chk.E(err) {
 			return
 		}
-		log.I.S(cfg)
 		var owners []S
 		// remove empties if any
 		for _, o := range cfg.Owners {
