@@ -5,6 +5,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -40,6 +41,7 @@ func main() {
 			http.ListenAndServe("127.0.0.1:6060", nil)
 		}()
 	}
+	debug.SetMemoryLimit(int64(cfg.MemLimit))
 	var wg sync.WaitGroup
 	c, cancel := context.Cancel(context.Bg())
 	storage := ratel.GetBackend(c, &wg, false, units.Gb*166, lol.GetLogLevel(cfg.DbLogLevel),
