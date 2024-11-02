@@ -61,7 +61,8 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 							return
 						case <-c.Done():
 							return
-
+						case <-quit:
+							return
 						default:
 						}
 						opts := badger.IteratorOptions{Reverse: true}
@@ -108,6 +109,9 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 				}
 			}
 		}()
+		// stop the writer loop
+
+		defer quit.Q()
 		// log.I.Ln(len(queries), "queries for", pks)
 		for _, q := range queries {
 			select {
@@ -147,8 +151,6 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 				}
 			}
 		}
-		// stop the writer loop
-		quit.Q()
 	} else {
 		// blanket download requested
 		err = r.View(func(txn *badger.Txn) (err error) {
