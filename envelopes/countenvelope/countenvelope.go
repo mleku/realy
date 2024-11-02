@@ -1,6 +1,5 @@
 package countenvelope
 
-import "C"
 import (
 	"bytes"
 	"io"

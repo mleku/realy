@@ -21,6 +21,23 @@ includes:
 - reverse proxy tool with support for Go vanity imports and nip-05 npub DNS verification and own
   TLS certificates
 
+## CGO and secp256k1 signatures library
+
+By default, Go will usually be configured with `CGO_ENABLED=1`. This selects the use of the 
+C library from bitcoin core, which does signatures and verifications much faster (4x and better)
+but complicates the build process as you have to install the library beforehand. There is
+instructions in [p256k/README.md](p256k/README.md) for doing this.
+
+In order to disable the use of this, you must set the environment variable `CGO_ENABLED=0` and
+it the Go compiler will automatically revert to using the btcec based secp256k1 signatures 
+library.
+
+    export CGO_ENABLED=0
+    cd cmd/realy
+    go build .
+
+This will build the binary and place it in cmd/realy and then you can move it where you like.
+
 ## Export and Import functions
 
 You can export everything in the event store through the default http://localhost:3337 endpoint

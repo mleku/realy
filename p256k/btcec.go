@@ -6,8 +6,13 @@ import (
 	"realy.lol/p256k/btcec"
 )
 
-// BTCECSigner is always available but enabling it disables the use of github.com/bitcoin-core/secp256k1 CGO signature
-// implementation and points it at the btec version.
+func init() {
+	log.I.Ln("using btcec signature library")
+}
+
+// BTCECSigner is always available but enabling it disables the use of
+// github.com/bitcoin-core/secp256k1 CGO signature implementation and points it at the btec
+// version.
 
 type Signer = btcec.Signer
 type Keygen = btcec.Keygen
