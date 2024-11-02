@@ -44,7 +44,8 @@ func main() {
 	c, cancel := context.Cancel(context.Bg())
 	path := filepath.Join(cfg.Root, cfg.Profile)
 	storage := ratel.GetBackend(c, &wg, false, units.Gb*166, lol.GetLogLevel(cfg.DbLogLevel),
-		ratel.DefaultMaxLimit)
+		ratel.DefaultMaxLimit,
+		cfg.DBSizeLimit, cfg.DBLowWater, cfg.DBHighWater, int(cfg.GCFrequency.Seconds()))
 	r := &app.Relay{Config: cfg, Store: storage}
 	go app.MonitorResources(c)
 	var server *realy.Server

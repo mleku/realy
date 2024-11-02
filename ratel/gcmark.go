@@ -34,7 +34,7 @@ func (r *T) GCMark() (pruneEvents, pruneIndexes DelItems, err error) {
 		}
 		log.D.F("found %d events to prune, which will bring current "+
 			"utilization down to %0.6f Gb %s",
-			lastIndex-1, float64(uTotal-cumulative)/units.Gb, r.Path)
+			lastIndex-1, float64(uTotal-cumulative)/units.Gb, r.Path())
 	}
 	l2hw, l2lw := r.GetIndexHeadroom()
 	if r.HasL2 && pTotal > l2hw {

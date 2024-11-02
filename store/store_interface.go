@@ -34,8 +34,9 @@ type I interface {
 	SaveEvent(c Ctx, ev *event.T) (err E)
 	// Import reads in a stream of line structured JSON of events to save into the store.
 	Import(r io.Reader)
-	// Export writes a stream of line structured JSON of all events in the store.
-	Export(c Ctx, w io.Writer)
+	// Export writes a stream of line structured JSON of all events in the store. If pubkeys are
+	// present, only those with these pubkeys in the `pubkey` field will be included.
+	Export(c Ctx, w io.Writer, pubkeys ...B)
 	// Sync signals the event store to flush its buffers.
 	Sync() (err E)
 }

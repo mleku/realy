@@ -121,6 +121,6 @@ func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 	if vlerr := r.DB.RunValueLogGC(0.5); vlerr == nil {
 		log.I.Ln("value log cleaned up")
 	}
-	log.I.Ln("completed sweep in", time.Now().Sub(started), r.Path)
+	log.I.Ln("completed sweep in", time.Now().Sub(started), r.Path())
 	return
 }

@@ -12,7 +12,7 @@ import (
 // This function should be invoked as a goroutine, and will terminate when the
 // backend context is canceled.
 func (r *T) GarbageCollector() {
-	log.D.F("starting badger back-end garbage collector: max size %0.3f MB; "+
+	log.D.F("starting ratel back-end garbage collector: max size %0.3f MB; "+
 		"high water %0.3f MB; "+
 		"low water %0.3f MB "+
 		"(MB = %d bytes) "+
@@ -47,7 +47,7 @@ out:
 }
 
 func (r *T) GCRun() (err error) {
-	log.T.Ln("running GC", r.Path)
+	log.T.Ln("running GC", r.Path())
 	var pruneEvents, pruneIndexes DelItems
 	if pruneEvents, pruneIndexes, err = r.GCMark(); chk.E(err) {
 		return

@@ -10,6 +10,7 @@ import (
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	eventstore "realy.lol/store"
+	"realy.lol/units"
 )
 
 const DefaultMaxLimit = 512
@@ -71,7 +72,7 @@ func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2 bool,
 		lw = params[1]
 		fallthrough
 	case 1:
-		sizeLimit = params[0]
+		sizeLimit = params[0] * units.Gb
 	}
 	// if unset, assume a safe maximum limit for unlimited filters.
 	if maxLimit == 0 {

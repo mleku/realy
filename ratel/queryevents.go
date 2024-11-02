@@ -30,6 +30,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	eventKeys := make(map[S]struct{})
 	for _, q := range queries {
 		select {
+		case <-r.Ctx.Done():
+			return
 		case <-c.Done():
 			return
 		default:
@@ -42,6 +44,13 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			it := txn.NewIterator(opts)
 			defer it.Close()
 			for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
+				select {
+				case <-r.Ctx.Done():
+					return
+				case <-c.Done():
+					return
+				default:
+				}
 				item := it.Item()
 				k := item.KeyCopy(nil)
 				if !q.skipTS {
@@ -56,7 +65,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				ser := serial.FromKey(k)
 				idx := index.Event.Key(ser)
 				eventKeys[S(idx)] = struct{}{}
-				// eventKeys = append(eventKeys, idx)
 			}
 			return
 		})
@@ -69,6 +77,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	}
 	log.T.F("found %d event indexes", len(eventKeys))
 	select {
+	case <-r.Ctx.Done():
+		return
 	case <-c.Done():
 		return
 	default:
@@ -76,13 +86,15 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	accessed := make(map[S]struct{})
 	for ek := range eventKeys {
 		eventKey := B(ek)
-		select {
-		case <-c.Done():
-			return
-		default:
-		}
 		var done bool
 		err = r.View(func(txn *badger.Txn) (err E) {
+			select {
+			case <-r.Ctx.Done():
+				return
+			case <-c.Done():
+				return
+			default:
+			}
 			opts := badger.IteratorOptions{Reverse: true}
 			it := txn.NewIterator(opts)
 			defer it.Close()
@@ -214,6 +226,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			return
 		}
 		select {
+		case <-r.Ctx.Done():
+			return
 		case <-c.Done():
 			return
 		default:
