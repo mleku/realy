@@ -57,7 +57,7 @@ func GetDataDir(goos, appName string, roaming bool) string {
 		}
 	default:
 		if homeDir != "" {
-			return filepath.Join(homeDir, "."+appNameLower)
+			return filepath.Join(homeDir, ".config", appNameLower)
 		}
 	}
 	// Fall back to the current directory if all else fails.

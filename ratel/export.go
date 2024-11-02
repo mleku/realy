@@ -26,7 +26,12 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 		for i := range pubkeys {
 			pks = append(pks, hex.Enc(pubkeys[i]))
 		}
-		log.I.F("exporting selected pubkeys:\n%s", fmt.Sprint(pks))
+		o := "["
+		for _, pk := range pks {
+			o += pk + ","
+		}
+		o += "]"
+		log.I.F("exporting selected pubkeys:\n%s", o)
 		keyChan := make(chan B, 256)
 		// specific set of public keys, so we need to run a search
 		fa := &filter.T{Authors: tag.New(pubkeys...)}
@@ -42,7 +47,6 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 			return
 		}
 		queries = append(queries, queries2...)
-		log.I.S(queries)
 		// start up writer loop
 		quit := qu.T()
 		go func() {

@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	log.I.Ln("using bitcoin/secp256k1 signature library")
+	log.T.Ln("using bitcoin/secp256k1 signature library")
 }
 
 // Signer implements the nostr.I interface.

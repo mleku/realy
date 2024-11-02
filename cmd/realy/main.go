@@ -5,8 +5,8 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
-	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/pkg/profile"
 	"realy.lol/cmd/realy/app"
@@ -42,14 +42,14 @@ func main() {
 	}
 	var wg sync.WaitGroup
 	c, cancel := context.Cancel(context.Bg())
-	path := filepath.Join(cfg.Root, cfg.Profile)
 	storage := ratel.GetBackend(c, &wg, false, units.Gb*166, lol.GetLogLevel(cfg.DbLogLevel),
 		ratel.DefaultMaxLimit,
-		cfg.DBSizeLimit, cfg.DBLowWater, cfg.DBHighWater, int(cfg.GCFrequency.Seconds()))
+		cfg.DBSizeLimit, cfg.DBLowWater, cfg.DBHighWater, cfg.GCFrequency*int(time.Second))
 	r := &app.Relay{Config: cfg, Store: storage}
 	go app.MonitorResources(c)
 	var server *realy.Server
-	if server, err = realy.NewServer(c, cancel, r, path, ratel.DefaultMaxLimit); chk.E(err) {
+	if server, err = realy.NewServer(c, cancel, r, cfg.Profile,
+		ratel.DefaultMaxLimit); chk.E(err) {
 		os.Exit(1)
 	}
 	if err != nil {

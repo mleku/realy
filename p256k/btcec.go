@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	log.I.Ln("using btcec signature library")
+	log.T.Ln("using btcec signature library")
 }
 
 // BTCECSigner is always available but enabling it disables the use of

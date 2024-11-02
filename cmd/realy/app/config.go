@@ -7,31 +7,30 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-	"time"
 
 	"go-simpler.org/env"
+	"realy.lol/appdata"
 	"realy.lol/apputil"
 	"realy.lol/config"
 	"realy.lol/sha256"
 )
 
 type Config struct {
-	AppName      S             `env:"APP_NAME" default:"realy"`
-	Root         S             `env:"ROOT_DIR" usage:"root path for all other path configurations (defaults OS user home if empty)"`
-	Profile      S             `env:"PROFILE" default:".realy" usage:"name of directory in root path to store relay state data and database"`
-	Listen       S             `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
-	Port         N             `env:"PORT" default:"3334" usage:"port to listen on"`
-	AdminListen  S             `env:"ADMIN_LISTEN" default:"127.0.0.1" usage:"admin listen address"`
-	AdminPort    N             `env:"ADMIN_PORT" default:"3337" usage:"admin listen port"`
-	LogLevel     S             `env:"LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
-	DbLogLevel   S             `env:"DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
-	AuthRequired bool          `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
-	Owners       []S           `env:"OWNERS" usage:"list of npubs of users in hex format whose follow and mute list dictate accepting requests and events - follows and follows follows are allowed, mutes and follows mutes are rejected"`
-	DBSizeLimit  int           `env:"DB_SIZE_LIMIT" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding"`
-	DBLowWater   int           `env:"DB_LOW_WATER" default:"80" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
-	DBHighWater  int           `env:"DB_HIGH_WATER" default:"90" usage:"the trigger point at which a GC run should start if exceeded"`
-	GCFrequency  time.Duration `env:"GC_FREQUENCY" default:"1h" usage:"the frequency of checks of the current utilisation"`
-	Pprof        bool          `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
+	AppName      S    `env:"APP_NAME" default:"realy"`
+	Profile      S    `env:"PROFILE" usage:"root path for all other path configurations (based on APP_NAME and OS specific location)"`
+	Listen       S    `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
+	Port         N    `env:"PORT" default:"3334" usage:"port to listen on"`
+	AdminListen  S    `env:"ADMIN_LISTEN" default:"127.0.0.1" usage:"admin listen address"`
+	AdminPort    N    `env:"ADMIN_PORT" default:"3337" usage:"admin listen port"`
+	LogLevel     S    `env:"LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	DbLogLevel   S    `env:"DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	AuthRequired bool `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
+	Owners       []S  `env:"OWNERS" usage:"list of npubs of users in hex format whose follow and mute list dictate accepting requests and events - follows and follows follows are allowed, mutes and follows mutes are rejected"`
+	DBSizeLimit  int  `env:"DB_SIZE_LIMIT" default:"0" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding, 0 means disabled"`
+	DBLowWater   int  `env:"DB_LOW_WATER" default:"80" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
+	DBHighWater  int  `env:"DB_HIGH_WATER" default:"90" usage:"the trigger point at which a GC run should start if exceeded"`
+	GCFrequency  int  `env:"GC_FREQUENCY" default:"180" usage:"the frequency of checks of the current utilisation in minutes"`
+	Pprof        bool `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
 }
 
 func NewConfig() (cfg *Config, err E) {
@@ -39,14 +38,10 @@ func NewConfig() (cfg *Config, err E) {
 	if err = env.Load(cfg, nil); chk.T(err) {
 		return
 	}
-	if cfg.Root == "" {
-		var dir string
-		if dir, err = os.UserHomeDir(); chk.T(err) {
-			return
-		}
-		cfg.Root = dir
+	if cfg.Profile == "" {
+		cfg.Profile = appdata.Dir(cfg.AppName, true)
 	}
-	envPath := filepath.Join(filepath.Join(cfg.Root, cfg.Profile), ".env")
+	envPath := filepath.Join(cfg.Profile, ".env")
 	if apputil.FileExists(envPath) {
 		var e config.Env
 		if e, err = config.GetEnv(envPath); chk.T(err) {
@@ -124,7 +119,7 @@ func PrintHelp(cfg *Config, printer io.Writer) {
 			" this file will be created on first startup.\nenvironment overrides it and "+
 			"you can also edit the file to set configuration options\n\n"+
 			"use the parameter 'env' to print out the current configuration to the terminal\n\n"+
-			"set the environment using\n\n\t%s env>%s/%s/.env\n\n", os.Args[0], cfg.Root,
+			"set the environment using\n\n\t%s env>%s/%s/.env\n\n", os.Args[0], cfg.Profile,
 		cfg.Profile)
 	return
 }
