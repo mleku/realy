@@ -32,8 +32,9 @@ func (r *T) Import(rr io.Reader) {
 		count++
 		if count > 0 && count%100 == 0 {
 			chk.T(r.DB.Sync())
-			log.I.F("imported 10000/%d events, running GC on new data", count)
+			log.I.F("imported %d events, running GC on new data", count)
 			chk.T(r.DB.RunValueLogGC(0.5))
+			log.I.F("gc done")
 		}
 	}
 	err = scan.Err()
