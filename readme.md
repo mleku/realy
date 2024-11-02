@@ -20,3 +20,30 @@ includes:
   processor
 - reverse proxy tool with support for Go vanity imports and nip-05 npub DNS verification and own
   TLS certificates
+
+## Export and Import functions
+
+You can export everything in the event store through the default http://localhost:3337 endpoint
+like so:
+
+    curl http://localhost:3337/export > everything.jsonl
+
+or just all of the whitelisted users and all events with p tags with them in it:
+
+    curl http://localhost:3337/export/users > users.jsonl
+
+or just one user: (includes also matching p tags)
+
+    curl http://localhost:3337/export/4c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f > mleku.jsonl
+
+or several users with hyphens between the hexadecimal public keys: (ditto above)
+
+    curl http://localhost:3337/export/4c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f-454bc2771a69e30843d0fccfde6e105ff3edc5c6739983ef61042633e4a9561a > mleku_gojiberra.jsonl
+
+
+and import also, to put one of these files (also nostrudel and coracle have functions to 
+export the app database of events in jsonl)
+
+    curl -XPOST -T nostrudel.jsonl http://localhost:3337/import
+
+> todo: more documentation coming
