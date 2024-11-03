@@ -124,13 +124,14 @@ func (w *Writer) WriteCreatedAt(t *timestamp.T) (err E) {
 
 // WriteTags encodes tags into binary form, including special handling for
 // protocol defined a, e and p tags.
-//
-// todo: currently logging of incorrect a tag second section hex encoding as an
-//
-//	event ID is disabled because of a wrong a tag in the test events cache.
 func (w *Writer) WriteTags(t *tags.T) (err E) {
+	start := len(w.Buf)
 	// first a byte for the number of tags
 	w.Buf = appendUvarint(w.Buf, uint64(t.Len()))
+	if t.F() == nil || len(t.F()) == 0 {
+		// log.I.S(t.F())
+		return
+	}
 	for i := range t.F() {
 		var secondIsHex, secondIsDecimalHex bool
 		// first the length of the tag
@@ -140,19 +141,27 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 			// we know from this first tag certain conditions that allow
 			// data optimizations
 			ts := t.N(i).B(j)
+			// log.I.F("%0x,%s", len(ts), ts)
 			switch {
-			case j == 0 && len(ts) == 1:
-				for k := range HexInSecond {
-					if ts[0] == HexInSecond[k] {
-						secondIsHex = true
+			case j == 0:
+				if len(ts) == 1 {
+					// check if it is a special field with hex values
+					for k := range HexInSecond {
+						if ts[0] == HexInSecond[k] {
+							secondIsHex = true
+							// log.I.F("%d:%d '%s' second is hex", i, j, ts)
+						}
+					}
+					for k := range DecimalHexInSecond {
+						if ts[0] == DecimalHexInSecond[k] {
+							secondIsDecimalHex = true
+							// log.I.F("'%s' second is decimal:hex:string", ts)
+						}
 					}
 				}
-				for k := range DecimalHexInSecond {
-					if ts[0] == DecimalHexInSecond[k] {
-						secondIsDecimalHex = true
-						// log.I.Ln("second is decimal:hex:string")
-					}
-				}
+				// write first field length
+				w.Buf = appendUvarint(w.Buf, uint64(len(ts)))
+				w.Buf = append(w.Buf, ts...)
 			case j == 1:
 				switch {
 				case secondIsHex:
@@ -164,14 +173,19 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 					}
 					continue scanning
 				case secondIsDecimalHex:
+					// first two fields are fixed length, 2 bytes for the kind and 32 bytes for
+					// the event ID, then, a varint length prefix and the raw string of the
+					// third field.
 					split := bytes.Split(t.N(i).B(j), B(":"))
+					// log.I.S(split)
 					// append the lengths accordingly
 					// first is 2 bytes size
-					var n int
 					k := kind.New(0)
 					if _, err = k.UnmarshalJSON(split[0]); chk.T(err) {
 						return
 					}
+					// write as little-endian uint16 (two bytes)
+					w.Buf = binary.LittleEndian.AppendUint16(w.Buf, k.ToU16())
 					if len(split) > 1 {
 						// second is a 32 byte value encoded in hex
 						if len(split[1]) != 64 {
@@ -179,31 +193,39 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 								len(split[1]))
 							return
 						}
+						// write as 32 bytes binary
+						if w.Buf, err = hex.DecAppend(w.Buf, split[1]); chk.E(err) {
+							return
+						}
 						if len(split) > 2 {
 							// prepend with the appropriate length prefix (we don't need
 							// a separate length prefix for the string component)
-							w.Buf = appendUvarint(w.Buf, uint64(2+32+len(split[2])))
-							// encode a 16 bit kind value
-							w.Buf = binary.LittleEndian.
-								AppendUint16(w.Buf, uint16(n))
-							// encode the 32 byte binary value
-							if w.Buf, err = hex.DecAppend(w.Buf, split[1]); chk.E(err) {
-								return
+							w.Buf = appendUvarint(w.Buf, uint64(len(split[2])))
+							if len(split[2]) > 0 {
+								// omit if there is no content for clarity
+								w.Buf = append(w.Buf, split[2]...)
 							}
-							w.Buf = append(w.Buf, split[2]...)
+							// log.I.S(w.Buf)
 						}
 						continue scanning
 					}
+				default:
+					w.Buf = appendUvarint(w.Buf, uint64(len(ts)))
+					w.Buf = append(w.Buf, ts...)
 				}
+			case j > 1:
+				w.Buf = appendUvarint(w.Buf, uint64(len(ts)))
+				w.Buf = append(w.Buf, ts...)
 			}
-			w.Buf = appendUvarint(w.Buf, uint64(len(ts)))
-			w.Buf = append(w.Buf, ts...)
 		}
 	}
+	_ = start
+	// log.I.S(w.Buf[start:])
 	return
 }
 
 func (w *Writer) WriteContent(s B) (err error) {
+	// log.I.S(uint64(len(s)), s)
 	w.Buf = appendUvarint(w.Buf, uint64(len(s)))
 	w.Buf = append(w.Buf, s...)
 	return
@@ -220,6 +242,7 @@ func (w *Writer) WriteSignature(sig B) (err error) {
 }
 
 func (w *Writer) WriteEvent(ev *T) (err error) {
+	// log.I.F("%s", ev.Serialize())
 	if err = w.WriteID(ev.ID); chk.E(err) {
 		return
 	}

@@ -124,7 +124,7 @@ func init() {
 	SetLoggers(Info)
 	// SetLoggers(Trace)
 	if s, err := tsize.GetSize(); err == nil {
-		width = s.Width
+		width = s.Width - 4
 	}
 }
 

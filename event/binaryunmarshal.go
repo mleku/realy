@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/pkg/errors"
 	"realy.lol/ec/schnorr"
 	"realy.lol/hex"
 	"realy.lol/kind"
@@ -84,15 +85,22 @@ func (r *Reader) ReadKind() (k *kind.T, err error) {
 }
 
 func (r *Reader) ReadTags() (t *tags.T, err error) {
+	// start := r.Pos
+	// defer log.I.S(r.Buf[start:])
 	// first get the count of tags
 	vi, read := binary.Uvarint(r.Buf[r.Pos:])
 	if read < 1 {
 		err = io.EOF
 		return
 	}
+	r.Pos += read
+	// log.I.S(vi, read, r.Buf[r.Pos:])
+	if vi == 0 {
+		r.Pos += read
+		return &tags.T{}, nil
+	}
 	nTags := int(vi)
 	var end int
-	r.Pos += read
 	// if nTags > 500 {
 	// 	log.I.F("new tags with %d elements (follow list probably)", nTags)
 	// }
@@ -119,7 +127,7 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 			vi, read = binary.Uvarint(r.Buf[r.Pos:])
 			if read < 1 {
 				err = io.EOF
-				log.I.S()
+				log.I.S(r.Buf[r.Pos])
 				return
 			}
 			r.Pos += read
@@ -127,6 +135,7 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 			end = r.Pos + int(vi)
 			if len(r.Buf) < end {
 				err = io.EOF
+				err = errors.Wrap(err, "truncated tag")
 				return
 			}
 			// we know from this first tag certain conditions that allow
@@ -162,17 +171,22 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 					fieldEnd := r.Pos + 2
 					if fieldEnd > end {
 						err = io.EOF
+						err = errors.Wrap(err, "did not find kind field")
 						return
 					}
-					k = binary.LittleEndian.Uint16(r.Buf[r.Pos:fieldEnd])
+					kb := r.Buf[r.Pos:fieldEnd]
+					log.I.S(kb)
+					k = binary.LittleEndian.Uint16(kb)
+					log.I.F("%0x", k)
 					r.Pos += 2
-					fieldEnd += schnorr.PubKeyBytesLen
+					fieldEnd += schnorr.PubKeyBytesLen //
 					if fieldEnd > end {
-						err = log.E.Err("%v got %d expect %d",
+						err = log.E.Err("%v: decoding pubkey in a tag got %d expect %d",
 							io.EOF, fieldEnd, end)
 						return
 					}
 					pk = r.Buf[r.Pos:fieldEnd]
+					log.I.S(pk)
 					r.Pos = fieldEnd
 					t.AppendTo(i, B(fmt.Sprintf("%d:%0x:%s",
 						k, hex.Enc(pk), string(r.Buf[r.Pos:end]))))
@@ -195,6 +209,7 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 func (r *Reader) ReadContent() (s B, err error) {
 	// get the length prefix
 	vi, n := binary.Uvarint(r.Buf[r.Pos:])
+	// log.I.S(vi, r.Buf)
 	if n < 1 {
 		err = io.EOF
 		return
