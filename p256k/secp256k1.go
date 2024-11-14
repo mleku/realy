@@ -339,11 +339,13 @@ func VerifyFromBytes(msg, sig, pk B) (err error) {
 
 func Zero(sk *SecKey) {
 	b := (*[96]byte)(unsafe.Pointer(sk))[:96]
-	for i := range 8 {
+	for range 3 {
 		rand.Read(b)
 		// reverse the order and negate
-		for i := range b {
-			b[i] = ^b[len(b)-1-i]
+		lb := len(b)
+		l := lb / 2
+		for j := range l {
+			b[j] = ^b[lb-1-j]
 		}
 	}
 }

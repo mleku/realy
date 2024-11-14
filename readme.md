@@ -14,7 +14,7 @@ includes:
 - AVX/AVX2 optimized SHA256 and SIMD hex encoder
 - a bespoke, mutable byte slice based hash/pubkey/signature encoding in memory and the fastest
   nostr binary codec that exists
-- custom badger based database with a garbage collector that prunes off data with least recent
+- custom badger based event store with a garbage collector that prunes off data with least recent
   access
 - vanity npub generator that can mine a 5 letter prefix in around 15 minutes on a 6 core Ryzen 5
   processor
@@ -37,6 +37,14 @@ library.
     go build .
 
 This will build the binary and place it in cmd/realy and then you can move it where you like.
+
+### Static build
+
+To produce a static binary, whether you use the CGO secp256k1 or disable CGO as above:
+
+    go build --ldflags '-extldflags "-static"' -o ~/bin/realy ./cmd/realy/.
+
+will place it into your `~/bin/` directory, and it will work on any system of the same architecture with the same glibc major version (has been 2 for a long time).
 
 ## Export and Import functions
 

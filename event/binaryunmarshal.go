@@ -96,7 +96,6 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 	r.Pos += read
 	// log.I.S(vi, read, r.Buf[r.Pos:])
 	if vi == 0 {
-		r.Pos += read
 		return &tags.T{}, nil
 	}
 	nTags := int(vi)
@@ -127,13 +126,15 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 			vi, read = binary.Uvarint(r.Buf[r.Pos:])
 			if read < 1 {
 				err = io.EOF
-				log.I.S(r.Buf[r.Pos])
+				// log.I.S(r.Buf[r.Pos])
 				return
 			}
 			r.Pos += read
 			// now read it off
 			end = r.Pos + int(vi)
+			// log.I.F("pos %d read %d vi %d end %d len %d", r.Pos, read, vi, end, len(r.Buf))
 			if len(r.Buf) < end {
+				// log.I.S(vi, r.Buf[r.Pos:], r.Buf[:r.Pos])
 				err = io.EOF
 				err = errors.Wrap(err, "truncated tag")
 				return
@@ -175,9 +176,9 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 						return
 					}
 					kb := r.Buf[r.Pos:fieldEnd]
-					log.I.S(kb)
+					// log.I.S(kb)
 					k = binary.LittleEndian.Uint16(kb)
-					log.I.F("%0x", k)
+					// log.I.F("%0x", k)
 					r.Pos += 2
 					fieldEnd += schnorr.PubKeyBytesLen //
 					if fieldEnd > end {
@@ -186,7 +187,7 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 						return
 					}
 					pk = r.Buf[r.Pos:fieldEnd]
-					log.I.S(pk)
+					// log.I.S(pk)
 					r.Pos = fieldEnd
 					t.AppendTo(i, B(fmt.Sprintf("%d:%0x:%s",
 						k, hex.Enc(pk), string(r.Buf[r.Pos:end]))))
@@ -197,6 +198,11 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 					// 	string(r.Buf[r.Pos:end]))))
 					continue reading
 				}
+			}
+			tote := r.Pos + int(vi)
+			if tote > len(r.Buf) || tote <= 0 {
+				err = io.EOF
+				return
 			}
 			t.AppendTo(i, r.Buf[r.Pos:r.Pos+int(vi)])
 			// t.N(i).Field = append(t.N(i).Field, r.Buf[r.Pos:r.Pos+int(vi)])
@@ -209,7 +215,14 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 func (r *Reader) ReadContent() (s B, err error) {
 	// get the length prefix
 	vi, n := binary.Uvarint(r.Buf[r.Pos:])
-	// log.I.S(vi, r.Buf)
+	// log.I.Ln(vi)
+	// start := r.Pos
+	// defer func() {
+	// 	if err != nil {
+	// 		log.I.S(vi, r.Buf[:start])
+	// 		log.I.S(vi, r.Buf[start:])
+	// 	}
+	// }()
 	if n < 1 {
 		err = io.EOF
 		return
@@ -251,10 +264,10 @@ func (r *Reader) ReadEvent() (ev *T, err error) {
 	if ev.Kind, err = r.ReadKind(); chk.E(err) {
 		return
 	}
-	if ev.Tags, err = r.ReadTags(); chk.E(err) {
+	if ev.Tags, err = r.ReadTags(); err != nil {
 		return
 	}
-	if ev.Content, err = r.ReadContent(); chk.E(err) {
+	if ev.Content, err = r.ReadContent(); err != nil {
 		return
 	}
 	if ev.Sig, err = r.ReadSignature(); chk.E(err) {
@@ -266,7 +279,7 @@ func (r *Reader) ReadEvent() (ev *T, err error) {
 func (ev *T) UnmarshalBinary(b B) (r B, err E) {
 	er := &Reader{Buf: b}
 	var re *T
-	if re, err = er.ReadEvent(); chk.E(err) {
+	if re, err = er.ReadEvent(); err != nil {
 		return
 	}
 	*ev = *re

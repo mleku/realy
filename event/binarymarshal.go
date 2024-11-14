@@ -108,16 +108,19 @@ func (w *Writer) WritePubKey(pk B) (err E) {
 			schnorr.PubKeyBytesLen, len(pk))
 		return
 	}
+	// log.I.S(w.Buf)
 	w.Buf = append(w.Buf, pk...)
 	return
 }
 
 func (w *Writer) WriteKind(k *kind.T) (err E) {
+	// log.I.S(w.Buf)
 	w.Buf = binary.LittleEndian.AppendUint16(w.Buf, k.ToU16())
 	return
 }
 
 func (w *Writer) WriteCreatedAt(t *timestamp.T) (err E) {
+	// log.I.S(w.Buf)
 	w.Buf = appendUvarint(w.Buf, t.U64())
 	return
 }
@@ -125,9 +128,12 @@ func (w *Writer) WriteCreatedAt(t *timestamp.T) (err E) {
 // WriteTags encodes tags into binary form, including special handling for
 // protocol defined a, e and p tags.
 func (w *Writer) WriteTags(t *tags.T) (err E) {
+	// log.I.F("writing tags %s", t.MarshalTo(nil))
 	start := len(w.Buf)
-	// first a byte for the number of tags
+	// first a varint for the number of tags
+	// log.I.S(w.Buf)
 	w.Buf = appendUvarint(w.Buf, uint64(t.Len()))
+	// log.I.S(w.Buf)
 	if t.F() == nil || len(t.F()) == 0 {
 		// log.I.S(t.F())
 		return
@@ -135,6 +141,7 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 	for i := range t.F() {
 		var secondIsHex, secondIsDecimalHex bool
 		// first the length of the tag
+		// log.I.S(w.Buf)
 		w.Buf = appendUvarint(w.Buf, uint64(t.N(i).Len()))
 	scanning:
 		for j := range t.N(i).F() {
@@ -160,13 +167,15 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 					}
 				}
 				// write first field length
+				// log.I.S(w.Buf)
 				w.Buf = appendUvarint(w.Buf, uint64(len(ts)))
 				w.Buf = append(w.Buf, ts...)
 			case j == 1:
 				switch {
 				case secondIsHex:
+					// log.I.S(w.Buf)
 					w.Buf = appendUvarint(w.Buf, uint64(32))
-					if w.Buf, err = hex.DecAppend(w.Buf, ts); chk.T(err) {
+					if w.Buf, err = hex.DecAppend(w.Buf, ts); err != nil {
 						// log.I.S(w.Buf)
 						// the value MUST be hex by the spec
 						return
@@ -176,6 +185,7 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 					// first two fields are fixed length, 2 bytes for the kind and 32 bytes for
 					// the event ID, then, a varint length prefix and the raw string of the
 					// third field.
+					// log.I.S(w.Buf)
 					split := bytes.Split(t.N(i).B(j), B(":"))
 					// log.I.S(split)
 					// append the lengths accordingly
@@ -198,8 +208,6 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 							return
 						}
 						if len(split) > 2 {
-							// prepend with the appropriate length prefix (we don't need
-							// a separate length prefix for the string component)
 							w.Buf = appendUvarint(w.Buf, uint64(len(split[2])))
 							if len(split[2]) > 0 {
 								// omit if there is no content for clarity
@@ -210,10 +218,12 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 						continue scanning
 					}
 				default:
+					// log.I.S(w.Buf)
 					w.Buf = appendUvarint(w.Buf, uint64(len(ts)))
 					w.Buf = append(w.Buf, ts...)
 				}
 			case j > 1:
+				// log.I.S(w.Buf)
 				w.Buf = appendUvarint(w.Buf, uint64(len(ts)))
 				w.Buf = append(w.Buf, ts...)
 			}
@@ -225,9 +235,17 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 }
 
 func (w *Writer) WriteContent(s B) (err error) {
-	// log.I.S(uint64(len(s)), s)
+	defer func() {
+		if err != nil {
+			log.I.S(uint64(len(s)), s)
+		}
+	}()
+	// log.I.F("%d %0x '%s'", len(s), len(s), s)
+	// log.I.S(w.Buf)
 	w.Buf = appendUvarint(w.Buf, uint64(len(s)))
+	// log.I.S(w.Buf)
 	w.Buf = append(w.Buf, s...)
+	// log.I.S(w.Buf)
 	return
 }
 
@@ -242,7 +260,7 @@ func (w *Writer) WriteSignature(sig B) (err error) {
 }
 
 func (w *Writer) WriteEvent(ev *T) (err error) {
-	// log.I.F("%s", ev.Serialize())
+	// log.I.F("writing binary event from %s", ev.Serialize())
 	if err = w.WriteID(ev.ID); chk.E(err) {
 		return
 	}
@@ -255,7 +273,7 @@ func (w *Writer) WriteEvent(ev *T) (err error) {
 	if err = w.WriteKind(ev.Kind); chk.E(err) {
 		return
 	}
-	if err = w.WriteTags(ev.Tags); chk.T(err) {
+	if err = w.WriteTags(ev.Tags); err != nil {
 		return
 	}
 	if err = w.WriteContent(ev.Content); chk.E(err) {
@@ -269,7 +287,7 @@ func (w *Writer) WriteEvent(ev *T) (err error) {
 
 func (ev *T) MarshalBinary(dst B) (b B, err E) {
 	w := NewBufForEvent(dst, ev)
-	if err = w.WriteEvent(ev); chk.T(err) {
+	if err = w.WriteEvent(ev); err != nil {
 		return
 	}
 	b = w.Bytes()
