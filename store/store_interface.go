@@ -16,7 +16,7 @@ type I interface {
 	// parameters to the specific implementation.
 	Init(path S) (err E)
 	// Path returns the directory of the database.
-	Path() S
+	Path() (s S)
 	// Close must be called after you're done using the store, to free up resources and so on.
 	Close() (err E)
 	// Nuke deletes everything in the database.
@@ -34,7 +34,7 @@ type I interface {
 	// Import reads in a stream of line structured JSON of events to save into the store.
 	Import(r io.Reader)
 	// Export writes a stream of line structured JSON of all events in the store. If pubkeys are
-	// present, only those with these pubkeys in the `pubkey` field will be included.
+	// present, only those with these pubkeys in the `pubkey` field and in `p` tags will be included.
 	Export(c Ctx, w io.Writer, pubkeys ...B)
 	// Sync signals the event store to flush its buffers.
 	Sync() (err E)
