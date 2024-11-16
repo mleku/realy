@@ -66,7 +66,7 @@ func NostrUnescape(dst B) (b B) {
 			// nip-01 specifies the following single letter C-style escapes for control
 			// codes under 0x20.
 			//
-			// no others are specified but must be preserved, so only these ones can be
+			// no others are specified but must be preserved, so only these can be
 			// safely decoded at runtime as they must be re-encoded when marshalled.
 			case c == '"':
 				dst[w] = '"'

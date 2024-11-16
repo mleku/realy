@@ -67,6 +67,13 @@ func (t *T) AppendTo(n int, b ...B) (tt *T) {
 	return t
 }
 
+// AppendSlice just appends a slice of slices of bytes into the tags. Like AppendTo
+// but without the position specifier. todo: this is a terribly constructed API innit.
+func (t *T) AppendSlice(b ...B) (tt *T) {
+	t.t = append(t.t, tag.New(b...))
+	return
+}
+
 func (t *T) AddCap(i, c int) (tt *T) {
 	if t == nil {
 		log.E.F("cannot add capacity to index %d of nil tags", i)

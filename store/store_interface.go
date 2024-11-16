@@ -21,9 +21,8 @@ type I interface {
 	Close() (err E)
 	// Nuke deletes everything in the database.
 	Nuke() (err E)
-	// QueryEvents is invoked upon a client's REQ as described in NIP-01. it should return a
-	// channel with the events as they're recovered from a database. the channel should be
-	// closed after the events are all delivered.
+	// QueryEvents is invoked upon a client's REQ as described in NIP-01. It returns the matching events in reverse
+	// chronological order in a slice.
 	QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E)
 	// CountEvents performs the same work as QueryEvents but instead of delivering the events
 	// that were found it just returns the count of events

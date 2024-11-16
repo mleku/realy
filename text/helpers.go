@@ -75,9 +75,15 @@ func UnmarshalQuoted(b B) (content, rem B, err error) {
 	var contentLen int
 	for len(rem) > 0 {
 		if rem[0] == '\\' {
-			escaping = true
-			contentLen++
-			rem = rem[1:]
+			if !escaping {
+				escaping = true
+				contentLen++
+				rem = rem[1:]
+			} else {
+				escaping = false
+				contentLen++
+				rem = rem[1:]
+			}
 		} else if rem[0] == '"' {
 			if !escaping {
 				rem = rem[1:]

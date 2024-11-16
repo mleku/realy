@@ -123,7 +123,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 					return
 				}
 				ev := &event.T{}
-				if err = item.Value(func(eventValue []byte) (err E) {
+				if err = item.Value(func(eventValue B) (err E) {
 					var rem B
 					if rem, err = ev.UnmarshalBinary(eventValue); chk.E(err) {
 						ev = nil

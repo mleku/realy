@@ -3,6 +3,7 @@ package event
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	"io"
 
 	"github.com/pkg/errors"
@@ -276,7 +277,7 @@ func (r *Reader) ReadEvent() (ev *T, err error) {
 	return
 }
 
-func (ev *T) UnmarshalBinary(b B) (r B, err E) {
+func (ev *T) oldUnmarshalBinary(b B) (r B, err E) {
 	er := &Reader{Buf: b}
 	var re *T
 	if re, err = er.ReadEvent(); err != nil {
@@ -284,5 +285,14 @@ func (ev *T) UnmarshalBinary(b B) (r B, err E) {
 	}
 	*ev = *re
 	r = er.Buf[er.Pos:]
+	return
+}
+
+func (ev *T) UnmarshalBinary(b B) (r B, err E) {
+	pb := &Event{}
+	if err = proto.Unmarshal(b, pb); chk.E(err) {
+		return
+	}
+	*ev = *pb.ToEvent()
 	return
 }

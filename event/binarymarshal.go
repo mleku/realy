@@ -3,6 +3,7 @@ package event
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/golang/protobuf/proto"
 
 	"realy.lol/ec/schnorr"
 	"realy.lol/hex"
@@ -285,11 +286,20 @@ func (w *Writer) WriteEvent(ev *T) (err error) {
 	return
 }
 
-func (ev *T) MarshalBinary(dst B) (b B, err E) {
+func (ev *T) oldMarshalBinary(dst B) (b B, err E) {
 	w := NewBufForEvent(dst, ev)
 	if err = w.WriteEvent(ev); err != nil {
 		return
 	}
 	b = w.Bytes()
+	return
+}
+
+func (ev *T) MarshalBinary(dst B) (b B, err E) {
+	var pb B
+	if pb, err = proto.Marshal(ev.ToProto()); chk.E(err) {
+		return
+	}
+	b = append(dst, pb...)
 	return
 }

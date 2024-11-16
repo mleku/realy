@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"realy.lol/event"
 	"realy.lol/interrupt"
@@ -80,12 +81,12 @@ func main() {
 		var rem B
 		if rem, err = ev.UnmarshalJSON(line); err != nil {
 			// these two error types are fatal... json cannot have linebreak characters in
-			// strings nor can it have keys that are other than the set defined in NIP-01
-			// if err.Error() != "invalid character '\\n' in quoted string" &&
-			// 	!strings.HasPrefix(err.Error(), "invalid key,") {
-			fmt.Fprintf(unmar, "%s\n", ev.Serialize())
-			// log.E.F("error unmarshaling line: '%s'\n%s", err.Error(), cp)
-			// }
+			// strings nor can events have keys that are other than the set defined in NIP-01.
+			if err.Error() != "invalid character '\\n' in quoted string" &&
+				!strings.HasPrefix(err.Error(), "invalid key,") {
+				fmt.Fprintf(unmar, "%s\n", ev.Serialize())
+				log.E.F("error unmarshaling line: '%s'\n%s", err.Error(), cp)
+			}
 			line = line[:0]
 			continue
 		}
