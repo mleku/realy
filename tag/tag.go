@@ -50,6 +50,17 @@ func (t *T) B(i int) (b B) {
 	return B(t.field[i])
 }
 
+func (t *T) BS() (bs []B) {
+	if t == nil {
+		return
+	}
+	bs = make([]B, 0, t.Len())
+	for _, b := range t.field {
+		bs = append(bs, b)
+	}
+	return
+}
+
 func (t *T) F() (b []B) {
 	if t == nil {
 		return []B{}

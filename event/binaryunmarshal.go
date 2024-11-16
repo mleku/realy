@@ -296,3 +296,10 @@ func (ev *T) UnmarshalBinary(b B) (r B, err E) {
 	*ev = *pb.ToEvent()
 	return
 }
+
+func (ev *T) bencUnmarshalBinary(b B) (r B, err E) {
+	be := &BencEvent{}
+	err = be.Unmarshal(b)
+	*ev = *be.ToEvent()
+	return
+}

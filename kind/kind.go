@@ -27,6 +27,12 @@ func (k *T) ToU16() uint16 {
 	}
 	return k.K
 }
+func (k *T) ToI32() int32 {
+	if k == nil {
+		return 0
+	}
+	return int32(k.K)
+}
 func (k *T) ToU64() uint64 {
 	if k == nil {
 		return 0

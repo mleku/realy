@@ -61,6 +61,7 @@ node_modules/**
 !*.sum
 !version
 !*.service
+!*.benc
 
 # ...even if they are in subdirectories
 !*/

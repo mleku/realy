@@ -7,6 +7,7 @@ import (
 	"realy.lol/event"
 	"realy.lol/interrupt"
 	"realy.lol/units"
+	"time"
 )
 
 func main() {
@@ -92,11 +93,13 @@ func main() {
 	scanner.Buffer(make(B, units.Megabyte*8), units.Megabyte*8)
 	bin := make(B, 0, units.Mb*8)
 	cp := make(B, units.Mb*8)
+	start := time.Now()
 	for scanner.Scan() {
 		progress++
 		if progress%1000 == 0 {
-			log.I.F("progress: line %d megabytes %f", progress,
-				float64(total)/float64(units.Megabyte))
+			tot := float64(total) / float64(units.Megabyte)
+			log.I.F("progress: line %d megabytes %f %f mb/s", progress,
+				tot, tot/float64(time.Now().Sub(start).Seconds()))
 		}
 		cp = cp[:0]
 		bin = bin[:0]

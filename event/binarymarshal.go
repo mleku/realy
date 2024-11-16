@@ -303,3 +303,11 @@ func (ev *T) MarshalBinary(dst B) (b B, err E) {
 	b = append(dst, pb...)
 	return
 }
+
+func (ev *T) bencMarshalBinary(dst B) (b B, err E) {
+	be := ev.ToBenc()
+	buf := make(B, be.Size())
+	be.Marshal(buf)
+	b = append(dst, buf...)
+	return
+}
