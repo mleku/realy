@@ -18,10 +18,11 @@ func (ev *T) ToProto() (proto *Event) {
 		Content:   ev.Content,
 		Sig:       ev.Sig,
 	}
-	if ev.Tags.F() != nil {
+	if ev.Tags.Len() > 0 {
+		log.I.S(ev.Tags.F())
 		proto.Tags = make([]*Tag, ev.Tags.Len())
-		for i := range ev.Tags.F() {
-			proto.Tags[i] = &Tag{Fields: ev.Tags.F()[i].F()}
+		for i, v := range ev.Tags.F() {
+			proto.Tags[i] = &Tag{Fields: v.F()}
 		}
 	}
 	return

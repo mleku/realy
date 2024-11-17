@@ -10,31 +10,34 @@ import (
 
 // I is an types for a persistence layer for nostr events handled by a relay.
 type I interface {
-	// Init is called at the very beginning by [Server.Start], after [Relay.Init], allowing a
-	// storage to initialize its internal resources. The parameters can be used by the database
-	// implementations to set custom parameters such as cache management and other relevant
-	// parameters to the specific implementation.
+	// Init is called at the very beginning by [Server.Start], after [Relay.Init],
+	// allowing a storage to initialize its internal resources. The parameters can be
+	// used by the database implementations to set custom parameters such as cache
+	// management and other relevant parameters to the specific implementation.
 	Init(path S) (err E)
 	// Path returns the directory of the database.
 	Path() (s S)
-	// Close must be called after you're done using the store, to free up resources and so on.
+	// Close must be called after you're done using the store, to free up resources
+	// and so on.
 	Close() (err E)
 	// Nuke deletes everything in the database.
 	Nuke() (err E)
-	// QueryEvents is invoked upon a client's REQ as described in NIP-01. It returns the matching events in reverse
-	// chronological order in a slice.
-	QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E)
-	// CountEvents performs the same work as QueryEvents but instead of delivering the events
-	// that were found it just returns the count of events
+	// QueryEvents is invoked upon a client's REQ as described in NIP-01. It returns
+	// the matching events in reverse chronological order in a slice.
+	QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E)
+	// CountEvents performs the same work as QueryEvents but instead of delivering
+	// the events that were found it just returns the count of events
 	CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E)
 	// DeleteEvent is used to handle deletion events, as per NIP-09.
 	DeleteEvent(c Ctx, ev *eventid.T) (err E)
 	// SaveEvent is called once Relay.AcceptEvent reports true.
 	SaveEvent(c Ctx, ev *event.T) (err E)
-	// Import reads in a stream of line structured JSON of events to save into the store.
+	// Import reads in a stream of line structured JSON of events to save into the
+	// store.
 	Import(r io.Reader)
-	// Export writes a stream of line structured JSON of all events in the store. If pubkeys are
-	// present, only those with these pubkeys in the `pubkey` field and in `p` tags will be included.
+	// Export writes a stream of line structured JSON of all events in the store. If
+	// pubkeys are present, only those with these pubkeys in the `pubkey` field and
+	// in `p` tags will be included.
 	Export(c Ctx, w io.Writer, pubkeys ...B)
 	// Sync signals the event store to flush its buffers.
 	Sync() (err E)

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"realy.lol/units"
 	"sort"
 	"time"
 
@@ -51,7 +52,7 @@ const (
 	pingPeriod = pongWait / 2
 
 	// Maximum message size allowed from peer.
-	maxMessageSize = 512000
+	maxMessageSize = 500 * units.Mb
 )
 
 // TODO: consider moving these to Server as config params

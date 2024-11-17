@@ -17,7 +17,7 @@ import (
 	"realy.lol/timestamp"
 )
 
-func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
+func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 	log.T.F("QueryEvents,%s", f.Serialize())
 	evMap := make(map[S]*event.T)
 	var queries []query
@@ -236,6 +236,9 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	}
 	if len(evMap) > 0 {
 		for i := range evMap {
+			if len(evMap[i].PubKey) == 0 {
+				continue
+			}
 			evs = append(evs, evMap[i])
 		}
 		sort.Sort(event.Descending(evs))
@@ -248,8 +251,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				f.Serialize())
 			return fmt.Sprintf("%s\nevents,%v", heading, evIds)
 		})
-		// bump the access times on all of the retrieved events.
-		// do this in a goroutine so the user's events are delivered immediately
+		// bump the access times on all retrieved events. do this in a goroutine so the
+		// user's events are delivered immediately
 		go func() {
 			for ser := range accessed {
 				seri := serial.New(B(ser))

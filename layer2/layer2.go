@@ -3,11 +3,13 @@ package layer2
 import (
 	"errors"
 	"io"
+	"path/filepath"
 	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/filter"
 	"realy.lol/store"
+	"realy.lol/tag"
 	"realy.lol/timestamp"
 	"sync"
 	"time"
@@ -17,25 +19,36 @@ type Backend struct {
 	Ctx  context.T
 	WG   *sync.WaitGroup
 	path S
-	L1   store.I
-	L2   store.I
-	// PollFrequency is how often the L2 is queried for recent events
+	// L1 will store its state/configuration in path/layer1
+	L1 store.I
+	// L2 will store its state/configuration in path/layer2
+	L2 store.I
+	// PollFrequency is how often the L2 is queried for recent events. This is only
+	// relevant for shared layer2 stores, and will not apply for layer2
+	// implementations that are just two separate data store systems on the same
+	// server.
 	PollFrequency time.Duration
 	// PollOverlap is the multiple of the PollFrequency within which polling the L2
-	// is done to ensure any slow synchrony on the L2 is covered (2-4 usually)
+	// is done to ensure any slow synchrony on the L2 is covered (2-4 usually).
 	PollOverlap timestamp.T
 	// EventSignal triggers when the L1 saves a new event from the L2
 	//
-	// caller is responsible for populating this
+	// caller is responsible for populating this so that a signal can pass to all
+	// peers sharing the same L2 and enable cross-cluster subscription delivery.
 	EventSignal event.C
 }
 
 func (b *Backend) Init(path S) (err E) {
 	b.path = path
-	if err = b.L1.Init(path); chk.E(err) {
+	// each backend will have configuration files living in a subfolder of the same
+	// root, path/layer1 and path/layer2 - this may only be state/configuration, or
+	// it can be the site of the storage of data.
+	path1 := filepath.Join(path, "layer1")
+	path2 := filepath.Join(path, "layer2")
+	if err = b.L1.Init(path1); chk.E(err) {
 		return
 	}
-	if err = b.L2.Init(path); chk.E(err) {
+	if err = b.L2.Init(path2); chk.E(err) {
 		return
 	}
 	// if poll syncing is disabled don't start the ticker
@@ -55,7 +68,7 @@ func (b *Backend) Init(path S) (err E) {
 		for {
 			select {
 			case <-b.Ctx.Done():
-				b.Close()
+				chk.E(b.Close())
 				return
 			case <-ticker.C:
 				until := timestamp.Now()
@@ -109,27 +122,56 @@ func (b *Backend) Nuke() (err E) {
 	return
 }
 
-func (b *Backend) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
-	var evs1, evs2 []*event.T
-	var err1, err2 E
-	var wg sync.WaitGroup
-	go func() {
-		wg.Add(1)
-		if evs2, err1 = b.L2.QueryEvents(c, f); chk.E(err) {
+func (b *Backend) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
+	if evs, err = b.L1.QueryEvents(c, f); chk.E(err) {
+		return
+	}
+	// if there is pruned events (have only ID, no pubkey), they will also be in the
+	// L2 result, save these to the L1.
+	var revives []B
+	var founds event.Ts
+	for _, ev := range evs {
+		if len(ev.PubKey) == 0 {
+			// note the event ID to fetch
+			revives = append(revives, ev.ID)
+		} else {
+			founds = append(founds, ev)
 		}
-		wg.Done()
-	}()
-	go func() {
-		wg.Add(1)
-		if evs1, err2 = b.L1.QueryEvents(c, f); chk.E(err) {
+	}
+	evs = founds
+	go func(revives []B) {
+		var err E
+		// construct the filter to fetch the missing events in the background that we
+		// know about, these will come in later on the subscription while it remains
+		// open.
+		l2filter := &filter.T{IDs: tag.New(revives...)}
+		var evs2 event.Ts
+		if evs2, err = b.L2.QueryEvents(c, l2filter); chk.E(err) {
+			return
 		}
-		wg.Done()
-	}()
-	wg.Wait()
-	// both or either will return if the context is closed
-	evs = append(evs, evs1...)
-	evs = append(evs, evs2...)
-	err = errors.Join(err1, err2)
+		for _, ev := range evs2 {
+			// saving the events here will trigger a match on the subscription
+			if err = b.L1.SaveEvent(c, ev); err != nil {
+				continue
+			}
+		}
+		// after fetching what we know exists of non pruned indexes that found stubs we
+		// want to run the query to the L2 anyway, and any matches that are found that
+		// were not locally available will now be available.
+		//
+		// if the subscription is still open the matches will be delivered later, the
+		// late events will be in descending (reverse chronological) order but the stream
+		// as a whole will not be. whatever.
+		var evs event.Ts
+		if evs, err = b.L2.QueryEvents(c, f); chk.E(err) {
+			return
+		}
+		for _, ev := range evs {
+			if err = b.L1.SaveEvent(c, ev); err != nil {
+				continue
+			}
+		}
+	}(revives)
 	return
 }
 
@@ -142,6 +184,8 @@ func (b *Backend) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) 
 		count1, approx1, err1 = b.L1.CountEvents(c, f)
 		wg.Done()
 	}()
+	// because this is a low-data query we will wait until the L2 also gets a count,
+	// which should be under a few hundred ms in most cases
 	go func() {
 		wg.Add(1)
 		count2, approx2, err2 = b.L2.CountEvents(c, f)
@@ -150,35 +194,41 @@ func (b *Backend) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) 
 	// we return the maximum, it is assumed the L2 is authoritative, but it could be
 	// the L1 has more for whatever reason, so return the maximum of the two.
 	count = count1
+	approx = approx1
 	if count2 > count {
 		count = count2
+		// the approximate flag probably will be false if the L2 got more, and it is a
+		// very large, non GC store.
+		approx = approx2
 	}
 	err = errors.Join(err1, err2)
-	// if either are approximate, we mark the result approximate.
-	approx = approx1 || approx2
 	return
 }
 
 func (b *Backend) DeleteEvent(c Ctx, ev *eventid.T) (err E) {
-	// delete the events
+	// delete the events from both stores.
 	err = errors.Join(b.L1.DeleteEvent(c, ev), b.L2.DeleteEvent(c, ev))
 	return
 }
 
 func (b *Backend) SaveEvent(c Ctx, ev *event.T) (err E) {
-	err = errors.Join(b.L1.SaveEvent(c, ev), b.L2.SaveEvent(c, ev))
+	// save to both event stores
+	err = errors.Join(
+		b.L1.SaveEvent(c, ev), // this will also send out to subscriptions
+		b.L2.SaveEvent(c, ev))
 	return
 }
 
 func (b *Backend) Import(r io.Reader) {
-	// for an L2 we want to put only to the L1 and push to L2 when it gets stale
-	b.L1.Import(r)
+	// we import up to the L2 directly, demanded data will be fetched from it by
+	// later queries.
+	b.L2.Import(r)
 }
 
 func (b *Backend) Export(c Ctx, w io.Writer, pubkeys ...B) {
-	// do this in series, local first. L2 may not even have an export function.
-	// todo: sorta seems like maybe L2 is authoritative and don't need to export L1? deduplicating will be expensive.
-	b.L1.Export(c, w, pubkeys...)
+	// export only from the L2 as it is considered to be the authoritative event
+	// store of the two, and this is generally an administrative or infrequent action
+	// and latency will not matter as it usually will be a big bulky download.
 	b.L2.Export(c, w, pubkeys...)
 }
 

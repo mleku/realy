@@ -2,6 +2,7 @@ package ratel
 
 import (
 	"encoding/binary"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -29,7 +30,7 @@ const CounterLen = KeyLen + createdat.Len
 func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	prunedTotal int, err error) {
 
-	log.D.Ln("running GC count", r.Path())
+	//log.D.Ln("running GC count", r.Path())
 	overallStart := time.Now()
 	prf := []byte{byte(index.Event)}
 	evStream := r.DB.NewStream()
@@ -65,7 +66,7 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	if err = evStream.Orchestrate(r.Ctx); chk.E(err) {
 		return
 	}
-	log.D.F("counted %d events, %d pruned events in %v %s", len(unpruned),
+	log.T.F("counted %d events, %d pruned events in %v %s", len(unpruned),
 		len(pruned), time.Now().Sub(overallStart), r.Path())
 	var unprunedBySerial, prunedBySerial count.ItemsBySerial
 	unprunedBySerial = count.ItemsBySerial(unpruned)
@@ -160,31 +161,31 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	hw, _ := r.GetEventHeadroom()
 	unprunedTotal = unpruned.Total()
 	up := float64(unprunedTotal)
-	log.D.F("%d complete records; "+
-		"total size of event data %0.6f Gb "+
-		"high water %0.6f Gb computed in %v %s",
+	var o S
+	o += fmt.Sprintf("%8d complete,"+
+		"total %0.6f Gb,"+
+		"HW %0.6f Gb",
 		len(unpruned),
 		up/units.Gb,
 		float64(hw)/units.Gb,
-		time.Now().Sub(overallStart),
-		r.Path(),
 	)
 	if r.HasL2 {
 		l2hw, _ := r.GetIndexHeadroom()
 		prunedTotal = pruned.Total()
 		p := float64(prunedTotal)
 		if r.HasL2 {
-			log.D.F("%d pruned records; "+
-				"total size of pruned event index data %0.6f Gb; "+
-				"pruned index high water %0.6f Gb %s computed in %v %s",
+			o += fmt.Sprintf(",%8d pruned,"+
+				"total %0.6f Gb,"+
+				"pruned HW %0.6f Gb,computed in %v,%s",
 				len(pruned),
 				p/units.Gb,
-				float64(l2hw)/units.Gb, r.Path(),
+				float64(l2hw)/units.Gb,
 				time.Now().Sub(overallStart),
 				r.Path(),
 			)
 		}
 	}
+	log.D.Ln(o)
 	return
 }
 

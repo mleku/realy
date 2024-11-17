@@ -1,9 +1,8 @@
 package ratel
 
 import (
-	"time"
-
 	"realy.lol/units"
+	"time"
 )
 
 // GarbageCollector starts up a ticker that runs a check on space utilisation
@@ -12,17 +11,16 @@ import (
 // This function should be invoked as a goroutine, and will terminate when the
 // backend context is canceled.
 func (r *T) GarbageCollector() {
-	log.D.F("starting ratel back-end garbage collector: max size %0.3f MB; "+
-		"high water %0.3f MB; "+
-		"low water %0.3f MB "+
-		"(MB = %d bytes) "+
-		"GC check frequency %v %s",
-		float32(r.DBSizeLimit)/units.Mb,
-		float32(r.DBHighWater*r.DBSizeLimit/100)/units.Mb,
-		float32(r.DBLowWater*r.DBSizeLimit/100)/units.Mb,
-		units.Mb,
+	log.D.F("starting ratel back-end garbage collector,"+
+		"max size %0.3fGb,"+
+		"high water %0.3fGb,"+
+		"low water %0.3fGb,"+
+		"GC check frequency %v,%s",
+		float32(r.DBSizeLimit/units.Gb),
+		float32(r.DBHighWater*r.DBSizeLimit/100)/float32(units.Gb),
+		float32(r.DBLowWater*r.DBSizeLimit/100)/float32(units.Gb),
 		r.GCFrequency,
-		r.Path,
+		r.Path(),
 	)
 	var err error
 	if err = r.GCRun(); chk.E(err) {
@@ -34,6 +32,7 @@ out:
 		select {
 		case <-r.Ctx.Done():
 			log.W.Ln("stopping event GC ticker")
+			GCticker.Stop()
 			break out
 		case <-GCticker.C:
 			// log.T.Ln("running GC", r.Path)
@@ -53,7 +52,7 @@ func (r *T) GCRun() (err error) {
 		return
 	}
 	if len(pruneEvents) < 1 && len(pruneIndexes) < 1 {
-		log.I.Ln("GC sweep unnecessary")
+		//log.I.Ln("GC sweep unnecessary")
 		return
 	}
 	if err = r.GCSweep(pruneEvents, pruneIndexes); chk.E(err) {

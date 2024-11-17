@@ -93,6 +93,7 @@ var (
 		{Debug, "DBG", color.New(color.FgHiBlue).Sprint},
 		{Trace, "TRC", color.New(color.FgHiMagenta).Sprint},
 	}
+	NoTimeStomp atomic.Bool
 )
 
 func NoSprint(a ...any) string { return "" }
@@ -205,7 +206,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				return
 			}
 			fmt.Fprintf(writer,
-				"%s %s %s %s\n",
+				"%s%s %s %s\n",
 				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				BreakToWidth(JoinStrings(a...)),
@@ -217,7 +218,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				return
 			}
 			fmt.Fprintf(writer,
-				"%s %s %s %s\n",
+				"%s%s %s %s\n",
 				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				BreakToWidth(fmt.Sprintf(format, a...)),
@@ -229,7 +230,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				return
 			}
 			fmt.Fprintf(writer,
-				"%s %s %s %s\n",
+				"%s%s %s %s\n",
 				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				spew.Sdump(a...),
@@ -241,7 +242,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				return
 			}
 			fmt.Fprintf(writer,
-				"%s %s %s %s\n",
+				"%s%s %s %s\n",
 				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				BreakToWidth(closure()),
@@ -254,7 +255,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			if e != nil {
 				fmt.Fprintf(writer,
-					"%s %s %s %s\n",
+					"%s%s %s %s\n",
 					msgCol(Timestamper()),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 					e.Error(),
@@ -267,7 +268,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 		Err: func(format string, a ...interface{}) error {
 			if Level.Load() < l {
 				fmt.Fprintf(writer,
-					"%s %s %s %s\n",
+					"%s%s %s %s\n",
 					msgCol(Timestamper()),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name, " "),
 					fmt.Sprintf(format, a...),
@@ -320,6 +321,9 @@ func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 
 // Timestamper e
 func Timestamper() (s string) {
+	if NoTimeStomp.Load() {
+		return
+	}
 	timeText := fmt.Sprint(time.Now().UnixNano())
 	lt := len(timeText)
 	lb := lt + 1
@@ -329,7 +333,7 @@ func Timestamper() (s string) {
 	lb -= 10
 	lt -= 9
 	copy(timeBytes[:lb], timeText[:lt])
-	return fmt.Sprint(string(timeBytes))
+	return fmt.Sprint(string(timeBytes), " ")
 }
 
 var wd, _ = os.Getwd()

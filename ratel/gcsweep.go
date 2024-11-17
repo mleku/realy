@@ -12,9 +12,20 @@ import (
 
 func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 	// first we must gather all the indexes of the relevant events
-	batch := r.DB.NewWriteBatch()
-	defer batch.Cancel()
 	started := time.Now()
+	batch := r.DB.NewWriteBatch()
+	defer func() {
+		log.I.Ln("flushing GC sweep batch")
+		if err = batch.Flush(); chk.E(err) {
+			return
+		}
+		if vlerr := r.DB.RunValueLogGC(0.5); vlerr == nil {
+			log.I.Ln("value log cleaned up")
+		}
+		chk.E(r.DB.Sync())
+		batch.Cancel()
+		log.I.Ln("completed sweep in", time.Now().Sub(started), r.Path())
+	}()
 	// var wg sync.WaitGroup
 	// go func() {
 	// 	wg.Add(1)
@@ -51,13 +62,17 @@ func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 			if evb, err = item.ValueCopy(nil); chk.E(err) {
 				return
 			}
-			var ev *event.T
+			ev := &event.T{}
 			var rem B
 			if rem, err = ev.UnmarshalBinary(evb); chk.E(err) {
 				return
 			}
 			if len(rem) != 0 {
 				log.I.S(rem)
+			}
+			// otherwise we are deleting
+			if err = batch.Delete(key); chk.E(err) {
+				return
 			}
 			if err = batch.Set(key, ev.ID); chk.E(err) {
 				return
@@ -78,7 +93,7 @@ func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 	// }()
 	// next delete all the indexes
 	if len(idxs) > 0 && r.HasL2 {
-		log.T.Ln("pruning indexes")
+		log.I.Ln("pruning indexes")
 		// we have to remove everything
 		prfs := [][]byte{{index.Event.B()}}
 		prfs = append(prfs, index.FilterPrefixes...)
@@ -114,13 +129,5 @@ func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 			log.T.Ln("completed index prefix", prf)
 		}
 	}
-	log.T.Ln("flushing batch")
-	if err = batch.Flush(); chk.E(err) {
-		return
-	}
-	if vlerr := r.DB.RunValueLogGC(0.5); vlerr == nil {
-		log.I.Ln("value log cleaned up")
-	}
-	log.I.Ln("completed sweep in", time.Now().Sub(started), r.Path())
 	return
 }

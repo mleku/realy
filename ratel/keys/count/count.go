@@ -41,5 +41,5 @@ type Fresh struct {
 type Freshes []*Fresh
 
 func (c Freshes) Len() int           { return len(c) }
-func (c Freshes) Less(i, j int) bool { return c[i].Serial < c[j].Serial }
+func (c Freshes) Less(i, j int) bool { return c[i].Freshness.I64() < c[j].Freshness.I64() }
 func (c Freshes) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }

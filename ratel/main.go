@@ -60,7 +60,7 @@ var _ eventstore.I = (*T)(nil)
 // caller.
 func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2 bool,
 	blockCacheSize, logLevel, maxLimit int, params ...int) (b *T) {
-	var sizeLimit, lw, hw, freq = 0, 86, 92, 60
+	var sizeLimit, lw, hw, freq = 0, 50, 66, 3600
 	switch len(params) {
 	case 4:
 		freq = params[3]
