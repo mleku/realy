@@ -19,7 +19,7 @@ func (ev *T) ToProto() (proto *Event) {
 		Sig:       ev.Sig,
 	}
 	if ev.Tags.Len() > 0 {
-		log.I.S(ev.Tags.F())
+		//log.I.S(ev.Tags.F())
 		proto.Tags = make([]*Tag, ev.Tags.Len())
 		for i, v := range ev.Tags.F() {
 			proto.Tags[i] = &Tag{Fields: v.F()}
@@ -30,6 +30,9 @@ func (ev *T) ToProto() (proto *Event) {
 
 // ToEvent converts from the protobuf event format to the event.T.
 func (x *Event) ToEvent() (ev *T) {
+	if x == nil || x.Id == nil {
+		return &T{}
+	}
 	ev = &T{
 		ID:        x.Id[:sha256.Size],
 		PubKey:    x.Pubkey[:schnorr.PubKeyBytesLen],
