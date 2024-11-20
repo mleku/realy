@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+
 	"realy.lol/context"
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
-	eventstore "realy.lol/store"
+	"realy.lol/store"
 	"realy.lol/units"
 )
 
@@ -49,7 +50,7 @@ type T struct {
 	Flatten bool
 }
 
-var _ eventstore.I = (*T)(nil)
+var _ store.I = (*T)(nil)
 
 // GetBackend returns a reasonably configured badger.Backend.
 //
