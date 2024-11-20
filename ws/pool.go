@@ -9,6 +9,7 @@ import (
 	"unsafe"
 
 	"github.com/puzpuzpuz/xsync/v3"
+
 	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/filter"

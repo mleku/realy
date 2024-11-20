@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"golang.org/x/net/websocket"
+
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/envelopes/okenvelope"
 	"realy.lol/event"

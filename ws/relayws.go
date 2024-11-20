@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/fasthttp/websocket"
+
 	"realy.lol/atomic"
 	"realy.lol/bech32encoding"
 	"realy.lol/context"
