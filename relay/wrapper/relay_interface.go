@@ -9,6 +9,7 @@ import (
 	"realy.lol/filter"
 	"realy.lol/kinds"
 	"realy.lol/normalize"
+	"realy.lol/store"
 	"realy.lol/tag"
 	"realy.lol/ws"
 )
@@ -21,7 +22,7 @@ type RelayInterface interface {
 }
 
 type RelayWrapper struct {
-	I
+	store.I
 }
 
 var _ RelayInterface = (*RelayWrapper)(nil)
@@ -89,7 +90,7 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 			}
 		}
 	}
-	if err = w.SaveEvent(c, evt); chk.E(err) && !errors.Is(err, ErrDupEvent) {
+	if err = w.SaveEvent(c, evt); chk.E(err) && !errors.Is(err, store.ErrDupEvent) {
 		return errorf.E("failed to save: %w", err)
 	}
 
