@@ -7,6 +7,7 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
+
 	"realy.lol/ratel/keys/index"
 	"realy.lol/units"
 )
@@ -20,7 +21,6 @@ func (r *T) Init(path S) (err E) {
 	opts.CompactL0OnClose = true
 	opts.LmaxCompaction = true
 	opts.Compression = options.None
-	// opts.Compression = options.ZSTD
 	r.Logger = NewLogger(r.InitLogLevel, r.dataDir)
 	opts.Logger = r.Logger
 	if r.DB, err = badger.Open(opts); chk.E(err) {

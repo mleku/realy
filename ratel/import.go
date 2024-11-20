@@ -19,9 +19,6 @@ func (r *T) Import(rr io.Reader) {
 	var count N
 	for scan.Scan() {
 		b := scan.Bytes()
-		// if len(b) > 8192 {
-		// 	log.I.F("saving,%s", b)
-		// }
 		ev := &event.T{}
 		if _, err = ev.UnmarshalJSON(b); err != nil {
 			continue
@@ -30,11 +27,9 @@ func (r *T) Import(rr io.Reader) {
 			continue
 		}
 		count++
-		if count > 0 && count%100 == 0 {
+		if count > 0 && count%1000 == 0 {
 			chk.T(r.DB.Sync())
-			log.I.F("imported %d events, running GC on new data", count)
 			chk.T(r.DB.RunValueLogGC(0.5))
-			log.I.F("gc done")
 		}
 	}
 	err = scan.Err()

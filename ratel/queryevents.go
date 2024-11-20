@@ -142,10 +142,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 							if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
 									log.T.F("event %0x,%s\nreplaces %0x,%s",
-										ev.ID,
-										ev.Serialize(),
-										evc.ID,
-										evc.Serialize(),
+										ev.ID, ev.Serialize(),
+										evc.ID, evc.Serialize(),
 									)
 									// replace the event, it is newer
 									delete(evMap, i)
@@ -233,7 +231,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 			return
 		default:
 		}
-		// check if this matches the other filters that were not part of the index.
 	}
 	if len(evMap) > 0 {
 		for i := range evMap {

@@ -8,7 +8,6 @@ import (
 	"github.com/dgraph-io/badger/v4"
 
 	"realy.lol/context"
-	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/hex"
 	"realy.lol/qu"
@@ -70,7 +69,7 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 							return
 						default:
 						}
-						opts := badger.IteratorOptions{Reverse: true}
+						opts := badger.IteratorOptions{Reverse: false}
 						it := txn.NewIterator(opts)
 						defer it.Close()
 						var count int
@@ -78,27 +77,12 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 							count++
 							item := it.Item()
 							if r.HasL2 && item.ValueSize() == sha256.Size {
-								// we aren't fetching from L2 for export, so don't send this
-								// back.
+								// we aren't fetching from L2 for export, so don't send this back.
 								return
 							}
 							if err = item.Value(func(eventValue []byte) (err E) {
-								ev := &event.T{}
-								var rem B
-								if rem, err = ev.UnmarshalJSON(eventValue); chk.E(err) {
-									ev = nil
-									eventValue = eventValue[:0]
-									return
-								}
-								if len(rem) > 0 {
-									log.T.S(rem)
-								}
-								if ev == nil {
-									return
-								}
-								// log.I.Ln("found match", count, " for", pks)
-								// send the event to client
-								if _, err = fmt.Fprintf(w, "%s\n", ev.Serialize()); chk.E(err) {
+								// send the event to client (no need to re-encode it)
+								if _, err = fmt.Fprintf(w, "%s\n", eventValue); chk.E(err) {
 									return
 								}
 								return
@@ -109,15 +93,12 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 						return
 					})
 					if chk.E(err) {
-						// return
 					}
 				}
 			}
 		}()
 		// stop the writer loop
-
 		defer quit.Q()
-		// log.I.Ln(len(queries), "queries for", pks)
 		for _, q := range queries {
 			select {
 			case <-r.Ctx.Done():
@@ -175,17 +156,8 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 					err = nil
 					continue
 				}
-				var rem B
-				ev := &event.T{}
-				if rem, err = ev.UnmarshalJSON(b); chk.E(err) {
-					err = nil
-					continue
-				}
-				if len(rem) > 0 {
-					log.T.S(rem)
-				}
-				// send the event to client
-				if _, err = fmt.Fprintf(w, "%s\n", ev.Serialize()); chk.E(err) {
+				// send the event to client - the database stores correct JSON versions so no need to decode/encode.
+				if _, err = fmt.Fprintf(w, "%s\n", b); chk.E(err) {
 					return
 				}
 				counter++
