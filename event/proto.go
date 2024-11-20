@@ -30,8 +30,8 @@ func (ev *T) ToProto() (proto *Event) {
 
 // ToEvent converts from the protobuf event format to the event.T.
 func (x *Event) ToEvent() (ev *T) {
-	if x == nil || x.Id == nil {
-		return &T{}
+	if x == nil || x.Id == nil || x.Sig == nil {
+		return
 	}
 	ev = &T{
 		ID:        x.Id[:sha256.Size],
