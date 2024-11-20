@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/dgraph-io/badger/v4"
+
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/hex"
@@ -125,7 +126,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 				ev := &event.T{}
 				if err = item.Value(func(eventValue B) (err E) {
 					var rem B
-					if rem, err = ev.UnmarshalBinary(eventValue); chk.E(err) {
+					if rem, err = ev.UnmarshalJSON(eventValue); chk.E(err) {
 						ev = nil
 						eventValue = eventValue[:0]
 						return

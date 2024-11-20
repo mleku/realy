@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/dgraph-io/badger/v4"
+
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/ratel/keys/createdat"
@@ -84,7 +85,7 @@ func (r *T) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) {
 					var appr bool
 					if err = item.Value(func(eventValue []byte) (err E) {
 						var rem B
-						if rem, err = ev.UnmarshalBinary(eventValue); chk.E(err) {
+						if rem, err = ev.UnmarshalJSON(eventValue); chk.E(err) {
 							ev = nil
 							eventValue = eventValue[:0]
 							return

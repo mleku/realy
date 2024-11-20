@@ -2,6 +2,7 @@ package ratel
 
 import (
 	"github.com/dgraph-io/badger/v4"
+
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/ratel/keys"
@@ -55,7 +56,7 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 			}
 			// log.I.S(evb)
 			var rem B
-			if rem, err = ev.UnmarshalBinary(evb); chk.E(err) {
+			if rem, err = ev.UnmarshalJSON(evb); chk.E(err) {
 				return
 			}
 			_ = rem

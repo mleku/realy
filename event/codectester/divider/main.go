@@ -104,31 +104,31 @@ func main() {
 			line = line[:0]
 			continue
 		}
-		if bin, err = ev.MarshalBinary(bin); err != nil {
-			_, err = fmt.Fprintf(tobin, "%s\n", ev.Serialize())
-			if chk.E(err) {
-				panic(err)
-			}
-			line = line[:0]
-			continue
-		}
-		ev2 := &event.T{}
-		if rem, err = ev2.UnmarshalBinary(bin); err != nil {
-			_, err = fmt.Fprintf(frombin, "%s\n", ev.Serialize())
-			if chk.E(err) {
-				panic(err)
-			}
-			line = line[:0]
-			continue
-		}
-		if !equals(ev.Serialize(), ev2.Serialize()) {
-			_, err = fmt.Fprintf(reser, "%s\n", ev.Serialize())
-			if chk.E(err) {
-				panic(err)
-			}
-			line = line[:0]
-			continue
-		}
+		//if bin, err = ev.MarshalBinary(bin); err != nil {
+		//	_, err = fmt.Fprintf(tobin, "%s\n", ev.Serialize())
+		//	if chk.E(err) {
+		//		panic(err)
+		//	}
+		//	line = line[:0]
+		//	continue
+		//}
+		//ev2 := &event.T{}
+		//if rem, err = ev2.UnmarshalBinary(bin); err != nil {
+		//	_, err = fmt.Fprintf(frombin, "%s\n", ev.Serialize())
+		//	if chk.E(err) {
+		//		panic(err)
+		//	}
+		//	line = line[:0]
+		//	continue
+		//}
+		//if !equals(ev.Serialize(), ev2.Serialize()) {
+		//	_, err = fmt.Fprintf(reser, "%s\n", ev.Serialize())
+		//	if chk.E(err) {
+		//		panic(err)
+		//	}
+		//	line = line[:0]
+		//	continue
+		//}
 		progress++
 		if progress%1000 == 0 {
 			log.I.F("progress: line %d megabytes %f", progress,

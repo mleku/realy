@@ -2,6 +2,7 @@ package ratel
 
 import (
 	"github.com/dgraph-io/badger/v4"
+
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/ratel/keys"
@@ -73,7 +74,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 				// we only need to restore the event binary and write the access counter key
 				// encode to binary
 				var bin B
-				if bin, err = ev.MarshalBinary(bin); chk.E(err) {
+				if bin, err = ev.MarshalJSON(bin); chk.E(err) {
 					return
 				}
 				if err = txn.Set(it.Item().Key(), bin); chk.E(err) {
@@ -96,7 +97,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		return
 	}
 	var bin B
-	if bin, err = ev.MarshalBinary(bin); chk.T(err) {
+	if bin, err = ev.MarshalJSON(bin); chk.T(err) {
 		return
 	}
 	// otherwise, save new event record.

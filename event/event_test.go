@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	_ "embed"
-	"strings"
 	"testing"
 
 	"realy.lol/event/examples"
@@ -86,60 +85,60 @@ func TestT_SignWithSecKey(t *testing.T) {
 	}
 }
 
-func TestBinaryEvents(t *testing.T) {
-	var err error
-	var ev, ev2 *T
-	_ = ev2
-	var orig B
-	b2, b3 := make(B, 0, 1_000_000), make(B, 0, 1_000_000)
-	j2, j3 := make(B, 0, 1_000_000), make(B, 0, 1_000_000)
-	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(B, 1_000_000)
-	scanner.Buffer(buf, len(buf))
-	ev, ev2 = New(), New()
-	for scanner.Scan() {
-		orig = scanner.Bytes()
-		var cp B
-		cp = append(cp, orig...)
-		if orig, err = ev.UnmarshalJSON(orig); chk.E(err) {
-			t.Fatal(err)
-		}
-		if len(orig) > 0 {
-			t.Fatalf("remainder after end of event: %s", orig)
-		}
-		if b2, err = ev.MarshalBinary(b2); chk.E(err) {
-			t.Fatal(err)
-		}
-		// copy for verification
-		b3 = append(b3, b2...)
-		if b2, err = ev2.UnmarshalBinary(b2); chk.E(err) {
-			t.Fatal(err)
-		}
-		if j2, err = ev2.MarshalJSON(j2); chk.E(err) {
-			t.Fatal(err)
-		}
-		if len(b2) > 0 {
-			t.Fatalf("remainder after end of event: %s", orig)
-		}
-		// bytes should be identical to b3
-		if b2, err = ev2.MarshalBinary(b2); chk.E(err) {
-			es := err.Error()
-			if strings.Contains(es, "invalid length event ID in `a` tag:") {
-				err = nil
-				goto zero
-			}
-			log.E.Ln(es)
-		}
-		if !equals(b2, b3) {
-			// log.E.S(ev, ev2)
-			t.Fatalf("failed to remarshal\n%0x\n%0x",
-				b3, b2)
-		}
-	zero:
-		j2, j3 = j2[:0], j3[:0]
-		b2, b3 = b2[:0], b3[:0]
-	}
-}
+//func TestBinaryEvents(t *testing.T) {
+//	var err error
+//	var ev, ev2 *T
+//	_ = ev2
+//	var orig B
+//	b2, b3 := make(B, 0, 1_000_000), make(B, 0, 1_000_000)
+//	j2, j3 := make(B, 0, 1_000_000), make(B, 0, 1_000_000)
+//	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
+//	buf := make(B, 1_000_000)
+//	scanner.Buffer(buf, len(buf))
+//	ev, ev2 = New(), New()
+//	for scanner.Scan() {
+//		orig = scanner.Bytes()
+//		var cp B
+//		cp = append(cp, orig...)
+//		if orig, err = ev.UnmarshalJSON(orig); chk.E(err) {
+//			t.Fatal(err)
+//		}
+//		if len(orig) > 0 {
+//			t.Fatalf("remainder after end of event: %s", orig)
+//		}
+//		if b2, err = ev.MarshalBinary(b2); chk.E(err) {
+//			t.Fatal(err)
+//		}
+//		// copy for verification
+//		b3 = append(b3, b2...)
+//		if b2, err = ev2.UnmarshalBinary(b2); chk.E(err) {
+//			t.Fatal(err)
+//		}
+//		if j2, err = ev2.MarshalJSON(j2); chk.E(err) {
+//			t.Fatal(err)
+//		}
+//		if len(b2) > 0 {
+//			t.Fatalf("remainder after end of event: %s", orig)
+//		}
+//		// bytes should be identical to b3
+//		if b2, err = ev2.MarshalBinary(b2); chk.E(err) {
+//			es := err.Error()
+//			if strings.Contains(es, "invalid length event ID in `a` tag:") {
+//				err = nil
+//				goto zero
+//			}
+//			log.E.Ln(es)
+//		}
+//		if !equals(b2, b3) {
+//			// log.E.S(ev, ev2)
+//			t.Fatalf("failed to remarshal\n%0x\n%0x",
+//				b3, b2)
+//		}
+//	zero:
+//		j2, j3 = j2[:0], j3[:0]
+//		b2, b3 = b2[:0], b3[:0]
+//	}
+//}
 
 func BenchmarkMarshalJSON(bb *testing.B) {
 	bb.StopTimer()
@@ -199,69 +198,69 @@ func BenchmarkUnmarshalJSON(bb *testing.B) {
 	}
 }
 
-func BenchmarkMarshalBinary(bb *testing.B) {
-	bb.StopTimer()
-	var i int
-	var out B
-	var err error
-	evts := make([]*T, 0, 9999)
-	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(B, 1_000_000)
-	scanner.Buffer(buf, len(buf))
-	for scanner.Scan() {
-		b := scanner.Bytes()
-		ea := New()
-		if b, err = ea.UnmarshalJSON(b); chk.E(err) {
-			bb.Fatal(err)
-		}
-		evts = append(evts, ea)
-	}
-	var counter int
-	out = out[:0]
-	bb.ReportAllocs()
-	bb.StartTimer()
-	for i = 0; i < bb.N; i++ {
-		out, _ = evts[counter].MarshalBinary(out)
-		out = out[:0]
-		counter++
-		if counter != len(evts) {
-			counter = 0
-		}
-	}
-}
-
-func BenchmarkUnmarshalBinary(bb *testing.B) {
-	bb.StopTimer()
-	var i int
-	var out B
-	var err error
-	evts := make([]B, 0, 9999)
-	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(B, 1_000_000)
-	scanner.Buffer(buf, len(buf))
-	for scanner.Scan() {
-		b := scanner.Bytes()
-		ea := New()
-		if b, err = ea.UnmarshalJSON(b); chk.E(err) {
-			bb.Fatal(err)
-		}
-		out = make(B, len(b))
-		out, _ = ea.MarshalBinary(out)
-		evts = append(evts, out)
-	}
-	bb.ReportAllocs()
-	var counter int
-	bb.StartTimer()
-	ev := New()
-	for i = 0; i < bb.N; i++ {
-		l := len(evts[counter])
-		b := make(B, l)
-		copy(b, evts[counter])
-		b, _ = ev.UnmarshalBinary(b)
-		out = out[:0]
-		counter++
-		if counter != len(evts) {
-			counter = 0
-		}
-	}
-}
+//func BenchmarkMarshalBinary(bb *testing.B) {
+//	bb.StopTimer()
+//	var i int
+//	var out B
+//	var err error
+//	evts := make([]*T, 0, 9999)
+//	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
+//	buf := make(B, 1_000_000)
+//	scanner.Buffer(buf, len(buf))
+//	for scanner.Scan() {
+//		b := scanner.Bytes()
+//		ea := New()
+//		if b, err = ea.UnmarshalJSON(b); chk.E(err) {
+//			bb.Fatal(err)
+//		}
+//		evts = append(evts, ea)
+//	}
+//	var counter int
+//	out = out[:0]
+//	bb.ReportAllocs()
+//	bb.StartTimer()
+//	for i = 0; i < bb.N; i++ {
+//		out, _ = evts[counter].MarshalBinary(out)
+//		out = out[:0]
+//		counter++
+//		if counter != len(evts) {
+//			counter = 0
+//		}
+//	}
+//}
+//
+//func BenchmarkUnmarshalBinary(bb *testing.B) {
+//	bb.StopTimer()
+//	var i int
+//	var out B
+//	var err error
+//	evts := make([]B, 0, 9999)
+//	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
+//	buf := make(B, 1_000_000)
+//	scanner.Buffer(buf, len(buf))
+//	for scanner.Scan() {
+//		b := scanner.Bytes()
+//		ea := New()
+//		if b, err = ea.UnmarshalJSON(b); chk.E(err) {
+//			bb.Fatal(err)
+//		}
+//		out = make(B, len(b))
+//		out, _ = ea.MarshalBinary(out)
+//		evts = append(evts, out)
+//	}
+//	bb.ReportAllocs()
+//	var counter int
+//	bb.StartTimer()
+//	ev := New()
+//	for i = 0; i < bb.N; i++ {
+//		l := len(evts[counter])
+//		b := make(B, l)
+//		copy(b, evts[counter])
+//		b, _ = ev.UnmarshalBinary(b)
+//		out = out[:0]
+//		counter++
+//		if counter != len(evts) {
+//			counter = 0
+//		}
+//	}
+//}

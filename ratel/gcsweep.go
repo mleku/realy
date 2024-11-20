@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+
 	"realy.lol/event"
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
@@ -64,7 +65,7 @@ func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 			}
 			ev := &event.T{}
 			var rem B
-			if rem, err = ev.UnmarshalBinary(evb); chk.E(err) {
+			if rem, err = ev.UnmarshalJSON(evb); chk.E(err) {
 				return
 			}
 			if len(rem) != 0 {

@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/dgraph-io/badger/v4"
+
 	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/filter"
@@ -84,7 +85,7 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 							if err = item.Value(func(eventValue []byte) (err E) {
 								ev := &event.T{}
 								var rem B
-								if rem, err = ev.UnmarshalBinary(eventValue); chk.E(err) {
+								if rem, err = ev.UnmarshalJSON(eventValue); chk.E(err) {
 									ev = nil
 									eventValue = eventValue[:0]
 									return
@@ -176,7 +177,7 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 				}
 				var rem B
 				ev := &event.T{}
-				if rem, err = ev.UnmarshalBinary(b); chk.E(err) {
+				if rem, err = ev.UnmarshalJSON(b); chk.E(err) {
 					err = nil
 					continue
 				}
