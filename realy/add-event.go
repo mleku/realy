@@ -14,7 +14,7 @@ import (
 
 var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
 
-// AddEvent has a business rule to add an event to the relayer
+// AddEvent has a business rule to add an event to the event store
 func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, origin S,
 	authedPubkey B) (accepted bool,
 	message B) {

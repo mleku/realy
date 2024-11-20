@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"go-simpler.org/env"
+
 	"realy.lol/appdata"
 	"realy.lol/apputil"
 	"realy.lol/config"
@@ -31,7 +32,7 @@ type Config struct {
 	DBHighWater  int  `env:"DB_HIGH_WATER" default:"80" usage:"the trigger point at which a GC run should start if exceeded"`
 	GCFrequency  int  `env:"GC_FREQUENCY" default:"3600" usage:"the frequency of checks of the current utilisation in minutes"`
 	Pprof        bool `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
-	MemLimit     int  `env:"MEMLIMIT" default:"500000000" usage:"set memory limit, default is half a gigabyte"`
+	MemLimit     int  `env:"MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
 }
 
 func NewConfig() (cfg *Config, err E) {
