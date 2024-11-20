@@ -8,7 +8,8 @@ import (
 	"realy.lol/event"
 	"realy.lol/normalize"
 	"realy.lol/relay"
-	eventstore "realy.lol/store"
+	"realy.lol/relay/wrapper"
+	"realy.lol/store"
 )
 
 var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
@@ -21,9 +22,9 @@ func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, origin S,
 		return false, normalize.Invalid.F("empty event")
 	}
 
-	store := rl.Storage(c)
-	wrapper := &eventstore.RelayWrapper{I: store}
-	advancedSaver, _ := store.(relay.AdvancedSaver)
+	sto := rl.Storage(c)
+	wrapper := &wrapper.RelayWrapper{I: sto}
+	advancedSaver, _ := sto.(relay.AdvancedSaver)
 
 	if !rl.AcceptEvent(c, ev, hr, origin, authedPubkey) {
 		return false, normalize.Blocked.F("event rejected by relay")
@@ -38,7 +39,7 @@ func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, origin S,
 
 		if saveErr := wrapper.Publish(c, ev); chk.E(saveErr) {
 			switch saveErr {
-			case eventstore.ErrDupEvent:
+			case store.ErrDupEvent:
 				return false, normalize.Error.F(saveErr.Error())
 			default:
 				errmsg := saveErr.Error()
