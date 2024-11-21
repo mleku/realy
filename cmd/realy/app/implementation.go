@@ -148,7 +148,8 @@ func (r *Relay) AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T, authedPu
 			allowed.F = append(allowed.F, f)
 		}
 		if allowed != nil {
-			// request has been filtered and can be processed
+			// request has been filtered and can be processed. note that the caller should
+			// still send out an auth request after the filter has been processed.
 			ok = true
 			return
 		}

@@ -339,7 +339,28 @@ func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 			}
 		}
 	}
+	if allowed != env.Filters {
+		defer func() {
+			// send out an auth request after processing filter if the filter was modified
+			var auther relay.Authenticator
+			var ok bool
+			if auther, ok = s.relay.(relay.Authenticator); ok &&
+				auther.AuthEnabled() && !ws.AuthRequested() {
 
+				ws.RequestAuth()
+				if err = closedenvelope.NewFrom(env.Subscription,
+					normalize.AuthRequired.F("auth required for request processing")).
+					Write(ws); chk.E(err) {
+				}
+				log.T.F("requesting auth from client from %s, challenge '%s'",
+					ws.RealRemote(), ws.Challenge())
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+					return
+				}
+				return
+			}
+		}()
+	}
 	var total N
 	var approx bool
 	for _, f := range allowed.F {
@@ -429,9 +450,31 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 				}
 				return
 			}
+			return
 		}
 	}
-	log.I.S(allowed)
+	if allowed != env.Filters {
+		defer func() {
+			// send out an auth request after processing filter if the filter was modified
+			var auther relay.Authenticator
+			var ok bool
+			if auther, ok = s.relay.(relay.Authenticator); ok &&
+				auther.AuthEnabled() && !ws.AuthRequested() {
+
+				ws.RequestAuth()
+				if err = closedenvelope.NewFrom(env.Subscription,
+					normalize.AuthRequired.F("auth required for request processing")).
+					Write(ws); chk.E(err) {
+				}
+				log.T.F("requesting auth from client from %s, challenge '%s'",
+					ws.RealRemote(), ws.Challenge())
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+					return
+				}
+				return
+			}
+		}()
+	}
 	for _, f := range allowed.F {
 		var i uint
 		if filter.Present(f.Limit) {
