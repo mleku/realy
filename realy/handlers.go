@@ -557,6 +557,10 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 	if err = eoseenvelope.NewFrom(env.Subscription).Write(ws); chk.E(err) {
 		return
 	}
+	if env.Filters != allowed {
+		// don't add a subscription if the user is not authed but auth is required
+		return
+	}
 	setListener(env.Subscription.String(), ws, env.Filters)
 	return
 }
