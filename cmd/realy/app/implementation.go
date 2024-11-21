@@ -27,8 +27,10 @@ type Relay struct {
 	sync.Mutex
 }
 
-func (r *Relay) Name() S                     { return "REALY" }
+func (r *Relay) Name() S { return "REALY" }
+
 func (r *Relay) Storage(c context.T) store.I { return r.Store }
+
 func (r *Relay) Init() (err E) {
 	for _, src := range r.Config.Owners {
 		if len(src) < 1 {
@@ -51,6 +53,7 @@ func (r *Relay) Init() (err E) {
 	r.CheckOwnerLists(context.Bg())
 	return nil
 }
+
 func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin S,
 	authedPubkey B) bool {
 	// if the authenticator is enabled we require auth to accept events
@@ -112,30 +115,68 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin 
 	return len(authedPubkey) == schnorr.PubKeyBytesLen
 }
 
-func (r *Relay) AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) bool {
+func (r *Relay) AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) (allowed *filters.T, ok bool) {
 	// if the authenticator is enabled we require auth to process requests
 	if !r.AuthEnabled() {
-		return true
+		ok = true
+		return
+	}
+	// if client isn't authed but there are kinds in the filters that are
+	// kind.Directory type then trim the filter down and only respond to the queries
+	// that blanket should deliver events in order to facilitate non-authorized users
+	// to interact with users, even just such as to see their profile metadata or
+	// learn about deleted events.
+	if len(authedPubkey) == 0 {
+		for _, f := range ff.F {
+			fk := f.Kinds.K
+			allowedKinds := kinds.New()
+			for _, fkk := range fk {
+				if fkk.IsDirectoryEvent() {
+					allowedKinds.K = append(allowedKinds.K, fkk)
+				}
+			}
+			// if none of the kinds in the req are permitted, continue to the next filter.
+			if len(allowedKinds.K) == 0 {
+				continue
+			}
+			// if no filters have yet been added, initialize one
+			if allowed == nil {
+				allowed = &filters.T{}
+			}
+			// overwrite the kinds that have been permitted
+			f.Kinds.K = allowedKinds.K
+			allowed.F = append(allowed.F, f)
+		}
+		if allowed != nil {
+			// request has been filtered and can be processed
+			ok = true
+			return
+		}
 	}
 	// if the client hasn't authed, reject
 	if len(authedPubkey) == 0 {
-		return false
+		return
 	}
+	// client is permitted, pass through the filter so request/count processing does
+	// not need logic and can just use the returned filter.
+	allowed = ff
 	// regenerate lists if they have been updated
 	r.CheckOwnerLists(c)
 	// check that the client is authed to a pubkey in the owner follow list
 	if len(r.Owners) > 0 {
 		for pk := range r.Followed {
 			if equals(authedPubkey, B(pk)) {
-				return true
+				ok = true
+				return
 			}
 		}
 		// if the authed pubkey was not found, reject the request.
-		return false
+		return
 	}
 	// if auth is enabled and there is no moderators we just check that the pubkey
 	// has been loaded via the auth function.
-	return len(authedPubkey) == schnorr.PubKeyBytesLen
+	ok = len(authedPubkey) == schnorr.PubKeyBytesLen
+	return
 }
 
 // CheckOwnerLists regenerates the owner follow and mute lists if they are empty

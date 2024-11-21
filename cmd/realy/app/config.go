@@ -33,6 +33,7 @@ type Config struct {
 	GCFrequency  int  `env:"GC_FREQUENCY" default:"3600" usage:"the frequency of checks of the current utilisation in minutes"`
 	Pprof        bool `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
 	MemLimit     int  `env:"MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
+	NWC          S    `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"`
 }
 
 func NewConfig() (cfg *Config, err E) {

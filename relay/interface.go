@@ -52,7 +52,9 @@ type ReqAcceptor interface {
 	// request is for a message that contains their npub in a `p` tag that are
 	// direct or group chat messages they also can be accepted, enabling full
 	// support for in/outbox access.
-	AcceptReq(ctx Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) bool
+	//
+	// In order to support the ability to respond to
+	AcceptReq(ctx Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) (allowed *filters.T, ok bool)
 }
 
 // Authenticator is the interface for implementing NIP-42.

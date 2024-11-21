@@ -111,6 +111,31 @@ func (k *T) IsParameterizedReplaceable() bool {
 		k.K < ParameterizedReplaceableEnd.K
 }
 
+// Directory events are events that necessarily need to be readable by anyone in
+// order to interact with users who have access to the relay, in order to
+// facilitate other users to find and interact with users on an auth-required
+// relay.
+var Directory = []*T{
+	ProfileMetadata,
+	FollowList,
+	EventDeletion,
+	Reporting,
+	RelayListMetadata,
+	MuteList,
+	DMRelaysList,
+}
+
+// IsDirectoryEvent returns whether an event kind is a Directory event, which
+// should grant permission to read such events without requiring authentication.
+func (k *T) IsDirectoryEvent() bool {
+	for i := range Directory {
+		if k.Equal(Directory[i]) {
+			return true
+		}
+	}
+	return false
+}
+
 var (
 	// ProfileMetadata is an event type that stores user profile data, pet
 	// names, bio, lightning address, etc.
@@ -214,6 +239,7 @@ var (
 	SearchRelaysList      = &T{10007}
 	InterestsList         = &T{10015}
 	UserEmojiList         = &T{10030}
+	DMRelaysList          = &T{10050}
 	FileStorageServerList = &T{10096}
 	// NWCWalletInfo is an event type that...
 	NWCWalletInfo = &T{13194}

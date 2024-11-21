@@ -7,13 +7,15 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"realy.lol/units"
 	"sort"
 	"time"
+
+	"realy.lol/units"
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/fasthttp/websocket"
 	"golang.org/x/time/rate"
+
 	"realy.lol/auth"
 	"realy.lol/bech32encoding"
 	"realy.lol/ec/bech32"
@@ -312,19 +314,20 @@ func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 		log.I.F("extra '%s'", rem)
 	}
 
-	if env.ID == nil || env.ID.String() == "" {
-		return normalize.Error.F("COUNT has no <id>")
+	if env.Subscription == nil || env.Subscription.String() == "" {
+		return normalize.Error.F("COUNT has no <subscription id>")
 	}
-
+	allowed := env.Filters
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
-		if !accepter.AcceptReq(c, ws.Req(), env.ID.T, env.Filters, B(ws.Authed())) {
-
+		var accepted bool
+		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters, B(ws.Authed()))
+		if !accepted || allowed == nil {
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok &&
 				auther.AuthEnabled() && !ws.AuthRequested() {
 
 				ws.RequestAuth()
-				if err = closedenvelope.NewFrom(env.ID,
+				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for count processing")).
 					Write(ws); chk.E(err) {
 				}
@@ -339,12 +342,12 @@ func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 
 	var total N
 	var approx bool
-	for _, f := range env.Filters.F {
+	for _, f := range allowed.F {
 		// prevent kind-4 events from being returned to unauthed users, only when
 		// authentication is a thing
 		var auther relay.Authenticator
 		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
-			if f.Kinds.Contains(kind.EncryptedDirectMessage) {
+			if f.Kinds.Contains(kind.EncryptedDirectMessage) || f.Kinds.Contains(kind.GiftWrap) {
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("p"))
 				switch {
@@ -380,7 +383,7 @@ func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 		total += count
 	}
 	var res *countenvelope.Response
-	if res, err = countenvelope.NewResponseFrom(env.ID.String(), N(total),
+	if res, err = countenvelope.NewResponseFrom(env.Subscription.String(), N(total),
 		approx); chk.E(err) {
 		return
 	}
@@ -405,10 +408,11 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 	if len(rem) > 0 {
 		log.I.F("extra '%s'", rem)
 	}
-
+	allowed := env.Filters
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
-		if !accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters, B(ws.Authed())) {
-
+		var accepted bool
+		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters, B(ws.Authed()))
+		if !accepted || allowed == nil {
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok &&
 				auther.AuthEnabled() && !ws.AuthRequested() {
@@ -427,8 +431,8 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 			}
 		}
 	}
-
-	for _, f := range env.Filters.F {
+	log.I.S(allowed)
+	for _, f := range allowed.F {
 		var i uint
 		if filter.Present(f.Limit) {
 			if *f.Limit == 0 {

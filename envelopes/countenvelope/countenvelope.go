@@ -15,18 +15,18 @@ import (
 const L = "COUNT"
 
 type Request struct {
-	ID      *subscription.Id
-	Filters *filters.T
+	Subscription *subscription.Id
+	Filters      *filters.T
 }
 
 var _ codec.Envelope = (*Request)(nil)
 
 func New() *Request {
-	return &Request{ID: subscription.NewStd(),
+	return &Request{Subscription: subscription.NewStd(),
 		Filters: filters.New()}
 }
 func NewRequest(id *subscription.Id, filters *filters.T) *Request {
-	return &Request{ID: id,
+	return &Request{Subscription: id,
 		Filters: filters}
 }
 func (en *Request) Label() string { return L }
@@ -44,7 +44,7 @@ func (en *Request) MarshalJSON(dst B) (b B, err error) {
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
-			if o, err = en.ID.MarshalJSON(o); chk.E(err) {
+			if o, err = en.Subscription.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			o = append(o, ',')
@@ -58,10 +58,10 @@ func (en *Request) MarshalJSON(dst B) (b B, err error) {
 
 func (en *Request) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	if en.ID, err = subscription.NewId(B{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId(B{0}); chk.E(err) {
 		return
 	}
-	if r, err = en.ID.UnmarshalJSON(r); chk.E(err) {
+	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
 	en.Filters = filters.New()
