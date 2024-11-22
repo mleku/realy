@@ -21,6 +21,26 @@ includes:
 - reverse proxy tool with support for Go vanity imports and nip-05 npub DNS verification and own
   TLS certificates
 
+## Building
+
+If you just want to make it run from source, you should check out a tagged version. The commits on these tags will 
+explain what state the commit is at. In general, the most stable versions are new minor tags, eg v1.2.0 or v1.23.0, and minor 
+patch versions may not be stable and occasionally may not compile (not very often).
+
+## Repository Policy
+
+In general, the main `dev` branch will build, but occasionally may not. It is where new commits are added once they are 
+working, mostly, and allows people to easily see ongoing activity. IT IS NOT GUARANTEED TO BE STABLE.
+
+Sometimes there will be a github release version, as well, these will be the most stable version.
+
+Currently this project is in active development and currently v1.2.9 is quite stable but there may be bugs still.
+
+NWC integration is being worked on currently to enable in-app easy subscription management without any extra interface
+tooling, just standard nostr client zap and DM functionality, similar to how access control management already is 
+configured simply by making a nostr identity and setting its follows to those you want to be able to read and post, and 
+mutes to those whose events will never be stored on the relay, no matter if the user publish them to it.
+
 ## CGO and secp256k1 signatures library
 
 By default, Go will usually be configured with `CGO_ENABLED=1`. This selects the use of the 
