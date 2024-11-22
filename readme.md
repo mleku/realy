@@ -1,5 +1,7 @@
 # realy.lol
 
+![realy.png](./realy.png)
+
 nostr relay built from a heavily modified fork
 of [nbd-wtf/go-nostr](https://github.com/nbd-wtf/go-nostr)
 and [fiatjaf/relayer](https://github.com/fiatjaf/relayer) aimed at maximum performance,
