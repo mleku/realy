@@ -27,7 +27,7 @@ type Relay struct {
 	sync.Mutex
 }
 
-func (r *Relay) Name() S { return "REALY" }
+func (r *Relay) Name() S { return r.Config.AppName }
 
 func (r *Relay) Storage(c context.T) store.I { return r.Store }
 
@@ -115,7 +115,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin 
 	return len(authedPubkey) == schnorr.PubKeyBytesLen
 }
 
-func (r *Relay) AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) (allowed *filters.T, ok bool) {
+func (r *Relay) AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T,
+	authedPubkey B) (allowed *filters.T, ok bool) {
 	// if the authenticator is enabled we require auth to process requests
 	if !r.AuthEnabled() {
 		ok = true
