@@ -27,236 +27,123 @@ func GetList(items ...NIP) (n number.List) {
 
 // this is the list of all nips and their titles for use in supported_nips field
 var (
-	BasicProtocol = NIP{
-		"Basic protocol flow description", 1,
-	}
-	NIP1       = BasicProtocol
-	FollowList = NIP{
-		"Follow List", 2,
-	}
-	NIP2                       = FollowList
-	OpenTimestampsAttestations = NIP{
-		"OpenTimestamps Attestations for Events", 3,
-	}
-	NIP3                   = OpenTimestampsAttestations
-	EncryptedDirectMessage = NIP{
-		"Encrypted Direct Message --- unrecommended: deprecated in favor o," +
-			"f NIP-44",
-		4}
-	NIP4                  = EncryptedDirectMessage
-	MappingNostrKeysToDNS = NIP{
-		"Mapping Nostr keys to DNS-based internet identifiers",
-		5}
-	NIP5             = MappingNostrKeysToDNS
-	HandlingMentions = NIP{
-		"Handling Mentions --- unrecommended: deprecated in favor of NIP-27",
-		8}
-	NIP8          = HandlingMentions
-	EventDeletion = NIP{
-		"Event Deletion", 9,
-	}
-	NIP9                     = EventDeletion
-	RelayInformationDocument = NIP{
-		"Relay Information Document", 11,
-	}
-	NIP11             = RelayInformationDocument
-	GenericTagQueries = NIP{
-		"Generic Tag Queries", 12,
-	}
-	NIP12      = GenericTagQueries
-	SubjectTag = NIP{
-		"Subject tag in text events", 14,
-	}
-	NIP14            = SubjectTag
-	NostrMarketplace = NIP{
-		"Nostr Marketplace (for resilient marketplaces)", 15,
-	}
-	NIP15          = NostrMarketplace
-	EventTreatment = NIP{
-		"EVent Treatment", 16,
-	}
-	NIP16   = EventTreatment
-	Reposts = NIP{
-		"Reposts", 18,
-	}
-	NIP18                 = Reposts
-	Bech32EncodedEntities = NIP{
-		"bech32-encoded entities", 19,
-	}
-	NIP19          = Bech32EncodedEntities
-	CommandResults = NIP{
-		"Command Results", 20,
-	}
-	NIP20          = CommandResults
-	NostrURIScheme = NIP{
-		"nostr: URI scheme", 21,
-	}
-	NIP21           = NostrURIScheme
-	CreatedAtLimits = NIP{
-		"Something Something", 22,
-	}
-	NIP22           = CreatedAtLimits
-	LongFormContent = NIP{
-		"Long-form Content", 23,
-	}
-	NIP23         = LongFormContent
-	ExtraMetadata = NIP{
-		"Extra metadata fields and tags", 24,
-	}
-	NIP24     = ExtraMetadata
-	Reactions = NIP{
-		"Reactions", 25,
-	}
-	NIP25                 = Reactions
-	DelegatedEventSigning = NIP{
-		"Delegated Event Signing", 26,
-	}
-	NIP26              = DelegatedEventSigning
-	TextNoteReferences = NIP{
-		"Text Note References", 27,
-	}
-	NIP27      = TextNoteReferences
-	PublicChat = NIP{
-		"Public Chat", 28,
-	}
-	NIP28       = PublicChat
-	CustomEmoji = NIP{
-		"Custom Emoji", 30,
-	}
-	NIP30    = CustomEmoji
-	Labeling = NIP{
-		"Labeling", 32,
-	}
+	BasicProtocol                  = NIP{"Basic protocol flow description", 1}
+	NIP1                           = BasicProtocol
+	FollowList                     = NIP{"Follow List", 2}
+	NIP2                           = FollowList
+	OpenTimestampsAttestations     = NIP{"OpenTimestamps Attestations for Events", 3}
+	NIP3                           = OpenTimestampsAttestations
+	EncryptedDirectMessage         = NIP{"Direct Message deprecated in favor of NIP-44", 4}
+	NIP4                           = EncryptedDirectMessage
+	MappingNostrKeysToDNS          = NIP{"Mapping Nostr keys to DNS-based identifiers", 5}
+	NIP5                           = MappingNostrKeysToDNS
+	HandlingMentions               = NIP{"Handling Mentions deprecated in favor of NIP-27", 8}
+	NIP8                           = HandlingMentions
+	EventDeletion                  = NIP{"Event Deletion", 9}
+	NIP9                           = EventDeletion
+	RelayInformationDocument       = NIP{"Relay Information Document", 11}
+	NIP11                          = RelayInformationDocument
+	GenericTagQueries              = NIP{"Generic Tag Queries", 12}
+	NIP12                          = GenericTagQueries
+	SubjectTag                     = NIP{"Subject tag in text events", 14}
+	NIP14                          = SubjectTag
+	NostrMarketplace               = NIP{"Nostr Marketplace (for resilient marketplaces)", 15}
+	NIP15                          = NostrMarketplace
+	EventTreatment                 = NIP{"EVent Treatment", 16}
+	NIP16                          = EventTreatment
+	Reposts                        = NIP{"Reposts", 18}
+	NIP18                          = Reposts
+	Bech32EncodedEntities          = NIP{"bech32-encoded entities", 19}
+	NIP19                          = Bech32EncodedEntities
+	CommandResults                 = NIP{"Command Results", 20}
+	NIP20                          = CommandResults
+	NostrURIScheme                 = NIP{"nostr: URI scheme", 21}
+	NIP21                          = NostrURIScheme
+	Comment                        = NIP{"Comment", 22}
+	NIP22                          = Comment
+	LongFormContent                = NIP{"Long-form Content", 23}
+	NIP23                          = LongFormContent
+	ExtraMetadata                  = NIP{"Extra metadata fields and tags", 24}
+	NIP24                          = ExtraMetadata
+	Reactions                      = NIP{"Reactions", 25}
+	NIP25                          = Reactions
+	DelegatedEventSigning          = NIP{"Delegated Event Signing", 26}
+	NIP26                          = DelegatedEventSigning
+	TextNoteReferences             = NIP{"Text Note References", 27}
+	NIP27                          = TextNoteReferences
+	PublicChat                     = NIP{"Public Chat", 28}
+	NIP28                          = PublicChat
+	CustomEmoji                    = NIP{"Custom Emoji", 30}
+	NIP30                          = CustomEmoji
+	Labeling                       = NIP{"Labeling", 32}
 	NIP32                          = Labeling
-	ParameterizedReplaceableEvents = NIP{
-		"Parameterized Replaceable Events", 33,
-	}
-	NIP33            = ParameterizedReplaceableEvents
-	SensitiveContent = NIP{
-		"Sensitive Content", 36,
-	}
-	NIP36        = SensitiveContent
-	UserStatuses = NIP{
-		"User Statuses", 38,
-	}
-	NIP38                        = UserStatuses
-	ExternalIdentitiesInProfiles = NIP{
-		"External Identities in Profiles", 39,
-	}
-	NIP39               = ExternalIdentitiesInProfiles
-	ExpirationTimestamp = NIP{
-		"Expiration Timestamp", 40,
-	}
-	NIP40          = ExpirationTimestamp
-	Authentication = NIP{
-		"Authentication of clients to relays", 42,
-	}
-	NIP42               = Authentication
-	VersionedEncryption = NIP{
-		"Versioned Encryption", 44,
-	}
-	NIP44           = VersionedEncryption
-	CountingResults = NIP{
-		"Counting results", 45,
-	}
-	NIP45        = CountingResults
-	NostrConnect = NIP{
-		"Nostr Connect", 46,
-	}
-	NIP46         = NostrConnect
-	WalletConnect = NIP{
-		"Wallet Connect", 47,
-	}
-	NIP47     = WalletConnect
-	ProxyTags = NIP{
-		"Proxy Tags", 48,
-	}
-	NIP48            = ProxyTags
-	SearchCapability = NIP{
-		"Search Capability", 50,
-	}
-	NIP50 = SearchCapability
-	Lists = NIP{
-		"Lists", 51,
-	}
-	NIP51          = Lists
-	CalendarEvents = NIP{
-		"Calendar Events", 52,
-	}
-	NIP52          = CalendarEvents
-	LiveActivities = NIP{
-		"Live Activities", 53,
-	}
-	NIP53     = LiveActivities
-	Reporting = NIP{
-		"Reporting", 56,
-	}
-	NIP56         = Reporting
-	LightningZaps = NIP{
-		"Lightning Zaps", 57,
-	}
-	NIP57  = LightningZaps
-	Badges = NIP{
-		"Badges", 58,
-	}
-	NIP58             = Badges
-	RelayListMetadata = NIP{
-		"Relay List Metadata", 65,
-	}
-	NIP65                = RelayListMetadata
-	ModeratedCommunities = NIP{
-		"Moderated Communities", 72,
-	}
-	NIP72    = ModeratedCommunities
-	ZapGoals = NIP{
-		"Zap Goals", 75,
-	}
-	NIP75                   = ZapGoals
-	ApplicationSpecificData = NIP{
-		"Application-specific data", 78,
-	}
-	NIP78      = ApplicationSpecificData
-	Highlights = NIP{
-		"Highlights", 84,
-	}
+	ParameterizedReplaceableEvents = NIP{"Parameterized Replaceable Events", 33}
+	NIP33                          = ParameterizedReplaceableEvents
+	SensitiveContent               = NIP{"Sensitive Content", 36}
+	NIP36                          = SensitiveContent
+	UserStatuses                   = NIP{"User Statuses", 38}
+	NIP38                          = UserStatuses
+	ExternalIdentitiesInProfiles   = NIP{"External Identities in Profiles", 39}
+	NIP39                          = ExternalIdentitiesInProfiles
+	ExpirationTimestamp            = NIP{"Expiration Timestamp", 40}
+	NIP40                          = ExpirationTimestamp
+	Authentication                 = NIP{"Authentication of clients to relays", 42}
+	NIP42                          = Authentication
+	VersionedEncryption            = NIP{"Versioned Encryption", 44}
+	NIP44                          = VersionedEncryption
+	CountingResults                = NIP{"Counting results", 45}
+	NIP45                          = CountingResults
+	NostrConnect                   = NIP{"Nostr Connect", 46}
+	NIP46                          = NostrConnect
+	WalletConnect                  = NIP{"Wallet Connect", 47}
+	NIP47                          = WalletConnect
+	ProxyTags                      = NIP{"Proxy Tags", 48}
+	NIP48                          = ProxyTags
+	SearchCapability               = NIP{"Search Capability", 50}
+	NIP50                          = SearchCapability
+	Lists                          = NIP{"Lists", 51}
+	NIP51                          = Lists
+	CalendarEvents                 = NIP{"Calendar Events", 52}
+	NIP52                          = CalendarEvents
+	LiveActivities                 = NIP{"Live Activities", 53}
+	NIP53                          = LiveActivities
+	Reporting                      = NIP{"Reporting", 56}
+	NIP56                          = Reporting
+	LightningZaps                  = NIP{"Lightning Zaps", 57}
+	NIP57                          = LightningZaps
+	Badges                         = NIP{"Badges", 58}
+	NIP58                          = Badges
+	RelayListMetadata              = NIP{"Relay List Metadata", 65}
+	NIP65                          = RelayListMetadata
+	ModeratedCommunities           = NIP{"Moderated Communities", 72}
+	NIP72                          = ModeratedCommunities
+	ZapGoals                       = NIP{"Zap Goals", 75}
+	NIP75                          = ZapGoals
+	ApplicationSpecificData        = NIP{"Application-specific data", 78}
+	NIP78                          = ApplicationSpecificData
+	Highlights                     = NIP{"Highlights", 84}
 	NIP84                          = Highlights
-	RecommendedApplicationHandlers = NIP{
-		"Recommended Application Handlers", 89,
-	}
-	NIP89               = RecommendedApplicationHandlers
-	DataVendingMachines = NIP{
-		"Data Vending Machines", 90,
-	}
-	NIP90        = DataVendingMachines
-	FileMetadata = NIP{
-		"File Metadata", 94,
-	}
-	NIP94                      = FileMetadata
-	HTTPFileStorageIntegration = NIP{
-		"HTTP File Storage Integration", 96,
-	}
-	NIP96    = HTTPFileStorageIntegration
-	HTTPAuth = NIP{
-		"HTTP IsAuthed", 98,
-	}
-	NIP98              = HTTPAuth
-	ClassifiedListings = NIP{
-		"Classified Listings", 99,
-	}
-	NIP99 = ClassifiedListings
+	RecommendedApplicationHandlers = NIP{"Recommended Application Handlers", 89}
+	NIP89                          = RecommendedApplicationHandlers
+	DataVendingMachines            = NIP{"Data Vending Machines", 90}
+	NIP90                          = DataVendingMachines
+	FileMetadata                   = NIP{"File Metadata", 94}
+	NIP94                          = FileMetadata
+	HTTPFileStorageIntegration     = NIP{"HTTP File Storage Integration", 96}
+	NIP96                          = HTTPFileStorageIntegration
+	HTTPAuth                       = NIP{"HTTP IsAuthed", 98}
+	NIP98                          = HTTPAuth
+	ClassifiedListings             = NIP{"Classified Listings", 99}
+	NIP99                          = ClassifiedListings
 )
 
 var NIPMap = map[int]NIP{1: NIP1, 2: NIP2, 3: NIP3, 4: NIP4, 5: NIP5, 8: NIP8, 9: NIP9,
-	11: NIP11, 12: NIP12, 14: NIP14,
-	15: NIP15, 16: NIP16, 18: NIP18, 19: NIP19, 20: NIP20, 21: NIP21, 22: NIP22, 23: NIP23,
-	24: NIP24, 25: NIP25,
-	26: NIP26, 27: NIP27, 28: NIP28, 30: NIP30, 32: NIP32, 33: NIP33, 36: NIP36, 38: NIP38,
-	39: NIP39, 40: NIP40,
-	42: NIP42, 44: NIP44, 45: NIP45, 46: NIP46, 47: NIP47, 48: NIP48, 50: NIP50, 51: NIP51,
-	52: NIP52, 53: NIP53,
-	56: NIP56, 57: NIP57, 58: NIP58, 65: NIP65, 72: NIP72, 75: NIP75, 78: NIP78, 84: NIP84,
-	89: NIP89, 90: NIP90,
-	94: NIP94, 96: NIP96, 98: NIP98, 99: NIP99}
+	11: NIP11, 12: NIP12, 14: NIP14, 15: NIP15, 16: NIP16, 18: NIP18, 19: NIP19, 20: NIP20,
+	21: NIP21, 22: NIP22, 23: NIP23, 24: NIP24, 25: NIP25, 26: NIP26, 27: NIP27, 28: NIP28,
+	30: NIP30, 32: NIP32, 33: NIP33, 36: NIP36, 38: NIP38, 39: NIP39, 40: NIP40, 42: NIP42,
+	44: NIP44, 45: NIP45, 46: NIP46, 47: NIP47, 48: NIP48, 50: NIP50, 51: NIP51, 52: NIP52,
+	53: NIP53, 56: NIP56, 57: NIP57, 58: NIP58, 65: NIP65, 72: NIP72, 75: NIP75, 78: NIP78,
+	84: NIP84, 89: NIP89, 90: NIP90, 94: NIP94, 96: NIP96, 98: NIP98, 99: NIP99}
 
 type Limits struct {
 	// MaxMessageLength is the maximum number of bytes for incoming JSON
