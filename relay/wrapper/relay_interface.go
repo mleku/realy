@@ -51,10 +51,18 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
 					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
 				}
-				log.T.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
-				if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
-					continue
-				}
+				// defer the delete until after the save, further down, has completed.
+				defer func() {
+					if err != nil {
+						// something went wrong saving the replacement, so we won't delete
+						// the event.
+						return
+					}
+					log.T.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
+					if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
+						return
+					}
+				}()
 			}
 		}
 	} else if evt.Kind.IsParameterizedReplaceable() {
@@ -83,17 +91,23 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 				if !equals(evdt.Value(), evtdt.Value()) {
 					continue
 				}
-				log.I.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
-				if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
-					continue
-				}
+				defer func() {
+					if err != nil {
+						// something went wrong saving the replacement, so we won't delete
+						// the event.
+						return
+					}
+					log.I.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
+					if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
+						return
+					}
+				}()
 			}
 		}
 	}
 	if err = w.SaveEvent(c, evt); chk.E(err) && !errors.Is(err, store.ErrDupEvent) {
 		return errorf.E("failed to save: %w", err)
 	}
-
 	return
 }
 

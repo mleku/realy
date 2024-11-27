@@ -33,7 +33,7 @@ type T struct {
 	BlockCacheSize int
 	InitLogLevel   int
 	Logger         *logger
-	// DB is the badger db enveloper
+	// DB is the badger db
 	*badger.DB
 	// seq is the monotonic collision free index for raw event storage.
 	seq *badger.Sequence

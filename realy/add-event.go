@@ -26,8 +26,9 @@ func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, origin S,
 	wrapper := &wrapper.RelayWrapper{I: sto}
 	advancedSaver, _ := sto.(relay.AdvancedSaver)
 
-	if !rl.AcceptEvent(c, ev, hr, origin, authedPubkey) {
-		return false, normalize.Blocked.F("event rejected by relay")
+	accept, notice := rl.AcceptEvent(c, ev, hr, origin, authedPubkey)
+	if !accept {
+		return false, normalize.Blocked.F(notice)
 	}
 
 	if ev.Kind.IsEphemeral() {

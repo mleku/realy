@@ -134,8 +134,8 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 	if len(rem) > 0 {
 		log.I.F("extra '%s'", rem)
 	}
-
-	if !s.relay.AcceptEvent(c, env.T, ws.Req(), ws.RealRemote(), B(ws.Authed())) {
+	accept, notice := s.relay.AcceptEvent(c, env.T, ws.Req(), ws.RealRemote(), B(ws.Authed()))
+	if !accept {
 		var auther relay.Authenticator
 		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 			if !ws.AuthRequested() {
@@ -160,6 +160,10 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 				}
 				return
 			}
+		}
+		// return an ok event containing any notice returned
+		if err = okenvelope.NewFrom(env.ID, false,
+			normalize.Invalid.F(notice)).Write(ws); chk.T(err) {
 		}
 		return
 	}
@@ -186,8 +190,9 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 		return
 	}
 	if env.T.Kind.K == kind.Deletion.K {
+		// we only handle e and a tag deletes because kind based deletes are too indiscriminate.
 		log.I.F("delete event\n%s", env.T.Serialize())
-		// event deletion -- nip09
+		// event deletion -- nip-09
 		for _, t := range env.Tags.Value() {
 			var res []*event.T
 			if t.Len() >= 2 {
@@ -207,6 +212,24 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 						}
 						return
 					}
+					for i := range res {
+						if res[i].Kind.Equal(kind.Deletion) {
+							if err = okenvelope.NewFrom(env.ID, false,
+								normalize.Blocked.F(
+									"not processing or storing delete event containing delete event references")).
+								Write(ws); chk.E(err) {
+								return
+							}
+						}
+						if !equals(res[i].PubKey, env.T.PubKey) {
+							if err = okenvelope.NewFrom(env.ID, false,
+								normalize.Blocked.F(
+									"cannot delete other users' events")).
+								Write(ws); chk.E(err) {
+								return
+							}
+						}
+					}
 				case equals(t.Key(), B("a")):
 					split := bytes.Split(t.Value(), B{':'})
 					if len(split) != 3 {
@@ -216,8 +239,38 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 					if _, err = kin.UnmarshalJSON(split[0]); chk.E(err) {
 						return
 					}
+					kk := kind.New(kin.Uint16())
+					if kk.Equal(kind.Deletion) {
+						// we don't delete delete events, period
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Blocked.F(
+								"delete event kind may not be deleted")).
+							Write(ws); chk.E(err) {
+							return
+						}
+					}
+					// if the kind is not parameterised replaceable, the tag is invalid and the
+					// delete event will not be saved.
+					if !kk.IsParameterizedReplaceable() {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Error.F(
+								"delete tags with a tags containing non-parameterized-replaceable events cannot be processed")).
+							Write(ws); chk.E(err) {
+							return
+						}
+					}
+					// for this event kind, the second field of the tag value MUST be the pubkey
+					// of the author of the event
+					if !equals(split[1], env.T.PubKey) {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Blocked.F(
+								"cannot delete other users' events")).
+							Write(ws); chk.E(err) {
+							return
+						}
+					}
 					f := filter.New()
-					f.Kinds.K = []*kind.T{kind.New(kin.Uint16())}
+					f.Kinds.K = []*kind.T{kk}
 					aut := make(B, 0, len(split[1])/2)
 					if aut, err = hex.DecAppend(aut, split[1]); chk.E(err) {
 						return
@@ -238,6 +291,15 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 				// this will happen if event is not in the database
 				continue
 			}
+			// filter out any events that are newer than the delete request, deletes only work
+			// backwards, old delete events might match newer events for a tags.
+			var resTmp []*event.T
+			for _, v := range res {
+				if env.T.CreatedAt.U64() >= v.CreatedAt.U64() {
+					resTmp = append(resTmp, v)
+				}
+			}
+			res = resTmp
 			for _, target := range res {
 				if target.Kind.K == kind.Deletion.K {
 					if err = okenvelope.NewFrom(env.ID, false,
@@ -247,7 +309,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 					}
 				}
 				if target.CreatedAt.Int() > env.T.CreatedAt.Int() {
-					log.I.F("not replacing\n%d%\nbecause delete event is older\n%d",
+					log.I.F("not deleting\n%d%\nbecause delete event is older\n%d",
 						target.CreatedAt.Int(), env.T.CreatedAt.Int())
 					continue
 				}
@@ -282,7 +344,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 		if err = okenvelope.NewFrom(env.ID, true).Write(ws); chk.E(err) {
 			return
 		}
-		// if the event is a delete we still want to save it.
+		// if the event is a deletion we still want to save it.
 	}
 	ok, reason := AddEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(), B(ws.Authed()))
 	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
@@ -320,7 +382,8 @@ func (s *Server) doCount(c context.Context, ws *web.Socket, req B,
 	allowed := env.Filters
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
 		var accepted bool
-		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters, B(ws.Authed()))
+		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
+			B(ws.Authed()))
 		if !accepted || allowed == nil {
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok &&
@@ -432,7 +495,8 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 	allowed := env.Filters
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
 		var accepted bool
-		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters, B(ws.Authed()))
+		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
+			B(ws.Authed()))
 		if !accepted || allowed == nil {
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok &&
