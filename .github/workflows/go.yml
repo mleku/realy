@@ -22,7 +22,7 @@ jobs:
         go-version: '1.23.1'
 
     - name: install secp256k1
-      run: bash p256k/install_secp256k1.sh
+      run: bash install_secp256k1.sh
 
     - name: Build
       run: go build -v ./...
