@@ -1,6 +1,7 @@
 package realy
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -16,8 +17,7 @@ var nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
 
 // AddEvent has a business rule to add an event to the event store
 func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, origin S,
-	authedPubkey B) (accepted bool,
-	message B) {
+	authedPubkey B) (accepted bool, message B) {
 	if ev == nil {
 		return false, normalize.Invalid.F("empty event")
 	}
@@ -30,7 +30,13 @@ func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, origin S,
 	if !accept {
 		return false, normalize.Blocked.F(notice)
 	}
-
+	if ev.Tags.ContainsProtectedMarker() {
+		if len(authedPubkey) == 0 || !equals(ev.PubKey, authedPubkey) {
+			return false, B(fmt.Sprintf(
+				"event with relay marker tag '-' may only be published by matching npub: %0x is not %0x",
+				authedPubkey, ev.PubKey))
+		}
+	}
 	if ev.Kind.IsEphemeral() {
 		// do not store ephemeral events
 	} else {

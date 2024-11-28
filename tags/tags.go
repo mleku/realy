@@ -277,6 +277,17 @@ func (t *T) Intersects(f *T) (has bool) {
 	return matches == 0
 }
 
+// ContainsProtectedMarker returns true if an event may only be published to the relay by a user
+// authed with the same pubkey as in the event. This is for implementing relayinfo.NIP70.
+func (t *T) ContainsProtectedMarker() (does bool) {
+	for _, v := range t.t {
+		if equals(v.Key(), B("-")) {
+			return true
+		}
+	}
+	return
+}
+
 // ContainsAny returns true if any of the strings given in `values` matches any of the tag
 // elements.
 func (t *T) ContainsAny(tagName B, values *tag.T) bool {

@@ -115,6 +115,8 @@ var (
 	NIP58                          = Badges
 	RelayListMetadata              = NIP{"Relay List Metadata", 65}
 	NIP65                          = RelayListMetadata
+	ProtectedEvents                = NIP{"Protected Events", 70}
+	NIP70                          = ProtectedEvents
 	ModeratedCommunities           = NIP{"Moderated Communities", 72}
 	NIP72                          = ModeratedCommunities
 	ZapGoals                       = NIP{"Zap Goals", 75}
