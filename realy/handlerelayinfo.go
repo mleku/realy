@@ -31,6 +31,7 @@ func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 			ri.EventTreatment,
 			ri.CommandResults,
 			ri.ParameterizedReplaceableEvents,
+			ri.ProtectedEvents,
 		)
 		var auther relay.Authenticator
 		if auther, ok = s.relay.(relay.Authenticator); ok && auther.ServiceUrl(r) != "" {
