@@ -20,7 +20,7 @@ jobs:
       run: pwd;ls
 
     - name: install secp256k1
-      run: ./install_secp256k1.sh
+      run: pwd;./install_secp256k1.sh
 
     - name: Set up Go
       uses: actions/setup-go@v4
