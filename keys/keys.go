@@ -3,43 +3,50 @@ package keys
 import (
 	"strings"
 
-	btcec "realy.lol/ec"
 	"realy.lol/ec/schnorr"
 	"realy.lol/hex"
 	"realy.lol/p256k"
 )
 
-var GeneratePrivateKey = func() B { return GenerateSecretKeyHex() }
+// GeneratePrivateKey - deprecated, use GenerateSecretKeyHex
+var GeneratePrivateKey = func() S { return GenerateSecretKeyHex() }
 
-func GenerateSecretKeyHex() (sks B) {
-	var err E
-	var skb B
+func GenerateSecretKey() (skb B, err E) {
 	signer := &p256k.Signer{}
 	if err = signer.Generate(); chk.E(err) {
 		return
 	}
 	skb = signer.Sec()
-	sks = B(hex.Enc(skb))
 	return
 }
 
-func GetPublicKeyHex(sk S) (S, E) {
-	b, err := hex.Dec(sk)
+func GenerateSecretKeyHex() (sks S) {
+	skb, err := GenerateSecretKey()
 	if chk.E(err) {
-		return "", err
+		return
 	}
-	_, pk := btcec.PrivKeyFromBytes(b)
-	return hex.Enc(schnorr.SerializePubKey(pk)), nil
+	return hex.Enc(skb)
+}
+
+func GetPublicKeyHex(sk S) (pk S, err E) {
+	var b B
+	if b, err = hex.Dec(sk); chk.E(err) {
+		return
+	}
+	signer := &p256k.Signer{}
+	if err = signer.InitSec(b); chk.E(err) {
+		return
+	}
+
+	return hex.Enc(signer.Pub()), nil
 }
 
 func SecretBytesToPubKeyHex(skb B) (pk S, err E) {
-	_, pkk := btcec.SecKeyFromBytes(skb)
-	return hex.Enc(schnorr.SerializePubKey(pkk)), nil
-}
-
-func SecretToPubKeyBytes(skb B) (pk B, err E) {
-	_, pkk := btcec.SecKeyFromBytes(skb)
-	return schnorr.SerializePubKey(pkk), nil
+	signer := &p256k.Signer{}
+	if err = signer.InitSec(skb); chk.E(err) {
+		return
+	}
+	return hex.Enc(signer.Pub()), nil
 }
 
 func IsValid32ByteHex(pk string) bool {

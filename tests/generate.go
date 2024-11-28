@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 
 	"lukechampine.com/frand"
+
 	"realy.lol/event"
 	"realy.lol/kind"
 	"realy.lol/p256k"
@@ -21,14 +22,11 @@ func GenerateEvent(maxSize int) (ev *event.T, binSize int, err E) {
 	if err = signer.Generate(); chk.E(err) {
 		return
 	}
-	//if err = signer.InitSec(sec); chk.E(err) {
-	//	return
-	//}
 	if err = ev.Sign(signer); chk.E(err) {
 		return
 	}
 	var bin []byte
-	bin, err = ev.MarshalBinary(bin)
+	bin, err = ev.MarshalJSON(bin)
 	binSize = len(bin)
 	return
 }

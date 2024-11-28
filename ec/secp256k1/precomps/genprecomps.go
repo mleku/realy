@@ -10,7 +10,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"math/big"
 	"os"
 
@@ -28,9 +27,8 @@ func bigAffineToJacobian(x, y *big.Int, result *secp256k1.JacobianPoint) {
 	result.Z.SetInt(1)
 }
 
-// serializedBytePoints returns a serialized byte slice which contains all of
-// the possible points per 8-bit window.  This is used to when generating
-// compressedbytepoints.go.
+// serializedBytePoints returns a serialized byte slice which contains all possible points per
+// 8-bit window. This is used to when generating compressedbytepoints.go.
 func serializedBytePoints() []byte {
 	// Calculate G^(2^i) for i in 0..255.  These are used to avoid recomputing
 	// them for each digit of the 8-bit windows.
@@ -310,11 +308,12 @@ func main() {
 		os.Exit(1)
 	}
 	serialized := serializedBytePoints()
-	embeded, err := os.Create("secp256k1/rawbytepoints.bin")
+	embedded, err := os.Create("secp256k1/rawbytepoints.bin")
 	if err != nil {
-		log.Fatal(err)
+		log.F.Ln(err)
+		os.Exit(1)
 	}
-	n, err := embeded.Write(serialized)
+	n, err := embedded.Write(serialized)
 	if err != nil {
 		panic(err)
 	}
@@ -323,5 +322,5 @@ func main() {
 			n, len(serialized))
 		panic("fail")
 	}
-	_ = embeded.Close()
+	_ = embedded.Close()
 }

@@ -1,8 +1,12 @@
 package main
 
 import (
-	"lukechampine.com/frand"
 	"os"
+	"sync"
+	"time"
+
+	"lukechampine.com/frand"
+
 	"realy.lol/bech32encoding"
 	"realy.lol/context"
 	"realy.lol/event"
@@ -16,8 +20,6 @@ import (
 	"realy.lol/tag"
 	"realy.lol/tests"
 	"realy.lol/units"
-	"sync"
-	"time"
 )
 
 type Counter struct {
@@ -43,7 +45,9 @@ func main() {
 		// fill rate capped to size of difference between high and low water mark
 		diff = TotalSize * units.Gb * (HW - LW) / 100
 	)
-	sec = keys.GenerateSecretKeyHex()
+	if sec, err = keys.GenerateSecretKey(); chk.E(err) {
+		panic(err)
+	}
 	var nsec B
 	if nsec, err = bech32encoding.HexToNsec(sec); chk.E(err) {
 		panic(err)
@@ -51,7 +55,7 @@ func main() {
 	log.T.Ln("signing with", nsec)
 	c, cancel := context.Cancel(context.Bg())
 	var wg sync.WaitGroup
-	//defer cancel()
+	// defer cancel()
 	// create L1 with cache management settings enabled; we do it in the current dir
 	// because os.TempDir can point to a ramdisk which is very impractical for this
 	// test.
@@ -62,7 +66,7 @@ func main() {
 	// create L2 with no cache management
 	b2 := ratel.GetBackend(c, &wg, false, units.Gb, lol.Trace, 4*units.Mb)
 	// Respond to interrupt signal and clean up after interrupt or end of test.
-	//defer chk.E(os.RemoveAll(path))
+	// defer chk.E(os.RemoveAll(path))
 	interrupt.AddHandler(func() {
 		cancel()
 		chk.E(os.RemoveAll(path))
@@ -78,7 +82,7 @@ func main() {
 		os.Exit(1)
 	}
 	// start GC
-	//go b1.GarbageCollector()
+	// go b1.GarbageCollector()
 end:
 	for {
 		select {
@@ -126,9 +130,9 @@ end:
 							sum += counter[i].size
 						}
 					}
-					//if len(fetchIDs) > 0 {
+					// if len(fetchIDs) > 0 {
 					//	log.T.Ln("fetchIDs", len(fetchIDs), fetchIDs)
-					//}
+					// }
 					mx.Unlock()
 				case <-ticker.C:
 					// copy out current list of events to request
