@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
+
 	"realy.lol/hex"
 	"realy.lol/sha256"
 )

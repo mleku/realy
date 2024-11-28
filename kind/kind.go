@@ -243,6 +243,7 @@ var (
 	FileStorageServerList = &T{10096}
 	// NWCWalletInfo is an event type that...
 	NWCWalletInfo = &T{13194}
+	WalletInfo    = NWCWalletInfo
 	// ReplaceableEnd is an event type that...
 	ReplaceableEnd = &T{20000}
 	// EphemeralStart is an event type that...
@@ -254,8 +255,10 @@ var (
 	NWCWalletRequest = &T{23194}
 	WalletRequest    = &T{23194}
 	// NWCWalletResponse is an event type that...
-	NWCWalletResponse = &T{23195}
-	WalletResponse    = &T{23195}
+	NWCWalletResponse  = &T{23195}
+	WalletResponse     = NWCWalletResponse
+	NWCNotification    = &T{23196}
+	WalletNotification = NWCNotification
 	// NostrConnect is an event type that...
 	NostrConnect = &T{24133}
 	HTTPAuth     = &T{27235}
@@ -362,6 +365,7 @@ var Map = map[uint16]string{
 	ClientAuthentication.K:        "ClientAuthentication",
 	WalletRequest.K:               "WalletRequest",
 	WalletResponse.K:              "WalletResponse",
+	WalletNotification.K:          "WalletNotification",
 	NostrConnect.K:                "NostrConnect",
 	HTTPAuth.K:                    "HTTPAuth",
 	FollowSets.K:                  "FollowSets",

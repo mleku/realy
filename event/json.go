@@ -4,12 +4,61 @@ import (
 	"io"
 
 	"realy.lol/ec/schnorr"
+	"realy.lol/hex"
 	"realy.lol/kind"
 	"realy.lol/sha256"
 	"realy.lol/tags"
 	"realy.lol/text"
 	"realy.lol/timestamp"
 )
+
+var (
+	jId        = B("id")
+	jPubkey    = B("pubkey")
+	jCreatedAt = B("created_at")
+	jKind      = B("kind")
+	jTags      = B("tags")
+	jContent   = B("content")
+	jSig       = B("sig")
+)
+
+func (ev *T) MarshalJSON(dst B) (b B, err error) {
+	// open parentheses
+	dst = append(dst, '{')
+	// ID
+	dst = text.JSONKey(dst, jId)
+	dst = text.AppendQuote(dst, ev.ID, hex.EncAppend)
+	dst = append(dst, ',')
+	// PubKey
+	dst = text.JSONKey(dst, jPubkey)
+	dst = text.AppendQuote(dst, ev.PubKey, hex.EncAppend)
+	dst = append(dst, ',')
+	// CreatedAt
+	dst = text.JSONKey(dst, jCreatedAt)
+	if dst, err = ev.CreatedAt.MarshalJSON(dst); chk.E(err) {
+		return
+	}
+	dst = append(dst, ',')
+	// Kind
+	dst = text.JSONKey(dst, jKind)
+	dst, _ = ev.Kind.MarshalJSON(dst)
+	dst = append(dst, ',')
+	// Tags
+	dst = text.JSONKey(dst, jTags)
+	dst, _ = ev.Tags.MarshalJSON(dst)
+	dst = append(dst, ',')
+	// Content
+	dst = text.JSONKey(dst, jContent)
+	dst = text.AppendQuote(dst, ev.Content, text.NostrEscape)
+	dst = append(dst, ',')
+	// jSig
+	dst = text.JSONKey(dst, jSig)
+	dst = text.AppendQuote(dst, ev.Sig, hex.EncAppend)
+	// close parentheses
+	dst = append(dst, '}')
+	b = dst
+	return
+}
 
 func (ev *T) UnmarshalJSON(b B) (r B, err error) {
 	key := make(B, 0, 9)

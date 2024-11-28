@@ -2,6 +2,7 @@ package event
 
 import (
 	"lukechampine.com/frand"
+
 	"realy.lol/eventid"
 	"realy.lol/hex"
 	"realy.lol/kind"
@@ -16,23 +17,23 @@ import (
 // defines its JSON string based format.
 type T struct {
 	// ID is the SHA256 hash of the canonical encoding of the event in binary format
-	ID B `json:"id"`
+	ID B
 	// PubKey is the public key of the event creator in binary format
-	PubKey B `json:"pubkey"`
+	PubKey B
 	// CreatedAt is the UNIX timestamp of the event according to the event
 	// creator (never trust a timestamp!)
-	CreatedAt *timestamp.T `json:"created_at"`
+	CreatedAt *timestamp.T
 	// Kind is the nostr protocol code for the type of event. See kind.T
-	Kind *kind.T `json:"kind"`
+	Kind *kind.T
 	// Tags are a list of tags, which are a list of strings usually structured
 	// as a 3 layer scheme indicating specific features of an event.
-	Tags *tags.T `json:"tags"`
+	Tags *tags.T
 	// Content is an arbitrary string that can contain anything, but usually
 	// conforming to a specification relating to the Kind and the Tags.
-	Content B `json:"content"`
+	Content B
 	// Sig is the signature on the ID hash that validates as coming from the
 	// Pubkey in binary format.
-	Sig B `json:"sig"`
+	Sig B
 }
 
 // Ts is an array of T that sorts in reverse chronological order.

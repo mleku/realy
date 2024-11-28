@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/templexxx/xhex"
+
 	"realy.lol/hex"
 	"realy.lol/ints"
 	"realy.lol/kind"
@@ -57,7 +58,11 @@ func UnmarshalHex(b B) (h B, rem B, err error) {
 }
 
 // UnmarshalQuoted performs an in-place unquoting of NIP-01 quoted byte string.
-func UnmarshalQuoted(b B) (content, rem B, err error) {
+func UnmarshalQuoted(b B) (content, rem B, err E) {
+	if len(b) == 0 {
+		err = io.EOF
+		return
+	}
 	rem = b[:]
 	for ; len(rem) >= 0; rem = rem[1:] {
 		// advance to open quotes

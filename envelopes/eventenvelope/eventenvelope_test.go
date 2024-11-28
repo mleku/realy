@@ -69,7 +69,10 @@ func TestResult(t *testing.T) {
 			t.Fatalf("some of input remaining after marshal/unmarshal: '%s'",
 				rem)
 		}
-		ea := NewResultWith(subscription.NewStd().String(), ev)
+		var ea *Result
+		if ea, err = NewResultWith(subscription.NewStd().String(), ev); chk.E(err) {
+			t.Fatal(err)
+		}
 		if rem, err = ea.MarshalJSON(rem); chk.E(err) {
 			t.Fatal(err)
 		}

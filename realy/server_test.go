@@ -7,12 +7,11 @@ import (
 	"time"
 
 	"github.com/gobwas/ws/wsutil"
+
 	"realy.lol/context"
 	"realy.lol/ratel"
 	"realy.lol/ws"
 )
-
-// todo: this needs updating
 
 func TestServerStartShutdown(t *testing.T) {
 	var (
@@ -20,8 +19,11 @@ func TestServerStartShutdown(t *testing.T) {
 		storeInited bool
 		shutdown    bool
 	)
+	c, cancel := context.Cancel(context.Bg())
 	rl := &testRelay{
-		name: "test server start",
+		Ctx:    c,
+		Cancel: cancel,
+		name:   "test server start",
 		init: func() E {
 			inited = true
 			return nil
@@ -31,7 +33,7 @@ func TestServerStartShutdown(t *testing.T) {
 			init: func() E { storeInited = true; return nil },
 		},
 	}
-	srv, _ := NewServer(context.Bg(), nil, rl, "", ratel.DefaultMaxLimit)
+	srv, _ := NewServer(c, cancel, rl, "", ratel.DefaultMaxLimit)
 	ready := make(chan bool)
 	done := make(chan E)
 	go func() {
@@ -55,9 +57,8 @@ func TestServerStartShutdown(t *testing.T) {
 	}
 
 	// verify server shuts down
-	ctx, cancel := context.Timeout(context.Bg(), 3*time.Second)
-	defer cancel()
-	srv.Shutdown(ctx)
+	defer srv.Cancel()
+	srv.Shutdown()
 	if !shutdown {
 		t.Error("didn't call testRelay.onShutdown")
 	}
@@ -84,9 +85,8 @@ func TestServerShutdownWebsocket(t *testing.T) {
 	}
 
 	// now, shut down the server
-	ctx2, cancel := context.Timeout(context.Bg(), 2*time.Second)
-	defer cancel()
-	srv.Shutdown(ctx2)
+	defer srv.Cancel()
+	srv.Shutdown()
 
 	// wait for the client to receive a "connection close"
 	time.Sleep(1 * time.Second)

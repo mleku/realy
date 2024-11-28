@@ -13,6 +13,7 @@ import (
 	"github.com/fasthttp/websocket"
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"
+
 	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/relay"
@@ -156,7 +157,6 @@ func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...
 // Note that the HTTP server make some time to shutdown and so the context deadline,
 // if any, may have been shortened by the time OnShutdown is called.
 func (s *Server) Shutdown() {
-	c := s.Ctx
 	log.I.Ln("shutting down relay")
 	s.Cancel()
 	s.clientsMu.Lock()
@@ -168,13 +168,13 @@ func (s *Server) Shutdown() {
 		delete(s.clients, conn)
 	}
 	log.W.Ln("closing event store")
-	s.relay.Storage(c).Close()
+	s.relay.Storage(s.Ctx).Close()
 	log.W.Ln("shutting down relay listener")
-	s.httpServer.Shutdown(c)
+	s.httpServer.Shutdown(s.Ctx)
 	log.W.S("shutting down admin listener")
-	s.adminServer.Shutdown(c)
+	s.adminServer.Shutdown(s.Ctx)
 	if f, ok := s.relay.(relay.ShutdownAware); ok {
-		f.OnShutdown(c)
+		f.OnShutdown(s.Ctx)
 	}
 }
 

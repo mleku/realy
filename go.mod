@@ -5,17 +5,14 @@ go 1.23.1
 require (
 	github.com/alexflint/go-arg v1.5.1
 	github.com/davecgh/go-spew v1.1.1
-	github.com/deneonet/benc v1.1.2
 	github.com/dgraph-io/badger/v4 v4.3.1
 	github.com/fasthttp/websocket v1.5.10
 	github.com/fatih/color v1.18.0
 	github.com/gobwas/httphead v0.1.0
 	github.com/gobwas/ws v1.4.0
-	github.com/golang/protobuf v1.5.4
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
-	github.com/klauspost/cpuid/v2 v2.2.8
+	github.com/klauspost/cpuid/v2 v2.2.9
 	github.com/kopoli/go-terminal-size v0.0.0-20170219200355-5c97524c8b54
-	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.7.0
 	github.com/puzpuzpuz/xsync/v3 v3.4.0
 	github.com/rs/cors v1.11.1
@@ -23,11 +20,10 @@ require (
 	github.com/templexxx/xhex v0.0.0-20200614015412-aed53437177b
 	go-simpler.org/env v0.12.0
 	golang.org/x/crypto v0.28.0
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
+	golang.org/x/lint v0.0.0-20241112194109-818c5a804067
 	golang.org/x/net v0.30.0
 	golang.org/x/sync v0.8.0
 	golang.org/x/time v0.7.0
-	google.golang.org/protobuf v1.35.1
 	honnef.co/go/tools v0.5.1
 	lukechampine.com/frand v1.5.1
 )
@@ -43,22 +39,24 @@ require (
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
-	github.com/google/pprof v0.0.0-20241023014458-598669927662 // indirect
+	github.com/google/pprof v0.0.0-20241122213907-cbe949e5a41b // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	github.com/templexxx/cpu v0.1.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.56.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
 	golang.org/x/exp/typeparams v0.0.0-20241009180824-f66d83c29e7c // indirect
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
+	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
