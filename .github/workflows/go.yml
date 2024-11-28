@@ -16,16 +16,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23.1'
-
     - name: whereami
       run: pwd;ls
 
     - name: install secp256k1
-      run: bash install_secp256k1.sh
+      run: ./install_secp256k1.sh
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23.1'
 
     - name: Build
       run: go build -v ./...
