@@ -45,24 +45,32 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 		if len(evs) > 0 {
 			log.I.F("found events %d", len(evs))
 			for _, ev := range evs {
+				del := true
 				if equals(ev.ID, evt.ID) {
 					continue
 				}
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
 					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
 				}
+				// not deleting these events because some clients are retarded and the query
+				// will pull the new one but a backup can recover the data of old ones
+				if ev.Kind.IsDirectoryEvent() {
+					del = false
+				}
 				// defer the delete until after the save, further down, has completed.
-				defer func() {
-					if err != nil {
-						// something went wrong saving the replacement, so we won't delete
-						// the event.
-						return
-					}
-					log.T.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
-					if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
-						return
-					}
-				}()
+				if del {
+					defer func() {
+						if err != nil {
+							// something went wrong saving the replacement, so we won't delete
+							// the event.
+							return
+						}
+						log.T.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
+						if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
+							return
+						}
+					}()
+				}
 			}
 		}
 	} else if evt.Kind.IsParameterizedReplaceable() {
@@ -80,10 +88,16 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 		}
 		if len(evs) > 0 {
 			for _, ev := range evs {
+				del := true
 				err = nil
 				log.I.F("maybe replace %s", ev.Serialize())
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
 					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
+				}
+				// not deleting these events because some clients are retarded and the query
+				// will pull the new one but a backup can recover the data of old ones
+				if ev.Kind.IsDirectoryEvent() {
+					del = false
 				}
 				evdt := ev.Tags.GetFirst(tag.New("d"))
 				evtdt := evt.Tags.GetFirst(tag.New("d"))
@@ -91,17 +105,19 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 				if !equals(evdt.Value(), evtdt.Value()) {
 					continue
 				}
-				defer func() {
-					if err != nil {
-						// something went wrong saving the replacement, so we won't delete
-						// the event.
-						return
-					}
-					log.I.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
-					if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
-						return
-					}
-				}()
+				if del {
+					defer func() {
+						if err != nil {
+							// something went wrong saving the replacement, so we won't delete
+							// the event.
+							return
+						}
+						log.I.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
+						if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
+							return
+						}
+					}()
+				}
 			}
 		}
 	}
