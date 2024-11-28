@@ -21,6 +21,9 @@ jobs:
       with:
         go-version: '1.23.1'
 
+    - name: whereami
+      run: pwd;ls
+
     - name: install secp256k1
       run: bash install_secp256k1.sh
 
