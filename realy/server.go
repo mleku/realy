@@ -103,10 +103,11 @@ func NewServer(sp ServerParams, opts ...Option) (*Server, E) {
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Upgrade") == "websocket" {
 		s.HandleWebsocket(w, r)
+		return
 	} else if r.Header.Get("Accept") == "application/nostr+json" {
 		s.HandleNIP11(w, r)
+		return
 	}
-	log.I.S(r)
 	s.HandleAdmin(w, r)
 }
 
