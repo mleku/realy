@@ -33,12 +33,16 @@ func TestServerStartShutdown(t *testing.T) {
 			init: func() E { storeInited = true; return nil },
 		},
 	}
-	srv, _ := NewServer(c, cancel, rl, "", ratel.DefaultMaxLimit)
+	srv, _ := NewServer(ServerParams{
+		Ctx:      c,
+		Cancel:   cancel,
+		Rl:       rl,
+		MaxLimit: ratel.DefaultMaxLimit,
+	})
 	ready := make(chan bool)
 	done := make(chan E)
 	go func() {
-		done <- srv.Start("127.0.0.1", 0,
-			"127.0.0.1", 9999, ready)
+		done <- srv.Start("127.0.0.1", 0, ready)
 		close(done)
 	}()
 	<-ready

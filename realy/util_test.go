@@ -17,9 +17,11 @@ import (
 
 func startTestRelay(c context.T, t *testing.T, tr *testRelay) *Server {
 	t.Helper()
-	srv, _ := NewServer(c, func() {}, tr, "", 500*units.Kb)
+	srv, _ := NewServer(ServerParams{
+		c, func() {}, tr, "", 500 * units.Kb, "", "",
+	})
 	started := make(chan bool)
-	go srv.Start("127.0.0.1", 0, "127.0.0.1", 0, started)
+	go srv.Start("127.0.0.1", 0, started)
 	<-started
 	return srv
 }
@@ -52,11 +54,11 @@ func (tr *testRelay) OnShutdown(ctx context.T) {
 }
 
 func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin S,
-	authedPubkey B) (ok bool, notice S) {
+	authedPubkey B) (ok bool, notice S, after func()) {
 	if fn := tr.acceptEvent; fn != nil {
-		return fn(evt), ""
+		return fn(evt), "", nil
 	}
-	return true, ""
+	return true, "", nil
 }
 
 type testStorage struct {

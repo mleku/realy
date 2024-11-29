@@ -1,4 +1,4 @@
-package app
+package config
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 	"realy.lol/sha256"
 )
 
-type Config struct {
+type C struct {
 	AppName      S    `env:"APP_NAME" default:"realy"`
 	Profile      S    `env:"PROFILE" usage:"root path for all other path configurations (based on APP_NAME and OS specific location)"`
 	Listen       S    `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
@@ -36,8 +36,8 @@ type Config struct {
 	NWC          S    `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"`
 }
 
-func NewConfig() (cfg *Config, err E) {
-	cfg = &Config{}
+func New() (cfg *C, err E) {
+	cfg = &C{}
 	if err = env.Load(cfg, nil); chk.T(err) {
 		return
 	}
@@ -87,7 +87,7 @@ func GetEnv() (requested bool) {
 	return
 }
 
-func PrintEnv(cfg *Config, printer io.Writer) {
+func PrintEnv(cfg *C, printer io.Writer) {
 	t := reflect.TypeOf(*cfg)
 
 	for i := 0; i < t.NumField(); i++ {
@@ -111,7 +111,7 @@ func PrintEnv(cfg *Config, printer io.Writer) {
 
 // PrintHelp outputs a help text listing the configuration options and default
 // values to a provided io.Writer (usually os.Stderr or os.Stdout).
-func PrintHelp(cfg *Config, printer io.Writer) {
+func PrintHelp(cfg *C, printer io.Writer) {
 	_, _ = fmt.Fprintf(printer,
 		"Environment variables that configure %s:\n\n", cfg.AppName)
 	env.Usage(cfg, printer, &env.Options{SliceSep: ","})

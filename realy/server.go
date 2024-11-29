@@ -25,7 +25,7 @@ import (
 // [Informationer], [CustomWebSocketHandler], [ShutdownAware] and AdvancedXxx types.
 // See their respective doc comments.
 //
-// The basic usage is to call Start or StartConf, which starts serving immediately.
+// The basic usage is to call Start, which starts serving immediately.
 // For a more fine-grained control, use NewServer.
 type Server struct {
 	Ctx

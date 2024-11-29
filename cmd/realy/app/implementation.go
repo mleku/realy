@@ -17,13 +17,14 @@ import (
 	"realy.lol/ints"
 	"realy.lol/kind"
 	"realy.lol/kinds"
+	"realy.lol/realy/config"
 	"realy.lol/store"
 	"realy.lol/tag"
 )
 
 type Relay struct {
 	sync.Mutex
-	*Config
+	*config.C
 	Store store.I
 	// Owners' pubkeys
 	Owners                          []B
@@ -36,12 +37,12 @@ type Relay struct {
 	OwnersMuteLists []B
 }
 
-func (r *Relay) Name() S { return r.Config.AppName }
+func (r *Relay) Name() S { return r.C.AppName }
 
 func (r *Relay) Storage(c context.T) store.I { return r.Store }
 
 func (r *Relay) Init() (err E) {
-	for _, src := range r.Config.Owners {
+	for _, src := range r.C.Owners {
 		if len(src) < 1 {
 			continue
 		}
@@ -349,12 +350,12 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 	}
 }
 
-func (r *Relay) AuthEnabled() bool { return r.Config.AuthRequired }
+func (r *Relay) AuthEnabled() bool { return r.C.AuthRequired }
 
 // ServiceUrl returns the address of the relay to send back in auth responses.
 // If auth is disabled this returns an empty string.
 func (r *Relay) ServiceUrl(req *http.Request) (s S) {
-	if !r.Config.AuthRequired {
+	if !r.C.AuthRequired {
 		return
 	}
 	host := req.Header.Get("X-Forwarded-Host")

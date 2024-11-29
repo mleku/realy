@@ -10,27 +10,29 @@ import (
 	"time"
 
 	"github.com/pkg/profile"
+
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
 	"realy.lol/interrupt"
 	"realy.lol/lol"
 	"realy.lol/ratel"
 	"realy.lol/realy"
+	"realy.lol/realy/config"
 	"realy.lol/units"
 )
 
 func main() {
 	var err E
-	var cfg *app.Config
-	if cfg, err = app.NewConfig(); chk.T(err) || app.HelpRequested() {
+	var cfg *config.C
+	if cfg, err = config.New(); chk.T(err) || config.HelpRequested() {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
 		}
-		app.PrintHelp(cfg, os.Stderr)
+		config.PrintHelp(cfg, os.Stderr)
 		os.Exit(0)
 	}
-	if app.GetEnv() {
-		app.PrintEnv(cfg, os.Stdout)
+	if config.GetEnv() {
+		config.PrintEnv(cfg, os.Stdout)
 		os.Exit(0)
 	}
 	log.I.Ln("log level", cfg.LogLevel)
@@ -38,7 +40,7 @@ func main() {
 	if cfg.Pprof {
 		defer profile.Start(profile.MemProfile).Stop()
 		go func() {
-			http.ListenAndServe("127.0.0.1:6060", nil)
+			chk.E(http.ListenAndServe("127.0.0.1:6060", nil))
 		}()
 	}
 	debug.SetMemoryLimit(int64(cfg.MemLimit))
@@ -59,7 +61,7 @@ func main() {
 			},
 		},
 	)
-	r := &app.Relay{Config: cfg, Store: storage}
+	r := &app.Relay{C: cfg, Store: storage}
 	go app.MonitorResources(c)
 	var server *realy.Server
 	if server, err = realy.NewServer(realy.ServerParams{

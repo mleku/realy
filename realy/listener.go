@@ -5,7 +5,6 @@ import (
 
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/event"
-	"realy.lol/filter"
 	"realy.lol/filters"
 	"realy.lol/tag"
 	"realy.lol/web"
@@ -19,37 +18,6 @@ var (
 	listeners      = make(map[*web.Socket]map[S]*Listener)
 	listenersMutex sync.Mutex
 )
-
-func GetListeningFilters() *filters.T {
-	respfilters := &filters.T{F: make([]*filter.T, 0, len(listeners)*2)}
-
-	listenersMutex.Lock()
-	defer listenersMutex.Unlock()
-
-	// here we go through all the existing listeners
-	for _, connlisteners := range listeners {
-		for _, listener := range connlisteners {
-			for _, listenerfilter := range listener.filters.F {
-				for _, respfilter := range respfilters.F {
-					// check if this filter specifically is already added to respfilters
-					if filter.Equal(listenerfilter, respfilter) {
-						goto nextconn
-					}
-				}
-
-				// field not yet present on respfilters, add it
-				respfilters.F = append(respfilters.F, listenerfilter)
-
-				// continue to the next filter
-			nextconn:
-				continue
-			}
-		}
-	}
-
-	// respfilters will be a slice with all the distinct filter we currently have active
-	return respfilters
-}
 
 func setListener(id S, ws *web.Socket, ff *filters.T) {
 	listenersMutex.Lock()
