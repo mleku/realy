@@ -50,7 +50,7 @@ func (s *Server) HandleNIP11(w http.ResponseWriter, r *http.Request) {
 			Nips:        supportedNIPs,
 			Software:    "https://realy.lol",
 			Version:     version,
-			Limitation:  ri.Limits{MaxLimit: s.maxLimit},
+			Limitation:  ri.Limits{MaxLimit: s.maxLimit, AuthRequired: s.authRequired},
 			Icon:        "https://cdn.satellite.earth/ac9778868fbf23b63c47c769a74e163377e6ea94d3f0f31711931663d035c4f6.png",
 		}
 	}

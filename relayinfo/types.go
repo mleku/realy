@@ -219,20 +219,20 @@ type Pub struct {
 // T is the realy information document.
 type T struct {
 	Name           string      `json:"name"`
-	Description    string      `json:"description"`
-	PubKey         string      `json:"pubkey"`
+	Description    string      `json:"description,omitempty"`
+	PubKey         string      `json:"pubkey,omitempty"`
 	Contact        string      `json:"contact,omitempty"`
 	Nips           number.List `json:"supported_nips"`
 	Software       string      `json:"software"`
 	Version        string      `json:"version"`
-	Limitation     Limits      `json:"limitation"`
-	Retention      any         `json:"retention"`
-	RelayCountries []string    `json:"relay_countries"`
-	LanguageTags   []string    `json:"language_tags"`
-	Tags           []string    `json:"tags"`
-	PostingPolicy  string      `json:"posting_policy"`
-	PaymentsURL    string      `json:"payments_url"`
-	Fees           Fees        `json:"fees"`
+	Limitation     Limits      `json:"limitation,omitempty"`
+	Retention      any         `json:"retention,omitempty"`
+	RelayCountries []string    `json:"relay_countries,omitempty"`
+	LanguageTags   []string    `json:"language_tags,omitempty"`
+	Tags           []string    `json:"tags,omitempty"`
+	PostingPolicy  string      `json:"posting_policy,omitempty"`
+	PaymentsURL    string      `json:"payments_url,omitempty"`
+	Fees           *Fees       `json:"fees,omitempty"`
 	Icon           string      `json:"icon"`
 	sync.Mutex
 }
