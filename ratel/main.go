@@ -52,6 +52,18 @@ type T struct {
 
 var _ store.I = (*T)(nil)
 
+type BackendParams struct {
+	Ctx                                context.T
+	WG                                 *sync.WaitGroup
+	HasL2                              bool
+	BlockCacheSize, LogLevel, MaxLimit int
+	Extra                              []int
+}
+
+func New(p BackendParams, params ...int) *T {
+	return GetBackend(p.Ctx, p.WG, p.HasL2, p.BlockCacheSize, p.LogLevel, p.MaxLimit, params...)
+}
+
 // GetBackend returns a reasonably configured badger.Backend.
 //
 // The variadic params correspond to DBSizeLimit, DBLowWater, DBHighWater and
@@ -59,6 +71,8 @@ var _ store.I = (*T)(nil)
 //
 // Note that the cancel function for the context needs to be managed by the
 // caller.
+//
+// Deprecated: use New instead.
 func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2 bool,
 	blockCacheSize, logLevel, maxLimit int, params ...int) (b *T) {
 	var sizeLimit, lw, hw, freq = 0, 50, 66, 3600

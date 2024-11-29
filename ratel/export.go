@@ -152,7 +152,7 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...B) {
 				}
 				item := it.Item()
 				b, e := item.ValueCopy(nil)
-				if e != nil {
+				if chk.E(e) {
 					err = nil
 					continue
 				}

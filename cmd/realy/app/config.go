@@ -22,7 +22,8 @@ type Config struct {
 	Listen       S    `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
 	Port         N    `env:"PORT" default:"3334" usage:"port to listen on"`
 	AdminListen  S    `env:"ADMIN_LISTEN" default:"127.0.0.1" usage:"admin listen address"`
-	AdminPort    N    `env:"ADMIN_PORT" default:"3337" usage:"admin listen port"`
+	AdminUser    S    `env:"ADMIN_USER" default:"admin" usage:"admin user"`
+	AdminPass    S    `env:"ADMIN_PASS" usage:"admin password"`
 	LogLevel     S    `env:"LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
 	DbLogLevel   S    `env:"DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
 	AuthRequired bool `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`

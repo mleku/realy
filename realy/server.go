@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -30,63 +29,73 @@ import (
 // For a more fine-grained control, use NewServer.
 type Server struct {
 	Ctx
-	Cancel                  context.F
-	options                 *Options
-	relay                   relay.I
-	clientsMu               sync.Mutex
-	clients                 map[*websocket.Conn]struct{}
-	Addr, AdminAddr         S
-	serveMux                *http.ServeMux
-	httpServer, adminServer *http.Server
-	authRequired            bool
-	maxLimit                N
+	Cancel               context.F
+	options              *Options
+	relay                relay.I
+	clientsMu            sync.Mutex
+	clients              map[*websocket.Conn]struct{}
+	Addr                 S
+	serveMux             *http.ServeMux
+	httpServer           *http.Server
+	authRequired         bool
+	maxLimit             N
+	adminUser, adminPass S
 }
 
 func (s *Server) Router() *http.ServeMux { return s.serveMux }
 
+type ServerParams struct {
+	Ctx
+	Cancel               context.F
+	Rl                   relay.I
+	DbPath               S
+	MaxLimit             N
+	AdminUser, AdminPass S
+}
+
 // NewServer initializes the realy and its storage using their respective Init methods,
 // returning any non-nil errors, and returns a Server ready to listen for HTTP requests.
-func NewServer(c Ctx, cancel context.F, rl relay.I, dbPath S, maxLimit N,
-	opts ...Option) (*Server, E) {
+func NewServer(sp ServerParams, opts ...Option) (*Server, E) {
 	options := DefaultOptions()
 	for _, opt := range opts {
 		opt(options)
 	}
 	var authRequired bool
-	if ar, ok := rl.(relay.Authenticator); ok {
+	if ar, ok := sp.Rl.(relay.Authenticator); ok {
 		authRequired = ar.AuthEnabled()
 	}
 	srv := &Server{
-		Ctx:          c,
-		Cancel:       cancel,
-		relay:        rl,
+		Ctx:          sp.Ctx,
+		Cancel:       sp.Cancel,
+		relay:        sp.Rl,
 		clients:      make(map[*websocket.Conn]struct{}),
 		serveMux:     http.NewServeMux(),
 		options:      options,
 		authRequired: authRequired,
-		maxLimit:     maxLimit,
+		maxLimit:     sp.MaxLimit,
+		adminUser:    sp.AdminUser,
+		adminPass:    sp.AdminPass,
 	}
 
-	if storage := rl.Storage(context.Bg()); storage != nil {
-		if err := storage.Init(dbPath); chk.T(err) {
+	if storage := sp.Rl.Storage(context.Bg()); storage != nil {
+		if err := storage.Init(sp.DbPath); chk.T(err) {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
 	}
 
 	// init the relay
-	if err := rl.Init(); chk.T(err) {
+	if err := sp.Rl.Init(); chk.T(err) {
 		return nil, fmt.Errorf("realy init: %w", err)
 	}
 
 	// start listening from events from other sources, if any
-	if inj, ok := rl.(relay.Injector); ok {
+	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
 				notifyListeners(srv.authRequired, ev)
 			}
 		}()
 	}
-
 	return srv, nil
 }
 
@@ -96,31 +105,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.HandleWebsocket(w, r)
 	} else if r.Header.Get("Accept") == "application/nostr+json" {
 		s.HandleNIP11(w, r)
-	} else if s.AdminAddr == r.Host ||
-		strings.HasPrefix(s.AdminAddr, "127.0.0.1") &&
-			strings.HasPrefix(r.Host, "localhost") {
-		s.HandleAdmin(w, r)
-	} else {
-		s.serveMux.ServeHTTP(w, r)
 	}
+	log.I.S(r)
+	s.HandleAdmin(w, r)
 }
 
-func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...chan bool) E {
+func (s *Server) Start(host S, port int, started ...chan bool) E {
 	addr := net.JoinHostPort(host, strconv.Itoa(port))
 	log.I.F("starting relay listener at %s", addr)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
-	adminAddr := net.JoinHostPort(adminHost, strconv.Itoa(adminPort))
-	log.I.F("starting relay admin listener at %s", adminAddr)
-	var aln net.Listener
-	aln, err = net.Listen("tcp", adminAddr)
-	if err != nil {
-		return err
-	}
 	s.Addr = ln.Addr().String()
-	s.AdminAddr = aln.Addr().String()
 	s.httpServer = &http.Server{
 		Handler:      cors.Default().Handler(s),
 		Addr:         addr,
@@ -128,23 +125,10 @@ func (s *Server) Start(host S, port int, adminHost S, adminPort int, started ...
 		ReadTimeout:  7 * time.Second,
 		IdleTimeout:  28 * time.Second,
 	}
-	s.adminServer = &http.Server{
-		Handler: cors.Default().Handler(s),
-		Addr:    adminAddr,
-		// WriteTimeout: 4 * time.Second,
-		// ReadTimeout:  4 * time.Second,
-		// IdleTimeout:  30 * time.Second,
-	}
-
 	// notify caller that we're starting
 	for _, startedC := range started {
 		close(startedC)
 	}
-
-	go func() {
-		if err = s.adminServer.Serve(aln); errors.Is(err, http.ErrServerClosed) {
-		}
-	}()
 	if err = s.httpServer.Serve(ln); errors.Is(err, http.ErrServerClosed) {
 	} else if err != nil {
 	}
@@ -171,8 +155,6 @@ func (s *Server) Shutdown() {
 	s.relay.Storage(s.Ctx).Close()
 	log.W.Ln("shutting down relay listener")
 	s.httpServer.Shutdown(s.Ctx)
-	log.W.S("shutting down admin listener")
-	s.adminServer.Shutdown(s.Ctx)
 	if f, ok := s.relay.(relay.ShutdownAware); ok {
 		f.OnShutdown(s.Ctx)
 	}
