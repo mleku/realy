@@ -10,6 +10,7 @@ import (
 	"sort"
 	"time"
 
+	"realy.lol/kinds"
 	"realy.lol/units"
 
 	"github.com/dgraph-io/badger/v4"
@@ -592,7 +593,7 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 				}
 			}
 		}
-		var events []*event.T
+		var events event.Ts
 		log.D.F("query from %s %0x,%s", ws.RealRemote(), ws.AuthedBytes(), f.Serialize())
 		if events, err = sto.QueryEvents(c, f); err != nil {
 			log.E.F("eventstore: %v", err)
@@ -601,7 +602,37 @@ func (s *Server) doReq(c Ctx, ws *web.Socket, req B, sto store.I) (r B) {
 			}
 			continue
 		}
-
+		// filter out events from authors in the user's mute list, because they are literally a
+		// waste of bandwidth from a user's perspective
+		if aut := ws.Authed(); ws.IsAuthed() {
+			var mutes event.Ts
+			if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),
+				Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
+				// found the users mute list, now, generate the list so we can filter on it
+				var mutePubs []B
+				for _, ev := range mutes {
+					for _, t := range ev.Tags.F() {
+						if equals(t.Key(), B("p")) {
+							var p B
+							if p, err = hex.Dec(S(t.Value())); chk.E(err) {
+								continue
+							}
+							mutePubs = append(mutePubs, p)
+						}
+					}
+				}
+				var tmp event.Ts
+				for _, ev := range events {
+					for _, pk := range mutePubs {
+						if equals(ev.PubKey, pk) {
+							continue
+						}
+						tmp = append(tmp, ev)
+					}
+				}
+				events = tmp
+			}
+		}
 		// sort in reverse chronological order
 		sort.Slice(events, func(i, j int) bool {
 			return events[i].CreatedAt.Int() > events[j].CreatedAt.Int()
