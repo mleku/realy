@@ -26,8 +26,8 @@ type Relay struct {
 	*Config
 	Store store.I
 	// Owners' pubkeys
-	Owners          []B
-	Followed, Muted map[S]struct{}
+	Owners                          []B
+	Followed, OwnersFollowed, Muted map[S]struct{}
 	// OwnersFollowLists are the event IDs of owners follow lists, which must not be deleted, only
 	// replaced.
 	OwnersFollowLists []B
@@ -59,6 +59,7 @@ func (r *Relay) Init() (err E) {
 		return fmt.Sprintf("%v", ownerIds)
 	})
 	r.Followed = make(map[S]struct{})
+	r.OwnersFollowed = make(map[S]struct{})
 	r.Muted = make(map[S]struct{})
 	r.CheckOwnerLists(context.Bg())
 	return nil
@@ -76,13 +77,31 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin 
 	if len(r.Owners) > 0 {
 		r.Lock()
 		defer r.Unlock()
-		if evt.Kind.Equal(kind.FollowList) || evt.Kind.Equal(kind.MuteList) {
+		if evt.Kind.Equal(kind.FollowList) {
+			// if owner or any of their follows lists are updated we need to regenerate the
+			// list this ensures that immediately a follow changes their list that newly
+			// followed can access the relay and upload DM events and such for owner
+			// followed users.
+			for o := range r.OwnersFollowed {
+				if equals(B(o), evt.PubKey) {
+					return true, "", func() {
+						r.Followed = make(map[S]struct{})
+						r.OwnersFollowed = make(map[S]struct{})
+						r.OwnersFollowLists = r.OwnersFollowLists[:0]
+						r.Muted = make(map[S]struct{})
+						r.OwnersMuteLists = r.OwnersMuteLists[:0]
+						r.CheckOwnerLists(context.Bg())
+					}
+				}
+			}
+		}
+		if evt.Kind.Equal(kind.MuteList) {
+			// only owners control the mute list
 			for _, o := range r.Owners {
 				if equals(o, evt.PubKey) {
 					return true, "", func() {
-						// owner has updated follows or mute list, so we zero those lists so they
-						// are regenerated for the next AcceptReq/AcceptEvent
 						r.Followed = make(map[S]struct{})
+						r.OwnersFollowed = make(map[S]struct{})
 						r.OwnersFollowLists = r.OwnersFollowLists[:0]
 						r.Muted = make(map[S]struct{})
 						r.OwnersMuteLists = r.OwnersMuteLists[:0]
@@ -264,6 +283,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 							continue
 						}
 						r.Followed[S(p)] = struct{}{}
+						r.OwnersFollowed[S(p)] = struct{}{}
 					}
 				}
 			}
@@ -315,7 +335,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			}
 			evs = evs[:0]
 		}
-		log.T.F("%d allowed npubs, %d blocked", len(r.Followed), len(r.Muted))
+		log.I.F("%d allowed npubs, %d blocked", len(r.Followed), len(r.Muted))
 		// // log this info
 		// o := "followed:\n"
 		// for pk := range r.Followed {
