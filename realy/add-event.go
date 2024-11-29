@@ -26,7 +26,7 @@ func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, origin S,
 	wrapper := &wrapper.RelayWrapper{I: sto}
 	advancedSaver, _ := sto.(relay.AdvancedSaver)
 
-	accept, notice := rl.AcceptEvent(c, ev, hr, origin, authedPubkey)
+	accept, notice, after := rl.AcceptEvent(c, ev, hr, origin, authedPubkey)
 	if !accept {
 		return false, normalize.Blocked.F(notice)
 	}
@@ -72,6 +72,12 @@ func AddEvent(c Ctx, rl relay.I, ev *event.T, hr *http.Request, origin S,
 	var authRequired bool
 	if ar, ok := rl.(relay.Authenticator); ok {
 		authRequired = ar.AuthEnabled()
+	}
+	// if the AcceptEvent function returned a closure we run it after the publish
+	// has been done because at least for now this means it is an updated follow
+	// list of an owner or their follows
+	if after != nil {
+		after()
 	}
 	notifyListeners(authRequired, ev)
 

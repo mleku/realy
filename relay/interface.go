@@ -33,7 +33,7 @@ type I interface {
 	// direct and group message events until there is three and thereafter will be restricted
 	// until the user adds them to their follow list.
 	AcceptEvent(c Ctx, ev *event.T, hr *http.Request, origin S, authedPubkey B) (accept bool,
-		notice string)
+		notice string, afterSave func())
 	// Storage returns the realy storage implementation.
 	Storage(Ctx) store.I
 }
@@ -55,8 +55,8 @@ type ReqAcceptor interface {
 	// support for in/outbox access.
 	//
 	// In order to support the ability to respond to
-	AcceptReq(ctx Ctx, hr *http.Request, id B, ff *filters.T,
-		authedPubkey B) (allowed *filters.T, ok bool)
+	AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) (allowed *filters.T,
+		ok bool)
 }
 
 // Authenticator is the interface for implementing NIP-42.

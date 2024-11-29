@@ -16,7 +16,6 @@ import (
 func (s *Server) HTTPAuth(r *http.Request) (authed bool) {
 	username, password, ok := r.BasicAuth()
 	if ok {
-		log.I.S(username, password)
 		// Calculate SHA-256 hashes for the provided and expected
 		// usernames and passwords.
 		usernameHash := sha256.Sum256(B(username))

@@ -141,10 +141,10 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 							// pubkey and kind.
 							if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
-									log.T.F("event %0x,%s\nreplaces %0x,%s",
-										ev.ID, ev.Serialize(),
-										evc.ID, evc.Serialize(),
-									)
+									// log.T.F("event %0x,%s\nreplaces %0x,%s",
+									// 	ev.ID, ev.Serialize(),
+									// 	evc.ID, evc.Serialize(),
+									// )
 									// replace the event, it is newer
 									delete(evMap, i)
 									break
@@ -265,7 +265,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 							return
 						}
 					}
-					log.T.Ln("last access for", seri.Uint64(), now.U64())
+					// log.T.Ln("last access for", seri.Uint64(), now.U64())
 					return nil
 				})
 			}

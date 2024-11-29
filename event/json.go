@@ -154,8 +154,8 @@ InVal:
 			return
 		}
 		if len(sig) != schnorr.SignatureSize {
-			err = errorf.E("invalid sig length, require %d got %d '%s'",
-				schnorr.SignatureSize, len(sig), r)
+			err = errorf.E("invalid sig length, require %d got %d '%s'\n%s",
+				schnorr.SignatureSize, len(sig), r, b)
 			return
 		}
 		ev.Sig = sig

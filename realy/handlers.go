@@ -134,7 +134,8 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 	if len(rem) > 0 {
 		log.I.F("extra '%s'", rem)
 	}
-	accept, notice := s.relay.AcceptEvent(c, env.T, ws.Req(), ws.RealRemote(), B(ws.Authed()))
+	accept, notice, after := s.relay.AcceptEvent(c, env.T, ws.Req(), ws.RealRemote(),
+		B(ws.Authed()))
 	if !accept {
 		var auther relay.Authenticator
 		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
@@ -167,6 +168,7 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 		}
 		return
 	}
+
 	// check id
 	if !equals(env.GetIDBytes(), env.ID) {
 		if err = okenvelope.NewFrom(env.ID, false,
@@ -349,6 +351,9 @@ func (s *Server) doEvent(c Ctx, ws *web.Socket, req B, sto store.I) (msg B) {
 	ok, reason := AddEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(), B(ws.Authed()))
 	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
 		return
+	}
+	if after != nil {
+		after()
 	}
 	return
 }
