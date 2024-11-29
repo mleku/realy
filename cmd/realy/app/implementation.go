@@ -58,7 +58,8 @@ func (r *Relay) Init() (err E) {
 		}
 		return fmt.Sprintf("%v", ownerIds)
 	})
-
+	r.Followed = make(map[S]struct{})
+	r.Muted = make(map[S]struct{})
 	r.CheckOwnerLists(context.Bg())
 	return nil
 }
@@ -101,7 +102,7 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin 
 					// potential for a malicious action causing this, first check for the list:
 					tt := tag.New(append(r.OwnersFollowLists, r.OwnersMuteLists...)...)
 					if evt.Tags.ContainsAny(B("e"), tt) {
-						return false, "cannot delete owner's follow or mute events"
+						return false, "cannot delete owner's follow, owners's follows follow or mute events"
 					}
 					// next, check all a tags present are not follow/mute lists of the owners
 					aTags := evt.Tags.GetAll(tag.New("a"))
@@ -235,90 +236,92 @@ func (r *Relay) AcceptReq(c Ctx, hr *http.Request, idB, ff *filters.T,
 	return
 }
 
-// CheckOwnerLists regenerates the owner follow and mute lists if they are empty
+// CheckOwnerLists regenerates the owner follow and mute lists if they are empty.
+//
+// It also adds the followed npubs of the follows.
 func (r *Relay) CheckOwnerLists(c context.T) {
 	if len(r.Owners) > 0 {
 		r.Lock()
 		defer r.Unlock()
+		var err error
+		var evs []*event.T
 		// need to search DB for moderator npub follow lists, followed npubs are allowed access.
 		if len(r.Followed) < 1 {
 			log.D.Ln("regenerating owners follow lists")
-			var err error
-			var evs []*event.T
 			if evs, err = r.Store.QueryEvents(c,
 				&filter.T{Authors: tag.New(r.Owners...),
 					Kinds: kinds.New(kind.FollowList)}); chk.E(err) {
-
 			}
-			for i := range evs {
-				r.OwnersFollowLists = append(r.OwnersFollowLists, evs[i].ID)
-			}
-			// preallocate sufficient elements
-			var count int
 			for _, ev := range evs {
+				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.ID)
 				for _, t := range ev.Tags.F() {
-					if equals(t.Key(), B{'p'}) {
-						count++
-					}
-				}
-			}
-			r.Followed = make(map[S]struct{})
-			for _, ev := range evs {
-				for _, t := range ev.Tags.F() {
-					if equals(t.Key(), B{'p'}) {
-						var dst B
-						if dst, err = hex.DecAppend(dst, t.Value()); chk.E(err) {
+					if equals(t.Key(), B("p")) {
+						var p B
+						if p, err = hex.Dec(S(t.Value())); chk.E(err) {
 							continue
 						}
-						f := S(dst)
-						r.Followed[f] = struct{}{}
+						r.Followed[S(p)] = struct{}{}
 					}
 				}
 			}
+			evs = evs[:0]
+			// next, search for the follow lists of all on the follow list
+			log.D.Ln("searching for owners follows follow lists")
+			var followed []S
+			for f := range r.Followed {
+				followed = append(followed, f)
+			}
+			if evs, err = r.Store.QueryEvents(c,
+				&filter.T{Authors: tag.New(followed...),
+					Kinds: kinds.New(kind.FollowList)}); chk.E(err) {
+			}
+			for _, ev := range evs {
+				// we want to protect the follow lists of users as well so they also cannot be
+				// deleted, only replaced.
+				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.ID)
+				for _, t := range ev.Tags.F() {
+					if equals(t.Key(), B("p")) {
+						var p B
+						if p, err = hex.Dec(S(t.Value())); chk.E(err) {
+							continue
+						}
+						r.Followed[S(p)] = struct{}{}
+					}
+				}
+			}
+			evs = evs[:0]
 		}
 		if len(r.Muted) < 1 {
 			log.D.Ln("regenerating owners mute lists")
-			var err error
-			var evs []*event.T
+			r.Muted = make(map[S]struct{})
 			if evs, err = r.Store.QueryEvents(c,
 				&filter.T{Authors: tag.New(r.Owners...),
 					Kinds: kinds.New(kind.MuteList)}); chk.E(err) {
-
 			}
-			for i := range evs {
-				r.OwnersMuteLists = append(r.OwnersMuteLists, evs[i].ID)
-			}
-			r.Muted = make(map[S]struct{})
-			mutes := "mutes(access blacklist),["
-			var first bool
 			for _, ev := range evs {
+				r.OwnersMuteLists = append(r.OwnersMuteLists, ev.ID)
 				for _, t := range ev.Tags.F() {
-					if equals(t.Key(), B{'p'}) {
-						var dst B
-						if dst, err = hex.DecAppend(dst, t.Value()); chk.E(err) {
+					if equals(t.Key(), B("p")) {
+						var p B
+						if p, err = hex.Dec(S(t.Value())); chk.E(err) {
 							continue
 						}
-						if !first {
-							mutes += ","
-						} else {
-							first = true
-						}
-						m := S(dst)
-						mutes += `"` + m + `"`
-						r.Muted[m] = struct{}{}
+						r.Muted[S(p)] = struct{}{}
 					}
 				}
 			}
-			o := "followed:\n"
-			for pk := range r.Followed {
-				o += fmt.Sprintf("%0x,", pk)
-			}
-			o += "\nmuted:\n"
-			for pk := range r.Muted {
-				o += fmt.Sprintf("%0x,", pk)
-			}
-			log.T.F("%s\n", o)
+			evs = evs[:0]
 		}
+		// log this info
+		o := "followed:\n"
+		for pk := range r.Followed {
+			o += fmt.Sprintf("%0x,", pk)
+		}
+		o += "\nmuted:\n"
+		for pk := range r.Muted {
+			o += fmt.Sprintf("%0x,", pk)
+		}
+		log.T.F("%s\n", o)
 	}
 }
 
