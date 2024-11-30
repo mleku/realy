@@ -21,13 +21,13 @@ type RelayInterface interface {
 	QuerySync(c Ctx, f *filter.T, opts ...ws.SubscriptionOption) ([]*event.T, E)
 }
 
-type RelayWrapper struct {
+type Relay struct {
 	store.I
 }
 
-var _ RelayInterface = (*RelayWrapper)(nil)
+var _ RelayInterface = (*Relay)(nil)
 
-func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
+func (w Relay) Publish(c Ctx, evt *event.T) (err E) {
 	if evt.Kind.IsEphemeral() {
 		// do not store ephemeral events
 		return nil
@@ -127,7 +127,7 @@ func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 	return
 }
 
-func (w RelayWrapper) QuerySync(c Ctx, f *filter.T,
+func (w Relay) QuerySync(c Ctx, f *filter.T,
 	opts ...ws.SubscriptionOption) ([]*event.T, E) {
 
 	evs, err := w.I.QueryEvents(c, f)
