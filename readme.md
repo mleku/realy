@@ -1,5 +1,7 @@
 # realy.lol
 
+[![Documentation](https://img.shields.io/badge/godoc-documentation-brightgreen.svg)](https://pkg.go.dev/realy.lol)
+
 ![realy.png](./realy.png)
 
 nostr relay built from a heavily modified fork
