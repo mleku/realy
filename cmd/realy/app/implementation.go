@@ -191,7 +191,7 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin 
 	return
 }
 
-func (r *Relay) AcceptReq(c Ctx, hr *http.Request, idB, ff *filters.T,
+func (r *Relay) AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T,
 	authedPubkey B) (allowed *filters.T, ok bool) {
 	// if the authenticator is enabled we require auth to process requests
 	if !r.AuthEnabled() {
