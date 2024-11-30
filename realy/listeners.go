@@ -62,31 +62,31 @@ func challenge(conn *websocket.Conn, req *http.Request, addr string) (ws *web.So
 
 func setListener(id S, ws *web.Socket, ff *filters.T) {
 	listenersMutex.Lock()
-	defer listenersMutex.Unlock()
 	subs, ok := listeners[ws]
 	if !ok {
 		subs = make(map[S]*Listener)
 		listeners[ws] = subs
 	}
 	subs[id] = &Listener{filters: ff}
+	listenersMutex.Unlock()
 }
 
 func removeListenerId(ws *web.Socket, id S) {
 	listenersMutex.Lock()
-	defer listenersMutex.Unlock()
 	if subs, ok := listeners[ws]; ok {
 		delete(listeners[ws], id)
 		if len(subs) == 0 {
 			delete(listeners, ws)
 		}
 	}
+	listenersMutex.Unlock()
 }
 
 func removeListener(ws *web.Socket) {
 	listenersMutex.Lock()
-	defer listenersMutex.Unlock()
 	clear(listeners[ws])
 	delete(listeners, ws)
+	listenersMutex.Unlock()
 }
 
 func notifyListeners(authRequired bool, ev *event.T) {
@@ -118,10 +118,10 @@ func notifyListeners(authRequired bool, ev *event.T) {
 			}
 			var res *eventenvelope.Result
 			if res, err = eventenvelope.NewResultWith(id, ev); chk.E(err) {
-				return
+				continue
 			}
 			if err = res.Write(ws); chk.E(err) {
-				return
+				continue
 			}
 		}
 	}
