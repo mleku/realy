@@ -98,11 +98,11 @@ type Checkpoint struct {
 // DNSSeed identifies a DNS seed.
 type DNSSeed struct {
 	// Host defines the hostname of the seed.
-	Host string
+	Host st
 
 	// HasFiltering defines whether the seed supports filtering
 	// by service flags (wire.ServiceFlag).
-	HasFiltering bool
+	HasFiltering bo
 }
 
 // Params defines a Bitcoin network by its parameters.  These parameters may be
@@ -110,13 +110,13 @@ type DNSSeed struct {
 // and keys for one network from those intended for use on another network.
 type Params struct {
 	// Name defines a human-readable identifier for the network.
-	Name string
+	Name st
 
 	// Net defines the magic bytes used to identify the network.
 	Net wire.BitcoinNet
 
 	// DefaultPort defines the default peer-to-peer port for the network.
-	DefaultPort string
+	DefaultPort st
 
 	// DNSSeeds defines a list of DNS seeds for the network that are used
 	// as one method to discover peers.
@@ -139,7 +139,7 @@ type Params struct {
 	// PoWNoRetargeting defines whether the network has difficulty
 	// retargeting enabled or not. This should only be set to true for
 	// regtest like networks.
-	PoWNoRetargeting bool
+	PoWNoRetargeting bo
 
 	// These fields define the block heights at which the specified softfork
 	// BIP became active.
@@ -174,7 +174,7 @@ type Params struct {
 	// minimum required difficulty after a long enough period of time has
 	// passed without finding a block.  This is really only useful for test
 	// networks and should not be set on a main network.
-	ReduceMinDifficulty bool
+	ReduceMinDifficulty bo
 
 	// MinDiffReductionTime is the amount of time after which the minimum
 	// required difficulty should be reduced when a block hasn't been found.
@@ -183,7 +183,7 @@ type Params struct {
 	MinDiffReductionTime time.Duration
 
 	// GenerateSupported specifies whether or not CPU mining is allowed.
-	GenerateSupported bool
+	GenerateSupported bo
 
 	// Checkpoints ordered from oldest to newest.
 	Checkpoints []Checkpoint
@@ -206,11 +206,11 @@ type Params struct {
 	Deployments                   [DefinedDeployments]ConsensusDeployment
 
 	// Mempool parameters
-	RelayNonStdTxs bool
+	RelayNonStdTxs bo
 
 	// Human-readable part for Bech32 encoded segwit addresses, as defined
 	// in BIP 173.
-	Bech32HRPSegwit B
+	Bech32HRPSegwit by
 
 	// Address encoding magics
 	PubKeyHashAddrID        byte // First byte of a P2PKH address
@@ -390,7 +390,7 @@ var MainNetParams = Params{
 
 	// Human-readable part for Bech32 encoded segwit addresses, as defined in
 	// BIP 173.
-	Bech32HRPSegwit: B("bc"), // always bc for main net
+	Bech32HRPSegwit: by("bc"), // always bc for main net
 
 	// Address encoding magics
 	PubKeyHashAddrID:        0x00, // starts with 1
@@ -412,7 +412,7 @@ var MainNetParams = Params{
 // chainhash.Hash.  It only differs from the one available in chainhash in that
 // it panics on an error since it will only (and must only) be called with
 // hard-coded, and therefore known good, hashes.
-func newHashFromStr(hexStr string) *chainhash.Hash {
+func newHashFromStr(hexStr st) *chainhash.Hash {
 	hash, err := chainhash.NewHashFromStr(hexStr)
 	if err != nil {
 		// Ordinarily I don't like panics in library code since it

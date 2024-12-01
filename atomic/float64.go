@@ -62,12 +62,12 @@ func (x *Float64) Swap(val float64) (old float64) {
 }
 
 // MarshalJSON encodes the wrapped float64 into JSON.
-func (x *Float64) MarshalJSON() ([]byte, error) {
+func (x *Float64) MarshalJSON() (by, er) {
 	return json.Marshal(x.Load())
 }
 
 // UnmarshalJSON decodes a float64 from JSON.
-func (x *Float64) UnmarshalJSON(b []byte) error {
+func (x *Float64) UnmarshalJSON(b by) er {
 	var v float64
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err

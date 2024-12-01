@@ -6,20 +6,20 @@ import (
 )
 
 type Profile struct {
-	PublicKey B   `json:"pubkey"`
-	Relays    []B `json:"relays,omitempty"`
+	PublicKey by   `json:"pubkey"`
+	Relays    []by `json:"relays,omitempty"`
 }
 
 type Event struct {
 	ID     *eventid.T `json:"id"`
-	Relays []B        `json:"relays,omitempty"`
-	Author B          `json:"author,omitempty"`
+	Relays []by       `json:"relays,omitempty"`
+	Author by         `json:"author,omitempty"`
 	Kind   *kind.T    `json:"kind,omitempty"`
 }
 
 type Entity struct {
-	PublicKey  B       `json:"pubkey"`
+	PublicKey  by      `json:"pubkey"`
 	Kind       *kind.T `json:"kind,omitempty"`
-	Identifier B       `json:"identifier,omitempty"`
-	Relays     []B     `json:"relays,omitempty"`
+	Identifier by      `json:"identifier,omitempty"`
+	Relays     []by    `json:"relays,omitempty"`
 }

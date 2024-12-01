@@ -68,12 +68,12 @@ func (i *Uint64) Dec() uint64 {
 // CAS is an atomic compare-and-swap.
 //
 // Deprecated: Use CompareAndSwap.
-func (i *Uint64) CAS(old, new uint64) (swapped bool) {
+func (i *Uint64) CAS(old, new uint64) (swapped bo) {
 	return i.CompareAndSwap(old, new)
 }
 
 // CompareAndSwap is an atomic compare-and-swap.
-func (i *Uint64) CompareAndSwap(old, new uint64) (swapped bool) {
+func (i *Uint64) CompareAndSwap(old, new uint64) (swapped bo) {
 	return atomic.CompareAndSwapUint64(&i.v, old, new)
 }
 
@@ -88,12 +88,12 @@ func (i *Uint64) Swap(val uint64) (old uint64) {
 }
 
 // MarshalJSON encodes the wrapped uint64 into JSON.
-func (i *Uint64) MarshalJSON() ([]byte, error) {
+func (i *Uint64) MarshalJSON() (by, er) {
 	return json.Marshal(i.Load())
 }
 
 // UnmarshalJSON decodes JSON into the wrapped uint64.
-func (i *Uint64) UnmarshalJSON(b []byte) error {
+func (i *Uint64) UnmarshalJSON(b by) er {
 	var v uint64
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err

@@ -12,7 +12,7 @@ import (
 // characters.
 type ErrMixedCase struct{}
 
-func (err ErrMixedCase) Error() string {
+func (err ErrMixedCase) Error() st {
 	return "string not all lowercase or all uppercase"
 }
 
@@ -20,7 +20,7 @@ func (err ErrMixedCase) Error() string {
 // slices using bit-per-element of unsupported value.
 type ErrInvalidBitGroups struct{}
 
-func (err ErrInvalidBitGroups) Error() string {
+func (err ErrInvalidBitGroups) Error() st {
 	return "only bit groups between 1 and 8 allowed"
 }
 
@@ -28,52 +28,52 @@ func (err ErrInvalidBitGroups) Error() string {
 // data of wrong length.
 type ErrInvalidIncompleteGroup struct{}
 
-func (err ErrInvalidIncompleteGroup) Error() string {
+func (err ErrInvalidIncompleteGroup) Error() st {
 	return "invalid incomplete group"
 }
 
 // ErrInvalidLength is returned when the bech32 string has an invalid length
 // given the BIP-173 defined restrictions.
-type ErrInvalidLength int
+type ErrInvalidLength no
 
-func (err ErrInvalidLength) Error() string {
-	return fmt.Sprintf("invalid bech32 string length %d", int(err))
+func (err ErrInvalidLength) Error() st {
+	return fmt.Sprintf("invalid bech32 string length %d", no(err))
 }
 
 // ErrInvalidCharacter is returned when the bech32 string has a character
 // outside the range of the supported charset.
 type ErrInvalidCharacter rune
 
-func (err ErrInvalidCharacter) Error() string {
+func (err ErrInvalidCharacter) Error() st {
 	return fmt.Sprintf("invalid character in string: '%c'", rune(err))
 }
 
 // ErrInvalidSeparatorIndex is returned when the separator character '1' is
 // in an invalid position in the bech32 string.
-type ErrInvalidSeparatorIndex int
+type ErrInvalidSeparatorIndex no
 
-func (err ErrInvalidSeparatorIndex) Error() string {
-	return fmt.Sprintf("invalid separator index %d", int(err))
+func (err ErrInvalidSeparatorIndex) Error() st {
+	return fmt.Sprintf("invalid separator index %d", no(err))
 }
 
 // ErrNonCharsetChar is returned when a character outside of the specific
 // bech32 charset is used in the string.
 type ErrNonCharsetChar rune
 
-func (err ErrNonCharsetChar) Error() string {
-	return fmt.Sprintf("invalid character not part of charset: %v", int(err))
+func (err ErrNonCharsetChar) Error() st {
+	return fmt.Sprintf("invalid character not part of charset: %v", no(err))
 }
 
 // ErrInvalidChecksum is returned when the extracted checksum of the string
 // is different than what was expected. Both the original version, as well as
 // the new bech32m checksum may be specified.
 type ErrInvalidChecksum struct {
-	Expected  string
-	ExpectedM string
-	Actual    string
+	Expected  st
+	ExpectedM st
+	Actual    st
 }
 
-func (err ErrInvalidChecksum) Error() string {
+func (err ErrInvalidChecksum) Error() st {
 	return fmt.Sprintf("invalid checksum (expected (bech32=%v, "+
 		"bech32m=%v), got %v)", err.Expected, err.ExpectedM, err.Actual)
 }
@@ -82,6 +82,6 @@ func (err ErrInvalidChecksum) Error() string {
 // conversion into a string was found.
 type ErrInvalidDataByte byte
 
-func (err ErrInvalidDataByte) Error() string {
+func (err ErrInvalidDataByte) Error() st {
 	return fmt.Sprintf("invalid data byte: %v", byte(err))
 }

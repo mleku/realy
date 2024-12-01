@@ -8,7 +8,7 @@ import (
 //go:generate go run ./gen/.
 
 //go:embed base10k.txt
-var base10k []byte
+var base10k by
 
 const base = 10000
 
@@ -16,7 +16,7 @@ type T struct {
 	N uint64
 }
 
-func New[V uint | int | uint64 | uint32 | uint16 | uint8 | int64 | int32 | int16 | int8](n V) *T {
+func New[V uint | no | uint64 | uint32 | uint16 | uint8 | int64 | int32 | int16 | int8](n V) *T {
 	return &T{uint64(n)}
 }
 
@@ -35,16 +35,16 @@ const zero = '0'
 const nine = '9'
 
 // MarshalJSON encodes an uint64 into ASCII decimal format in a
-// []byte.
-func (n *T) MarshalJSON(dst B) (b B, err error) {
+// by.
+func (n *T) MarshalJSON(dst by) (b by, err er) {
 	nn := n.N
 	b = dst
 	if n.N == 0 {
 		b = append(b, '0')
 		return
 	}
-	var i int
-	var trimmed bool
+	var i no
+	var trimmed bo
 	k := len(powers)
 	for k > 0 {
 		k--
@@ -77,12 +77,12 @@ func (n *T) MarshalJSON(dst B) (b B, err error) {
 // generated JSON integers with leading zeroes. Until this is disproven, this is the fastest way
 // to read a positive json integer, and a leading zero is decoded as a zero, and the remainder
 // returned.
-func (n *T) UnmarshalJSON(b B) (r B, err error) {
+func (n *T) UnmarshalJSON(b by) (r by, err er) {
 	if len(b) < 1 {
 		err = errorf.E("zero length number")
 		return
 	}
-	var sLen int
+	var sLen no
 	if b[0] == zero {
 		r = b[1:]
 		n.N = 0

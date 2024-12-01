@@ -35,7 +35,7 @@ func AddNonConst(p1, p2, result *JacobianPoint) {
 //
 // The magnitude of the provided X coordinate field val must be a max of 8 for
 // a correct result. The resulting Y field val will have a max magnitude of 2.
-func DecompressY(x *FieldVal, odd bool, resultY *FieldVal) bool {
+func DecompressY(x *FieldVal, odd bo, resultY *FieldVal) bo {
 	return secp256k1.DecompressY(x, odd, resultY)
 }
 
@@ -70,7 +70,7 @@ func ScalarMultNonConst(k *ModNScalar, point, result *JacobianPoint) {
 // ParseJacobian parses a byte slice point as a secp256k1.Publickey and returns the
 // pubkey as a JacobianPoint. If the nonce is a zero slice, the infinityPoint
 // is returned.
-func ParseJacobian(point []byte) (JacobianPoint, error) {
+func ParseJacobian(point by) (JacobianPoint, er) {
 	var result JacobianPoint
 	if len(point) != 33 {
 		str := fmt.Sprintf("invalid nonce: invalid length: %v",
@@ -91,9 +91,9 @@ func ParseJacobian(point []byte) (JacobianPoint, error) {
 // JacobianToByteSlice converts the passed JacobianPoint to a Pubkey
 // and serializes that to a byte slice. If the JacobianPoint is the infinity
 // point, a zero slice is returned.
-func JacobianToByteSlice(point JacobianPoint) []byte {
+func JacobianToByteSlice(point JacobianPoint) by {
 	if point.X == infinityPoint.X && point.Y == infinityPoint.Y {
-		return make([]byte, 33)
+		return make(by, 33)
 	}
 	point.ToAffine()
 	return NewPublicKey(

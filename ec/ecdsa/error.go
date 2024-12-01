@@ -7,7 +7,7 @@ package ecdsa
 // ErrorKind identifies a kind of error.  It has full support for
 // errors.Is and errors.As, so the caller can directly check against
 // an error kind when determining the reason for an error.
-type ErrorKind string
+type ErrorKind st
 
 // These constants are used to identify a specific Error.
 const (
@@ -84,23 +84,23 @@ const (
 )
 
 // Error satisfies the error interface and prints human-readable errors.
-func (e ErrorKind) Error() string { return string(e) }
+func (e ErrorKind) Error() st { return st(e) }
 
 // Error identifies an error related to an ECDSA signature. It has full
 // support for errors.Is and errors.As, so the caller can ascertain the
 // specific reason for the error by checking the underlying error.
 type Error struct {
-	Err         error
-	Description string
+	Err         er
+	Description st
 }
 
 // Error satisfies the error interface and prints human-readable errors.
-func (e Error) Error() string { return e.Description }
+func (e Error) Error() st { return e.Description }
 
 // Unwrap returns the underlying wrapped error.
-func (e Error) Unwrap() error { return e.Err }
+func (e Error) Unwrap() er { return e.Err }
 
 // signatureError creates an Error given a set of arguments.
-func signatureError(kind ErrorKind, desc string) Error {
+func signatureError(kind ErrorKind, desc st) Error {
 	return Error{Err: kind, Description: desc}
 }

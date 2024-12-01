@@ -16,13 +16,13 @@ type C chan struct{}
 var (
 	createdList                []string
 	createdChannels            []C
-	createdChannelBufferCounts []int
+	createdChannelBufferCounts []no
 	mx                         sync.Mutex
 	logEnabled                 = atomic.NewBool(false)
 )
 
 // SetLogging switches on and off the channel logging
-func SetLogging(on bool) {
+func SetLogging(on bo) {
 	logEnabled.Store(on)
 }
 
@@ -55,7 +55,7 @@ func T() C {
 // Ts creates a buffered chan struct{} which is specifically intended for signalling without
 // blocking, generally one is the size of buffer to be used, though there might be conceivable
 // cases where the channel should accept more signals without blocking the caller
-func Ts(n int) C {
+func Ts(n no) C {
 	mx.Lock()
 	defer mx.Unlock()
 	msg := fmt.Sprintf("buffered chan (%d) from %s", n, lol.GetLoc(1))
@@ -108,13 +108,13 @@ func (c C) Wait() <-chan struct{} {
 }
 
 // IsClosed exposes a test to see if the channel is closed
-func (c C) IsClosed() bool {
+func (c C) IsClosed() bo {
 	return testChanIsClosed(c)
 }
 
 // testChanIsClosed allows you to see whether the channel has been closed so you
 // can avoid a panic by trying to close or signal on it
-func testChanIsClosed(ch C) (o bool) {
+func testChanIsClosed(ch C) (o bo) {
 	if ch == nil {
 		return true
 	}
@@ -187,9 +187,9 @@ func PrintChanState() {
 }
 
 // GetOpenUnbufferedChanCount returns the number of qu channels that are still open
-func GetOpenUnbufferedChanCount() (o int) {
+func GetOpenUnbufferedChanCount() (o no) {
 	mx.Lock()
-	var c int
+	var c no
 	for i := range createdChannels {
 		if i >= len(createdChannels) {
 			break
@@ -209,9 +209,9 @@ func GetOpenUnbufferedChanCount() (o int) {
 }
 
 // GetOpenBufferedChanCount returns the number of qu channels that are still open
-func GetOpenBufferedChanCount() (o int) {
+func GetOpenBufferedChanCount() (o no) {
 	mx.Lock()
-	var c int
+	var c no
 	for i := range createdChannels {
 		if i >= len(createdChannels) {
 			break

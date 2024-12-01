@@ -26,11 +26,11 @@ import (
 
 //go:generate bin/gen-atomicwrapper -name=Bool -type=bool -wrapped=Uint32 -pack=boolToInt -unpack=truthy -cas -swap -json -file=bool.go
 
-func truthy(n uint32) bool {
+func truthy(n uint32) bo {
 	return n == 1
 }
 
-func boolToInt(b bool) uint32 {
+func boolToInt(b bo) uint32 {
 	if b {
 		return 1
 	}
@@ -38,7 +38,7 @@ func boolToInt(b bool) uint32 {
 }
 
 // Toggle atomically negates the Boolean and returns the previous value.
-func (b *Bool) Toggle() (old bool) {
+func (b *Bool) Toggle() (old bo) {
 	for {
 		old := b.Load()
 		if b.CAS(old, !old) {
@@ -48,6 +48,6 @@ func (b *Bool) Toggle() (old bool) {
 }
 
 // String encodes the wrapped value as a string.
-func (b *Bool) String() string {
+func (b *Bool) String() st {
 	return strconv.FormatBool(b.Load())
 }

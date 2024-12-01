@@ -17,7 +17,7 @@ func main() {
 		os.Exit(1)
 	}
 	var fh *os.File
-	var err E
+	var err er
 	if fh, err = os.Open(os.Args[1]); chk.E(err) {
 		os.Exit(1)
 	}
@@ -61,12 +61,12 @@ func main() {
 		reser.Sync()
 		os.Exit(0)
 	})
-	var progress, total N
+	var progress, total no
 	scanner := bufio.NewScanner(fh)
 	scanner.Split(bufio.ScanLines)
-	scanner.Buffer(make(B, units.Megabyte*8), units.Megabyte*8)
-	bin := make(B, 0, units.Mb)
-	cp := make(B, units.Mb)
+	scanner.Buffer(make(by, units.Megabyte*8), units.Megabyte*8)
+	bin := make(by, 0, units.Mb)
+	cp := make(by, units.Mb)
 	for scanner.Scan() {
 		cp = cp[:0]
 		bin = bin[:0]
@@ -78,7 +78,7 @@ func main() {
 		total += len(line) + 1
 		cp = append(cp, line...)
 		ev := event.T{}
-		var rem B
+		var rem by
 		if rem, err = ev.UnmarshalJSON(line); err != nil {
 			// these two error types are fatal... json cannot have linebreak characters in
 			// strings nor can events have keys that are other than the set defined in NIP-01.
@@ -104,31 +104,31 @@ func main() {
 			line = line[:0]
 			continue
 		}
-		//if bin, err = ev.MarshalBinary(bin); err != nil {
+		// if bin, err = ev.MarshalBinary(bin); err != nil {
 		//	_, err = fmt.Fprintf(tobin, "%s\n", ev.Serialize())
 		//	if chk.E(err) {
 		//		panic(err)
 		//	}
 		//	line = line[:0]
 		//	continue
-		//}
-		//ev2 := &event.T{}
-		//if rem, err = ev2.UnmarshalBinary(bin); err != nil {
+		// }
+		// ev2 := &event.T{}
+		// if rem, err = ev2.UnmarshalBinary(bin); err != nil {
 		//	_, err = fmt.Fprintf(frombin, "%s\n", ev.Serialize())
 		//	if chk.E(err) {
 		//		panic(err)
 		//	}
 		//	line = line[:0]
 		//	continue
-		//}
-		//if !equals(ev.Serialize(), ev2.Serialize()) {
+		// }
+		// if !equals(ev.Serialize(), ev2.Serialize()) {
 		//	_, err = fmt.Fprintf(reser, "%s\n", ev.Serialize())
 		//	if chk.E(err) {
 		//		panic(err)
 		//	}
 		//	line = line[:0]
 		//	continue
-		//}
+		// }
 		progress++
 		if progress%1000 == 0 {
 			log.I.F("progress: line %d megabytes %f", progress,

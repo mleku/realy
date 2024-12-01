@@ -14,8 +14,8 @@ import (
 func TestAppDataDir(t *testing.T) {
 	// App name plus upper and lowercase variants.
 	appName := "myapp"
-	appNameUpper := string(unicode.ToUpper(rune(appName[0]))) + appName[1:]
-	appNameLower := string(unicode.ToLower(rune(appName[0]))) + appName[1:]
+	appNameUpper := st(unicode.ToUpper(rune(appName[0]))) + appName[1:]
+	appNameLower := st(unicode.ToLower(rune(appName[0]))) + appName[1:]
 	// When we're on Windows, set the expected local and roaming directories per
 	// the environment vars. When we aren't on Windows, the function should
 	// return the current directory when forced to provide the Windows path
@@ -32,7 +32,7 @@ func TestAppDataDir(t *testing.T) {
 		winRoaming = filepath.Join(roamingAppData, appNameUpper)
 	}
 	// Get the home directory to use for testing expected results.
-	var homeDir string
+	var homeDir st
 	usr, e := user.Current()
 	if e != nil {
 		t.Errorf("user.Current: %v", e)
@@ -43,10 +43,10 @@ func TestAppDataDir(t *testing.T) {
 	macAppData := filepath.Join(homeDir, "Library", "Application Support")
 	linuxConfigDir := filepath.Join(homeDir, ".config")
 	tests := []struct {
-		goos    string
-		appName string
-		roaming bool
-		want    string
+		goos    st
+		appName st
+		roaming bo
+		want    st
 	}{
 		// Various combinations of application name casing, leading period,
 		// operating system, and roaming flags.
@@ -126,6 +126,6 @@ func TestAppDataDir(t *testing.T) {
 
 // TstAppDataDir makes the internal appDataDir function available to the test
 // package.
-func TstAppDataDir(goos, appName string, roaming bool) string {
+func TstAppDataDir(goos, appName st, roaming bo) st {
 	return GetDataDir(goos, appName, roaming)
 }

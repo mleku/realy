@@ -9,13 +9,13 @@ type PayInvoiceRequest struct {
 	Invoice
 }
 
-func NewPayInvoiceRequest[V S | B](invoice V, amount Msat) PayInvoiceRequest {
+func NewPayInvoiceRequest[V st | by](invoice V, amount Msat) PayInvoiceRequest {
 	return PayInvoiceRequest{
-		Request{Methods.PayInvoice}, Invoice{nil, B(invoice), amount},
+		Request{Methods.PayInvoice}, Invoice{nil, by(invoice), amount},
 	}
 }
 
-func (p PayInvoiceRequest) MarshalJSON(dst B) (b B, err E) {
+func (p PayInvoiceRequest) MarshalJSON(dst by) (b by, err er) {
 	// open parentheses
 	dst = append(dst, '{')
 	// method
@@ -41,24 +41,24 @@ func (p PayInvoiceRequest) MarshalJSON(dst B) (b B, err E) {
 	return
 }
 
-func (p PayInvoiceRequest) UnmarshalJSON(b B) (r B, err E) {
+func (p PayInvoiceRequest) UnmarshalJSON(b by) (r by, err er) {
 
 	return
 }
 
 type PayInvoiceResponse struct {
 	Response
-	Preimage B
+	Preimage by
 	FeesPaid Msat // optional, omitted if zero
 }
 
-func NewPayInvoiceResponse(preimage B, feesPaid Msat) PayInvoiceResponse {
+func NewPayInvoiceResponse(preimage by, feesPaid Msat) PayInvoiceResponse {
 	return PayInvoiceResponse{
 		Response{Type: Methods.PayInvoice}, preimage, feesPaid,
 	}
 }
 
-func (p PayInvoiceResponse) MarshalJSON(dst B) (b B, err E) {
+func (p PayInvoiceResponse) MarshalJSON(dst by) (b by, err er) {
 	// open parentheses
 	dst = append(dst, '{')
 	// method
@@ -83,7 +83,7 @@ func (p PayInvoiceResponse) MarshalJSON(dst B) (b B, err E) {
 	return
 }
 
-func (p PayInvoiceResponse) UnmarshalJSON(b B) (r B, err E) {
+func (p PayInvoiceResponse) UnmarshalJSON(b by) (r by, err er) {
 	// TODO implement me
 	panic("implement me")
 }

@@ -22,7 +22,7 @@ func (r *T) GarbageCollector() {
 		r.GCFrequency,
 		r.Path(),
 	)
-	var err error
+	var err er
 	if err = r.GCRun(); chk.E(err) {
 	}
 	GCticker := time.NewTicker(r.GCFrequency)
@@ -45,14 +45,14 @@ out:
 	log.I.Ln("closing badger event store garbage collector")
 }
 
-func (r *T) GCRun() (err error) {
+func (r *T) GCRun() (err er) {
 	log.T.Ln("running GC", r.Path())
 	var pruneEvents, pruneIndexes DelItems
 	if pruneEvents, pruneIndexes, err = r.GCMark(); chk.E(err) {
 		return
 	}
 	if len(pruneEvents) < 1 && len(pruneIndexes) < 1 {
-		//log.I.Ln("GC sweep unnecessary")
+		// log.I.Ln("GC sweep unnecessary")
 		return
 	}
 	if err = r.GCSweep(pruneEvents, pruneIndexes); chk.E(err) {

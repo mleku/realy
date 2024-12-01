@@ -18,7 +18,7 @@ import (
 type Backend struct {
 	Ctx  context.T
 	WG   *sync.WaitGroup
-	path S
+	path st
 	// L1 will store its state/configuration in path/layer1
 	L1 store.I
 	// L2 will store its state/configuration in path/layer2
@@ -38,7 +38,7 @@ type Backend struct {
 	EventSignal event.C
 }
 
-func (b *Backend) Init(path S) (err E) {
+func (b *Backend) Init(path st) (err er) {
 	b.path = path
 	// each backend will have configuration files living in a subfolder of the same
 	// root, path/layer1 and path/layer2 - this may only be state/configuration, or
@@ -86,10 +86,10 @@ func (b *Backend) Init(path S) (err E) {
 	return
 }
 
-func (b *Backend) Path() (s S) { return b.path }
+func (b *Backend) Path() (s st) { return b.path }
 
-func (b *Backend) Close() (err E) {
-	var e1, e2 E
+func (b *Backend) Close() (err er) {
+	var e1, e2 er
 	if e1 = b.L1.Close(); chk.E(e1) {
 		err = e1
 	}
@@ -103,9 +103,9 @@ func (b *Backend) Close() (err E) {
 	return
 }
 
-func (b *Backend) Nuke() (err E) {
+func (b *Backend) Nuke() (err er) {
 	var wg sync.WaitGroup
-	var err1, err2 E
+	var err1, err2 er
 	go func() {
 		if err1 = b.L1.Nuke(); chk.E(err) {
 		}
@@ -122,13 +122,13 @@ func (b *Backend) Nuke() (err E) {
 	return
 }
 
-func (b *Backend) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
+func (b *Backend) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 	if evs, err = b.L1.QueryEvents(c, f); chk.E(err) {
 		return
 	}
 	// if there is pruned events (have only ID, no pubkey), they will also be in the
 	// L2 result, save these to the L1.
-	var revives []B
+	var revives []by
 	var founds event.Ts
 	for _, ev := range evs {
 		if len(ev.PubKey) == 0 {
@@ -139,8 +139,8 @@ func (b *Backend) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 		}
 	}
 	evs = founds
-	go func(revives []B) {
-		var err E
+	go func(revives []by) {
+		var err er
 		// construct the filter to fetch the missing events in the background that we
 		// know about, these will come in later on the subscription while it remains
 		// open.
@@ -175,11 +175,11 @@ func (b *Backend) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 	return
 }
 
-func (b *Backend) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) {
+func (b *Backend) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 	var wg sync.WaitGroup
-	var count1, count2 N
-	var approx1, approx2 bool
-	var err1, err2 E
+	var count1, count2 no
+	var approx1, approx2 bo
+	var err1, err2 er
 	go func() {
 		count1, approx1, err1 = b.L1.CountEvents(c, f)
 		wg.Done()
@@ -205,13 +205,13 @@ func (b *Backend) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) 
 	return
 }
 
-func (b *Backend) DeleteEvent(c Ctx, ev *eventid.T) (err E) {
+func (b *Backend) DeleteEvent(c cx, ev *eventid.T) (err er) {
 	// delete the events from both stores.
 	err = errors.Join(b.L1.DeleteEvent(c, ev), b.L2.DeleteEvent(c, ev))
 	return
 }
 
-func (b *Backend) SaveEvent(c Ctx, ev *event.T) (err E) {
+func (b *Backend) SaveEvent(c cx, ev *event.T) (err er) {
 	// save to both event stores
 	err = errors.Join(
 		b.L1.SaveEvent(c, ev), // this will also send out to subscriptions
@@ -225,14 +225,14 @@ func (b *Backend) Import(r io.Reader) {
 	b.L2.Import(r)
 }
 
-func (b *Backend) Export(c Ctx, w io.Writer, pubkeys ...B) {
+func (b *Backend) Export(c cx, w io.Writer, pubkeys ...by) {
 	// export only from the L2 as it is considered to be the authoritative event
 	// store of the two, and this is generally an administrative or infrequent action
 	// and latency will not matter as it usually will be a big bulky download.
 	b.L2.Export(c, w, pubkeys...)
 }
 
-func (b *Backend) Sync() (err E) {
+func (b *Backend) Sync() (err er) {
 	err1 := b.L1.Sync()
 	// more than likely L2 sync is a noop.
 	err2 := b.L2.Sync()

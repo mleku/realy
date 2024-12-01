@@ -12,11 +12,11 @@ import (
 
 func TestTMarshal_Unmarshal(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	var rem, out B
-	var err error
+	var rem, out by
+	var err er
 	for scanner.Scan() {
 		b := scanner.Bytes()
-		c := make(B, 0, len(b))
+		c := make(by, 0, len(b))
 		c = append(c, b...)
 		ea := New()
 		if _, err = ea.UnmarshalJSON(b); chk.E(err) {
@@ -38,11 +38,11 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 
 func TestT_CheckSignature(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	var rem, out B
-	var err error
+	var rem, out by
+	var err er
 	for scanner.Scan() {
 		b := scanner.Bytes()
-		c := make(B, 0, len(b))
+		c := make(by, 0, len(b))
 		c = append(c, b...)
 		ea := New()
 		if _, err = ea.UnmarshalJSON(b); chk.E(err) {
@@ -52,7 +52,7 @@ func TestT_CheckSignature(t *testing.T) {
 			t.Fatalf("some of input remaining after marshal/unmarshal: '%s'",
 				rem)
 		}
-		var valid bool
+		var valid bo
 		if valid, err = ea.Verify(); chk.E(err) {
 			t.Fatal(err)
 		}
@@ -64,7 +64,7 @@ func TestT_CheckSignature(t *testing.T) {
 }
 
 func TestT_SignWithSecKey(t *testing.T) {
-	var err error
+	var err er
 	signer := new(p256k.Signer)
 	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
@@ -74,7 +74,7 @@ func TestT_SignWithSecKey(t *testing.T) {
 		if ev, err = GenerateRandomTextNoteEvent(signer, 1000); chk.E(err) {
 			t.Fatal(err)
 		}
-		var valid bool
+		var valid bo
 		if valid, err = ev.Verify(); chk.E(err) {
 			t.Fatal(err)
 		}
@@ -85,20 +85,20 @@ func TestT_SignWithSecKey(t *testing.T) {
 	}
 }
 
-//func TestBinaryEvents(t *testing.T) {
+// func TestBinaryEvents(t *testing.T) {
 //	var err error
 //	var ev, ev2 *T
 //	_ = ev2
-//	var orig B
-//	b2, b3 := make(B, 0, 1_000_000), make(B, 0, 1_000_000)
-//	j2, j3 := make(B, 0, 1_000_000), make(B, 0, 1_000_000)
+//	var orig by
+//	b2, b3 := make(by, 0, 1_000_000), make(by, 0, 1_000_000)
+//	j2, j3 := make(by, 0, 1_000_000), make(by, 0, 1_000_000)
 //	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-//	buf := make(B, 1_000_000)
+//	buf := make(by, 1_000_000)
 //	scanner.Buffer(buf, len(buf))
 //	ev, ev2 = New(), New()
 //	for scanner.Scan() {
 //		orig = scanner.Bytes()
-//		var cp B
+//		var cp by
 //		cp = append(cp, orig...)
 //		if orig, err = ev.UnmarshalJSON(orig); chk.E(err) {
 //			t.Fatal(err)
@@ -138,16 +138,16 @@ func TestT_SignWithSecKey(t *testing.T) {
 //		j2, j3 = j2[:0], j3[:0]
 //		b2, b3 = b2[:0], b3[:0]
 //	}
-//}
+// }
 
 func BenchmarkMarshalJSON(bb *testing.B) {
 	bb.StopTimer()
-	var i int
-	var out B
-	var err error
+	var i no
+	var out by
+	var err er
 	evts := make([]*T, 0, 9999)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(B, 1_000_000)
+	buf := make(by, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	for scanner.Scan() {
 		b := scanner.Bytes()
@@ -158,7 +158,7 @@ func BenchmarkMarshalJSON(bb *testing.B) {
 		evts = append(evts, ea)
 	}
 	bb.ReportAllocs()
-	var counter int
+	var counter no
 	out = out[:0]
 	bb.StartTimer()
 	for i = 0; i < bb.N; i++ {
@@ -172,14 +172,14 @@ func BenchmarkMarshalJSON(bb *testing.B) {
 }
 
 func BenchmarkUnmarshalJSON(bb *testing.B) {
-	var i int
-	var err error
+	var i no
+	var err er
 	evts := make([]*T, 9999)
 	bb.ReportAllocs()
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(B, 1_000_000)
+	buf := make(by, 1_000_000)
 	scanner.Buffer(buf, len(buf))
-	var counter int
+	var counter no
 	for i = 0; i < bb.N; i++ {
 		if !scanner.Scan() {
 			scanner = bufio.NewScanner(bytes.NewBuffer(examples.Cache))
@@ -198,14 +198,14 @@ func BenchmarkUnmarshalJSON(bb *testing.B) {
 	}
 }
 
-//func BenchmarkMarshalBinary(bb *testing.B) {
+// func BenchmarkMarshalBinary(bb *testing.by) {
 //	bb.StopTimer()
 //	var i int
-//	var out B
+//	var out by
 //	var err error
 //	evts := make([]*T, 0, 9999)
 //	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-//	buf := make(B, 1_000_000)
+//	buf := make(by, 1_000_000)
 //	scanner.Buffer(buf, len(buf))
 //	for scanner.Scan() {
 //		b := scanner.Bytes()
@@ -227,16 +227,16 @@ func BenchmarkUnmarshalJSON(bb *testing.B) {
 //			counter = 0
 //		}
 //	}
-//}
+// }
 //
-//func BenchmarkUnmarshalBinary(bb *testing.B) {
+// func BenchmarkUnmarshalBinary(bb *testing.by) {
 //	bb.StopTimer()
 //	var i int
-//	var out B
+//	var out by
 //	var err error
-//	evts := make([]B, 0, 9999)
+//	evts := make([]by, 0, 9999)
 //	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-//	buf := make(B, 1_000_000)
+//	buf := make(by, 1_000_000)
 //	scanner.Buffer(buf, len(buf))
 //	for scanner.Scan() {
 //		b := scanner.Bytes()
@@ -244,7 +244,7 @@ func BenchmarkUnmarshalJSON(bb *testing.B) {
 //		if b, err = ea.UnmarshalJSON(b); chk.E(err) {
 //			bb.Fatal(err)
 //		}
-//		out = make(B, len(b))
+//		out = make(by, len(b))
 //		out, _ = ea.MarshalBinary(out)
 //		evts = append(evts, out)
 //	}
@@ -254,7 +254,7 @@ func BenchmarkUnmarshalJSON(bb *testing.B) {
 //	ev := New()
 //	for i = 0; i < bb.N; i++ {
 //		l := len(evts[counter])
-//		b := make(B, l)
+//		b := make(by, l)
 //		copy(b, evts[counter])
 //		b, _ = ev.UnmarshalBinary(b)
 //		out = out[:0]
@@ -263,4 +263,4 @@ func BenchmarkUnmarshalJSON(bb *testing.B) {
 //			counter = 0
 //		}
 //	}
-//}
+// }

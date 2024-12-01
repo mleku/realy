@@ -2,7 +2,7 @@ package bech32
 
 // ChecksumConst is a type that represents the currently defined bech32
 // checksum constants.
-type ChecksumConst int
+type ChecksumConst no
 
 const (
 	// Version0Const is the original constant used in the checksum

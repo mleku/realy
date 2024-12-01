@@ -47,12 +47,12 @@ func main() {
 	}
 }
 
-func run(args []string) error {
+func run(args []st) er {
 	var opts struct {
-		Name     string
-		Wrapped  string
-		File     string
-		Unsigned bool
+		Name     st
+		Wrapped  st
+		File     st
+		Unsigned bo
 	}
 
 	flag := flag.NewFlagSet("gen-atomicint", flag.ContinueOnError)
@@ -82,10 +82,10 @@ func run(args []string) error {
 	}
 
 	data := struct {
-		Name     string
-		Wrapped  string
-		Unsigned bool
-		ToYear   int
+		Name     st
+		Wrapped  st
+		Unsigned bo
+		ToYear   no
 	}{
 		Name:     opts.Name,
 		Wrapped:  opts.Wrapped,

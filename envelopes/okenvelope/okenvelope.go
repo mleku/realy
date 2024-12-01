@@ -15,25 +15,25 @@ const (
 
 type T struct {
 	EventID *eventid.T
-	OK      bool
-	Reason  B
+	OK      bo
+	Reason  by
 }
 
 var _ codec.Envelope = (*T)(nil)
 
 func New() *T { return &T{} }
-func NewFrom[V S | B](eid V, ok bool, msg ...B) *T {
-	var m B
+func NewFrom[V st | by](eid V, ok bo, msg ...by) *T {
+	var m by
 	if len(msg) > 0 {
 		m = msg[0]
 	}
 	return &T{EventID: eventid.NewWith(eid), OK: ok, Reason: m}
 }
 func (en *T) Label() string        { return L }
-func (en *T) ReasonString() string { return S(en.Reason) }
+func (en *T) ReasonString() string { return st(en.Reason) }
 
-func (en *T) Write(w io.Writer) (err E) {
-	var b B
+func (en *T) Write(w io.Writer) (err er) {
+	var b by
 	if b, err = en.MarshalJSON(b); chk.E(err) {
 		return
 	}
@@ -42,10 +42,10 @@ func (en *T) Write(w io.Writer) (err E) {
 	return
 }
 
-func (en *T) MarshalJSON(dst B) (b B, err error) {
+func (en *T) MarshalJSON(dst by) (b by, err er) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
-		func(bst B) (o B, err error) {
+		func(bst by) (o by, err er) {
 			o = bst
 			o = append(o, '"')
 			o = en.EventID.ByteString(o)
@@ -61,9 +61,9 @@ func (en *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (en *T) UnmarshalJSON(b B) (r B, err error) {
+func (en *T) UnmarshalJSON(b by) (r by, err er) {
 	r = b
-	var idHex B
+	var idHex by
 	if idHex, r, err = text.UnmarshalHex(r); chk.E(err) {
 		return
 	}
@@ -88,7 +88,7 @@ func (en *T) UnmarshalJSON(b B) (r B, err error) {
 	return
 }
 
-func Parse(b B) (t *T, rem B, err E) {
+func Parse(b by) (t *T, rem by, err er) {
 	t = New()
 	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
 		return

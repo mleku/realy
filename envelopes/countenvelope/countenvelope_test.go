@@ -9,8 +9,8 @@ import (
 )
 
 func TestRequest(t *testing.T) {
-	var err error
-	rb, rb1, rb2 := make(B, 0, 65535), make(B, 0, 65535), make(B, 0, 65535)
+	var err er
+	rb, rb1, rb2 := make(by, 0, 65535), make(by, 0, 65535), make(by, 0, 65535)
 	for _ = range 1000 {
 		var f *filters.T
 		if f, err = filters.GenFilters(5); chk.E(err) {
@@ -26,7 +26,7 @@ func TestRequest(t *testing.T) {
 		}
 		rb1 = rb1[:len(rb)]
 		copy(rb1, rb)
-		var rem B
+		var rem by
 		var l string
 		if l, rb, err = envelopes.Identify(rb); chk.E(err) {
 			t.Fatal(err)

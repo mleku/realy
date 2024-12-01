@@ -104,12 +104,12 @@ func (x *{{ .Name }}) Store(val {{ .Type }}) {
 
 {{ if .JSON -}}
 	// MarshalJSON encodes the wrapped {{ .Type }} into JSON.
-	func (x *{{ .Name }}) MarshalJSON() ([]byte, error) {
+	func (x *{{ .Name }}) MarshalJSON() (by, er) {
 		return json.Marshal(x.Load())
 	}
 
 	// UnmarshalJSON decodes a {{ .Type }} from JSON.
-	func (x *{{ .Name }}) UnmarshalJSON(b []byte) error {
+	func (x *{{ .Name }}) UnmarshalJSON(b by) er {
 		var v {{ .Type }}
 		if err := json.Unmarshal(b, &v); err != nil {
 			return err

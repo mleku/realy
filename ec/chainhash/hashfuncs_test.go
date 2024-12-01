@@ -13,8 +13,8 @@ import (
 // expected.
 func TestHashFuncs(t *testing.T) {
 	tests := []struct {
-		out string
-		in  string
+		out st
+		in  st
 	}{
 		{"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 			""},
@@ -83,7 +83,7 @@ func TestHashFuncs(t *testing.T) {
 	// Ensure the hash function which returns a byte slice returns the
 	// expected result.
 	for _, test := range tests {
-		h := fmt.Sprintf("%x", HashB([]byte(test.in)))
+		h := fmt.Sprintf("%x", HashB(by(test.in)))
 		if h != test.out {
 			t.Errorf("HashB(%q) = %s, want %s", test.in, h, test.out)
 			continue
@@ -92,7 +92,7 @@ func TestHashFuncs(t *testing.T) {
 	// Ensure the hash function which returns a Hash returns the expected
 	// result.
 	for _, test := range tests {
-		hash := HashH([]byte(test.in))
+		hash := HashH(by(test.in))
 		h := fmt.Sprintf("%x", hash[:])
 		if h != test.out {
 			t.Errorf("HashH(%q) = %s, want %s", test.in, h, test.out)
@@ -105,8 +105,8 @@ func TestHashFuncs(t *testing.T) {
 // work as expected.
 func TestDoubleHashFuncs(t *testing.T) {
 	tests := []struct {
-		out string
-		in  string
+		out st
+		in  st
 	}{
 		{"5df6e0e2761359d30a8275058e299fcc0381534545f55cf43e41983f5d4c9456",
 			""},
@@ -174,7 +174,7 @@ func TestDoubleHashFuncs(t *testing.T) {
 	// Ensure the hash function which returns a byte slice returns the
 	// expected result.
 	for _, test := range tests {
-		h := fmt.Sprintf("%x", DoubleHashB([]byte(test.in)))
+		h := fmt.Sprintf("%x", DoubleHashB(by(test.in)))
 		if h != test.out {
 			t.Errorf("DoubleHashB(%q) = %s, want %s", test.in, h,
 				test.out)
@@ -184,7 +184,7 @@ func TestDoubleHashFuncs(t *testing.T) {
 	// Ensure the hash function which returns a Hash returns the expected
 	// result.
 	for _, test := range tests {
-		hash := DoubleHashH([]byte(test.in))
+		hash := DoubleHashH(by(test.in))
 		h := fmt.Sprintf("%x", hash[:])
 		if h != test.out {
 			t.Errorf("DoubleHashH(%q) = %s, want %s", test.in, h,

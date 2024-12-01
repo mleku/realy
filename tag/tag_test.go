@@ -7,18 +7,18 @@ import (
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {
-	var b, bo, bc B
+	var b, bo, bc by
 	for _ = range 100 {
 		n := frand.Intn(8)
 		tg := NewWithCap(n)
 		for _ = range n {
-			b1 := make(B, frand.Intn(8))
+			b1 := make(by, frand.Intn(8))
 			_, _ = frand.Read(b1)
 			tg.field = append(tg.field, b1)
 		}
 		// log.I.S(tg)
 		b, _ = tg.MarshalJSON(b)
-		bo = make(B, len(b))
+		bo = make(by, len(b))
 		copy(bo, b)
 		tg2 := NewWithCap(n)
 		rem, err := tg2.UnmarshalJSON(b)
@@ -42,9 +42,9 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 }
 
 func TestMarshalUnmarshalZeroLengthTag(t *testing.T) {
-	var err E
-	empty := B("[\"a\"]")
-	var b B
+	var err er
+	empty := by("[\"a\"]")
+	var b by
 	tg := &T{}
 	b, _ = tg.UnmarshalJSON(empty)
 	if b, err = tg.MarshalJSON(b); chk.E(err) {
@@ -53,7 +53,7 @@ func TestMarshalUnmarshalZeroLengthTag(t *testing.T) {
 	if !equals(empty, b) {
 		t.Fatalf("got\n%s\nwant\n%s", b, empty)
 	}
-	empty = B("[]")
+	empty = by("[]")
 	tg = &T{}
 	b, _ = tg.UnmarshalJSON(empty)
 	if b, err = tg.MarshalJSON(b); chk.E(err) {
@@ -65,11 +65,11 @@ func TestMarshalUnmarshalZeroLengthTag(t *testing.T) {
 }
 
 func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
-	b := make(B, 0, 40000000)
+	b := make(by, 0, 40000000)
 	n := 4096
 	tg := NewWithCap(n)
 	for _ = range n {
-		b1 := make(B, 128)
+		b1 := make(by, 128)
 		_, _ = frand.Read(b1)
 		tg.field = append(tg.field, b1)
 	}
@@ -98,7 +98,7 @@ func TestT_Clone_Equal(t *testing.T) {
 		n := frand.Intn(64) + 2
 		t1 := NewWithCap(n)
 		for _ = range n {
-			f := make(B, frand.Intn(128)+2)
+			f := make(by, frand.Intn(128)+2)
 			_, _ = frand.Read(f)
 			t1.field = append(t1.field, f)
 		}

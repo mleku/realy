@@ -9,7 +9,7 @@ import (
 
 // Sign the event using the signer.I. Uses github.com/bitcoin-core/secp256k1 if available for much faster
 // signatures.
-func (ev *T) Sign(keys signer.I) (err error) {
+func (ev *T) Sign(keys signer.I) (err er) {
 	ev.ID = ev.GetIDBytes()
 	if ev.Sig, err = keys.Sign(ev.ID); chk.E(err) {
 		return
@@ -20,7 +20,7 @@ func (ev *T) Sign(keys signer.I) (err error) {
 
 // Verify an event is signed by the pubkey it contains. Uses
 // github.com/bitcoin-core/secp256k1 if available for faster verification.
-func (ev *T) Verify() (valid bool, err error) {
+func (ev *T) Verify() (valid bo, err er) {
 	keys := p256k.Signer{}
 	if err = keys.InitPub(ev.PubKey); chk.E(err) {
 		return
@@ -47,7 +47,7 @@ func (ev *T) Verify() (valid bool, err error) {
 // Deprecated: use Sign and nostr.I and p256k.Signer / p256k.BTCECSigner
 // implementations.
 func (ev *T) SignWithSecKey(sk *k1.SecretKey,
-	so ...sch.SignOption) (err error) {
+	so ...sch.SignOption) (err er) {
 
 	// sign the event.
 	var sig *sch.Signature
@@ -65,7 +65,7 @@ func (ev *T) SignWithSecKey(sk *k1.SecretKey,
 // the event ID and Pubkey.
 //
 // Deprecated: use Verify
-func (ev *T) CheckSignature() (valid bool, err error) {
+func (ev *T) CheckSignature() (valid bo, err er) {
 	// parse pubkey bytes.
 	var pk *k1.PublicKey
 	if pk, err = sch.ParsePubKey(ev.PubKey); chk.D(err) {

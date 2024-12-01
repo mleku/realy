@@ -10,10 +10,10 @@ import (
 )
 
 func TestUnmarshalHexArray(t *testing.T) {
-	var ha []B
-	h := make(B, sha256.Size)
+	var ha []by
+	h := make(by, sha256.Size)
 	frand.Read(h)
-	var dst B
+	var dst by
 	for _ = range 20 {
 		hh := sha256.Sum256(h)
 		h = hh[:]
@@ -27,9 +27,9 @@ func TestUnmarshalHexArray(t *testing.T) {
 		}
 	}
 	dst = append(dst, ']')
-	var ha2 []B
-	var rem B
-	var err error
+	var ha2 []by
+	var rem by
+	var err er
 	if ha2, rem, err = UnmarshalHexArray(dst, 32); chk.E(err) {
 		t.Fatal(err)
 	}

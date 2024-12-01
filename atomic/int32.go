@@ -68,12 +68,12 @@ func (i *Int32) Dec() int32 {
 // CAS is an atomic compare-and-swap.
 //
 // Deprecated: Use CompareAndSwap.
-func (i *Int32) CAS(old, new int32) (swapped bool) {
+func (i *Int32) CAS(old, new int32) (swapped bo) {
 	return i.CompareAndSwap(old, new)
 }
 
 // CompareAndSwap is an atomic compare-and-swap.
-func (i *Int32) CompareAndSwap(old, new int32) (swapped bool) {
+func (i *Int32) CompareAndSwap(old, new int32) (swapped bo) {
 	return atomic.CompareAndSwapInt32(&i.v, old, new)
 }
 
@@ -88,12 +88,12 @@ func (i *Int32) Swap(val int32) (old int32) {
 }
 
 // MarshalJSON encodes the wrapped int32 into JSON.
-func (i *Int32) MarshalJSON() ([]byte, error) {
+func (i *Int32) MarshalJSON() (by, er) {
 	return json.Marshal(i.Load())
 }
 
 // UnmarshalJSON decodes JSON into the wrapped int32.
-func (i *Int32) UnmarshalJSON(b []byte) error {
+func (i *Int32) UnmarshalJSON(b by) er {
 	var v int32
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err

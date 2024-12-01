@@ -35,43 +35,43 @@ const (
 var (
 	nip20prefixmatcher = regexp.MustCompile(`^\w+: `)
 	upgrader           = websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024,
-		CheckOrigin: func(r *http.Request) bool {
+		CheckOrigin: func(r *http.Request) bo {
 			return true
 		}}
-	listeners      = make(map[*web.Socket]map[S]*Listener)
+	listeners      = make(map[*web.Socket]map[st]*Listener)
 	listenersMutex sync.Mutex
 )
 
 func challenge(conn *websocket.Conn, req *http.Request, addr string) (ws *web.Socket) {
-	var err error
-	cb := make([]byte, ChallengeLength)
+	var err er
+	cb := make(by, ChallengeLength)
 	if _, err = rand.Read(cb); chk.E(err) {
 		panic(err)
 	}
-	var b5 B
+	var b5 by
 	if b5, err = bech32encoding.ConvertForBech32(cb); chk.E(err) {
 		return
 	}
-	var encoded B
-	if encoded, err = bech32.Encode(bech32.B(ChallengeHRP), b5); chk.E(err) {
+	var encoded by
+	if encoded, err = bech32.Encode(by(ChallengeHRP), b5); chk.E(err) {
 		return
 	}
 	ws = web.NewSocket(conn, req, encoded)
 	return
 }
 
-func setListener(id S, ws *web.Socket, ff *filters.T) {
+func setListener(id st, ws *web.Socket, ff *filters.T) {
 	listenersMutex.Lock()
 	subs, ok := listeners[ws]
 	if !ok {
-		subs = make(map[S]*Listener)
+		subs = make(map[st]*Listener)
 		listeners[ws] = subs
 	}
 	subs[id] = &Listener{filters: ff}
 	listenersMutex.Unlock()
 }
 
-func removeListenerId(ws *web.Socket, id S) {
+func removeListenerId(ws *web.Socket, id st) {
 	listenersMutex.Lock()
 	if subs, ok := listeners[ws]; ok {
 		delete(listeners[ws], id)
@@ -89,11 +89,11 @@ func removeListener(ws *web.Socket) {
 	listenersMutex.Unlock()
 }
 
-func notifyListeners(authRequired bool, ev *event.T) {
+func notifyListeners(authRequired bo, ev *event.T) {
 	if ev == nil {
 		return
 	}
-	var err E
+	var err er
 	listenersMutex.Lock()
 	defer listenersMutex.Unlock()
 	for ws, subs := range listeners {
@@ -106,9 +106,9 @@ func notifyListeners(authRequired bool, ev *event.T) {
 			}
 			if ev.Kind.IsPrivileged() {
 				ab := ws.AuthedBytes()
-				var containsPubkey bool
+				var containsPubkey bo
 				if ev.Tags != nil {
-					containsPubkey = ev.Tags.ContainsAny(B{'p'}, tag.New(ab))
+					containsPubkey = ev.Tags.ContainsAny(by{'p'}, tag.New(ab))
 				}
 				if !equals(ev.PubKey, ab) || containsPubkey {
 					log.I.F("authed user %0x not privileged to receive event\n%s",

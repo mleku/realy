@@ -21,7 +21,7 @@ const (
 // ParsePubKey parses a public key for a koblitz curve from a bytestring into a
 // btcec.Publickey, verifying that it is valid. It only supports public keys in
 // the BIP-340 32-byte format.
-func ParsePubKey(pubKeyStr []byte) (*btcec.PublicKey, error) {
+func ParsePubKey(pubKeyStr by) (*btcec.PublicKey, er) {
 	if pubKeyStr == nil {
 		err := fmt.Errorf("nil pubkey byte string")
 		return nil, err
@@ -42,7 +42,7 @@ func ParsePubKey(pubKeyStr []byte) (*btcec.PublicKey, error) {
 // SerializePubKey serializes a public key as specified by BIP 340. Public keys
 // in this format are 32 bytes in length, and are assumed to have an even y
 // coordinate.
-func SerializePubKey(pub *btcec.PublicKey) []byte {
+func SerializePubKey(pub *btcec.PublicKey) by {
 	pBytes := pub.SerializeCompressed()
 	return pBytes[1:]
 }

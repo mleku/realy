@@ -14,24 +14,24 @@ import (
 var Nip05Regex = regexp.MustCompile(`^(?:([\w.+-]+)@)?([\w_-]+(\.[\w_-]+)+)$`)
 
 type WellKnownResponse struct {
-	Names  map[S]S   `json:"names"`
-	Relays map[S][]S `json:"relays,omitempty"`
-	NIP46  map[S][]S `json:"nip46,omitempty"`
+	Names  map[st]st   `json:"names"`
+	Relays map[st][]st `json:"relays,omitempty"`
+	NIP46  map[st][]st `json:"nip46,omitempty"`
 }
 
 func NewWellKnownResponse() *WellKnownResponse {
 	return &WellKnownResponse{
-		Names:  make(map[S]S),
-		Relays: make(map[S][]S),
-		NIP46:  make(map[S][]S),
+		Names:  make(map[st]st),
+		Relays: make(map[st][]st),
+		NIP46:  make(map[st][]st),
 	}
 }
 
-func IsValidIdentifier(input S) bool {
+func IsValidIdentifier(input st) bo {
 	return Nip05Regex.MatchString(input)
 }
 
-func ParseIdentifier(account S) (name, domain S, err error) {
+func ParseIdentifier(account st) (name, domain st, err er) {
 	res := Nip05Regex.FindStringSubmatch(account)
 	if len(res) == 0 {
 		return "", "", errorf.E("invalid identifier")
@@ -42,9 +42,9 @@ func ParseIdentifier(account S) (name, domain S, err error) {
 	return res[1], res[2], nil
 }
 
-func QueryIdentifier(c Ctx, account S) (prf *pointers.Profile, err E) {
+func QueryIdentifier(c cx, account st) (prf *pointers.Profile, err er) {
 	var result *WellKnownResponse
-	var name S
+	var name st
 	if result, name, err = Fetch(c, account); chk.E(err) {
 		return
 	}
@@ -56,7 +56,7 @@ func QueryIdentifier(c Ctx, account S) (prf *pointers.Profile, err E) {
 	if !keys.IsValidPublicKey(pubkey) {
 		return nil, errorf.E("got an invalid public key '%s'", pubkey)
 	}
-	var pkb B
+	var pkb by
 	if pkb, err = keys.HexPubkeyToBytes(pubkey); chk.E(err) {
 		return
 	}
@@ -67,8 +67,8 @@ func QueryIdentifier(c Ctx, account S) (prf *pointers.Profile, err E) {
 	}, nil
 }
 
-func Fetch(c Ctx, account S) (resp *WellKnownResponse, name S, err error) {
-	var domain S
+func Fetch(c cx, account st) (resp *WellKnownResponse, name st, err er) {
+	var domain st
 	if name, domain, err = ParseIdentifier(account); chk.E(err) {
 		err = errorf.E("failed to parse '%s': %w", account, err)
 		return
@@ -82,7 +82,7 @@ func Fetch(c Ctx, account S) (resp *WellKnownResponse, name S, err error) {
 	}
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request,
-			via []*http.Request) error {
+			via []*http.Request) er {
 			return http.ErrUseLastResponse
 		},
 	}
@@ -93,8 +93,8 @@ func Fetch(c Ctx, account S) (resp *WellKnownResponse, name S, err error) {
 	}
 	defer res.Body.Close()
 	resp = NewWellKnownResponse()
-	b := make(B, 65535)
-	var n N
+	b := make(by, 65535)
+	var n no
 	if n, err = res.Body.Read(b); chk.E(err) {
 		return
 	}
@@ -105,16 +105,16 @@ func Fetch(c Ctx, account S) (resp *WellKnownResponse, name S, err error) {
 	return
 }
 
-func NormalizeIdentifier(account S) S {
+func NormalizeIdentifier(account st) st {
 	if strings.HasPrefix(account, "_@") {
 		return account[2:]
 	}
 	return account
 }
 
-func StringSliceToByteSlice(ss []S) (bs []B) {
+func StringSliceToByteSlice(ss []st) (bs []by) {
 	for _, s := range ss {
-		bs = append(bs, B(s))
+		bs = append(bs, by(s))
 	}
 	return
 }

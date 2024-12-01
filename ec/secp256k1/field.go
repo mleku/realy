@@ -309,7 +309,7 @@ func (f *FieldVal) SetBytes(b *[32]byte) uint32 {
 //	Preconditions: None
 //	Output Normalized: Yes if no overflow, no otherwise
 //	Output Max Magnitude: 1
-func (f *FieldVal) SetByteSlice(b []byte) bool {
+func (f *FieldVal) SetByteSlice(b by) bo {
 	var b32 [32]byte
 	b = b[:constantTimeMin(uint32(len(b)), 32)]
 	copy(b32[:], b32[:32-len(b)])
@@ -437,7 +437,7 @@ func (f *FieldVal) Normalize() *FieldVal {
 //	Preconditions:
 //	  - The field value MUST be normalized
 //	  - The target slice MUST have at least 32 bytes available
-func (f *FieldVal) PutBytesUnchecked(b []byte) {
+func (f *FieldVal) PutBytesUnchecked(b by) {
 	// Unpack the 256 total bits from the 10 uint32 words with a max of
 	// 26-bits per word.  This could be done with a couple of for loops,
 	// but this unrolled version is a bit faster.  Benchmarks show this is
@@ -530,7 +530,7 @@ func (f *FieldVal) IsZeroBit() uint32 {
 //
 //	Preconditions:
 //	  - The field value MUST be normalized
-func (f *FieldVal) IsZero() bool {
+func (f *FieldVal) IsZero() bo {
 	// The value can only be zero if no bits are set in any of the words.
 	// This is a constant time implementation.
 	bits := f.n[0] | f.n[1] | f.n[2] | f.n[3] | f.n[4] |
@@ -558,12 +558,12 @@ func (f *FieldVal) IsOneBit() uint32 {
 	return constantTimeEq(bits, 0)
 }
 
-// IsOne returns whether or not the field value is equal to one in constant
+// IsOne returns whether the field value is equal to one in constant
 // time.
 //
 //	Preconditions:
 //	  - The field value MUST be normalized
-func (f *FieldVal) IsOne() bool {
+func (f *FieldVal) IsOne() bo {
 	// The value can only be one if the single lowest significant bit is set in
 	// the first word and no other bits are set in any of the other words.
 	// This is a constant time implementation.
@@ -588,12 +588,12 @@ func (f *FieldVal) IsOddBit() uint32 {
 	return f.n[0] & 1
 }
 
-// IsOdd returns whether or not the field value is an odd number in constant
+// IsOdd returns whether the field value is an odd number in constant
 // time.
 //
 //	Preconditions:
 //	  - The field value MUST be normalized
-func (f *FieldVal) IsOdd() bool {
+func (f *FieldVal) IsOdd() bo {
 	// Only odd numbers have the bottom bit set.
 	return f.n[0]&1 == 1
 }
@@ -603,7 +603,7 @@ func (f *FieldVal) IsOdd() bool {
 //
 //	Preconditions:
 //	  - Both field values being compared MUST be normalized
-func (f *FieldVal) Equals(val *FieldVal) bool {
+func (f *FieldVal) Equals(val *FieldVal) bo {
 	// Xor only sets bits when they are different, so the two field values
 	// can only be the same if no bits are set after xoring each word.
 	// This is a constant time implementation.
@@ -1065,7 +1065,7 @@ func (f *FieldVal) Mul2(val *FieldVal, val2 *FieldVal) *FieldVal {
 //	  - The input field value MUST have a max magnitude of 8
 //	Output Normalized: No
 //	Output Max Magnitude: 1
-func (f *FieldVal) SquareRootVal(val *FieldVal) bool {
+func (f *FieldVal) SquareRootVal(val *FieldVal) bo {
 	// This uses the Tonelli-Shanks method for calculating the square root of
 	// the value when it exists.  The key principles of the method follow.
 	//
@@ -1546,12 +1546,12 @@ func (f *FieldVal) Inverse() *FieldVal {
 	return f.Mul(&a45)                             // f = a^(2^256 - 4294968275) = a^(p-2)
 }
 
-// IsGtOrEqPrimeMinusOrder returns whether or not the field value exceeds the
+// IsGtOrEqPrimeMinusOrder returns whether the field value exceeds the
 // group order divided by 2 in constant time.
 //
 //	Preconditions:
 //	  - The field value MUST be normalized
-func (f *FieldVal) IsGtOrEqPrimeMinusOrder() bool {
+func (f *FieldVal) IsGtOrEqPrimeMinusOrder() bo {
 	// The secp256k1 prime is equivalent to 2^256 - 4294968273 and the group
 	// order is 2^256 - 432420386565659656852420866394968145599.  Thus,
 	// the prime minus the group order is:

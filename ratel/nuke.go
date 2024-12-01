@@ -4,9 +4,9 @@ import (
 	"realy.lol/ratel/keys/index"
 )
 
-func (r *T) Nuke() (err E) {
+func (r *T) Nuke() (err er) {
 	log.W.F("nukening database at %s", r.dataDir)
-	if err = r.DB.DropPrefix([][]byte{
+	if err = r.DB.DropPrefix([]by{
 		{index.Event.B()},
 		{index.CreatedAt.B()},
 		{index.Id.B()},

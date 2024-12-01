@@ -12,11 +12,11 @@ import (
 )
 
 type NIP struct {
-	Description string
-	Number      int
+	Description st
+	Number      no
 }
 
-func (n NIP) N() N { return n.Number }
+func (n NIP) N() no { return n.Number }
 
 func GetList(items ...NIP) (n number.List) {
 	for _, item := range items {
@@ -139,7 +139,7 @@ var (
 	NIP99                          = ClassifiedListings
 )
 
-var NIPMap = map[int]NIP{1: NIP1, 2: NIP2, 3: NIP3, 4: NIP4, 5: NIP5, 8: NIP8, 9: NIP9,
+var NIPMap = map[no]NIP{1: NIP1, 2: NIP2, 3: NIP3, 4: NIP4, 5: NIP5, 8: NIP8, 9: NIP9,
 	11: NIP11, 12: NIP12, 14: NIP14, 15: NIP15, 16: NIP16, 18: NIP18, 19: NIP19, 20: NIP20,
 	21: NIP21, 22: NIP22, 23: NIP23, 24: NIP24, 25: NIP25, 26: NIP26, 27: NIP27, 28: NIP28,
 	30: NIP30, 32: NIP32, 33: NIP33, 36: NIP36, 38: NIP38, 39: NIP39, 40: NIP40, 42: NIP42,
@@ -154,42 +154,42 @@ type Limits struct {
 	// limits the maximum size of any event. Value is calculated from [ to ] and
 	// is after UTF-8 serialization (so some unicode characters will cost 2-3
 	// bytes). It is equal to the maximum size of the WebSocket message frame.
-	MaxMessageLength int `json:"max_message_length,omitempty"`
+	MaxMessageLength no `json:"max_message_length,omitempty"`
 	// MaxSubscriptions is total number of subscriptions that may be active on a
 	// single websocket connection to this relay. It's possible that
 	// authenticated clients with a (paid) relationship to the relay may have
 	// higher limits.
-	MaxSubscriptions int `json:"max_subscriptions,omitempty"`
+	MaxSubscriptions no `json:"max_subscriptions,omitempty"`
 	// MaxFilter is maximum number of filter values in each subscription. Must
 	// be one or higher.
-	MaxFilters int `json:"max_filters,omitempty"`
+	MaxFilters no `json:"max_filters,omitempty"`
 	// MaxLimit is the relay server will clamp each filter's limit value to this
 	// number. This means the client won't be able to get more than this number
 	// of events from a single subscription filter. This clamping is typically
 	// done silently by the relay, but with this number, you can know that there
 	// are additional results if you narrowed your filter's time range or other
 	// parameters.
-	MaxLimit int `json:"max_limit,omitempty"`
+	MaxLimit no `json:"max_limit,omitempty"`
 	// MaxSubidLength is the maximum length of subscription id as a string.
-	MaxSubidLength int `json:"max_subid_length,omitempty"`
+	MaxSubidLength no `json:"max_subid_length,omitempty"`
 	// MaxEventTags in any event, this is the maximum number of elements in the
 	// tags list.
-	MaxEventTags int `json:"max_event_tags,omitempty"`
+	MaxEventTags no `json:"max_event_tags,omitempty"`
 	// MaxContentLength maximum number of characters in the content field of any
-	// event. This is a count of unicode characters. After serializing into JSON
+	// event. This is a count of Unicode characters. After serializing into JSON
 	// it may be larger (in bytes), and is still subject to the
 	// max_message_length, if defined.
-	MaxContentLength int `json:"max_content_length,omitempty"`
+	MaxContentLength no `json:"max_content_length,omitempty"`
 	// MinPowDifficulty new events will require at least this difficulty of PoW,
 	// based on NIP-13, or they will be rejected by this server.
-	MinPowDifficulty int `json:"min_pow_difficulty,omitempty"`
+	MinPowDifficulty no `json:"min_pow_difficulty,omitempty"`
 	// AuthRequired means the realy requires NIP-42 authentication to happen
 	// before a new connection may perform any other action. Even if set to
 	// False, authentication may be required for specific actions.
-	AuthRequired bool `json:"auth_required"`
+	AuthRequired bo `json:"auth_required"`
 	// PaymentRequired this realy requires payment before a new connection may
 	// perform any action.
-	PaymentRequired bool `json:"payment_required"`
+	PaymentRequired bo `json:"payment_required"`
 	// RestrictedWrites this realy requires some kind of condition to be
 	// fulfilled in order to accept events (not necessarily, but including
 	// payment_required and min_pow_difficulty). This should only be set to true
@@ -197,18 +197,18 @@ type Limits struct {
 	// to it -- like belonging to a special pubkey-based whitelist or writing
 	// only events of a specific niche kind or content. Normal anti-spam
 	// heuristics, for example, do not qualify.q
-	RestrictedWrites bool        `json:"restricted_writes"`
+	RestrictedWrites bo          `json:"restricted_writes"`
 	Oldest           timestamp.T `json:"created_at_lower_limit,omitempty"`
 	Newest           timestamp.T `json:"created_at_upper_limit,omitempty"`
 }
 type Payment struct {
-	Amount int    `json:"amount"`
-	Unit   string `json:"unit"`
+	Amount no `json:"amount"`
+	Unit   st `json:"unit"`
 }
 
 type Sub struct {
 	Payment
-	Period int `json:"period"`
+	Period no `json:"period"`
 }
 
 type Pub struct {
@@ -218,22 +218,22 @@ type Pub struct {
 
 // T is the realy information document.
 type T struct {
-	Name           string      `json:"name"`
-	Description    string      `json:"description,omitempty"`
-	PubKey         string      `json:"pubkey,omitempty"`
-	Contact        string      `json:"contact,omitempty"`
+	Name           st          `json:"name"`
+	Description    st          `json:"description,omitempty"`
+	PubKey         st          `json:"pubkey,omitempty"`
+	Contact        st          `json:"contact,omitempty"`
 	Nips           number.List `json:"supported_nips"`
-	Software       string      `json:"software"`
-	Version        string      `json:"version"`
+	Software       st          `json:"software"`
+	Version        st          `json:"version"`
 	Limitation     Limits      `json:"limitation,omitempty"`
 	Retention      any         `json:"retention,omitempty"`
-	RelayCountries []string    `json:"relay_countries,omitempty"`
-	LanguageTags   []string    `json:"language_tags,omitempty"`
-	Tags           []string    `json:"tags,omitempty"`
-	PostingPolicy  string      `json:"posting_policy,omitempty"`
-	PaymentsURL    string      `json:"payments_url,omitempty"`
+	RelayCountries []st        `json:"relay_countries,omitempty"`
+	LanguageTags   []st        `json:"language_tags,omitempty"`
+	Tags           []st        `json:"tags,omitempty"`
+	PostingPolicy  st          `json:"posting_policy,omitempty"`
+	PaymentsURL    st          `json:"payments_url,omitempty"`
 	Fees           *Fees       `json:"fees,omitempty"`
-	Icon           string      `json:"icon"`
+	Icon           st          `json:"icon"`
 	sync.Mutex
 }
 
@@ -250,9 +250,9 @@ func NewInfo(inf *T) (info *T) {
 	return
 }
 
-func (ri *T) Clone() (r2 *T, err E) {
+func (ri *T) Clone() (r2 *T, err er) {
 	r2 = new(T)
-	var b []byte
+	var b by
 	if b, err = json.Marshal(ri); chk.E(err) {
 		return
 	}
@@ -263,7 +263,7 @@ func (ri *T) Clone() (r2 *T, err E) {
 }
 
 // AddNIPs adds one or more numbers to the list of NIPs.
-func (ri *T) AddNIPs(n ...int) {
+func (ri *T) AddNIPs(n ...no) {
 	ri.Lock()
 	for _, num := range n {
 		ri.Nips = append(ri.Nips, num)
@@ -272,7 +272,7 @@ func (ri *T) AddNIPs(n ...int) {
 }
 
 // HasNIP returns true if the given number is found in the list.
-func (ri *T) HasNIP(n int) (ok bool) {
+func (ri *T) HasNIP(n no) (ok bo) {
 	ri.Lock()
 	for i := range ri.Nips {
 		if ri.Nips[i] == n {
@@ -285,13 +285,13 @@ func (ri *T) HasNIP(n int) (ok bool) {
 }
 
 // Save the relayinfo.T to a given file as JSON.
-func (ri *T) Save(filename string) (err error) {
+func (ri *T) Save(filename st) (err er) {
 	if ri == nil {
 		err = errors.New("cannot save nil realy info document")
 		log.E.Ln(err)
 		return
 	}
-	var b []byte
+	var b by
 	if b, err = json.MarshalIndent(ri, "", "    "); chk.E(err) {
 		return
 	}
@@ -302,13 +302,13 @@ func (ri *T) Save(filename string) (err error) {
 }
 
 // Load a given file and decode the JSON relayinfo.T encoded in it.
-func (ri *T) Load(filename string) (err error) {
+func (ri *T) Load(filename st) (err er) {
 	if ri == nil {
 		err = errors.New("cannot load into nil config")
 		log.E.Ln(err)
 		return
 	}
-	var b []byte
+	var b by
 	if b, err = os.ReadFile(filename); chk.E(err) {
 		return
 	}

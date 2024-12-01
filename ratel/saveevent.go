@@ -15,7 +15,7 @@ import (
 	"realy.lol/timestamp"
 )
 
-func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
+func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 	if ev.Kind.IsEphemeral() {
 		// log.T.F("not saving ephemeral event\n%s", ev.Serialize())
 		return
@@ -24,18 +24,18 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	r.WG.Add(1)
 	defer r.WG.Done()
 	// first, search to see if the event ID already exists.
-	var foundSerial []byte
-	var deleted bool
+	var foundSerial by
+	var deleted bo
 	seri := serial.New(nil)
-	var ts B
-	err = r.View(func(txn *badger.Txn) (err error) {
+	var ts by
+	err = r.View(func(txn *badger.Txn) (err er) {
 		// query event by id to ensure we don't try to save duplicates
 		prf := index.Id.Key(id.New(eventid.NewWith(ev.ID)))
 		it := txn.NewIterator(badger.IteratorOptions{})
 		defer it.Close()
 		it.Seek(prf)
 		if it.ValidForPrefix(prf) {
-			var k []byte
+			var k by
 			// get the serial
 			k = it.Item().Key()
 			// copy serial out
@@ -59,7 +59,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	}
 	if foundSerial != nil {
 		// log.D.F("found possible duplicate or stub for %s", ev.Serialize())
-		err = r.Update(func(txn *badger.Txn) (err error) {
+		err = r.Update(func(txn *badger.Txn) (err er) {
 			// retrieve the event record
 			evKey := keys.Write(index.New(index.Event), seri)
 			it := txn.NewIterator(badger.IteratorOptions{})
@@ -73,7 +73,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 				}
 				// we only need to restore the event binary and write the access counter key
 				// encode to binary
-				var bin B
+				var bin by
 				if bin, err = ev.MarshalJSON(bin); chk.E(err) {
 					return
 				}
@@ -96,13 +96,13 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		}
 		return
 	}
-	var bin B
+	var bin by
 	if bin, err = ev.MarshalJSON(bin); chk.T(err) {
 		return
 	}
 	// otherwise, save new event record.
-	if err = r.Update(func(txn *badger.Txn) (err error) {
-		var idx []byte
+	if err = r.Update(func(txn *badger.Txn) (err er) {
+		var idx by
 		var ser *serial.T
 		idx, ser = r.SerialKey()
 		// encode to binary
@@ -111,7 +111,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 			return
 		}
 		// 	add the indexes
-		var indexKeys [][]byte
+		var indexKeys []by
 		indexKeys = GetIndexKeysForEvent(ev, ser)
 		// log.I.S(indexKeys)
 		for _, k := range indexKeys {
@@ -134,4 +134,4 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	return
 }
 
-func (r *T) Sync() (err E) { return r.DB.Sync() }
+func (r *T) Sync() (err er) { return r.DB.Sync() }

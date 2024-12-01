@@ -13,7 +13,7 @@ import (
 func TestErrorKindStringer(t *testing.T) {
 	tests := []struct {
 		in   ErrorKind
-		want string
+		want st
 	}{
 		{ErrInvalidHashLen, "ErrInvalidHashLen"},
 		{ErrSecretKeyIsZero, "ErrSecretKeyIsZero"},
@@ -40,7 +40,7 @@ func TestErrorKindStringer(t *testing.T) {
 func TestError(t *testing.T) {
 	tests := []struct {
 		in   Error
-		want string
+		want st
 	}{{
 		Error{Description: "some error"},
 		"some error",
@@ -63,9 +63,9 @@ func TestError(t *testing.T) {
 func TestErrorKindIsAs(t *testing.T) {
 	tests := []struct {
 		name      string
-		err       error
-		target    error
-		wantMatch bool
+		err       er
+		target    er
+		wantMatch bo
 		wantAs    ErrorKind
 	}{{
 		name:      "ErrInvalidHashLen == ErrInvalidHashLen",

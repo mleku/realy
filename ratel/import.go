@@ -13,10 +13,10 @@ const maxLen = 500000000
 func (r *T) Import(rr io.Reader) {
 	r.Flatten = true
 	scan := bufio.NewScanner(rr)
-	buf := make(B, maxLen)
+	buf := make(by, maxLen)
 	scan.Buffer(buf, maxLen)
-	var err E
-	var count N
+	var err er
+	var count no
 	for scan.Scan() {
 		b := scan.Bytes()
 		ev := &event.T{}

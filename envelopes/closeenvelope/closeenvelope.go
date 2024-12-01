@@ -19,8 +19,8 @@ var _ codec.Envelope = (*T)(nil)
 func New() *T                        { return &T{ID: subscription.NewStd()} }
 func NewFrom(id *subscription.Id) *T { return &T{ID: id} }
 func (en *T) Label() string          { return L }
-func (en *T) Write(w io.Writer) (err E) {
-	var b B
+func (en *T) Write(w io.Writer) (err er) {
+	var b by
 	if b, err = en.MarshalJSON(b); chk.E(err) {
 		return
 	}
@@ -28,10 +28,10 @@ func (en *T) Write(w io.Writer) (err E) {
 	return
 }
 
-func (en *T) MarshalJSON(dst B) (b B, err error) {
+func (en *T) MarshalJSON(dst by) (b by, err er) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
-		func(bst B) (o B, err error) {
+		func(bst by) (o by, err er) {
 			o = bst
 			if o, err = en.ID.MarshalJSON(o); chk.E(err) {
 				return
@@ -41,9 +41,9 @@ func (en *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (en *T) UnmarshalJSON(b B) (r B, err error) {
+func (en *T) UnmarshalJSON(b by) (r by, err er) {
 	r = b
-	if en.ID, err = subscription.NewId(B{0}); chk.E(err) {
+	if en.ID, err = subscription.NewId(by{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.ID.UnmarshalJSON(r); chk.E(err) {
@@ -55,7 +55,7 @@ func (en *T) UnmarshalJSON(b B) (r B, err error) {
 	return
 }
 
-func Parse(b B) (t *T, rem B, err E) {
+func Parse(b by) (t *T, rem by, err er) {
 	t = New()
 	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
 		return

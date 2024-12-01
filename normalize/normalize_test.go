@@ -6,18 +6,18 @@ import (
 )
 
 func TestURL(t *testing.T) {
-	fmt.Println(URL(B("")))
-	fmt.Println(URL(B("wss://x.com/y")))
-	fmt.Println(URL(B("wss://x.com/y/")))
-	fmt.Println(URL(B("http://x.com/y")))
-	fmt.Println(URL(URL(B("http://x.com/y"))))
-	fmt.Println(URL(B("wss://x.com")))
-	fmt.Println(URL(B("wss://x.com/")))
-	fmt.Println(URL(URL(URL(B("wss://x.com/")))))
-	fmt.Println(URL(B("x.com")))
-	fmt.Println(URL(B("x.com/")))
-	fmt.Println(URL(B("x.com////")))
-	fmt.Println(URL(B("x.com/?x=23")))
+	fmt.Println(URL(by("")))
+	fmt.Println(URL(by("wss://x.com/y")))
+	fmt.Println(URL(by("wss://x.com/y/")))
+	fmt.Println(URL(by("http://x.com/y")))
+	fmt.Println(URL(URL(by("http://x.com/y"))))
+	fmt.Println(URL(by("wss://x.com")))
+	fmt.Println(URL(by("wss://x.com/")))
+	fmt.Println(URL(URL(URL(by("wss://x.com/")))))
+	fmt.Println(URL(by("x.com")))
+	fmt.Println(URL(by("x.com/")))
+	fmt.Println(URL(by("x.com////")))
+	fmt.Println(URL(by("x.com/?x=23")))
 
 	// Output:
 	//

@@ -12,15 +12,15 @@ import (
 // All request, responses and methods embed the implementations and their types then become easily checked.
 
 type Requester interface {
-	RequestType() B
+	RequestType() by
 }
 
 type Resulter interface {
-	ResultType() B
+	ResultType() by
 }
 
 type Notifier interface {
-	NotificationType() B
+	NotificationType() by
 }
 
 // Implementations
@@ -30,28 +30,28 @@ type Notifier interface {
 // the interface accessor method.
 
 type Request struct {
-	Method B
+	Method by
 }
 
-func (r Request) RequestType() B { return r.Method }
+func (r Request) RequestType() by { return r.Method }
 
 type Response struct {
-	Type B
+	Type by
 	Error
 }
 
-func (r Response) ResultType() B { return r.Type }
+func (r Response) ResultType() by { return r.Type }
 
 type Notification struct {
-	Type B
+	Type by
 }
 
-func (n Notification) NotificationType() B { return n.Type }
+func (n Notification) NotificationType() by { return n.Type }
 
 // Msat  is milli-sat, max possible value is 1000 x 21 x 100 000 000 (well, under 19 places of 64 bits in base 10)
 type Msat uint64
 
-func (m Msat) Bytes(dst B) (b B) {
+func (m Msat) Bytes(dst by) (b by) {
 	b, _ = ints.New(uint64(m)).MarshalJSON(dst)
 	return
 }
@@ -59,18 +59,18 @@ func (m Msat) Bytes(dst B) (b B) {
 // Methods
 
 type Invoice struct {
-	Id      B // nil for request, required for responses (omitted if nil)
-	Invoice B
+	Id      by // nil for request, required for responses (omitted if nil)
+	Invoice by
 	Amount  Msat // optional, omitted if zero
 }
 
 type InvoiceResponse struct {
-	Type            B // incoming or outgoing
-	Invoice         B // optional
-	Description     B // optional
-	DescriptionHash B // optional
-	Preimage        B // optional if unpaid
-	PaymentHash     B
+	Type            by // incoming or outgoing
+	Invoice         by // optional
+	Description     by // optional
+	DescriptionHash by // optional
+	Preimage        by // optional if unpaid
+	PaymentHash     by
 	Amount          Msat
 	FeesPaid        Msat
 	CreatedAt       int64
@@ -82,17 +82,17 @@ type InvoiceResponse struct {
 type ListTransactions struct {
 	From   int64 // optional
 	Until  int64 // optional
-	Limit  int   // optional
-	Offset int   // optional
-	Unpaid bool  // optional default false
-	Type   B     // incoming/outgoing/empty for "both"
+	Limit  no    // optional
+	Offset no    // optional
+	Unpaid bo    // optional default false
+	Type   by    // incoming/outgoing/empty for "both"
 }
 
 // Notifications
 
 var (
-	PaymentSent     = B("payment_sent")
-	PaymentReceived = B("payment_received")
+	PaymentSent     = by("payment_sent")
+	PaymentReceived = by("payment_received")
 )
 
 type PaymentSentNotification struct {

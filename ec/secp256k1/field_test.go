@@ -98,10 +98,10 @@ func TestFieldSetInt(t *testing.T) {
 // edge cases.  Random cases are tested via the various other tests.
 func TestFieldSetBytes(t *testing.T) {
 	tests := []struct {
-		name     string     // test description
-		in       string     // hex encoded test value
+		name     st         // test description
+		in       st         // hex encoded test value
 		expected [10]uint32 // expected raw ints
-		overflow bool       // expected overflow result
+		overflow bo         // expected overflow result
 	}{{
 		name:     "zero",
 		in:       "00",
@@ -408,8 +408,8 @@ func TestFieldIsOne(t *testing.T) {
 	tests := []struct {
 		name      string // test description
 		in        string // hex encoded test value
-		normalize bool   // whether or not to normalize the test value
-		expected  bool   // expected result
+		normalize bo     // whether or not to normalize the test value
+		expected  bo     // expected result
 	}{{
 		name:      "zero",
 		in:        "0",
@@ -932,7 +932,7 @@ func TestFieldIsOdd(t *testing.T) {
 	tests := []struct {
 		name     string // test description
 		in       string // hex encoded value
-		expected bool   // expected oddness
+		expected bo     // expected oddness
 	}{{
 		name:     "zero",
 		in:       "0",
@@ -983,10 +983,10 @@ func TestFieldIsOdd(t *testing.T) {
 // Equals works as expected.
 func TestFieldEquals(t *testing.T) {
 	tests := []struct {
-		name     string // test description
-		in1      string // hex encoded value
-		in2      string // hex encoded value
-		expected bool   // expected equality
+		name     st // test description
+		in1      st // hex encoded value
+		in2      st // hex encoded value
+		expected bo // expected equality
 	}{{
 		name:     "0 == 0?",
 		in1:      "0",
@@ -1507,10 +1507,10 @@ func TestFieldSquare(t *testing.T) {
 // via SquareRootVal works as expected for edge cases.
 func TestFieldSquareRoot(t *testing.T) {
 	tests := []struct {
-		name  string // test description
-		in    string // hex encoded value
-		valid bool   // whether or not the value has a square root
-		want  string // expected hex encoded value
+		name  st // test description
+		in    st // hex encoded value
+		valid bo // whether the value has a square root
+		want  st // expected hex encoded value
 	}{{
 		name:  "secp256k1 prime (as 0 in and out)",
 		in:    "0",
@@ -1700,9 +1700,9 @@ func TestFieldInverse(t *testing.T) {
 // as expected for edge cases.
 func TestFieldIsGtOrEqPrimeMinusOrder(t *testing.T) {
 	tests := []struct {
-		name     string // test description
-		in       string // hex encoded test value
-		expected bool   // expected result
+		name     st // test description
+		in       st // hex encoded test value
+		expected bo // expected result
 	}{{
 		name:     "zero",
 		in:       "0",

@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	var err E
+	var err er
 	var cfg *config.C
 	if cfg, err = config.New(); chk.T(err) || config.HelpRequested() {
 		if err != nil {
@@ -53,11 +53,11 @@ func main() {
 			BlockCacheSize: units.Gb * 16,
 			LogLevel:       lol.GetLogLevel(cfg.DbLogLevel),
 			MaxLimit:       ratel.DefaultMaxLimit,
-			Extra: []int{
+			Extra: []no{
 				cfg.DBSizeLimit,
 				cfg.DBLowWater,
 				cfg.DBHighWater,
-				cfg.GCFrequency * int(time.Second),
+				cfg.GCFrequency * no(time.Second),
 			},
 		},
 	)

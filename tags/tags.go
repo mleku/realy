@@ -27,28 +27,28 @@ func New(fields ...*tag.T) (t *T) {
 	return
 }
 
-func NewWithCap(c int) (t *T) {
+func NewWithCap(c no) (t *T) {
 	return &T{t: make([]*tag.T, 0, c)}
 }
 
 func (t *T) F() (tt []*tag.T) {
 	if t == nil {
-		return []*tag.T{tag.New(B{})}
+		return []*tag.T{tag.New(by{})}
 	}
 	return t.t
 }
 
-func (t *T) N(i int) (tt *tag.T) {
+func (t *T) N(i no) (tt *tag.T) {
 	if t == nil {
 		return tag.NewWithCap(0)
 	}
 	if len(t.t) <= i {
-		return tag.New(B{})
+		return tag.New(by{})
 	}
 	return t.t[i]
 }
 
-func (t *T) AppendTo(n int, b ...B) (tt *T) {
+func (t *T) AppendTo(n no, b ...by) (tt *T) {
 	if t == nil {
 		log.E.S(t, b)
 		return
@@ -69,12 +69,12 @@ func (t *T) AppendTo(n int, b ...B) (tt *T) {
 
 // AppendSlice just appends a slice of slices of bytes into the tags. Like AppendTo
 // but without the position specifier. todo: this is a terribly constructed API innit.
-func (t *T) AppendSlice(b ...B) (tt *T) {
+func (t *T) AppendSlice(b ...by) (tt *T) {
 	t.t = append(t.t, tag.New(b...))
 	return
 }
 
-func (t *T) AddCap(i, c int) (tt *T) {
+func (t *T) AddCap(i, c no) (tt *T) {
 	if t == nil {
 		log.E.F("cannot add capacity to index %d of nil tags", i)
 		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
@@ -95,8 +95,8 @@ func (t *T) Value() (tt []*tag.T) {
 	return t.t
 }
 
-func (t *T) ToStringSlice() (b [][]S) {
-	b = make([][]S, 0, len(t.t))
+func (t *T) ToStringSlice() (b [][]st) {
+	b = make([][]st, 0, len(t.t))
 	for i := range t.t {
 		b = append(b, t.t[i].ToStringSlice())
 	}
@@ -111,7 +111,7 @@ func (t *T) Clone() (c *T) {
 	return
 }
 
-func (t *T) Equal(ta *T) bool {
+func (t *T) Equal(ta *T) bo {
 	// sort them the same so if they are the same in content they compare the same.
 	t1 := t.Clone()
 	sort.Sort(t1)
@@ -126,7 +126,7 @@ func (t *T) Equal(ta *T) bool {
 }
 
 // Less returns which tag's first element is first lexicographically
-func (t *T) Less(i, j int) (less bool) {
+func (t *T) Less(i, j no) (less bo) {
 	a, b := t.t[i], t.t[j]
 	if a.Len() < 1 && b.Len() < 1 {
 		return false // they are equal
@@ -140,11 +140,11 @@ func (t *T) Less(i, j int) (less bool) {
 	return
 }
 
-func (t *T) Swap(i, j int) {
+func (t *T) Swap(i, j no) {
 	t.t[i], t.t[j] = t.t[j], t.t[i]
 }
 
-func (t *T) Len() (l int) {
+func (t *T) Len() (l no) {
 	if t == nil {
 		return
 	}
@@ -188,7 +188,7 @@ func (t *T) GetAll(tagPrefix *tag.T) *T {
 }
 
 // FilterOut removes all tags that match the prefix, see [T.StartsWith]
-func (t *T) FilterOut(tagPrefix []B) *T {
+func (t *T) FilterOut(tagPrefix []by) *T {
 	filtered := &T{t: make([]*tag.T, 0, len(t.t))}
 	for _, v := range t.t {
 		if !v.StartsWith(tag.New(tagPrefix...)) {
@@ -236,13 +236,13 @@ func (t *T) AppendTags(ttt ...*tag.T) (tt *T) {
 // this method is invoked.
 //
 // todo: wut is this?
-func (t *T) Scan(src any) (err error) {
-	var jtags []byte
+func (t *T) Scan(src any) (err er) {
+	var jtags by
 	switch v := src.(type) {
-	case B:
+	case by:
 		jtags = v
-	case S:
-		jtags = []byte(v)
+	case st:
+		jtags = by(v)
 	default:
 		return errors.New("couldn't scan tag, it's not a json string")
 	}
@@ -254,7 +254,7 @@ func (t *T) Scan(src any) (err error) {
 // Intersects returns true if a filter tags.T has a match. This means the second character of
 // the filter tag key matches, (ignoring the stupid # prefix in the filter) and one of the
 // following values in the tag matches the first tag of this tag.
-func (t *T) Intersects(f *T) (has bool) {
+func (t *T) Intersects(f *T) (has bo) {
 	if t == nil || f == nil {
 		// if either are empty there can't be a match (if caller wants to know if both are empty
 		// that's not the same as an intersection).
@@ -279,9 +279,9 @@ func (t *T) Intersects(f *T) (has bool) {
 
 // ContainsProtectedMarker returns true if an event may only be published to the relay by a user
 // authed with the same pubkey as in the event. This is for implementing relayinfo.NIP70.
-func (t *T) ContainsProtectedMarker() (does bool) {
+func (t *T) ContainsProtectedMarker() (does bo) {
 	for _, v := range t.t {
-		if equals(v.Key(), B("-")) {
+		if equals(v.Key(), by("-")) {
 			return true
 		}
 	}
@@ -290,7 +290,7 @@ func (t *T) ContainsProtectedMarker() (does bool) {
 
 // ContainsAny returns true if any of the strings given in `values` matches any of the tag
 // elements.
-func (t *T) ContainsAny(tagName B, values *tag.T) bool {
+func (t *T) ContainsAny(tagName by, values *tag.T) bo {
 	if len(tagName) < 1 {
 		return false
 	}
@@ -315,7 +315,7 @@ func (t *T) ContainsAny(tagName B, values *tag.T) bool {
 	return false
 }
 
-func (t *T) Contains(filterTags *T) (has bool) {
+func (t *T) Contains(filterTags *T) (has bo) {
 	for _, v := range filterTags.t {
 		if t.ContainsAny(v.FilterKey(), v) {
 			return true
@@ -325,7 +325,7 @@ func (t *T) Contains(filterTags *T) (has bool) {
 }
 
 // MarshalTo appends the JSON encoded byte of T as [][]string to dst. String escaping is as described in RFC8259.
-func (t *T) MarshalTo(dst B) []byte {
+func (t *T) MarshalTo(dst by) by {
 	dst = append(dst, '[')
 	for i, tt := range t.t {
 		if i > 0 {
@@ -351,7 +351,7 @@ func (t *T) MarshalTo(dst B) []byte {
 // 	return buf.String()
 // }
 
-func (t *T) MarshalJSON(dst B) (b B, err error) {
+func (t *T) MarshalJSON(dst by) (b by, err er) {
 	b = dst
 	b = append(b, '[')
 	if t == nil || t.t == nil {
@@ -371,7 +371,7 @@ func (t *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (t *T) UnmarshalJSON(b B) (r B, err error) {
+func (t *T) UnmarshalJSON(b by) (r by, err er) {
 	r = b[:]
 	for len(r) > 0 {
 		switch r[0] {

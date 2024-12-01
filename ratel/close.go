@@ -1,6 +1,6 @@
 package ratel
 
-func (r *T) Close() (err E) {
+func (r *T) Close() (err er) {
 	// chk.E(r.DB.Sync())
 	log.I.F("closing database %s", r.Path())
 	if r.Flatten {

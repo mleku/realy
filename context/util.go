@@ -2,18 +2,18 @@ package context
 
 import (
 	"bytes"
-
-	"realy.lol/lol"
+	"context"
 )
 
 type (
-	B = []byte
-	S = string
-	E = error
-	N = int
+	bo = bool
+	by = []byte
+	st = string
+	er = error
+	no = int
+	cx = context.Context
 )
 
 var (
-	log, chk, errorf = lol.Main.Log, lol.Main.Check, lol.Main.Errorf
-	equals           = bytes.Equal
+	equals = bytes.Equal
 )

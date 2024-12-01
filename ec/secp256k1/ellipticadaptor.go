@@ -25,12 +25,12 @@ type CurveParams struct {
 	// Gx and Gy are the x and y coordinate of the base point, respectively.
 	Gx, Gy *big.Int
 	// BitSize is the size of the underlying secp256k1 field in bits.
-	BitSize int
+	BitSize no
 	// H is the cofactor of the secp256k1 curve.
-	H int
+	H no
 	// ByteSize is simply the bit size / 8 and is provided for convenience
 	// since it is calculated repeatedly.
-	ByteSize int
+	ByteSize no
 }
 
 // Curve parameters taken from [SECG] section 2.4.1.
@@ -83,7 +83,7 @@ func (curve *KoblitzCurve) Params() *elliptic.CurveParams {
 //
 // This is part of the elliptic.Curve interface implementation.  This function
 // differs from the crypto/elliptic algorithm since a = 0 not -3.
-func (curve *KoblitzCurve) IsOnCurve(x, y *big.Int) bool {
+func (curve *KoblitzCurve) IsOnCurve(x, y *big.Int) bo {
 	// Convert big ints to a Jacobian point for faster arithmetic.
 	var point JacobianPoint
 	bigAffineToJacobian(x, y, &point)
@@ -131,7 +131,7 @@ func (curve *KoblitzCurve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
 // moduloReduce reduces k from more than 32 bytes to 32 bytes and under.  This
 // is done by doing a simple modulo curve.N.  We can do this since G^N = 1 and
 // thus any other valid point on the elliptic curve has the same order.
-func moduloReduce(k []byte) []byte {
+func moduloReduce(k by) by {
 	// Since the order of G is curve.N, we can use a much smaller number by
 	// doing modulo curve.N
 	if len(k) > curveParams.ByteSize {
@@ -145,7 +145,7 @@ func moduloReduce(k []byte) []byte {
 // ScalarMult returns k*(Bx, By) where k is a big endian integer.
 //
 // This is part of the elliptic.Curve interface implementation.
-func (curve *KoblitzCurve) ScalarMult(Bx, By *big.Int, k []byte) (*big.Int,
+func (curve *KoblitzCurve) ScalarMult(Bx, By *big.Int, k by) (*big.Int,
 	*big.Int) {
 	// Convert the affine coordinates from big integers to Jacobian points,
 	// do the multiplication in Jacobian projective space, and convert the
@@ -162,7 +162,7 @@ func (curve *KoblitzCurve) ScalarMult(Bx, By *big.Int, k []byte) (*big.Int,
 // big endian integer.
 //
 // This is part of the elliptic.Curve interface implementation.
-func (curve *KoblitzCurve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) {
+func (curve *KoblitzCurve) ScalarBaseMult(k by) (*big.Int, *big.Int) {
 	// Perform the multiplication and convert the Jacobian point back to affine
 	// big.Ints.
 	var kModN ModNScalar
@@ -214,7 +214,7 @@ func (p *SecretKey) ToECDSA() *ecdsa.PrivateKey {
 // panic is there is an error.  This is only provided for the hard-coded
 // constants so errors in the source code can bet detected. It will only (and
 // must only) be called for initialization purposes.
-func fromHex(s string) *big.Int {
+func fromHex(s st) *big.Int {
 	if s == "" {
 		return big.NewInt(0)
 	}

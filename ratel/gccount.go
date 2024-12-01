@@ -28,20 +28,20 @@ const CounterLen = KeyLen + createdat.Len
 // Both operations are more efficient combined together rather than separated,
 // thus this is a fairly long function.
 func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
-	prunedTotal int, err error) {
+	prunedTotal no, err er) {
 
-	//log.D.Ln("running GC count", r.Path())
+	// log.D.Ln("running GC count", r.Path())
 	overallStart := time.Now()
-	prf := []byte{byte(index.Event)}
+	prf := by{byte(index.Event)}
 	evStream := r.DB.NewStream()
 	evStream.Prefix = prf
 	var countMx sync.Mutex
-	var totalCounter int
-	evStream.ChooseKey = func(item *badger.Item) (b bool) {
+	var totalCounter no
+	evStream.ChooseKey = func(item *badger.Item) (b bo) {
 		if item.IsDeletedOrExpired() {
 			return
 		}
-		key := make([]byte, index.Len+serial.Len)
+		key := make(by, index.Len+serial.Len)
 		item.KeyCopy(key)
 		ser := serial.FromKey(key)
 		size := uint32(item.ValueSize())
@@ -74,11 +74,11 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	var countFresh count.Freshes
 	// pruneStarted := time.Now()
 	counterStream := r.DB.NewStream()
-	counterStream.Prefix = []byte{index.Counter.B()}
-	v := make([]byte, createdat.Len)
+	counterStream.Prefix = by{index.Counter.B()}
+	v := make(by, createdat.Len)
 	countFresh = make(count.Freshes, 0, totalCounter)
-	counterStream.ChooseKey = func(item *badger.Item) (b bool) {
-		key := make([]byte, index.Len+serial.Len)
+	counterStream.ChooseKey = func(item *badger.Item) (b bo) {
+		key := make(by, index.Len+serial.Len)
 		item.KeyCopy(key)
 		s64 := serial.FromKey(key).Uint64()
 		countMx.Lock()
@@ -108,12 +108,12 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	//
 	// this provides the least amount of iteration and computation to essentially
 	// zip two tables together
-	var unprunedCursor, prunedCursor int
+	var unprunedCursor, prunedCursor no
 	// we also need to create a map of serials to their respective array index, and
 	// we know how big it has to be so we can avoid allocations during the iteration.
 	//
 	// if there is no L2 this will be an empty map and have nothing added to it.
-	prunedMap := make(map[uint64]int, len(prunedBySerial))
+	prunedMap := make(map[uint64]no, len(prunedBySerial))
 	for i := range countFresh {
 		// populate freshness of unpruned item
 		if len(unprunedBySerial) > i && countFresh[i].Serial ==
@@ -141,10 +141,10 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 		// pruned set
 		for _, fp := range index.FilterPrefixes {
 			// this can all be done concurrently
-			go func(fp []byte) {
+			go func(fp by) {
 				evStream = r.DB.NewStream()
 				evStream.Prefix = fp
-				evStream.ChooseKey = func(item *badger.Item) (b bool) {
+				evStream.ChooseKey = func(item *badger.Item) (b bo) {
 					k := item.KeyCopy(nil)
 					ser := serial.FromKey(k)
 					uSer := ser.Uint64()
@@ -161,7 +161,7 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	hw, _ := r.GetEventHeadroom()
 	unprunedTotal = unpruned.Total()
 	up := float64(unprunedTotal)
-	var o S
+	var o st
 	o += fmt.Sprintf("%8d complete,"+
 		"total %0.6f Gb,"+
 		"HW %0.6f Gb",
@@ -189,13 +189,13 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	return
 }
 
-func (r *T) GetIndexHeadroom() (hw, lw int) {
+func (r *T) GetIndexHeadroom() (hw, lw no) {
 	limit := r.DBSizeLimit - r.DBSizeLimit*r.DBHighWater/100
 	return limit * r.DBHighWater / 100,
 		limit * r.DBLowWater / 100
 }
 
-func (r *T) GetEventHeadroom() (hw, lw int) {
+func (r *T) GetEventHeadroom() (hw, lw no) {
 	return r.DBSizeLimit * r.DBHighWater / 100,
 		r.DBSizeLimit * r.DBLowWater / 100
 }

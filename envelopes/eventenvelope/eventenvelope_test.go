@@ -13,8 +13,8 @@ import (
 
 func TestSubmission(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	var c, rem, out B
-	var err error
+	var c, rem, out by
+	var err er
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		ev := event.New()
@@ -57,8 +57,8 @@ func TestSubmission(t *testing.T) {
 
 func TestResult(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	var c, rem, out B
-	var err error
+	var c, rem, out by
+	var err er
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		ev := event.New()

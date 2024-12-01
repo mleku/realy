@@ -30,8 +30,8 @@ func NewRequest(id *subscription.Id, filters *filters.T) *Request {
 		Filters: filters}
 }
 func (en *Request) Label() string { return L }
-func (en *Request) Write(w io.Writer) (err E) {
-	var b B
+func (en *Request) Write(w io.Writer) (err er) {
+	var b by
 	if b, err = en.MarshalJSON(b); chk.E(err) {
 		return
 	}
@@ -39,10 +39,10 @@ func (en *Request) Write(w io.Writer) (err E) {
 	return
 }
 
-func (en *Request) MarshalJSON(dst B) (b B, err error) {
+func (en *Request) MarshalJSON(dst by) (b by, err er) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
-		func(bst B) (o B, err error) {
+		func(bst by) (o by, err er) {
 			o = bst
 			if o, err = en.Subscription.MarshalJSON(o); chk.E(err) {
 				return
@@ -56,9 +56,9 @@ func (en *Request) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (en *Request) UnmarshalJSON(b B) (r B, err error) {
+func (en *Request) UnmarshalJSON(b by) (r by, err er) {
 	r = b
-	if en.Subscription, err = subscription.NewId(B{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId(by{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {
@@ -74,7 +74,7 @@ func (en *Request) UnmarshalJSON(b B) (r B, err error) {
 	return
 }
 
-func ParseRequest(b B) (t *Request, rem B, err E) {
+func ParseRequest(b by) (t *Request, rem by, err er) {
 	t = New()
 	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
 		return
@@ -84,15 +84,15 @@ func ParseRequest(b B) (t *Request, rem B, err E) {
 
 type Response struct {
 	ID          *subscription.Id
-	Count       int
-	Approximate bool
+	Count       no
+	Approximate bo
 }
 
 var _ codec.Envelope = (*Response)(nil)
 
 func NewResponse() *Response { return &Response{ID: subscription.NewStd()} }
-func NewResponseFrom[V S | B](s V, cnt N, approx ...bool) (res *Response, err E) {
-	var a bool
+func NewResponseFrom[V st | by](s V, cnt no, approx ...bo) (res *Response, err er) {
+	var a bo
 	if len(approx) > 0 {
 		a = approx[0]
 	}
@@ -103,8 +103,8 @@ func NewResponseFrom[V S | B](s V, cnt N, approx ...bool) (res *Response, err E)
 	return &Response{subscription.MustNew(s), cnt, a}, nil
 }
 func (en *Response) Label() string { return L }
-func (en *Response) Write(w io.Writer) (err E) {
-	var b B
+func (en *Response) Write(w io.Writer) (err er) {
+	var b by
 	if b, err = en.MarshalJSON(b); chk.E(err) {
 		return
 	}
@@ -112,10 +112,10 @@ func (en *Response) Write(w io.Writer) (err E) {
 	return
 }
 
-func (en *Response) MarshalJSON(dst B) (b B, err error) {
+func (en *Response) MarshalJSON(dst by) (b by, err er) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
-		func(bst B) (o B, err error) {
+		func(bst by) (o by, err er) {
 			o = bst
 			if o, err = en.ID.MarshalJSON(o); chk.E(err) {
 				return
@@ -132,9 +132,9 @@ func (en *Response) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (en *Response) UnmarshalJSON(b B) (r B, err error) {
+func (en *Response) UnmarshalJSON(b by) (r by, err er) {
 	r = b
-	var inID, inCount bool
+	var inID, inCount bo
 	for ; len(r) > 0; r = r[1:] {
 		// first we should be finding a subscription ID
 		if !inID && r[0] == '"' {
@@ -170,7 +170,7 @@ func (en *Response) UnmarshalJSON(b B) (r B, err error) {
 				if r, err = n.UnmarshalJSON(r); chk.E(err) {
 					return
 				}
-				en.Count = int(n.Uint64())
+				en.Count = no(n.Uint64())
 			} else {
 				// can only be either the end or optional approx
 				if r[0] == ']' {
@@ -178,7 +178,7 @@ func (en *Response) UnmarshalJSON(b B) (r B, err error) {
 				} else {
 					for i := range r {
 						if r[i] == ']' {
-							if bytes.Contains(r[:i], B("true")) {
+							if bytes.Contains(r[:i], by("true")) {
 								en.Approximate = true
 							}
 							return
@@ -191,7 +191,7 @@ func (en *Response) UnmarshalJSON(b B) (r B, err error) {
 	return
 }
 
-func Parse(b B) (t *Response, rem B, err E) {
+func Parse(b by) (t *Response, rem by, err er) {
 	t = NewResponse()
 	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
 		return

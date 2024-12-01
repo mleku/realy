@@ -100,7 +100,7 @@ func NewPublicKey(x, y *FieldVal) *PublicKey {
 // NOTE: The hybrid format makes little sense in practice an therefore this
 // package will not produce public keys serialized in this format.  However,
 // this function will properly parse them since they exist in the wild.
-func ParsePubKey(serialized []byte) (key *PublicKey, err error) {
+func ParsePubKey(serialized by) (key *PublicKey, err er) {
 	var x, y FieldVal
 	switch len(serialized) {
 	case PubKeyBytesLenUncompressed:
@@ -176,7 +176,7 @@ func ParsePubKey(serialized []byte) (key *PublicKey, err error) {
 
 // SerializeUncompressed serializes a public key in the 65-byte uncompressed
 // format.
-func (p PublicKey) SerializeUncompressed() []byte {
+func (p PublicKey) SerializeUncompressed() by {
 	// 0x04 || 32-byte x coordinate || 32-byte y coordinate
 	var b [PubKeyBytesLenUncompressed]byte
 	b[0] = PubKeyFormatUncompressed
@@ -186,7 +186,7 @@ func (p PublicKey) SerializeUncompressed() []byte {
 }
 
 // SerializeCompressed serializes a public key in the 33-byte compressed format.
-func (p PublicKey) SerializeCompressed() []byte {
+func (p PublicKey) SerializeCompressed() by {
 	// Choose the format byte depending on the oddness of the Y coordinate.
 	format := PubKeyFormatCompressedEven
 	if p.y.IsOdd() {
@@ -202,7 +202,7 @@ func (p PublicKey) SerializeCompressed() []byte {
 // IsEqual compares this public key instance to the one passed, returning true
 // if both public keys are equivalent.  A public key is equivalent to another,
 // if they both have the same X and Y coordinates.
-func (p *PublicKey) IsEqual(otherPubKey *PublicKey) bool {
+func (p *PublicKey) IsEqual(otherPubKey *PublicKey) bo {
 	return p.x.Equals(&otherPubKey.x) && p.y.Equals(&otherPubKey.y)
 }
 
@@ -217,6 +217,6 @@ func (p *PublicKey) AsJacobian(result *JacobianPoint) {
 
 // IsOnCurve returns whether or not the public key represents a point on the
 // secp256k1 curve.
-func (p *PublicKey) IsOnCurve() bool {
+func (p *PublicKey) IsOnCurve() bo {
 	return isOnCurve(&p.x, &p.y)
 }

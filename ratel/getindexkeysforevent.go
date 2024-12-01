@@ -16,10 +16,10 @@ import (
 // GetIndexKeysForEvent generates all the index keys required to filter for
 // events. evtSerial should be the output of Serial() which gets a unique,
 // monotonic counter value for each new event.
-func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
+func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz []by) {
 
-	var err error
-	keyz = make([][]byte, 0, 18)
+	var err er
+	keyz = make([]by, 0, 18)
 	ID := id.New(eventid.NewWith(ev.ID))
 	CA := createdat.New(ev.CreatedAt)
 	K := kinder.New(ev.Kind.ToU16())
@@ -62,7 +62,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 			// any of the above is true then the tag is not indexable
 			continue
 		}
-		var firstIndex int
+		var firstIndex no
 		var tt *tag.T
 		for firstIndex, tt = range ev.Tags.Value() {
 			if tt.Len() >= 2 && equals(tt.B(1), t.B(1)) {
@@ -76,7 +76,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		// get key prefix (with full length) and offset where to write the last
 		// parts
 		prf, elems := index.P(0), []keys.Element(nil)
-		if prf, elems, err = GetTagKeyElements(S(t.F()[1]), CA, ser); chk.E(err) {
+		if prf, elems, err = GetTagKeyElements(st(t.F()[1]), CA, ser); chk.E(err) {
 			log.I.F("%v", t.ToStringSlice())
 			return
 		}

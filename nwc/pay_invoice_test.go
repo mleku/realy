@@ -6,8 +6,8 @@ import (
 
 func ExamplePayInvoiceRequest_MarshalJSON() {
 	ir := NewPayInvoiceRequest("lnbc50n1...", 0)
-	var b B
-	var err E
+	var b by
+	var err er
 	if b, err = ir.MarshalJSON(b); chk.E(err) {
 		return
 	}

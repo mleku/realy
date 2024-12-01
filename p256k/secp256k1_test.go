@@ -17,11 +17,11 @@ import (
 func TestVerify(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(B, 1_000_000)
+	buf := make(by, 1_000_000)
 	scanner.Buffer(buf, len(buf))
-	var err error
+	var err er
 	for scanner.Scan() {
-		var valid bool
+		var valid bo
 		b := scanner.Bytes()
 		ev := event.New()
 		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
@@ -48,12 +48,12 @@ func TestVerify(t *testing.T) {
 func TestSign(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(B, 1_000_000)
+	buf := make(by, 1_000_000)
 	scanner.Buffer(buf, len(buf))
-	var err error
+	var err er
 	var sec1 *p256k.Sec
 	var pub1 *p256k.XPublicKey
-	var pb B
+	var pb by
 	if _, pb, sec1, pub1, _, err = p256k.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestSign(t *testing.T) {
 		}
 		evs = append(evs, ev)
 	}
-	sig := make(B, schnorr.SignatureSize)
+	sig := make(by, schnorr.SignatureSize)
 	for _, ev := range evs {
 		ev.PubKey = pb
 		var uid *p256k.Uchar

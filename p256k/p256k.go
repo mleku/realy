@@ -23,12 +23,12 @@ type Signer struct {
 	PublicKey   *PubKey
 	ECPublicKey *ECPubKey // not sure what this is useful for yet.
 	BTCECSec    *btcec.SecretKey
-	skb, pkb    B
+	skb, pkb    by
 }
 
 var _ realy.I = &Signer{}
 
-func (s *Signer) Generate() (err E) {
+func (s *Signer) Generate() (err er) {
 	var cs *Sec
 	var cx *XPublicKey
 	var cp *PublicKey
@@ -42,7 +42,7 @@ func (s *Signer) Generate() (err E) {
 	return
 }
 
-func (s *Signer) InitSec(skb B) (err error) {
+func (s *Signer) InitSec(skb by) (err er) {
 	var cs *Sec
 	var cx *XPublicKey
 	var cp *PublicKey
@@ -60,7 +60,7 @@ func (s *Signer) InitSec(skb B) (err error) {
 	return
 }
 
-func (s *Signer) InitPub(pub B) (err error) {
+func (s *Signer) InitPub(pub by) (err er) {
 	var up *Pub
 	if up, err = PubFromBytes(pub); chk.E(err) {
 		return
@@ -70,11 +70,11 @@ func (s *Signer) InitPub(pub B) (err error) {
 	return
 }
 
-func (s *Signer) Sec() (b B)   { return s.skb }
-func (s *Signer) Pub() (b B)   { return s.pkb[1:] }
-func (s *Signer) ECPub() (b B) { return s.pkb }
+func (s *Signer) Sec() (b by)   { return s.skb }
+func (s *Signer) Pub() (b by)   { return s.pkb[1:] }
+func (s *Signer) ECPub() (b by) { return s.pkb }
 
-func (s *Signer) Sign(msg B) (sig B, err error) {
+func (s *Signer) Sign(msg by) (sig by, err er) {
 	if s.SecretKey == nil {
 		err = errorf.E("p256k: I secret not initialized")
 		return
@@ -86,7 +86,7 @@ func (s *Signer) Sign(msg B) (sig B, err error) {
 	return
 }
 
-func (s *Signer) Verify(msg, sig B) (valid bool, err error) {
+func (s *Signer) Verify(msg, sig by) (valid bo, err er) {
 	if s.PublicKey == nil {
 		err = errorf.E("p256k: PubKey not initialized")
 		return
@@ -106,9 +106,9 @@ func (s *Signer) Verify(msg, sig B) (valid bool, err error) {
 }
 
 func (s *Signer) Zero() { Zero(s.SecretKey) }
-func (s *Signer) ECDH(xkb B) (secret B, err error) {
+func (s *Signer) ECDH(xkb by) (secret by, err er) {
 	var pubKey *btcec.PublicKey
-	k2 := append(B{2}, xkb...)
+	k2 := append(by{2}, xkb...)
 	if pubKey, err = btcec.ParsePubKey(k2); chk.E(err) {
 		err = errorf.E("error parsing receiver public key '%0x': %w", k2, err)
 		return

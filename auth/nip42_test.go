@@ -7,12 +7,12 @@ import (
 )
 
 func TestCreateUnsigned(t *testing.T) {
-	var err error
+	var err er
 	signer := new(p256k.Signer)
 	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
-	var ok bool
+	var ok bo
 	const relayURL = "wss://example.com"
 	for _ = range 100 {
 		challenge := GenerateChallenge()

@@ -3,7 +3,7 @@ package json
 // An Array is an ordered list of values.
 type Array struct{ V []I }
 
-func (a *Array) Marshal(dst B) (b B) {
+func (a *Array) Marshal(dst by) (b by) {
 	b = dst
 	b = append(b, '[')
 	last := len(a.V) - 1
@@ -17,10 +17,10 @@ func (a *Array) Marshal(dst B) (b B) {
 	return
 }
 
-func (a *Array) Unmarshal(dst B) (rem B, err E) {
+func (a *Array) Unmarshal(dst by) (rem by, err er) {
 	rem = dst
-	var openBracket bool
-	var element N
+	var openBracket bo
+	var element no
 	for ; len(rem) > 0; rem = rem[1:] {
 		if !openBracket && rem[0] == '[' {
 			openBracket = true

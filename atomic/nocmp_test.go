@@ -36,7 +36,7 @@ func TestNocmpComparability(t *testing.T) {
 	tests := []struct {
 		desc       string
 		give       interface{}
-		comparable bool
+		comparable bo
 	}{
 		{
 			desc: "nocmp struct",
@@ -76,7 +76,7 @@ func TestNocmpComparability(t *testing.T) {
 
 // nocmp must not add to the size of a struct in-memory.
 func TestNocmpSize(t *testing.T) {
-	type x struct{ _ int }
+	type x struct{ _ no }
 
 	before := reflect.TypeOf(x{}).Size()
 
@@ -139,7 +139,7 @@ func TestNocmpIntegration(t *testing.T) {
 	require.NoError(t, err, "unable to read nocmp.go")
 
 	require.NoError(t,
-		os.WriteFile(filepath.Join(tempdir, "go.mod"), []byte(_exampleGoMod), 0o644),
+		os.WriteFile(filepath.Join(tempdir, "go.mod"), by(_exampleGoMod), 0o644),
 		"unable to write go.mod")
 
 	require.NoError(t,
@@ -147,7 +147,7 @@ func TestNocmpIntegration(t *testing.T) {
 		"unable to write nocmp.go")
 
 	require.NoError(t,
-		os.WriteFile(filepath.Join(tempdir, "bad.go"), []byte(_badFile), 0o644),
+		os.WriteFile(filepath.Join(tempdir, "bad.go"), by(_badFile), 0o644),
 		"unable to write bad.go")
 
 	var stderr bytes.Buffer

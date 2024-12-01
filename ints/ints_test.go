@@ -9,10 +9,10 @@ import (
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {
-	b := make(B, 0, 8)
-	var rem B
+	b := make(by, 0, 8)
+	var rem by
 	var n *T
-	var err error
+	var err er
 	for _ = range 10000000 {
 		n = New(uint64(frand.Intn(math.MaxInt64)))
 		if b, err = n.MarshalJSON(b); chk.E(err) {
@@ -33,8 +33,8 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 }
 
 func BenchmarkByteStringToInt64(bb *testing.B) {
-	b := make([]byte, 0, 19)
-	var i int
+	b := make(by, 0, 19)
+	var i no
 	const nTests = 10000000
 	testInts := make([]*T, nTests)
 	for i = range nTests {
@@ -53,7 +53,7 @@ func BenchmarkByteStringToInt64(bb *testing.B) {
 		var s string
 		for i = 0; i < bb.N; i++ {
 			n := testInts[i%10000]
-			s = strconv.Itoa(int(n.N))
+			s = strconv.Itoa(no(n.N))
 			_ = s
 		}
 	})
@@ -72,7 +72,7 @@ func BenchmarkByteStringToInt64(bb *testing.B) {
 		var s string
 		for i = 0; i < bb.N; i++ {
 			n := testInts[i%10000]
-			s = strconv.Itoa(int(n.N))
+			s = strconv.Itoa(no(n.N))
 			_, _ = strconv.Atoi(s)
 		}
 	})

@@ -8,19 +8,19 @@ import (
 )
 
 type Id struct {
-	T B
+	T by
 }
 
-func (si *Id) String() S { return S(si.T) }
+func (si *Id) String() st { return st(si.T) }
 
 // IsValid returns true if the subscription id is between 1 and 64 characters.
 // Invalid means too long or not present.
-func (si *Id) IsValid() bool { return len(si.T) <= 64 && len(si.T) > 0 }
+func (si *Id) IsValid() bo { return len(si.T) <= 64 && len(si.T) > 0 }
 
 // NewId inspects a string and converts to Id if it is
 // valid. Invalid means length == 0 or length > 64.
-func NewId[V S | B](s V) (*Id, error) {
-	si := &Id{T: B(s)}
+func NewId[V st | by](s V) (*Id, er) {
+	si := &Id{T: by(s)}
 	if si.IsValid() {
 		return si, nil
 	} else {
@@ -34,17 +34,17 @@ func NewId[V S | B](s V) (*Id, error) {
 // MustNew is the same as NewId except it doesn't check if you feed it rubbish.
 //
 // DO NOT USE WITHOUT CHECKING THE ID IS NOT NIL AND > 0 AND <= 64
-func MustNew[V S | B](s V) *Id {
-	return &Id{T: B(s)}
+func MustNew[V st | by](s V) *Id {
+	return &Id{T: by(s)}
 }
 
 const StdLen = 14
 const StdHRP = "su"
 
 func NewStd() (t *Id) {
-	var n int
-	var err error
-	src := make(B, StdLen)
+	var n no
+	var err er
+	src := make(by, StdLen)
 	if n, err = rand.Read(src); chk.E(err) {
 		return
 	}
@@ -52,19 +52,19 @@ func NewStd() (t *Id) {
 		err = errorf.E("only read %d of %d bytes from crypto/rand", n, StdLen)
 		return
 	}
-	var bits5 B
+	var bits5 by
 	if bits5, err = bech32.ConvertBits(src, 8, 5, true); chk.D(err) {
 		return nil
 	}
-	var dst B
-	if dst, err = bech32.Encode(B(StdHRP), bits5); chk.E(err) {
+	var dst by
+	if dst, err = bech32.Encode(by(StdHRP), bits5); chk.E(err) {
 		return
 	}
 	t = &Id{T: dst}
 	return
 }
 
-func (si *Id) MarshalJSON(dst B) (b B, err error) {
+func (si *Id) MarshalJSON(dst by) (b by, err er) {
 	ue := text.NostrEscape(nil, si.T)
 	if len(ue) < 1 || len(ue) > 64 {
 		err = errorf.E("invalid subscription ID, must be between 1 and 64 "+
@@ -78,9 +78,9 @@ func (si *Id) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (si *Id) UnmarshalJSON(b B) (r B, err error) {
-	var openQuotes, escaping bool
-	var start int
+func (si *Id) UnmarshalJSON(b by) (r by, err er) {
+	var openQuotes, escaping bo
+	var start no
 	r = b
 	for i := range r {
 		if !openQuotes && r[i] == '"' {

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
+
 	"realy.lol/ec/schnorr"
 	"realy.lol/eventid"
 	"realy.lol/kind"
@@ -23,7 +24,7 @@ import (
 
 func TestElement(t *testing.T) {
 	for _ = range 100000 {
-		var failed bool
+		var failed bo
 		{ // construct a typical key type of structure
 			// a prefix
 			np := index.Version
@@ -38,7 +39,7 @@ func TestElement(t *testing.T) {
 			// a pubkey
 			fakePubkeyBytes := frand.Bytes(schnorr.PubKeyBytesLen)
 			var vpk *pubkey.T
-			var err error
+			var err er
 			vpk, err = pubkey.NewFromBytes(fakePubkeyBytes)
 			if err != nil {
 				t.Fatal(err)

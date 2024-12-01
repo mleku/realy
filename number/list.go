@@ -2,10 +2,10 @@ package number
 
 import "fmt"
 
-type List []int
+type List []no
 
 // HasNumber returns true if the list contains a given number
-func (l List) HasNumber(n int) (idx int, has bool) {
+func (l List) HasNumber(n no) (idx no, has bo) {
 	for idx = range l {
 		if l[idx] == n {
 			has = true
@@ -15,7 +15,7 @@ func (l List) HasNumber(n int) (idx int, has bool) {
 	return
 }
 
-func (l List) String() (s S) {
+func (l List) String() (s st) {
 	s += "["
 	for i := range l {
 		if i > 0 {

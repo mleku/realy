@@ -18,7 +18,7 @@ var (
 	testMsg       = hexToBytes("c301ba9de5d6053caad9f5eb46523f007702add2c62fa39de03146a36b8026b7")
 )
 
-func hexToBytes(s string) []byte {
+func hexToBytes(s st) by {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -26,7 +26,7 @@ func hexToBytes(s string) []byte {
 	return b
 }
 
-func hexToModNScalar(s string) *btcec.ModNScalar {
+func hexToModNScalar(s st) *btcec.ModNScalar {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -57,16 +57,16 @@ func genSigner(t *testing.B) signer {
 
 var (
 	testSig *PartialSignature
-	testErr error
+	testErr er
 )
 
 // BenchmarkPartialSign benchmarks how long it takes to generate a partial
 // signature factoring in if the keys are sorted and also if we're in fast sign
 // mode.
 func BenchmarkPartialSign(b *testing.B) {
-	for _, numSigners := range []int{10, 100} {
-		for _, fastSign := range []bool{true, false} {
-			for _, sortKeys := range []bool{true, false} {
+	for _, numSigners := range []no{10, 100} {
+		for _, fastSign := range []bo{true, false} {
+			for _, sortKeys := range []bo{true, false} {
 				name := fmt.Sprintf("num_signers=%v/fast_sign=%v/sort=%v",
 					numSigners, fastSign, sortKeys)
 				signers := make(signerSet, numSigners)
@@ -111,7 +111,7 @@ func BenchmarkPartialSign(b *testing.B) {
 // TODO: this fails
 // // TODO(roasbeef): add impact of sorting ^
 //
-// var sigOk bool
+// var sigOk bo
 //
 // // BenchmarkPartialVerify benchmarks how long it takes to verify a partial
 // // signature.
@@ -154,8 +154,8 @@ func BenchmarkPartialSign(b *testing.B) {
 // 				}
 // 				b.ResetTimer()
 // 				b.ReportAllocs()
-// 				var ok bool
-// 				for i := 0; i < b.N; i++ {
+// 				var ok bo
+// 				for i := 0; i < b.no; i++ {
 // 					ok = sig.Verify(
 // 						signers[0].nonces.PubNonce, combinedNonce,
 // 						keys, pubKey, msg, signOpts...,
@@ -176,7 +176,7 @@ var finalSchnorrSig *schnorr.Signature
 // BenchmarkCombineSigs benchmarks how long it takes to combine a set amount of
 // signatures.
 func BenchmarkCombineSigs(b *testing.B) {
-	for _, numSigners := range []int{10, 100} {
+	for _, numSigners := range []no{10, 100} {
 		signers := make(signerSet, numSigners)
 		for i := 0; i < numSigners; i++ {
 			signers[i] = genSigner(b)
@@ -218,7 +218,7 @@ var testNonce [PubNonceSize]byte
 
 // BenchmarkAggregateNonces benchmarks how long it takes to combine nonces.
 func BenchmarkAggregateNonces(b *testing.B) {
-	for _, numSigners := range []int{10, 100} {
+	for _, numSigners := range []no{10, 100} {
 		signers := make(signerSet, numSigners)
 		for i := 0; i < numSigners; i++ {
 			signers[i] = genSigner(b)
@@ -242,8 +242,8 @@ var testKey *btcec.PublicKey
 // BenchmarkAggregateKeys benchmarks how long it takes to aggregate public
 // keys.
 func BenchmarkAggregateKeys(b *testing.B) {
-	for _, numSigners := range []int{10, 100} {
-		for _, sortKeys := range []bool{true, false} {
+	for _, numSigners := range []no{10, 100} {
+		for _, sortKeys := range []bo{true, false} {
 			signers := make(signerSet, numSigners)
 			for i := 0; i < numSigners; i++ {
 				signers[i] = genSigner(b)

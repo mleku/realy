@@ -11,17 +11,17 @@ const (
 	TLVKind
 )
 
-func readTLVEntry(data []byte) (typ uint8, value []byte) {
+func readTLVEntry(data by) (typ uint8, value by) {
 	if len(data) < 2 {
 		return
 	}
 	typ = data[0]
-	length := int(data[1])
+	length := no(data[1])
 	value = data[2 : 2+length]
 	return
 }
 
-func writeTLVEntry(buf *bytes.Buffer, typ uint8, value []byte) {
+func writeTLVEntry(buf *bytes.Buffer, typ uint8, value by) {
 	length := len(value)
 	buf.WriteByte(typ)
 	buf.WriteByte(uint8(length))

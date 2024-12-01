@@ -29,7 +29,8 @@ import (
 )
 
 //go:noescape
-func sha256X16Avx512(digests *[512]byte, scratch *[512]byte, table *[512]uint64, mask []uint64, inputs [16][]byte)
+func sha256X16Avx512(digests *[512]byte, scratch *[512]byte, table *[512]uint64, mask []uint64,
+	inputs [16]by)
 
 // Avx512ServerUID - Do not start at 0 but next multiple of 16 so as to be able to
 // differentiate with default initialiation value of 0
@@ -48,17 +49,17 @@ type Avx512Digest struct {
 	uid     uint64
 	a512srv *Avx512Server
 	x       [chunk]byte
-	nx      int
+	nx      no
 	len     uint64
-	final   bool
+	final   bo
 	result  [Size]byte
 }
 
 // Size - Return size of checksum
-func (d *Avx512Digest) Size() int { return Size }
+func (d *Avx512Digest) Size() no { return Size }
 
 // BlockSize - Return blocksize of checksum
-func (d Avx512Digest) BlockSize() int { return BlockSize }
+func (d Avx512Digest) BlockSize() no { return BlockSize }
 
 // Reset - reset sha digest to its initial values
 func (d *Avx512Digest) Reset() {
@@ -69,7 +70,7 @@ func (d *Avx512Digest) Reset() {
 }
 
 // Write to digest
-func (d *Avx512Digest) Write(p []byte) (nn int, err error) {
+func (d *Avx512Digest) Write(p by) (nn no, err er) {
 
 	if d.final {
 		return 0, errors.New("Avx512Digest already finalized. Reset first before writing again")
@@ -98,13 +99,13 @@ func (d *Avx512Digest) Write(p []byte) (nn int, err error) {
 }
 
 // Sum - Return sha256 sum in bytes
-func (d *Avx512Digest) Sum(in []byte) (result []byte) {
+func (d *Avx512Digest) Sum(in by) (result by) {
 
 	if d.final {
 		return append(in, d.result[:]...)
 	}
 
-	trail := make([]byte, 0, 128)
+	trail := make(by, 0, 128)
 	trail = append(trail, d.x[:d.nx]...)
 
 	len := d.len
@@ -263,7 +264,7 @@ var table = [512]uint64{
 	0xc67178f2c67178f2, 0xc67178f2c67178f2, 0xc67178f2c67178f2, 0xc67178f2c67178f2}
 
 // Interface function to assembly ode
-func blockAvx512(digests *[512]byte, input [16][]byte, mask []uint64) [16][Size]byte {
+func blockAvx512(digests *[512]byte, input [16]by, mask []uint64) [16][Size]byte {
 
 	scratch := [512]byte{}
 	sha256X16Avx512(digests, &scratch, &table, mask, input)
@@ -276,7 +277,7 @@ func blockAvx512(digests *[512]byte, input [16][]byte, mask []uint64) [16][Size]
 	return output
 }
 
-func getDigest(index int, state []byte) (sum [Size]byte) {
+func getDigest(index no, state by) (sum [Size]byte) {
 	for j := 0; j < 16; j += 2 {
 		for i := index*4 + j*Size; i < index*4+(j+1)*Size; i += Size {
 			binary.BigEndian.PutUint32(sum[j*2:], binary.LittleEndian.Uint32(state[i:i+4]))
@@ -288,16 +289,16 @@ func getDigest(index int, state []byte) (sum [Size]byte) {
 // Message to send across input channel
 type blockInput struct {
 	uid   uint64
-	msg   []byte
-	reset bool
-	final bool
+	msg   by
+	reset bo
+	final bo
 	sumCh chan [Size]byte
 }
 
 // Avx512Server - Type to implement 16x parallel handling of SHA256 invocations
 type Avx512Server struct {
 	blocksCh chan blockInput       // Input channel
-	totalIn  int                   // Total number of inputs waiting to be processed
+	totalIn  no                    // Total number of inputs waiting to be processed
 	lanes    [16]Avx512LaneInfo    // Array with info per lane (out of 16)
 	digests  map[uint64][Size]byte // Map of uids to (interim) digest results
 }
@@ -305,7 +306,7 @@ type Avx512Server struct {
 // Avx512LaneInfo - Info for each lane
 type Avx512LaneInfo struct {
 	uid      uint64          // unique identification for this SHA processing
-	block    []byte          // input block to be processed
+	block    by              // input block to be processed
 	outputCh chan [Size]byte // channel for output result
 }
 
@@ -333,7 +334,7 @@ func (a512srv *Avx512Server) Process() {
 			// fmt.Println("Adding message:", block.uid, index)
 
 			if a512srv.lanes[index].block != nil { // If slot is already filled, process all inputs
-				//fmt.Println("Invoking Blocks()")
+				// fmt.Println("Invoking Blocks()")
 				a512srv.blocks()
 			}
 			a512srv.totalIn++
@@ -379,7 +380,7 @@ func (a512srv *Avx512Server) reset(uid uint64) {
 // Invoke assembly and send results back
 func (a512srv *Avx512Server) blocks() {
 
-	inputs := [16][]byte{}
+	inputs := [16]by{}
 	for i := range inputs {
 		inputs[i] = a512srv.lanes[i].block
 	}
@@ -401,7 +402,7 @@ func (a512srv *Avx512Server) blocks() {
 	}
 }
 
-func (a512srv *Avx512Server) Write(uid uint64, p []byte) (nn int, err error) {
+func (a512srv *Avx512Server) Write(uid uint64, p by) (nn no, err er) {
 	a512srv.blocksCh <- blockInput{uid: uid, msg: p}
 	return len(p), nil
 }
@@ -420,12 +421,18 @@ func (a512srv *Avx512Server) getDigests() *[512]byte {
 		if ok {
 			binary.BigEndian.PutUint32(digests[(i+0*16)*4:], binary.LittleEndian.Uint32(a[0:4]))
 			binary.BigEndian.PutUint32(digests[(i+1*16)*4:], binary.LittleEndian.Uint32(a[4:8]))
-			binary.BigEndian.PutUint32(digests[(i+2*16)*4:], binary.LittleEndian.Uint32(a[8:12]))
-			binary.BigEndian.PutUint32(digests[(i+3*16)*4:], binary.LittleEndian.Uint32(a[12:16]))
-			binary.BigEndian.PutUint32(digests[(i+4*16)*4:], binary.LittleEndian.Uint32(a[16:20]))
-			binary.BigEndian.PutUint32(digests[(i+5*16)*4:], binary.LittleEndian.Uint32(a[20:24]))
-			binary.BigEndian.PutUint32(digests[(i+6*16)*4:], binary.LittleEndian.Uint32(a[24:28]))
-			binary.BigEndian.PutUint32(digests[(i+7*16)*4:], binary.LittleEndian.Uint32(a[28:32]))
+			binary.BigEndian.PutUint32(digests[(i+2*16)*4:],
+				binary.LittleEndian.Uint32(a[8:12]))
+			binary.BigEndian.PutUint32(digests[(i+3*16)*4:],
+				binary.LittleEndian.Uint32(a[12:16]))
+			binary.BigEndian.PutUint32(digests[(i+4*16)*4:],
+				binary.LittleEndian.Uint32(a[16:20]))
+			binary.BigEndian.PutUint32(digests[(i+5*16)*4:],
+				binary.LittleEndian.Uint32(a[20:24]))
+			binary.BigEndian.PutUint32(digests[(i+6*16)*4:],
+				binary.LittleEndian.Uint32(a[24:28]))
+			binary.BigEndian.PutUint32(digests[(i+7*16)*4:],
+				binary.LittleEndian.Uint32(a[28:32]))
 		} else {
 			binary.LittleEndian.PutUint32(digests[(i+0*16)*4:], init0)
 			binary.LittleEndian.PutUint32(digests[(i+1*16)*4:], init1)
@@ -448,9 +455,9 @@ type lane struct {
 
 type lanes []lane
 
-func (lns lanes) Len() int           { return len(lns) }
-func (lns lanes) Swap(i, j int)      { lns[i], lns[j] = lns[j], lns[i] }
-func (lns lanes) Less(i, j int) bool { return lns[i].len < lns[j].len }
+func (lns lanes) Len() no         { return len(lns) }
+func (lns lanes) Swap(i, j no)    { lns[i], lns[j] = lns[j], lns[i] }
+func (lns lanes) Less(i, j no) bo { return lns[i].len < lns[j].len }
 
 // Helper struct for
 type maskRounds struct {

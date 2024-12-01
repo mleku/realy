@@ -20,7 +20,7 @@ import (
 // for a recipient's public key, and subsequently decrypt the message using the
 // recipient's secret key.
 func Example_encryptDecryptMessage() {
-	newAEAD := func(key []byte) (cipher.AEAD, error) {
+	newAEAD := func(key by) (cipher.AEAD, er) {
 		block, err := aes.NewCipher(key)
 		if err != nil {
 			return nil, err
@@ -65,14 +65,14 @@ func Example_encryptDecryptMessage() {
 	// is no key reuse and AES-GCM permits the nonce to be used as a counter,
 	// the nonce is intentionally initialized to all zeros so it acts like the
 	// first (and only) use of a counter.
-	plaintext := []byte("test message")
+	plaintext := by("test message")
 	aead, err := newAEAD(cipherKey[:])
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	nonce := make([]byte, aead.NonceSize())
-	ciphertext := make([]byte, 4+len(ephemeralPubKey))
+	nonce := make(by, aead.NonceSize())
+	ciphertext := make(by, 4+len(ephemeralPubKey))
 	binary.LittleEndian.PutUint32(ciphertext, uint32(len(ephemeralPubKey)))
 	copy(ciphertext[4:], ephemeralPubKey)
 	ciphertext = aead.Seal(ciphertext, nonce, plaintext, ephemeralPubKey)
@@ -107,14 +107,14 @@ func Example_encryptDecryptMessage() {
 		fmt.Println(err)
 		return
 	}
-	nonce = make([]byte, aead.NonceSize())
+	nonce = make(by, aead.NonceSize())
 	recoveredPlaintext, err := aead.Open(nil, nonce, ciphertext[4+pubKeyLen:],
 		senderPubKeyBytes)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(string(recoveredPlaintext))
+	fmt.Println(st(recoveredPlaintext))
 	// Output:
 	// test message
 }

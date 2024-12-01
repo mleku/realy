@@ -6,18 +6,18 @@ import (
 
 // A KeyValue is a field in an Object.
 type KeyValue struct {
-	Key   B
+	Key   by
 	Value I
 }
 
-func (k *KeyValue) Marshal(dst B) (b B) {
+func (k *KeyValue) Marshal(dst by) (b by) {
 	b = (&String{k.Key}).Marshal(dst)
 	b = append(b, ':')
 	b = k.Value.Marshal(b)
 	return
 }
 
-func (k *KeyValue) Unmarshal(dst B) (rem B, err E) {
+func (k *KeyValue) Unmarshal(dst by) (rem by, err er) {
 	rem = dst
 	s := &String{}
 	if rem, err = s.Unmarshal(rem); chk.E(err) {

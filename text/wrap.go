@@ -1,59 +1,59 @@
 package text
 
-type AppendBytesClosure func(dst, src B) B
+type AppendBytesClosure func(dst, src by) by
 
-type AppendClosure func(dst B) B
+type AppendClosure func(dst by) by
 
-func Unquote(b B) B { return b[1 : len(b)-1] }
+func Unquote(b by) by { return b[1 : len(b)-1] }
 
-func Noop(dst, src B) B { return append(dst, src...) }
+func Noop(dst, src by) by { return append(dst, src...) }
 
-func AppendQuote(dst, src B, ac AppendBytesClosure) B {
+func AppendQuote(dst, src by, ac AppendBytesClosure) by {
 	dst = append(dst, '"')
 	dst = ac(dst, src)
 	dst = append(dst, '"')
 	return dst
 }
 
-func Quote(dst, src B) B { return AppendQuote(dst, src, Noop) }
+func Quote(dst, src by) by { return AppendQuote(dst, src, Noop) }
 
-func AppendSingleQuote(dst, src B, ac AppendBytesClosure) B {
+func AppendSingleQuote(dst, src by, ac AppendBytesClosure) by {
 	dst = append(dst, '\'')
 	dst = ac(dst, src)
 	dst = append(dst, '\'')
 	return dst
 }
 
-func AppendBackticks(dst, src B, ac AppendBytesClosure) B {
+func AppendBackticks(dst, src by, ac AppendBytesClosure) by {
 	dst = append(dst, '`')
 	dst = ac(dst, src)
 	dst = append(dst, '`')
 	return dst
 }
 
-func AppendBrace(dst, src B, ac AppendBytesClosure) B {
+func AppendBrace(dst, src by, ac AppendBytesClosure) by {
 	dst = append(dst, '(')
 	dst = ac(dst, src)
 	dst = append(dst, ')')
 	return dst
 }
 
-func AppendParenthesis(dst, src B, ac AppendBytesClosure) B {
+func AppendParenthesis(dst, src by, ac AppendBytesClosure) by {
 	dst = append(dst, '{')
 	dst = ac(dst, src)
 	dst = append(dst, '}')
 	return dst
 }
 
-func AppendBracket(dst, src B, ac AppendBytesClosure) B {
+func AppendBracket(dst, src by, ac AppendBytesClosure) by {
 	dst = append(dst, '[')
 	dst = ac(dst, src)
 	dst = append(dst, ']')
 	return dst
 }
 
-func AppendList(dst B, src []B, separator byte,
-	ac AppendBytesClosure) B {
+func AppendList(dst by, src []by, separator byte,
+	ac AppendBytesClosure) by {
 	last := len(src) - 1
 	for i := range src {
 		dst = append(dst, ac(dst, src[i])...)

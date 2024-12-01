@@ -15,7 +15,7 @@ import (
 
 // isJacobianOnS256Curve returns boolean if the point (x,y,z) is on the
 // secp256k1 curve.
-func isJacobianOnS256Curve(point *JacobianPoint) bool {
+func isJacobianOnS256Curve(point *JacobianPoint) bo {
 	// Elliptic curve equation for secp256k1 is: y^2 = x^3 + 7
 	// In Jacobian coordinates, Y = y/z^3 and X = x/z^2
 	// Thus:
@@ -33,9 +33,9 @@ func isJacobianOnS256Curve(point *JacobianPoint) bool {
 // TestAddJacobian tests addition of points projected in Jacobian coordinates.
 func TestAddJacobian(t *testing.T) {
 	tests := []struct {
-		x1, y1, z1 string // Coordinates (in hex) of first point to add
-		x2, y2, z2 string // Coordinates (in hex) of second point to add
-		x3, y3, z3 string // Coordinates (in hex) of expected point
+		x1, y1, z1 st // Coordinates (in hex) of first point to add
+		x2, y2, z2 st // Coordinates (in hex) of second point to add
+		x3, y3, z3 st // Coordinates (in hex) of expected point
 	}{
 		// Addition with a point at infinity (left hand side).
 		// ∞ + P = P
@@ -259,9 +259,9 @@ func TestAddJacobian(t *testing.T) {
 // TestAddAffine tests addition of points in affine coordinates.
 func TestAddAffine(t *testing.T) {
 	tests := []struct {
-		x1, y1 string // Coordinates (in hex) of first point to add
-		x2, y2 string // Coordinates (in hex) of second point to add
-		x3, y3 string // Coordinates (in hex) of expected point
+		x1, y1 st // Coordinates (in hex) of first point to add
+		x2, y2 st // Coordinates (in hex) of second point to add
+		x3, y3 st // Coordinates (in hex) of expected point
 	}{
 		// Addition with a point at infinity (left hand side).
 		// ∞ + P = P
@@ -354,7 +354,7 @@ func TestAddAffine(t *testing.T) {
 // equal in affine coordinates, while not having the same coordinates in
 // projective space, so the two points not being equal doesn't necessarily mean
 // they aren't actually the same affine point.
-func isStrictlyEqual(p, other *JacobianPoint) bool {
+func isStrictlyEqual(p, other *JacobianPoint) bo {
 	return p.X.Equals(&other.X) && p.Y.Equals(&other.Y) && p.Z.Equals(&other.Z)
 }
 
@@ -362,8 +362,8 @@ func isStrictlyEqual(p, other *JacobianPoint) bool {
 // coordinates.
 func TestDoubleJacobian(t *testing.T) {
 	tests := []struct {
-		x1, y1, z1 string // Coordinates (in hex) of point to double
-		x3, y3, z3 string // Coordinates (in hex) of expected point
+		x1, y1, z1 st // Coordinates (in hex) of point to double
+		x3, y3, z3 st // Coordinates (in hex) of expected point
 	}{
 		// Doubling a point at infinity is still infinity.
 		{
@@ -435,8 +435,8 @@ func TestDoubleJacobian(t *testing.T) {
 // TestDoubleAffine tests doubling of points in affine coordinates.
 func TestDoubleAffine(t *testing.T) {
 	tests := []struct {
-		x1, y1 string // Coordinates (in hex) of point to double
-		x3, y3 string // Coordinates (in hex) of expected point
+		x1, y1 st // Coordinates (in hex) of point to double
+		x3, y3 st // Coordinates (in hex) of expected point
 	}{
 		// Doubling a point at infinity is still infinity.
 		// 2*∞ = ∞ (point at infinity)
@@ -510,8 +510,8 @@ func TestOnCurve(t *testing.T) {
 }
 
 type baseMultTest struct {
-	k    string
-	x, y string
+	k    st
+	x, y st
 }
 
 // TODO: add more test vectors
@@ -566,7 +566,7 @@ func TestBaseMultVerify(t *testing.T) {
 	s256 := S256()
 	for bytes := 1; bytes < 40; bytes++ {
 		for i := 0; i < 30; i++ {
-			data := make([]byte, bytes)
+			data := make(by, bytes)
 			_, err := rand.Read(data)
 			if err != nil {
 				t.Errorf("failed to read random data for %d", i)
@@ -587,11 +587,11 @@ func TestBaseMultVerify(t *testing.T) {
 
 func TestScalarMult(t *testing.T) {
 	tests := []struct {
-		x  string
-		y  string
-		k  string
-		rx string
-		ry string
+		x  st
+		y  st
+		k  st
+		rx st
+		ry st
 	}{
 		// base mult, essentially.
 		{
@@ -631,12 +631,12 @@ func TestScalarMultRand(t *testing.T) {
 	// This creates a new point which is used in the next iteration
 	// Use another random exponent on the new point.
 	// We use BaseMult to verify by multiplying the previous exponent
-	// and the new random exponent together (mod N)
+	// and the new random exponent together (mod no)
 	s256 := S256()
 	x, y := s256.Gx, s256.Gy
 	exponent := big.NewInt(1)
 	for i := 0; i < 1024; i++ {
-		data := make([]byte, 32)
+		data := make(by, 32)
 		_, err := rand.Read(data)
 		if err != nil {
 			t.Fatalf("failed to read random data at %d", i)
@@ -676,10 +676,10 @@ var (
 // provable mathematically due to how a1/b1/a2/b2 are computed.
 //
 // c1 and c2 are chosen to minimize the max(k1,k2).
-func splitK(k []byte) ([]byte, []byte, int, int) {
+func splitK(k by) (by, by, no, no) {
 	// All math here is done with big.Int, which is slow.
 	// At some point, it might be useful to write something similar to
-	// FieldVal but for N instead of P as the prime field if this ends up
+	// FieldVal but for no instead of P as the prime field if this ends up
 	// being a bottleneck.
 	bigIntK := new(big.Int)
 	c1, c2 := new(big.Int), new(big.Int)
@@ -711,9 +711,9 @@ func splitK(k []byte) ([]byte, []byte, int, int) {
 
 func TestSplitK(t *testing.T) {
 	tests := []struct {
-		k      string
-		k1, k2 string
-		s1, s2 int
+		k      st
+		k1, k2 st
+		s1, s2 no
 	}{
 		{
 			"6df2b5d30854069ccdec40ae022f5c948936324a4e9ebed8eb82cfd5a6b6d766",
@@ -797,7 +797,7 @@ func TestSplitK(t *testing.T) {
 func TestSplitKRand(t *testing.T) {
 	s256 := S256()
 	for i := 0; i < 1024; i++ {
-		bytesK := make([]byte, 32)
+		bytesK := make(by, 32)
 		_, err := rand.Read(bytesK)
 		if err != nil {
 			t.Fatalf("failed to read random data at %d", i)
@@ -822,7 +822,7 @@ func TestSplitKRand(t *testing.T) {
 
 // Test this curve's usage with the ecdsa package.
 
-func testKeyGeneration(t *testing.T, c *KoblitzCurve, tag string) {
+func testKeyGeneration(t *testing.T, c *KoblitzCurve, tag st) {
 	priv, err := NewSecretKey()
 	if err != nil {
 		t.Errorf("%s: error: %s", tag, err)
@@ -841,7 +841,7 @@ func TestKeyGeneration(t *testing.T) {
 // checkNAFEncoding returns an error if the provided positive and negative
 // portions of an overall NAF encoding do not adhere to the requirements or they
 // do not sum back to the provided original value.
-func checkNAFEncoding(pos, neg []byte, origValue *big.Int) error {
+func checkNAFEncoding(pos, neg by, origValue *big.Int) er {
 	// NAF must not have a leading zero byte and the number of negative
 	// bytes must not exceed the positive portion.
 	if len(pos) > 0 && pos[0] == 0 {

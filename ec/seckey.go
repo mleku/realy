@@ -20,7 +20,7 @@ type PrivateKey = SecretKey
 
 // SecKeyFromBytes returns a secret and public key for `curve' based on the
 // secret key passed as an argument as a byte slice.
-func SecKeyFromBytes(pk []byte) (*SecretKey, *PublicKey) {
+func SecKeyFromBytes(pk by) (*SecretKey, *PublicKey) {
 	privKey := secp256k1.SecKeyFromBytes(pk)
 	return privKey, privKey.PubKey()
 }
@@ -28,7 +28,7 @@ func SecKeyFromBytes(pk []byte) (*SecretKey, *PublicKey) {
 var PrivKeyFromBytes = SecKeyFromBytes
 
 // NewSecretKey is a wrapper for ecdsa.GenerateKey that returns a SecretKey instead of the normal ecdsa.PrivateKey.
-func NewSecretKey() (*SecretKey, error) { return secp256k1.GenerateSecretKey() }
+func NewSecretKey() (*SecretKey, er) { return secp256k1.GenerateSecretKey() }
 
 // NewPrivateKey is a wrapper for ecdsa.GenerateKey that returns a SecretKey instead of the normal ecdsa.PrivateKey.
 //

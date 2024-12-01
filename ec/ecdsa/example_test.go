@@ -21,7 +21,7 @@ package ecdsa_test
 //
 // 	// Sign a message using the secret key.
 // 	message := "test message"
-// 	messageHash := blake256.Sum256([]byte(message))
+// 	messageHash := blake256.Sum256(by(message))
 // 	signature := ecdsa.Sign(secKey, messageHash[:])
 //
 // 	// Serialize and display the signature.
@@ -70,7 +70,7 @@ package ecdsa_test
 //
 // 	// Verify the signature for the message using the public key.
 // 	message := "test message"
-// 	messageHash := blake256.Sum256([]byte(message))
+// 	messageHash := blake256.Sum256(by(message))
 // 	verified := signature.Verify(messageHash[:], pubKey)
 // 	fmt.Println("Signature Verified?", verified)
 //

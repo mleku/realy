@@ -16,7 +16,7 @@ import (
 // panic if there is an error.  This is only provided for the hard-coded
 // constants so errors in the source code can be detected. It will only (and
 // must only) be called with hard-coded values.
-func hexToModNScalar(s string) *secp256k1.ModNScalar {
+func hexToModNScalar(s st) *secp256k1.ModNScalar {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -32,7 +32,7 @@ func hexToModNScalar(s string) *secp256k1.ModNScalar {
 // if there is an error.  This is only provided for the hard-coded constants so
 // errors in the source code can be detected. It will only (and must only) be
 // called with hard-coded values.
-func hexToFieldVal(s string) *secp256k1.FieldVal {
+func hexToFieldVal(s st) *secp256k1.FieldVal {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -53,7 +53,7 @@ func BenchmarkSigVerify(b *testing.B) {
 		hexToFieldVal("d2e670a19c6d753d1a6d8b20bd045df8a08fb162cf508956c31268c6d81ffdab"),
 		hexToFieldVal("ab65528eefbb8057aa85d597258a3fbd481a24633bc9b47a9aa045c91371de52"),
 	)
-	// Double sha256 of []byte{0x01, 0x02, 0x03, 0x04}
+	// Double sha256 of by{0x01, 0x02, 0x03, 0x04}
 	msgHash := hexToBytes("8de472e2399610baaa7f84840547cd409434e31f5d3bd71e4d947f283874f9c0")
 	sig := NewSignature(
 		hexToModNScalar("fef45d2892953aa5bbcdb057b5e98b208f1617a7498af7eb765574e29b5d9c2c"),
@@ -75,7 +75,7 @@ func BenchmarkSign(b *testing.B) {
 	// Randomly generated keypair.
 	d := hexToModNScalar("9e0699c91ca1e3b7e3c9ba71eb71c89890872be97576010fe593fbf3fd57e66d")
 	secKey := secp256k1.NewSecretKey(d)
-	// blake256 of []byte{0x01, 0x02, 0x03, 0x04}.
+	// blake256 of by{0x01, 0x02, 0x03, 0x04}.
 	msgHash := hexToBytes("c301ba9de5d6053caad9f5eb46523f007702add2c62fa39de03146a36b8026b7")
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -89,7 +89,7 @@ func BenchmarkSign(b *testing.B) {
 func BenchmarkSigSerialize(b *testing.B) {
 	// Randomly generated keypair.
 	// Secret key: 9e0699c91ca1e3b7e3c9ba71eb71c89890872be97576010fe593fbf3fd57e66d
-	// Signature for double sha256 of []byte{0x01, 0x02, 0x03, 0x04}.
+	// Signature for double sha256 of by{0x01, 0x02, 0x03, 0x04}.
 	sig := NewSignature(
 		hexToModNScalar("fef45d2892953aa5bbcdb057b5e98b208f1617a7498af7eb765574e29b5d9c2c"),
 		hexToModNScalar("d47563f52aac6b04b55de236b7c515eb9311757db01e02cff079c3ca6efb063f"),
@@ -110,7 +110,7 @@ func BenchmarkNonceRFC6979(b *testing.B) {
 	// Y: ab65528eefbb8057aa85d597258a3fbd481a24633bc9b47a9aa045c91371de52
 	secKeyStr := "9e0699c91ca1e3b7e3c9ba71eb71c89890872be97576010fe593fbf3fd57e66d"
 	secKey := hexToBytes(secKeyStr)
-	// BLAKE-256 of []byte{0x01, 0x02, 0x03, 0x04}.
+	// BLAKE-256 of by{0x01, 0x02, 0x03, 0x04}.
 	msgHash := hexToBytes("c301ba9de5d6053caad9f5eb46523f007702add2c62fa39de03146a36b8026b7")
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -126,7 +126,7 @@ func BenchmarkNonceRFC6979(b *testing.B) {
 func BenchmarkSignCompact(b *testing.B) {
 	d := hexToModNScalar("9e0699c91ca1e3b7e3c9ba71eb71c89890872be97576010fe593fbf3fd57e66d")
 	secKey := secp256k1.NewSecretKey(d)
-	// blake256 of []byte{0x01, 0x02, 0x03, 0x04}.
+	// blake256 of by{0x01, 0x02, 0x03, 0x04}.
 	msgHash := hexToBytes("c301ba9de5d6053caad9f5eb46523f007702add2c62fa39de03146a36b8026b7")
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -146,7 +146,7 @@ func BenchmarkRecoverCompact(b *testing.B) {
 	compactSig := hexToBytes("205978b7896bc71676ba2e459882a8f52e1299449596c4f" +
 		"93c59bf1fbfa2f9d3b76ecd0c99406f61a6de2bb5a8937c061c176ecf381d0231e0d" +
 		"af73b922c8952c7")
-	// blake256 of []byte{0x01, 0x02, 0x03, 0x04}.
+	// blake256 of by{0x01, 0x02, 0x03, 0x04}.
 	msgHash := hexToBytes("c301ba9de5d6053caad9f5eb46523f007702add2c62fa39de03146a36b8026b7")
 	// Ensure a valid compact signature is being benchmarked.
 	pubKey, wasCompressed, err := RecoverCompact(compactSig, msgHash)

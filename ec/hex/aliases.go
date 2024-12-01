@@ -18,16 +18,16 @@ var DecLen = hex.DecodedLen
 
 type InvalidByteError = hex.InvalidByteError
 
-func EncAppend(dst, src B) (b B) {
+func EncAppend(dst, src by) (b by) {
 	l := len(dst)
-	dst = append(dst, make(B, len(src)*2)...)
+	dst = append(dst, make(by, len(src)*2)...)
 	xhex.Encode(dst[l:], src)
 	return dst
 }
 
-func DecAppend(dst, src B) (b B, err error) {
+func DecAppend(dst, src by) (b by, err er) {
 	l := len(dst)
-	dst = append(dst, make(B, len(src)/2)...)
+	dst = append(dst, make(by, len(src)/2)...)
 	err = xhex.Decode(dst[l:], src)
 	return
 }

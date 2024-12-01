@@ -9,7 +9,7 @@ import (
 // T is an arbitrary length byte string. In any construction there can only be one with arbitrary length. Custom lengths
 // can be created by calling New with the custom length in it, both for Read and Write operations.
 type T struct {
-	Val B
+	Val by
 }
 
 var _ keys.Element = &T{}
@@ -17,7 +17,7 @@ var _ keys.Element = &T{}
 // New creates a new arb.T. This must have the expected length for the provided byte slice as this is what the Read
 // method will aim to copy. In general this will be a bounded field, either the final or only arbitrary length field in
 // a key.
-func New(b B) (p *T) {
+func New(b by) (p *T) {
 	if len(b) == 0 {
 		log.T.Ln("empty or nil slice is the same as zero value, " +
 			"use keys.ReadWithArbElem")
@@ -26,8 +26,8 @@ func New(b B) (p *T) {
 	return &T{Val: b}
 }
 
-func NewWithLen(l int) (p *T)  { return &T{Val: make([]byte, l)} }
-func NewFromString(s S) (p *T) { return New([]byte(s)) }
+func NewWithLen(l no) (p *T)    { return &T{Val: make(by, l)} }
+func NewFromString(s st) (p *T) { return New(by(s)) }
 
 func (p *T) Write(buf *bytes.Buffer) {
 	if len(p.Val) == 0 {
@@ -48,7 +48,7 @@ func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	return p
 }
 
-func (p *T) Len() int {
+func (p *T) Len() no {
 	if p == nil {
 		panic("uninitialized pointer to arb.T")
 	}
@@ -60,9 +60,9 @@ func (p *T) Len() int {
 //
 // For reasons of space efficiency, it is not practical to use TLVs for badger database key fields, so this will panic
 // if there is more than one arbitrary length element.
-func ReadWithArbElem(b B, elems ...keys.Element) {
-	var arbEl int
-	var arbSet bool
+func ReadWithArbElem(b by, elems ...keys.Element) {
+	var arbEl no
+	var arbSet bo
 	l := len(b)
 	for i, el := range elems {
 		elLen := el.Len()
@@ -76,7 +76,7 @@ func ReadWithArbElem(b B, elems ...keys.Element) {
 		}
 	}
 	// now we can say that the remainder is the correct length for the arb element
-	elems[arbEl] = New(make([]byte, l))
+	elems[arbEl] = New(make(by, l))
 	buf := bytes.NewBuffer(b)
 	for _, el := range elems {
 		el.Read(buf)

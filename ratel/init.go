@@ -12,7 +12,7 @@ import (
 	"realy.lol/units"
 )
 
-func (r *T) Init(path S) (err E) {
+func (r *T) Init(path st) (err er) {
 	r.dataDir = path
 	log.I.Ln("opening ratel event store at", r.Path())
 	opts := badger.DefaultOptions(r.dataDir)
@@ -27,7 +27,7 @@ func (r *T) Init(path S) (err E) {
 		return err
 	}
 	log.T.Ln("getting event store sequence index", r.dataDir)
-	if r.seq, err = r.DB.GetSequence([]byte("events"), 1000); chk.E(err) {
+	if r.seq, err = r.DB.GetSequence(by("events"), 1000); chk.E(err) {
 		return err
 	}
 	log.T.Ln("running migrations", r.dataDir)
@@ -45,17 +45,17 @@ func (r *T) Init(path S) (err E) {
 
 const Version = 1
 
-func (r *T) runMigrations() (err error) {
-	return r.Update(func(txn *badger.Txn) (err error) {
+func (r *T) runMigrations() (err er) {
+	return r.Update(func(txn *badger.Txn) (err er) {
 		var version uint16
 		var item *badger.Item
-		item, err = txn.Get([]byte{index.Version.B()})
+		item, err = txn.Get(by{index.Version.B()})
 		if errors.Is(err, badger.ErrKeyNotFound) {
 			version = 0
 		} else if chk.E(err) {
 			return err
 		} else {
-			chk.E(item.Value(func(val []byte) (err error) {
+			chk.E(item.Value(func(val by) (err er) {
 				version = binary.BigEndian.Uint16(val)
 				return
 			}))
@@ -64,7 +64,7 @@ func (r *T) runMigrations() (err error) {
 		if version < Version {
 			// if there is any data in the relay we will stop and notify the user, otherwise we
 			// just set version to 1 and proceed
-			prefix := []byte{index.Id.B()}
+			prefix := by{index.Id.B()}
 			it := txn.NewIterator(badger.IteratorOptions{
 				PrefetchValues: true,
 				PrefetchSize:   100,
@@ -89,8 +89,8 @@ func (r *T) runMigrations() (err error) {
 	})
 }
 
-func (r *T) bumpVersion(txn *badger.Txn, version uint16) error {
-	buf := make([]byte, 2)
+func (r *T) bumpVersion(txn *badger.Txn, version uint16) er {
+	buf := make(by, 2)
 	binary.BigEndian.PutUint16(buf, version)
-	return txn.Set([]byte{index.Version.B()}, buf)
+	return txn.Set(by{index.Version.B()}, buf)
 }

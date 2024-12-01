@@ -11,21 +11,21 @@ import (
 const relayURL = "wss://example.com"
 
 func TestAuth(t *testing.T) {
-	var err error
+	var err er
 	signer := new(p256k.Signer)
 	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
-	var b1, b2, b3, b4 B
+	var b1, b2, b3, b4 by
 	for _ = range 1000 {
 		ch := auth.GenerateChallenge()
 		chal := Challenge{Challenge: ch}
 		if b1, err = chal.MarshalJSON(b1); chk.E(err) {
 			t.Fatal(err)
 		}
-		oChal := make(B, len(b1))
+		oChal := make(by, len(b1))
 		copy(oChal, b1)
-		var rem B
+		var rem by
 		var l string
 		if l, b1, err = envelopes.Identify(b1); chk.E(err) {
 			t.Fatal(err)
@@ -58,7 +58,7 @@ func TestAuth(t *testing.T) {
 		if b3, err = resp.MarshalJSON(b3); chk.E(err) {
 			t.Fatal(err)
 		}
-		oResp := make(B, len(b3))
+		oResp := make(by, len(b3))
 		copy(oResp, b3)
 		if l, b3, err = envelopes.Identify(b3); chk.E(err) {
 			t.Fatal(err)

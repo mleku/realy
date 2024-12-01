@@ -22,7 +22,7 @@ func FuzzParsePubKey(f *testing.F) {
 		}
 	}
 	// 2. Seeds from recovery tests.
-	var recoveryTestPubKeys = []string{
+	var recoveryTestPubKeys = []st{
 		"04E32DF42865E97135ACFB65F3BAE71BDC86F4D49150AD6A440B6F15878109880A0A2B2667F7E725CEEA70C673093BF67663E0312623C8E091B13CF2C0F11EF652",
 		"04A7640409AA2083FDAD38B2D8DE1263B2251799591D840653FB02DBBA503D7745FCB83D80E08A1E02896BE691EA6AFFB8A35939A646F1FC79052A744B1C82EDC3",
 	}
@@ -34,7 +34,7 @@ func FuzzParsePubKey(f *testing.F) {
 		f.Add(seed)
 	}
 	// Now run the fuzzer.
-	f.Fuzz(func(t *testing.T, input []byte) {
+	f.Fuzz(func(t *testing.T, input by) {
 		key, err := ParsePubKey(input)
 		if key == nil && err == nil {
 			panic("key==nil && err==nil")

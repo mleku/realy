@@ -9,7 +9,7 @@ package schnorr
 // ErrorKind identifies a kind of error.  It has full support for errors.Is
 // and errors.As, so the caller can directly check against an error kind
 // when determining the reason for an error.
-type ErrorKind string
+type ErrorKind st
 
 // These constants are used to identify a specific RuleError.
 const (
@@ -49,23 +49,23 @@ const (
 )
 
 // Error satisfies the error interface and prints human-readable errors.
-func (err ErrorKind) Error() string { return string(err) }
+func (err ErrorKind) Error() st { return st(err) }
 
 // Error identifies an error related to a schnorr signature. It has full
 // support for errors.Is and errors.As, so the caller can ascertain the
 // specific reason for the error by checking the underlying error.
 type Error struct {
-	Err         error
-	Description string
+	Err         er
+	Description st
 }
 
 // Error satisfies the error interface and prints human-readable errors.
-func (err Error) Error() string { return err.Description }
+func (err Error) Error() st { return err.Description }
 
 // Unwrap returns the underlying wrapped error.
-func (err Error) Unwrap() (ee error) { return err.Err }
+func (err Error) Unwrap() (ee er) { return err.Err }
 
 // signatureError creates an Error given a set of arguments.
-func signatureError(kind ErrorKind, desc string) (err error) {
+func signatureError(kind ErrorKind, desc st) (err er) {
 	return Error{Err: kind, Description: desc}
 }

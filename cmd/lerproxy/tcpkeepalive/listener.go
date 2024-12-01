@@ -19,7 +19,7 @@ type Listener struct {
 	*net.TCPListener
 }
 
-func (ln Listener) Accept() (conn net.Conn, e error) {
+func (ln Listener) Accept() (conn net.Conn, e er) {
 	var tc *net.TCPConn
 	if tc, e = ln.AcceptTCP(); chk.E(e) {
 		return

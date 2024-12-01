@@ -23,11 +23,11 @@ type Results struct {
 }
 
 type query struct {
-	index        int
+	index        no
 	queryFilter  *filter.T
-	searchPrefix []byte
-	start        []byte
-	skipTS       bool
+	searchPrefix by
+	start        by
+	skipTS       bo
 }
 
 // PrepareQueries analyses a filter and generates a set of query specs that produce
@@ -36,7 +36,7 @@ func PrepareQueries(f *filter.T) (
 	qs []query,
 	ext *filter.T,
 	since uint64,
-	err error,
+	err er,
 ) {
 	if f == nil {
 		err = errorf.E("filter cannot be nil")
@@ -46,7 +46,7 @@ func PrepareQueries(f *filter.T) (
 	case f.IDs.Len() > 0:
 		qs = make([]query, f.IDs.Len())
 		for i, idHex := range f.IDs.F() {
-			ih := id.New(eventid.NewWith(B(idHex)))
+			ih := id.New(eventid.NewWith(by(idHex)))
 			if ih == nil {
 				log.E.F("failed to decode event ID: %s", idHex)
 				// just ignore it, clients will be clients
@@ -126,8 +126,8 @@ func PrepareQueries(f *filter.T) (
 			// log.T.S(values.F())
 			for _, value := range values.F()[1:] {
 				// get key prefix (with full length) and offset where to write the last parts
-				var prf []byte
-				if prf, err = GetTagKeyPrefix(S(value)); chk.E(err) {
+				var prf by
+				if prf, err = GetTagKeyPrefix(st(value)); chk.E(err) {
 					continue
 				}
 				// remove the last part to get just the prefix we want here
@@ -175,8 +175,8 @@ func PrepareQueries(f *filter.T) (
 	}
 	// if we got an empty filter, we still need a query for scraping the newest
 	if len(qs) == 0 {
-		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: B{1},
-			start: B{1, 255, 255, 255, 255, 255, 255, 255, 255}})
+		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: by{1},
+			start: by{1, 255, 255, 255, 255, 255, 255, 255, 255}})
 	}
 	return
 }

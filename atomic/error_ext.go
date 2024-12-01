@@ -25,13 +25,13 @@ package atomic
 
 //go:generate bin/gen-atomicwrapper -name=Error -type=error -wrapped=Value -pack=packError -unpack=unpackError -compareandswap -swap -file=error.go
 
-type packedError struct{ Value error }
+type packedError struct{ Value er }
 
-func packError(v error) interface{} {
+func packError(v er) interface{} {
 	return packedError{v}
 }
 
-func unpackError(v interface{}) error {
+func unpackError(v interface{}) er {
 	if err, ok := v.(packedError); ok {
 		return err.Value
 	}

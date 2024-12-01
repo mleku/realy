@@ -1,7 +1,7 @@
 package relayinfo
 
 // AddSupportedNIP appends a supported NIP number to a RelayInfo.
-func (ri *T) AddSupportedNIP(n int) {
+func (ri *T) AddSupportedNIP(n no) {
 	idx, exists := ri.Nips.HasNumber(n)
 	if exists {
 		return
@@ -12,20 +12,20 @@ func (ri *T) AddSupportedNIP(n int) {
 }
 
 type Admission struct {
-	Amount int    `json:"amount"`
-	Unit   string `json:"unit"`
+	Amount no `json:"amount"`
+	Unit   st `json:"unit"`
 }
 
 type Subscription struct {
-	Amount int    `json:"amount"`
-	Unit   string `json:"unit"`
-	Period int    `json:"period"`
+	Amount no `json:"amount"`
+	Unit   st `json:"unit"`
+	Period no `json:"period"`
 }
 
 type Publication []struct {
-	Kinds  []int  `json:"kinds"`
-	Amount int    `json:"amount"`
-	Unit   string `json:"unit"`
+	Kinds  []no `json:"kinds"`
+	Amount no   `json:"amount"`
+	Unit   st   `json:"unit"`
 }
 
 // Fees defines the fee structure used for a paid relay.

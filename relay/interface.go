@@ -15,11 +15,11 @@ import (
 type I interface {
 	// Name is used as the "name" field in NIP-11 and as a prefix in default Server logging.
 	// For other NIP-11 fields, see [Informationer].
-	Name() S
+	Name() st
 	// Init is called at the very beginning by [Server.Start], allowing a realy
 	// to initialize its internal resources.
 	// Also see [eventstore.I.Init].
-	Init() E
+	Init() er
 	// AcceptEvent is called for every nostr event received by the server.
 	//
 	// If the returned value is true, the event is passed on to [Storage.SaveEvent].
@@ -32,10 +32,10 @@ type I interface {
 	// messages, that are not on the mute list, that do not yet have a reply, should accept
 	// direct and group message events until there is three and thereafter will be restricted
 	// until the user adds them to their follow list.
-	AcceptEvent(c Ctx, ev *event.T, hr *http.Request, origin S, authedPubkey B) (accept bool,
-		notice string, afterSave func())
+	AcceptEvent(c cx, ev *event.T, hr *http.Request, origin st, authedPubkey by) (accept bo,
+		notice st, afterSave func())
 	// Storage returns the realy storage implementation.
-	Storage(Ctx) store.I
+	Storage(cx) store.I
 }
 
 // ReqAcceptor is the main interface for implementing a nostr
@@ -55,15 +55,15 @@ type ReqAcceptor interface {
 	// support for in/outbox access.
 	//
 	// In order to support the ability to respond to
-	AcceptReq(c Ctx, hr *http.Request, id B, ff *filters.T, authedPubkey B) (allowed *filters.T,
-		ok bool)
+	AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
+		authedPubkey by) (allowed *filters.T, ok bo)
 }
 
 // Authenticator is the interface for implementing NIP-42.
 // ServiceURL() returns the URL used to verify the "AUTH" event from clients.
 type Authenticator interface {
-	AuthEnabled() bool
-	ServiceUrl(r *http.Request) S
+	AuthEnabled() bo
+	ServiceUrl(r *http.Request) st
 }
 
 type Injector interface {
@@ -80,34 +80,34 @@ type Informationer interface {
 // WebSocketHandler is passed nostr message types unrecognized by the
 // server. The server handles "EVENT", "REQ" and "CLOSE" messages, as described in NIP-01.
 type WebSocketHandler interface {
-	HandleUnknownType(ws *web.Socket, t S, request B)
+	HandleUnknownType(ws *web.Socket, t st, request by)
 }
 
 // ShutdownAware is called during the server shutdown.
 // See [Server.Shutdown] for details.
 type ShutdownAware interface {
-	OnShutdown(Ctx)
+	OnShutdown(cx)
 }
 
 // Logger is what [Server] uses to log messages.
 type Logger interface {
-	Infof(format S, v ...any)
-	Warningf(format S, v ...any)
-	Errorf(format S, v ...any)
+	Infof(format st, v ...any)
+	Warningf(format st, v ...any)
+	Errorf(format st, v ...any)
 }
 
 // AdvancedDeleter methods are called before and after [Storage.DeleteEvent].
 type AdvancedDeleter interface {
-	BeforeDelete(ctx Ctx, id, pubkey B)
-	AfterDelete(id, pubkey B)
+	BeforeDelete(ctx cx, id, pubkey by)
+	AfterDelete(id, pubkey by)
 }
 
 // AdvancedSaver methods are called before and after [Storage.SaveEvent].
 type AdvancedSaver interface {
-	BeforeSave(Ctx, *event.T)
+	BeforeSave(cx, *event.T)
 	AfterSave(*event.T)
 }
 
 type EventCounter interface {
-	CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E)
+	CountEvents(c cx, f *filter.T) (count no, approx bo, err er)
 }

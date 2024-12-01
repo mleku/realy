@@ -11,6 +11,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/fatih/color"
 	tsize "github.com/kopoli/go-terminal-size"
+
 	"realy.lol/atomic"
 )
 
@@ -48,10 +49,10 @@ type (
 	// not being viewed
 	C func(closure func() string)
 	// Chk is a shortcut for printing if there is an error, or returning true
-	Chk func(e error) bool
+	Chk func(e er) bo
 	// Err is a pass-through function that uses fmt.Errorf to construct an error
 	// and returns the error after printing it to the log
-	Err          func(format string, a ...interface{}) error
+	Err          func(format string, a ...interface{}) er
 	LevelPrinter struct {
 		Ln
 		F
@@ -61,7 +62,7 @@ type (
 		Err
 	}
 	LevelSpec struct {
-		ID        int
+		ID        no
 		Name      string
 		Colorizer func(a ...interface{}) string
 	}
@@ -129,12 +130,12 @@ func init() {
 	}
 }
 
-func SetLoggers(level int) {
+func SetLoggers(level no) {
 	Main.Log.T.F("log level %s", LevelSpecs[level].Colorizer(LevelNames[level]))
 	Level.Store(int32(level))
 }
 
-func GetLogLevel(level string) (i int) {
+func GetLogLevel(level string) (i no) {
 	for i = range LevelNames {
 		if level == LevelNames[i] {
 			return i
@@ -249,7 +250,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				msgCol(GetLoc(2)),
 			)
 		},
-		Chk: func(e error) bool {
+		Chk: func(e er) bo {
 			if Level.Load() < l {
 				return e != nil
 			}
@@ -265,7 +266,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			return false
 		},
-		Err: func(format string, a ...interface{}) error {
+		Err: func(format string, a ...interface{}) er {
 			if Level.Load() < l {
 				fmt.Fprintf(writer,
 					"%s%s %s %s\n",
@@ -286,8 +287,8 @@ func GetNullPrinter() LevelPrinter {
 		F:   func(format string, a ...interface{}) {},
 		S:   func(a ...interface{}) {},
 		C:   func(closure func() string) {},
-		Chk: func(e error) bool { return e != nil },
-		Err: func(format string, a ...interface{}) error { return fmt.Errorf(format, a...) },
+		Chk: func(e er) bo { return e != nil },
+		Err: func(format string, a ...interface{}) er { return fmt.Errorf(format, a...) },
 	}
 }
 
@@ -327,7 +328,7 @@ func Timestamper() (s string) {
 	timeText := fmt.Sprint(time.Now().UnixNano())
 	lt := len(timeText)
 	lb := lt + 1
-	var timeBytes = make([]byte, lb)
+	var timeBytes = make(by, lb)
 	copy(timeBytes[lb-9:lb], timeText[lt-9:lt])
 	timeBytes[lb-10] = '.'
 	lb -= 10
@@ -338,14 +339,14 @@ func Timestamper() (s string) {
 
 var wd, _ = os.Getwd()
 
-func GetNLoc(n int) (output string) {
+func GetNLoc(n no) (output string) {
 	for ; n > 1; n-- {
 		output += fmt.Sprintf("%s\n", GetLoc(n))
 	}
 	return
 }
 
-func GetLoc(skip int) (output string) {
+func GetLoc(skip no) (output string) {
 	_, file, line, _ := runtime.Caller(skip)
 	split := strings.Split(file, wd+string(os.PathSeparator))
 	if len(split) < 2 {

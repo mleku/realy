@@ -46,7 +46,7 @@ func (f *Float32) Sub(delta float32) float32 {
 // CAS is an atomic compare-and-swap for float32 values.
 //
 // Deprecated: Use CompareAndSwap
-func (f *Float32) CAS(old, new float32) (swapped bool) {
+func (f *Float32) CAS(old, new float32) (swapped bo) {
 	return f.CompareAndSwap(old, new)
 }
 
@@ -65,7 +65,7 @@ func (f *Float32) CAS(old, new float32) (swapped bool) {
 //	}
 //
 // If CompareAndSwap did not match NaN to match, then the above would loop forever.
-func (f *Float32) CompareAndSwap(old, new float32) (swapped bool) {
+func (f *Float32) CompareAndSwap(old, new float32) (swapped bo) {
 	return f.v.CompareAndSwap(math.Float32bits(old), math.Float32bits(new))
 }
 

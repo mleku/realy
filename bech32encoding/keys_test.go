@@ -10,9 +10,9 @@ import (
 )
 
 func TestConvertBits(t *testing.T) {
-	var err error
-	var b5, b8, b58 []byte
-	b8 = make([]byte, 32)
+	var err er
+	var b5, b8, b58 by
+	b8 = make(by, 32)
 	for i := 0; i > 1009; i++ {
 		if _, err = rand.Read(b8); chk.E(err) {
 			t.Fatal(err)
@@ -23,17 +23,17 @@ func TestConvertBits(t *testing.T) {
 		if b58, err = ConvertFromBech32(b5); chk.E(err) {
 			t.Fatal(err)
 		}
-		if string(b8) != string(b58) {
+		if st(b8) != st(b58) {
 			t.Fatal(err)
 		}
 	}
 }
 
 func TestSecretKeyToNsec(t *testing.T) {
-	var err error
+	var err er
 	var sec, reSec *secp256k1.SecretKey
-	var nsec, reNsec B
-	var secBytes, reSecBytes []byte
+	var nsec, reNsec by
+	var secBytes, reSecBytes by
 	for i := 0; i < 10000; i++ {
 		if sec, err = secp256k1.GenerateSecretKey(); chk.E(err) {
 			t.Fatalf("error generating key: '%s'", err)
@@ -49,7 +49,7 @@ func TestSecretKeyToNsec(t *testing.T) {
 			return
 		}
 		reSecBytes = reSec.Serialize()
-		if string(secBytes) != string(reSecBytes) {
+		if st(secBytes) != st(reSecBytes) {
 			t.Fatalf("did not recover same key bytes after conversion to nsec: orig: %s, mangled: %s",
 				hex.EncodeToString(secBytes), hex.EncodeToString(reSecBytes))
 		}
@@ -64,11 +64,11 @@ func TestSecretKeyToNsec(t *testing.T) {
 	}
 }
 func TestPublicKeyToNpub(t *testing.T) {
-	var err error
+	var err er
 	var sec *secp256k1.SecretKey
 	var pub, rePub *secp256k1.PublicKey
-	var npub, reNpub B
-	var pubBytes, rePubBytes []byte
+	var npub, reNpub by
+	var pubBytes, rePubBytes by
 	for i := 0; i < 10000; i++ {
 		if sec, err = secp256k1.GenerateSecretKey(); chk.E(err) {
 			t.Fatalf("error generating key: '%s'", err)
@@ -85,7 +85,7 @@ func TestPublicKeyToNpub(t *testing.T) {
 			return
 		}
 		rePubBytes = schnorr.SerializePubKey(rePub)
-		if string(pubBytes) != string(rePubBytes) {
+		if st(pubBytes) != st(rePubBytes) {
 			t.Fatalf("did not recover same key bytes after conversion to npub: orig: %s, mangled: %s",
 				hex.EncodeToString(pubBytes), hex.EncodeToString(rePubBytes))
 		}

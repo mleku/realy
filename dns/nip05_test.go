@@ -41,8 +41,8 @@ func TestParse(t *testing.T) {
 }
 
 func TestQuery(t *testing.T) {
-	var pkb B
-	var err E
+	var pkb by
+	var err er
 	var pp *pointers.Profile
 	acct := "fiatjaf.com"
 	if pp, err = QueryIdentifier(context.Background(), acct); chk.E(err) {

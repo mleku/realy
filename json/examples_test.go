@@ -7,7 +7,7 @@ import (
 )
 
 func ExampleBool_Marshal() {
-	var b B
+	var b by
 	bt := &Bool{true}
 	b = bt.Marshal(b)
 	fmt.Printf("%s\n", b)
@@ -30,7 +30,7 @@ func ExampleBool_Marshal() {
 }
 
 func ExampleUnsigned_Marshal() {
-	var b B
+	var b by
 	u := &Unsigned{}
 	b = u.Marshal(b)
 	fmt.Printf("%s\n", b)
@@ -57,7 +57,7 @@ func ExampleUnsigned_Marshal() {
 }
 
 func ExampleSigned_Marshal() {
-	var b B
+	var b by
 	s := &Signed{}
 	b = s.Marshal(b)
 	fmt.Printf("%s\n", b)
@@ -95,7 +95,7 @@ func ExampleSigned_Marshal() {
 }
 
 func ExampleString_Marshal() {
-	var b B
+	var b by
 	const ex = `test with
 	
 newlines and hidden tab and spaces at the end    `
@@ -107,7 +107,7 @@ newlines and hidden tab and spaces at the end    `
 	if err != nil || len(rem) != 0 {
 		return
 	}
-	fmt.Printf("%v\n", equals(s2.V, B(ex)))
+	fmt.Printf("%v\n", equals(s2.V, by(ex)))
 	// Output:
 	// "test with\n\t\nnewlines and hidden tab and spaces at the end    "
 	// true
@@ -122,11 +122,11 @@ func ExampleBech32_Marshal() {
 	if err != nil {
 		return
 	}
-	b32 := &Bech32{B(hrp), bin}
+	b32 := &Bech32{by(hrp), bin}
 	b := b32.Marshal(nil)
 	fmt.Printf("%s\n", b)
-	b33 := &Bech32{HRP: B(hrp)}
-	var rem B
+	b33 := &Bech32{HRP: by(hrp)}
+	var rem by
 	rem, err = b33.Unmarshal(b)
 	if chk.E(err) || len(rem) != 0 {
 		return
@@ -152,7 +152,7 @@ func ExampleHex_Marshal() {
 	b := h.Marshal(nil)
 	fmt.Printf("%s\n", b)
 	h2 := &Hex{}
-	var rem B
+	var rem by
 	rem, err = h2.Unmarshal(b)
 	if chk.E(err) || len(rem) != 0 {
 		fmt.Printf("%s\n%s", err.Error(), rem)
@@ -174,11 +174,11 @@ func ExampleBase64_Marshal() {
 		return
 	}
 	b1 := &Base64{bin}
-	var b B
+	var b by
 	b = b1.Marshal(nil)
 	fmt.Printf("%s\n", b)
 	b2 := &Base64{}
-	var rem B
+	var rem by
 	rem, err = b2.Unmarshal(b)
 	if chk.E(err) || len(rem) != 0 {
 		fmt.Printf("%s\n%s", err.Error(), rem)
@@ -199,13 +199,13 @@ func ExampleKeyValue_Marshal() {
 "value"`
 	)
 	kv := &KeyValue{Value: &String{}}
-	rem, err := kv.Unmarshal(B(keyVal))
+	rem, err := kv.Unmarshal(by(keyVal))
 	if chk.E(err) || len(rem) != 0 {
 		fmt.Printf("%s\n'%s'", err.Error(), rem)
 		return
 	}
-	kv2 := &KeyValue{B("key"), &String{B("value")}}
-	var b, b2 B
+	kv2 := &KeyValue{by("key"), &String{by("value")}}
+	var b, b2 by
 	b = kv.Marshal(b)
 	b2 = kv2.Marshal(b2)
 	fmt.Printf("%s\n%s\n%v\n", b, b2, equals(b, b2))

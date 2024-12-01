@@ -23,47 +23,47 @@ const (
 )
 
 type signVerifyValidCase struct {
-	Indices       []int  `json:"key_indices"`
-	NonceIndices  []int  `json:"nonce_indices"`
-	AggNonceIndex int    `json:"aggnonce_index"`
-	MsgIndex      int    `json:"msg_index"`
-	SignerIndex   int    `json:"signer_index"`
-	Expected      string `json:"expected"`
+	Indices       []no `json:"key_indices"`
+	NonceIndices  []no `json:"nonce_indices"`
+	AggNonceIndex no   `json:"aggnonce_index"`
+	MsgIndex      no   `json:"msg_index"`
+	SignerIndex   no   `json:"signer_index"`
+	Expected      st   `json:"expected"`
 }
 
 type signErrorCase struct {
-	Indices       []int  `json:"key_indices"`
-	AggNonceIndex int    `json:"aggnonce_index"`
-	MsgIndex      int    `json:"msg_index"`
-	SecNonceIndex int    `json:"secnonce_index"`
-	Comment       string `json:"comment"`
+	Indices       []no `json:"key_indices"`
+	AggNonceIndex no   `json:"aggnonce_index"`
+	MsgIndex      no   `json:"msg_index"`
+	SecNonceIndex no   `json:"secnonce_index"`
+	Comment       st   `json:"comment"`
 }
 
 type verifyFailCase struct {
-	Sig          string `json:"sig"`
-	Indices      []int  `json:"key_indices"`
-	NonceIndices []int  `json:"nonce_indices"`
-	MsgIndex     int    `json:"msg_index"`
-	SignerIndex  int    `json:"signer_index"`
-	Comment      string `json:"comment"`
+	Sig          st   `json:"sig"`
+	Indices      []no `json:"key_indices"`
+	NonceIndices []no `json:"nonce_indices"`
+	MsgIndex     no   `json:"msg_index"`
+	SignerIndex  no   `json:"signer_index"`
+	Comment      st   `json:"comment"`
 }
 
 type verifyErrorCase struct {
-	Sig          string `json:"sig"`
-	Indices      []int  `json:"key_indices"`
-	NonceIndices []int  `json:"nonce_indices"`
-	MsgIndex     int    `json:"msg_index"`
-	SignerIndex  int    `json:"signer_index"`
-	Comment      string `json:"comment"`
+	Sig          st   `json:"sig"`
+	Indices      []no `json:"key_indices"`
+	NonceIndices []no `json:"nonce_indices"`
+	MsgIndex     no   `json:"msg_index"`
+	SignerIndex  no   `json:"signer_index"`
+	Comment      st   `json:"comment"`
 }
 
 type signVerifyTestVectors struct {
-	SecKey           string                `json:"sk"`
-	PubKeys          []string              `json:"pubkeys"`
-	PrivNonces       []string              `json:"secnonces"`
-	PubNonces        []string              `json:"pnonces"`
-	AggNonces        []string              `json:"aggnonces"`
-	Msgs             []string              `json:"msgs"`
+	SecKey           st                    `json:"sk"`
+	PubKeys          []st                  `json:"pubkeys"`
+	PrivNonces       []st                  `json:"secnonces"`
+	PubNonces        []st                  `json:"pnonces"`
+	AggNonces        []st                  `json:"aggnonces"`
+	Msgs             []st                  `json:"msgs"`
 	ValidCases       []signVerifyValidCase `json:"valid_test_cases"`
 	SignErrorCases   []signErrorCase       `json:"sign_error_test_cases"`
 	VerifyFailCases  []verifyFailCase      `json:"verify_fail_test_cases"`
@@ -211,26 +211,26 @@ func TestMusig2SignVerify(t *testing.T) {
 }
 
 type sigCombineValidCase struct {
-	AggNonce     string `json:"aggnonce"`
-	NonceIndices []int  `json:"nonce_indices"`
-	Indices      []int  `json:"key_indices"`
-	TweakIndices []int  `json:"tweak_indices"`
-	IsXOnly      []bool `json:"is_xonly"`
-	PSigIndices  []int  `json:"psig_indices"`
-	Expected     string `json:"expected"`
+	AggNonce     st   `json:"aggnonce"`
+	NonceIndices []no `json:"nonce_indices"`
+	Indices      []no `json:"key_indices"`
+	TweakIndices []no `json:"tweak_indices"`
+	IsXOnly      []bo `json:"is_xonly"`
+	PSigIndices  []no `json:"psig_indices"`
+	Expected     st   `json:"expected"`
 }
 
 type sigCombineTestVectors struct {
-	PubKeys    []string              `json:"pubkeys"`
-	PubNonces  []string              `json:"pnonces"`
-	Tweaks     []string              `json:"tweaks"`
-	Psigs      []string              `json:"psigs"`
-	Msg        string                `json:"msg"`
+	PubKeys    []st                  `json:"pubkeys"`
+	PubNonces  []st                  `json:"pnonces"`
+	Tweaks     []st                  `json:"tweaks"`
+	Psigs      []st                  `json:"psigs"`
+	Msg        st                    `json:"msg"`
 	ValidCases []sigCombineValidCase `json:"valid_test_cases"`
 }
 
-func pSigsFromIndicies(t *testing.T, sigs []string,
-	indices []int) []*PartialSignature {
+func pSigsFromIndicies(t *testing.T, sigs []st,
+	indices []no) []*PartialSignature {
 	pSigs := make([]*PartialSignature, len(indices))
 	for i, idx := range indices {
 		var pSig PartialSignature

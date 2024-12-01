@@ -12,15 +12,15 @@ import (
 const L = "AUTH"
 
 type Challenge struct {
-	Challenge B
+	Challenge by
 }
 
-func NewChallenge() *Challenge                         { return &Challenge{} }
-func NewChallengeWith[V S | B](challenge V) *Challenge { return &Challenge{B(challenge)} }
-func (en *Challenge) Label() string                    { return L }
+func NewChallenge() *Challenge                           { return &Challenge{} }
+func NewChallengeWith[V st | by](challenge V) *Challenge { return &Challenge{by(challenge)} }
+func (en *Challenge) Label() string                      { return L }
 
-func (en *Challenge) Write(w io.Writer) (err E) {
-	var b B
+func (en *Challenge) Write(w io.Writer) (err er) {
+	var b by
 	if b, err = en.MarshalJSON(b); chk.E(err) {
 		return
 	}
@@ -29,10 +29,10 @@ func (en *Challenge) Write(w io.Writer) (err E) {
 	return
 }
 
-func (en *Challenge) MarshalJSON(dst B) (b B, err E) {
+func (en *Challenge) MarshalJSON(dst by) (b by, err er) {
 	b = dst
 	b, err = envs.Marshal(b, L,
-		func(bst B) (o B, err error) {
+		func(bst by) (o by, err er) {
 			o = bst
 			o = append(o, '"')
 			o = text.NostrEscape(o, en.Challenge)
@@ -42,7 +42,7 @@ func (en *Challenge) MarshalJSON(dst B) (b B, err E) {
 	return
 }
 
-func (en *Challenge) UnmarshalJSON(b B) (r B, err E) {
+func (en *Challenge) UnmarshalJSON(b by) (r by, err er) {
 	r = b
 	if en.Challenge, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
@@ -56,7 +56,7 @@ func (en *Challenge) UnmarshalJSON(b B) (r B, err E) {
 	return
 }
 
-func ParseChallenge(b B) (t *Challenge, rem B, err E) {
+func ParseChallenge(b by) (t *Challenge, rem by, err er) {
 	t = NewChallenge()
 	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
 		return
@@ -74,8 +74,8 @@ func NewResponse() *Response                   { return &Response{} }
 func NewResponseWith(event *event.T) *Response { return &Response{Event: event} }
 func (en *Response) Label() string             { return L }
 
-func (en *Response) Write(w io.Writer) (err E) {
-	var b B
+func (en *Response) Write(w io.Writer) (err er) {
+	var b by
 	if b, err = en.MarshalJSON(b); chk.E(err) {
 		return
 	}
@@ -83,7 +83,7 @@ func (en *Response) Write(w io.Writer) (err E) {
 	return
 }
 
-func (en *Response) MarshalJSON(dst B) (b B, err E) {
+func (en *Response) MarshalJSON(dst by) (b by, err er) {
 	if en == nil {
 		err = errorf.E("nil response")
 		return
@@ -97,7 +97,7 @@ func (en *Response) MarshalJSON(dst B) (b B, err E) {
 	return
 }
 
-func (en *Response) UnmarshalJSON(b B) (r B, err E) {
+func (en *Response) UnmarshalJSON(b by) (r by, err er) {
 	r = b
 	// literally just unmarshal the event
 	en.Event = event.New()
@@ -110,7 +110,7 @@ func (en *Response) UnmarshalJSON(b B) (r B, err E) {
 	return
 }
 
-func ParseResponse(b B) (t *Response, rem B, err E) {
+func ParseResponse(b by) (t *Response, rem by, err er) {
 	t = NewResponse()
 	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
 		return

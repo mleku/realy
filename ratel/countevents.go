@@ -14,7 +14,7 @@ import (
 	"realy.lol/tag"
 )
 
-func (r *T) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) {
+func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 	log.T.F("QueryEvents,%s", f.Serialize())
 	var queries []query
 	var extraFilter *filter.T
@@ -29,8 +29,8 @@ func (r *T) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) {
 			return
 		default:
 		}
-		var eventKey B
-		err = r.View(func(txn *badger.Txn) (err E) {
+		var eventKey by
+		err = r.View(func(txn *badger.Txn) (err er) {
 			// iterate only through keys and in reverse order
 			opts := badger.IteratorOptions{
 				Reverse: true,
@@ -68,7 +68,7 @@ func (r *T) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) {
 		if extraFilter != nil {
 			// if there is an extra filter we need to fetch and decode the event to determine a
 			// match.
-			err = r.View(func(txn *badger.Txn) (err E) {
+			err = r.View(func(txn *badger.Txn) (err er) {
 				opts := badger.IteratorOptions{Reverse: true}
 				it := txn.NewIterator(opts)
 				defer it.Close()
@@ -82,9 +82,9 @@ func (r *T) CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E) {
 						return
 					}
 					ev := &event.T{}
-					var appr bool
-					if err = item.Value(func(eventValue []byte) (err E) {
-						var rem B
+					var appr bo
+					if err = item.Value(func(eventValue by) (err er) {
+						var rem by
 						if rem, err = ev.UnmarshalJSON(eventValue); chk.E(err) {
 							ev = nil
 							eventValue = eventValue[:0]

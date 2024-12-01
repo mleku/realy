@@ -29,10 +29,10 @@ type Error struct {
 	v Value
 }
 
-var _zeroError error
+var _zeroError er
 
 // NewError creates a new Error.
-func NewError(val error) *Error {
+func NewError(val er) *Error {
 	x := &Error{}
 	if val != _zeroError {
 		x.Store(val)
@@ -41,17 +41,17 @@ func NewError(val error) *Error {
 }
 
 // Load atomically loads the wrapped error.
-func (x *Error) Load() error {
+func (x *Error) Load() er {
 	return unpackError(x.v.Load())
 }
 
 // Store atomically stores the passed error.
-func (x *Error) Store(val error) {
+func (x *Error) Store(val er) {
 	x.v.Store(packError(val))
 }
 
 // CompareAndSwap is an atomic compare-and-swap for error values.
-func (x *Error) CompareAndSwap(old, new error) (swapped bool) {
+func (x *Error) CompareAndSwap(old, new er) (swapped bo) {
 	if x.v.CompareAndSwap(packError(old), packError(new)) {
 		return true
 	}
@@ -67,6 +67,6 @@ func (x *Error) CompareAndSwap(old, new error) (swapped bool) {
 
 // Swap atomically stores the given error and returns the old
 // value.
-func (x *Error) Swap(val error) (old error) {
+func (x *Error) Swap(val er) (old er) {
 	return unpackError(x.v.Swap(packError(val)))
 }

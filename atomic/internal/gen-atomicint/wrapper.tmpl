@@ -92,12 +92,12 @@ func (i *{{ .Name }}) Swap(val {{ .Wrapped }}) (old {{ .Wrapped }}) {
 }
 
 // MarshalJSON encodes the wrapped {{ .Wrapped }} into JSON.
-func (i *{{ .Name }}) MarshalJSON() ([]byte, error) {
+func (i *{{ .Name }}) MarshalJSON() (by, er) {
 	return json.Marshal(i.Load())
 }
 
 // UnmarshalJSON decodes JSON into the wrapped {{ .Wrapped }}.
-func (i *{{ .Name }}) UnmarshalJSON(b []byte) error {
+func (i *{{ .Name }}) UnmarshalJSON(b by) er {
 	var v {{ .Wrapped }}
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err

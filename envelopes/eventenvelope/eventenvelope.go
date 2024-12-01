@@ -22,8 +22,8 @@ func NewSubmission() *Submission                { return &Submission{T: &event.T
 func NewSubmissionWith(ev *event.T) *Submission { return &Submission{T: ev} }
 func (en *Submission) Label() string            { return L }
 
-func (en *Submission) Write(w io.Writer) (err E) {
-	var b B
+func (en *Submission) Write(w io.Writer) (err er) {
+	var b by
 	if b, err = en.MarshalJSON(b); chk.E(err) {
 		return
 	}
@@ -31,10 +31,10 @@ func (en *Submission) Write(w io.Writer) (err E) {
 	return
 }
 
-func (en *Submission) MarshalJSON(dst B) (b B, err error) {
+func (en *Submission) MarshalJSON(dst by) (b by, err er) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
-		func(bst B) (o B, err error) {
+		func(bst by) (o by, err er) {
 			o = bst
 			if o, err = en.T.MarshalJSON(o); chk.E(err) {
 				return
@@ -44,7 +44,7 @@ func (en *Submission) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (en *Submission) UnmarshalJSON(b B) (r B, err error) {
+func (en *Submission) UnmarshalJSON(b by) (r by, err er) {
 	r = b
 	en.T = event.New()
 	if r, err = en.T.UnmarshalJSON(r); chk.T(err) {
@@ -59,7 +59,7 @@ func (en *Submission) UnmarshalJSON(b B) (r B, err error) {
 	return
 }
 
-func ParseSubmission(b B) (t *Submission, rem B, err E) {
+func ParseSubmission(b by) (t *Submission, rem by, err er) {
 	t = NewSubmission()
 	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
 		return
@@ -76,17 +76,17 @@ type Result struct {
 var _ codec.Envelope = (*Result)(nil)
 
 func NewResult() *Result { return &Result{} }
-func NewResultWith[V S | B](s V, ev *event.T) (res *Result, err E) {
+func NewResultWith[V st | by](s V, ev *event.T) (res *Result, err er) {
 	if len(s) < 0 || len(s) > 64 {
 		err = errorf.E("subscription id must be length > 0 and <= 64")
 		return
 	}
 	return &Result{subscription.MustNew(s), ev}, nil
 }
-func (en *Result) Label() S { return L }
+func (en *Result) Label() st { return L }
 
-func (en *Result) Write(w io.Writer) (err E) {
-	var b B
+func (en *Result) Write(w io.Writer) (err er) {
+	var b by
 	if b, err = en.MarshalJSON(b); chk.E(err) {
 		return
 	}
@@ -94,10 +94,10 @@ func (en *Result) Write(w io.Writer) (err E) {
 	return
 }
 
-func (en *Result) MarshalJSON(dst B) (b B, err error) {
+func (en *Result) MarshalJSON(dst by) (b by, err er) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
-		func(bst B) (o B, err error) {
+		func(bst by) (o by, err er) {
 			o = bst
 			if o, err = en.Subscription.MarshalJSON(o); chk.E(err) {
 				return
@@ -111,9 +111,9 @@ func (en *Result) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (en *Result) UnmarshalJSON(b B) (r B, err error) {
+func (en *Result) UnmarshalJSON(b by) (r by, err er) {
 	r = b
-	if en.Subscription, err = subscription.NewId(B{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId(by{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {
@@ -129,7 +129,7 @@ func (en *Result) UnmarshalJSON(b B) (r B, err error) {
 	return
 }
 
-func ParseResult(b B) (t *Result, rem B, err E) {
+func ParseResult(b by) (t *Result, rem by, err er) {
 	t = NewResult()
 	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
 		return

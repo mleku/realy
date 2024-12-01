@@ -11,19 +11,19 @@ import (
 
 // GetDataDir returns an operating system specific directory to be used for storing application
 // data for an application.
-func GetDataDir(goos, appName string, roaming bool) string {
+func GetDataDir(goos, appName st, roaming bo) st {
 	if appName == "" || appName == "." {
 		return "."
 	}
 	// The caller really shouldn't prepend the appName with a period, but if they do, handle it
 	// gracefully by trimming it.
 	appName = strings.TrimPrefix(appName, ".")
-	appNameUpper := string(unicode.ToUpper(rune(appName[0]))) + appName[1:]
-	appNameLower := string(unicode.ToLower(rune(appName[0]))) + appName[1:]
+	appNameUpper := st(unicode.ToUpper(rune(appName[0]))) + appName[1:]
+	appNameLower := st(unicode.ToLower(rune(appName[0]))) + appName[1:]
 	// Get the OS specific home directory via the Go standard lib.
-	var homeDir string
+	var homeDir st
 	var usr *user.User
-	var e error
+	var e er
 	if usr, e = user.Current(); chk.E(e) {
 		homeDir = usr.HomeDir
 	}
@@ -84,6 +84,6 @@ func GetDataDir(goos, appName string, roaming bool) string {
 //	 Mac OS: $HOME/Library/Application Support/Myapp
 //	 Windows: %LOCALAPPDATA%\Myapp
 //	 Plan 9: $home/myapp
-func Dir(appName string, roaming bool) string {
+func Dir(appName st, roaming bo) st {
 	return GetDataDir(runtime.GOOS, appName, roaming)
 }

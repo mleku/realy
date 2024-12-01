@@ -14,13 +14,13 @@ import (
 )
 
 type nonceGenTestCase struct {
-	Rand     string  `json:"rand_"`
-	Sk       string  `json:"sk"`
-	AggPk    string  `json:"aggpk"`
-	Msg      *string `json:"msg"`
-	ExtraIn  string  `json:"extra_in"`
-	Pk       string  `json:"pk"`
-	Expected string  `json:"expected"`
+	Rand     st  `json:"rand_"`
+	Sk       st  `json:"sk"`
+	AggPk    st  `json:"aggpk"`
+	Msg      *st `json:"msg"`
+	ExtraIn  st  `json:"extra_in"`
+	Pk       st  `json:"pk"`
+	Expected st  `json:"expected"`
 }
 
 type nonceGenTestCases struct {
@@ -70,26 +70,26 @@ func TestMusig2NonceGenTestVectors(t *testing.T) {
 }
 
 type nonceAggError struct {
-	Type    string `json:"type"`
-	Signer  int    `json:"signer"`
-	Contrib string `json:"contrib"`
+	Type    st `json:"type"`
+	Signer  no `json:"signer"`
+	Contrib st `json:"contrib"`
 }
 
 type nonceAggValidCase struct {
-	Indices  []int  `json:"pnonce_indices"`
-	Expected string `json:"expected"`
-	Comment  string `json:"comment"`
+	Indices  []no `json:"pnonce_indices"`
+	Expected st   `json:"expected"`
+	Comment  st   `json:"comment"`
 }
 
 type nonceAggInvalidCase struct {
-	Indices     []int         `json:"pnonce_indices"`
+	Indices     []no          `json:"pnonce_indices"`
 	Error       nonceAggError `json:"error"`
-	Comment     string        `json:"comment"`
-	ExpectedErr string        `json:"btcec_err"`
+	Comment     st            `json:"comment"`
+	ExpectedErr st            `json:"btcec_err"`
 }
 
 type nonceAggTestCases struct {
-	Nonces       []string              `json:"pnonces"`
+	Nonces       []st                  `json:"pnonces"`
 	ValidCases   []nonceAggValidCase   `json:"valid_test_cases"`
 	InvalidCases []nonceAggInvalidCase `json:"error_test_cases"`
 }

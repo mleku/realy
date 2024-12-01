@@ -13,19 +13,19 @@ const (
 	Error       = "error"
 )
 
-var Examples = []B{
-	B(""),
-	B("pow: difficulty 25>=24"),
-	B("duplicate: already have this event"),
-	B("blocked: you are banned from posting here"),
-	B("blocked: please register your pubkey at " +
+var Examples = []by{
+	by(""),
+	by("pow: difficulty 25>=24"),
+	by("duplicate: already have this event"),
+	by("blocked: you are banned from posting here"),
+	by("blocked: please register your pubkey at " +
 		"https://my-expensive-relay.example.com"),
-	B("rate-limited: slow down there chief"),
-	B("invalid: event creation date is too far off from the current time"),
-	B("pow: difficulty 26 is less than 30"),
-	B("error: could not connect to the database"),
+	by("rate-limited: slow down there chief"),
+	by("invalid: event creation date is too far off from the current time"),
+	by("pow: difficulty 26 is less than 30"),
+	by("error: could not connect to the database"),
 }
 
-func RandomMessage() B {
+func RandomMessage() by {
 	return Examples[frand.Intn(len(Examples)-1)]
 }

@@ -41,14 +41,14 @@ func (s *String) String() string {
 // MarshalText encodes the wrapped string into a textual form.
 //
 // This makes it encodable as JSON, YAML, XML, and more.
-func (s *String) MarshalText() ([]byte, error) {
-	return []byte(s.Load()), nil
+func (s *String) MarshalText() (by, er) {
+	return by(s.Load()), nil
 }
 
 // UnmarshalText decodes text and replaces the wrapped string with it.
 //
 // This makes it decodable from JSON, YAML, XML, and more.
-func (s *String) UnmarshalText(b []byte) error {
+func (s *String) UnmarshalText(b by) er {
 	s.Store(string(b))
 	return nil
 }

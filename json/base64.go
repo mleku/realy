@@ -8,14 +8,14 @@ import (
 )
 
 // Base64 is a string representing binary data encoded as base64.
-type Base64 struct{ V B }
+type Base64 struct{ V by }
 
-func (b2 *Base64) Marshal(dst B) (b B) {
+func (b2 *Base64) Marshal(dst by) (b by) {
 	b = dst
 	buf := &bytes.Buffer{}
 	b = append(b, '"')
 	enc := base64.NewEncoder(base64.StdEncoding, buf)
-	var err E
+	var err er
 	if _, err = enc.Write(b2.V); chk.E(err) {
 		return
 	}
@@ -24,13 +24,13 @@ func (b2 *Base64) Marshal(dst B) (b B) {
 	return
 }
 
-func (b2 *Base64) Unmarshal(dst B) (rem B, err E) {
-	var c B
+func (b2 *Base64) Unmarshal(dst by) (rem by, err er) {
+	var c by
 	if c, rem, err = text.UnmarshalQuoted(dst); chk.E(err) {
 		return
 	}
-	var n N
-	bb := make(B, len(c)*6/8)
+	var n no
+	bb := make(by, len(c)*6/8)
 	if n, err = base64.StdEncoding.Decode(bb, c); chk.E(err) {
 		err = errorf.E("failed to decode base64 at position %d: %s", n, err)
 		return

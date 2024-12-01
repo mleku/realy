@@ -13,9 +13,9 @@ type DelItems []uint64
 // about all events and pruned events using GCCount then sorts the results of
 // the events and indexes by least recently accessed and generates the set of
 // serials of events that need to be deleted
-func (r *T) GCMark() (pruneEvents, pruneIndexes DelItems, err error) {
+func (r *T) GCMark() (pruneEvents, pruneIndexes DelItems, err er) {
 	var unpruned, pruned count.Items
-	var uTotal, pTotal int
+	var uTotal, pTotal no
 	if unpruned, pruned, uTotal, pTotal, err = r.GCCount(); chk.E(err) {
 		return
 	}
@@ -24,12 +24,12 @@ func (r *T) GCMark() (pruneEvents, pruneIndexes DelItems, err error) {
 		// run event GC mark
 		sort.Sort(unpruned)
 		pruneOff := uTotal - lw
-		var cumulative, lastIndex int
+		var cumulative, lastIndex no
 		for lastIndex = range unpruned {
 			if cumulative > pruneOff {
 				break
 			}
-			cumulative += int(unpruned[lastIndex].Size)
+			cumulative += no(unpruned[lastIndex].Size)
 			pruneEvents = append(pruneEvents, unpruned[lastIndex].Serial)
 		}
 		log.D.F("found %d events to prune,which will bring current "+
@@ -40,7 +40,7 @@ func (r *T) GCMark() (pruneEvents, pruneIndexes DelItems, err error) {
 	if r.HasL2 && pTotal > l2hw {
 		// run index GC mark
 		sort.Sort(pruned)
-		var lastIndex int
+		var lastIndex no
 		// we want to remove the oldest indexes until at or below the index low water mark.
 		space := pTotal
 		// count the number of events until the low water mark
@@ -48,7 +48,7 @@ func (r *T) GCMark() (pruneEvents, pruneIndexes DelItems, err error) {
 			if space < l2lw {
 				break
 			}
-			space -= int(pruned[lastIndex].Size)
+			space -= no(pruned[lastIndex].Size)
 		}
 		log.D.F("deleting %d indexes using %d bytes to bring pruned index size to %d",
 			lastIndex+1, pTotal-l2lw, space)

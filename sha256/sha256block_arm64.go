@@ -19,16 +19,17 @@
 
 package sha256
 
-func blockIntelShaGo(dig *digest, p []byte) {
+func blockIntelShaGo(dig *digest, p by) {
 	panic("blockIntelShaGo called unexpectedly")
 }
 
 //go:noescape
 func blockArmSha2(h []uint32, message []uint8)
 
-func blockArmSha2Go(dig *digest, p []byte) {
+func blockArmSha2Go(dig *digest, p by) {
 
-	h := []uint32{dig.h[0], dig.h[1], dig.h[2], dig.h[3], dig.h[4], dig.h[5], dig.h[6], dig.h[7]}
+	h := []uint32{dig.h[0], dig.h[1], dig.h[2], dig.h[3], dig.h[4], dig.h[5], dig.h[6],
+		dig.h[7]}
 
 	blockArmSha2(h[:], p[:])
 

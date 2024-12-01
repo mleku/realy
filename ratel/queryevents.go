@@ -18,9 +18,9 @@ import (
 	"realy.lol/timestamp"
 )
 
-func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
+func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 	log.T.F("QueryEvents,%s", f.Serialize())
-	evMap := make(map[S]*event.T)
+	evMap := make(map[st]*event.T)
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
@@ -28,7 +28,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 		return
 	}
 	// search for the keys generated from the filter
-	eventKeys := make(map[S]struct{})
+	eventKeys := make(map[st]struct{})
 	for _, q := range queries {
 		select {
 		case <-r.Ctx.Done():
@@ -37,7 +37,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 			return
 		default:
 		}
-		err = r.View(func(txn *badger.Txn) (err E) {
+		err = r.View(func(txn *badger.Txn) (err er) {
 			// iterate only through keys and in reverse order
 			opts := badger.IteratorOptions{
 				Reverse: true,
@@ -65,7 +65,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 				}
 				ser := serial.FromKey(k)
 				idx := index.Event.Key(ser)
-				eventKeys[S(idx)] = struct{}{}
+				eventKeys[st(idx)] = struct{}{}
 			}
 			return
 		})
@@ -84,11 +84,11 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 		return
 	default:
 	}
-	accessed := make(map[S]struct{})
+	accessed := make(map[st]struct{})
 	for ek := range eventKeys {
-		eventKey := B(ek)
-		var done bool
-		err = r.View(func(txn *badger.Txn) (err E) {
+		eventKey := by(ek)
+		var done bo
+		err = r.View(func(txn *badger.Txn) (err er) {
 			select {
 			case <-r.Ctx.Done():
 				return
@@ -105,7 +105,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 					// this is a stub entry that indicates an L2 needs to be accessed for
 					// it, so we populate only the event.T.ID and return the result, the
 					// caller will expect this as a signal to query the L2 event store.
-					var eventValue B
+					var eventValue by
 					ev := &event.T{}
 					if eventValue, err = item.ValueCopy(nil); chk.E(err) {
 						continue
@@ -124,8 +124,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 					return
 				}
 				ev := &event.T{}
-				if err = item.Value(func(eventValue B) (err E) {
-					var rem B
+				if err = item.Value(func(eventValue by) (err er) {
+					var rem by
 					if rem, err = ev.UnmarshalJSON(eventValue); chk.E(err) {
 						ev = nil
 						eventValue = eventValue[:0]
@@ -194,7 +194,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 					evMap[hex.Enc(ev.ID)] = ev
 					// add event counter key to accessed
 					ser := serial.FromKey(eventKey)
-					accessed[S(ser.Val)] = struct{}{}
+					accessed[st(ser.Val)] = struct{}{}
 					if filter.Present(f.Limit) {
 						*f.Limit--
 						if *f.Limit <= 0 {
@@ -253,9 +253,9 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E) {
 		// user's events are delivered immediately
 		go func() {
 			for ser := range accessed {
-				seri := serial.New(B(ser))
+				seri := serial.New(by(ser))
 				now := timestamp.Now()
-				err = r.Update(func(txn *badger.Txn) (err error) {
+				err = r.Update(func(txn *badger.Txn) (err er) {
 					key := GetCounterKey(seri)
 					it := txn.NewIterator(badger.IteratorOptions{})
 					defer it.Close()

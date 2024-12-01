@@ -1,16 +1,16 @@
 package nip86
 
 type IDReason struct {
-	ID     S `json:"id"`
-	Reason S `json:"reason"`
+	ID     st `json:"id"`
+	Reason st `json:"reason"`
 }
 
 type PubKeyReason struct {
-	PubKey S `json:"pubkey"`
-	Reason S `json:"reason"`
+	PubKey st `json:"pubkey"`
+	Reason st `json:"reason"`
 }
 
 type IPReason struct {
-	IP     S `json:"ip"`
-	Reason S `json:"reason"`
+	IP     st `json:"ip"`
+	Reason st `json:"reason"`
 }

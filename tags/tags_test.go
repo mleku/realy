@@ -9,8 +9,8 @@ import (
 )
 
 func TestMarshalUnmarshal(t *testing.T) {
-	var b, rem B
-	var err error
+	var b, rem by
+	var err er
 	for _ = range 100000 {
 		n := frand.Intn(3)
 		tgs := &T{}
@@ -18,21 +18,21 @@ func TestMarshalUnmarshal(t *testing.T) {
 			n1 := frand.Intn(5)
 			tg := tag.NewWithCap(n)
 			for _ = range n1 {
-				b1 := make(B, frand.Intn(40)+2)
+				b1 := make(by, frand.Intn(40)+2)
 				_, _ = frand.Read(b1)
 				tg = tg.Append(b1)
 			}
 			tgs.t = append(tgs.t, tg)
 		}
 		b, _ = tgs.MarshalJSON(b)
-		bo := make(B, len(b))
+		bo := make(by, len(b))
 		copy(bo, b)
 		ta := &T{}
 		rem, err = ta.UnmarshalJSON(b)
 		if chk.E(err) {
 			t.Fatal(err)
 		}
-		var bc B
+		var bc by
 		bc, _ = ta.MarshalJSON(bc)
 		if !equals(bo, bc) {
 			t.Fatalf("got\n%s\nwant\n%s\n", bc, bo)
@@ -42,15 +42,15 @@ func TestMarshalUnmarshal(t *testing.T) {
 }
 
 func TestEmpty(t *testing.T) {
-	var err error
-	var b0, bc, b1 B
+	var err er
+	var b0, bc, b1 by
 	var empty, empty1, empty2 *T
 	_, _, _ = empty, empty1, empty2
 	empty = New()
 	if b0, err = empty.MarshalJSON(b0); chk.E(err) {
 		t.Fatal(err)
 	}
-	bc = make(B, len(b0))
+	bc = make(by, len(b0))
 	copy(bc, b0)
 	empty1 = New()
 	if b0, err = empty1.UnmarshalJSON(b0); chk.E(err) {
@@ -68,7 +68,7 @@ func TestEmpty(t *testing.T) {
 	if b0, err = empty.MarshalJSON(b0); chk.E(err) {
 		t.Fatal(err)
 	}
-	bc = make(B, len(b0))
+	bc = make(by, len(b0))
 	copy(bc, b0)
 	empty1 = New()
 	if b0, err = empty1.UnmarshalJSON(b0); chk.E(err) {
@@ -85,8 +85,8 @@ func TestEmpty(t *testing.T) {
 }
 
 func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
-	var b, rem B
-	var err error
+	var b, rem by
+	var err er
 	bb.Run("tag.MarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		for i := 0; i < bb.N; i++ {
@@ -96,7 +96,7 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 				n1 := frand.Intn(40) + 2
 				tg := tag.NewWithCap(n)
 				for _ = range n1 {
-					b1 := make(B, frand.Intn(40)+2)
+					b1 := make(by, frand.Intn(40)+2)
 					_, _ = frand.Read(b1)
 					tg = tg.Append(b1)
 					// tg.Field = append(tg.Field, b1)
@@ -116,7 +116,7 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 				n1 := frand.Intn(40) + 2
 				tg := tag.NewWithCap(n)
 				for _ = range n1 {
-					b1 := make(B, frand.Intn(40)+2)
+					b1 := make(by, frand.Intn(40)+2)
 					_, _ = frand.Read(b1)
 					tg = tg.Append(b1)
 				}
@@ -146,7 +146,7 @@ func TestT_Clone_Equal(t *testing.T) {
 			n1 := frand.Intn(40) + 2
 			tg := tag.NewWithCap(n)
 			for _ = range n1 {
-				b1 := make(B, frand.Intn(40)+2)
+				b1 := make(by, frand.Intn(40)+2)
 				_, _ = frand.Read(b1)
 				tg = tg.Append(b1)
 			}
@@ -181,7 +181,7 @@ func TestTagHelpers(t *testing.T) {
 	if tags.GetFirst(tag.New("p", "abcdef", "")) == nil {
 		t.Error("failed to get with existing prefix (blank last string)")
 	}
-	if S(tags.GetLast(tag.New("e")).S(1)) != "ffffff" {
+	if st(tags.GetLast(tag.New("e")).S(1)) != "ffffff" {
 		t.Error("failed to get last")
 	}
 	if tags.GetAll(tag.New("e", "")).Len() != 2 {
@@ -193,29 +193,29 @@ func TestTagHelpers(t *testing.T) {
 	if tags.AppendUnique(tag.New("e", "bbbbbb")).Len() != 6 {
 		t.Error("append unique failed to append when didn't exist")
 	}
-	if S(tags.AppendUnique(tag.New("e", "eeeeee")).N(4).S(1)) != "ffffff" {
+	if st(tags.AppendUnique(tag.New("e", "eeeeee")).N(4).S(1)) != "ffffff" {
 		t.Error("append unique changed the order")
 	}
-	if S(tags.AppendUnique(tag.New("e", "eeeeee")).N(3).S(1)) != "eeeeee" {
+	if st(tags.AppendUnique(tag.New("e", "eeeeee")).N(3).S(1)) != "eeeeee" {
 		t.Error("append unique changed the order")
 	}
 }
 
 func TestT_ContainsAny(t *testing.T) {
-	var v, a, b, c B
-	var err error
+	var v, a, b, c by
+	var err er
 	v, err = hex.Dec("4c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f")
 	a, err = hex.Dec("3c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f")
 	b, err = hex.Dec("2c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f")
 	c, err = hex.Dec("1c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f")
-	w := tag.New(B{'b'}, v, a, b, c)
-	x := tag.New(B{'b'}, c, b, a)
-	y := tag.New(B{'b'}, b, a, c)
-	z := tag.New(B{'b'}, v)
+	w := tag.New(by{'b'}, v, a, b, c)
+	x := tag.New(by{'b'}, c, b, a)
+	y := tag.New(by{'b'}, b, a, c)
+	z := tag.New(by{'b'}, v)
 	_, _ = v, err
 	tt := New(w, x, y)
 	ttt := New(x, y)
-	log.I.S(tt.ContainsAny(B{'b'}, z))
-	log.I.S(ttt.ContainsAny(B{'b'}, z))
+	log.I.S(tt.ContainsAny(by{'b'}, z))
+	log.I.S(ttt.ContainsAny(by{'b'}, z))
 
 }

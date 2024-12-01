@@ -25,7 +25,7 @@ var (
 
 // isValidJacobianPoint returns true if the point (x,y,z) is on the secp256k1
 // curve or is the point at infinity.
-func isValidJacobianPoint(point *JacobianPoint) bool {
+func isValidJacobianPoint(point *JacobianPoint) bo {
 	if (point.X.IsZero() && point.Y.IsZero()) || point.Z.IsZero() {
 		return true
 	}
@@ -59,7 +59,7 @@ func jacobianPointFromHex(x, y, z string) JacobianPoint {
 // in affine coordinates, while not having the same coordinates in projective
 // space, so the two points not being equal doesn't necessarily mean they aren't
 // actually the same affine point.
-func (p *JacobianPoint) IsStrictlyEqual(other *JacobianPoint) bool {
+func (p *JacobianPoint) IsStrictlyEqual(other *JacobianPoint) bo {
 	return p.X.Equals(&other.X) && p.Y.Equals(&other.Y) && p.Z.Equals(&other.Z)
 }
 
@@ -347,7 +347,7 @@ func TestDoubleJacobian(t *testing.T) {
 // checkNAFEncoding returns an error if the provided positive and negative
 // portions of an overall NAF encoding do not adhere to the requirements or they
 // do not sum back to the provided original value.
-func checkNAFEncoding(pos, neg []byte, origValue *big.Int) (err error) {
+func checkNAFEncoding(pos, neg by, origValue *big.Int) (err er) {
 	// NAF must not have a leading zero byte and the number of negative
 	// bytes must not exceed the positive portion.
 	if len(pos) > 0 && pos[0] == 0 {
@@ -594,7 +594,7 @@ func modNBitLen(s *ModNScalar) uint16 {
 
 // checkLambdaDecomposition returns an error if the provided decomposed scalars
 // do not satisfy the required equation or they are not small in magnitude.
-func checkLambdaDecomposition(origK, k1, k2 *ModNScalar) (err error) {
+func checkLambdaDecomposition(origK, k1, k2 *ModNScalar) (err er) {
 	// Recompose the scalar from the decomposed scalars to ensure they satisfy
 	// the required equation.
 	calcK := new(ModNScalar).Mul2(k2, endoLambda).Add(k1)
@@ -738,9 +738,9 @@ func TestScalarMultJacobianRandom(t *testing.T) {
 			t.Logf("random seed: %d", seed)
 		}
 	}(t, seed)
-	// isSamePoint returns whether or not the two Jacobian points represent the
+	// isSamePoint returns whether the two Jacobian points represent the
 	// same affine point without modifying the provided points.
-	isSamePoint := func(p1, p2 *JacobianPoint) bool {
+	isSamePoint := func(p1, p2 *JacobianPoint) bo {
 		var p1Affine, p2Affine JacobianPoint
 		p1Affine.Set(p1)
 		p1Affine.ToAffine()
@@ -813,11 +813,11 @@ func TestScalarMultJacobianRandom(t *testing.T) {
 // cases.
 func TestDecompressY(t *testing.T) {
 	tests := []struct {
-		name      string // test description
-		x         string // hex encoded x coordinate
-		valid     bool   // expected decompress result
-		wantOddY  string // hex encoded expected odd y coordinate
-		wantEvenY string // hex encoded expected even y coordinate
+		name      st // test description
+		x         st // hex encoded x coordinate
+		valid     bo // expected decompress result
+		wantOddY  st // hex encoded expected odd y coordinate
+		wantEvenY st // hex encoded expected even y coordinate
 	}{{
 		name:      "x = 0 -- not a point on the curve",
 		x:         "0",

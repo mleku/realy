@@ -17,9 +17,9 @@ import (
 
 func GetTagKeyElements(tagValue string, CA *createdat.T,
 	ser *serial.T) (prf index.P,
-	elems []keys.Element, err error) {
+	elems []keys.Element, err er) {
 
-	var pkb []byte
+	var pkb by
 	// first check if it might be a public key, fastest test
 	if len(tagValue) == 2*schnorr.PubKeyBytesLen {
 		// this could be a pubkey

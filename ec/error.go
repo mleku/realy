@@ -19,6 +19,6 @@ type Error = secp256k1.Error
 type ErrorKind = secp256k1.ErrorKind
 
 // makeError creates an secp256k1.Error given a set of arguments.
-func makeError(kind ErrorKind, desc string) Error {
+func makeError(kind ErrorKind, desc st) Error {
 	return Error{Err: kind, Description: desc}
 }

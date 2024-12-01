@@ -11,9 +11,9 @@ import (
 
 // AddressSegWit is the base address type for all SegWit addresses.
 type AddressSegWit struct {
-	hrp            B
+	hrp            by
 	witnessVersion byte
-	witnessProgram B
+	witnessProgram by
 }
 
 // AddressTaproot is an Address for a pay-to-taproot (P2TR) output. See BIP 341
@@ -23,8 +23,8 @@ type AddressTaproot struct {
 }
 
 // NewAddressTaproot returns a new AddressTaproot.
-func NewAddressTaproot(witnessProg B,
-	net *chaincfg.Params) (*AddressTaproot, error) {
+func NewAddressTaproot(witnessProg by,
+	net *chaincfg.Params) (*AddressTaproot, er) {
 
 	return newAddressTaproot(net.Bech32HRPSegwit, witnessProg)
 }
@@ -32,7 +32,7 @@ func NewAddressTaproot(witnessProg B,
 // newAddressWitnessScriptHash is an internal helper function to create an
 // AddressWitnessScriptHash with a known human-readable part, rather than
 // looking it up through its parameters.
-func newAddressTaproot(hrp B, witnessProg B) (*AddressTaproot, error) {
+func newAddressTaproot(hrp by, witnessProg by) (*AddressTaproot, er) {
 	// Check for valid program length for witness version 1, which is 32
 	// for P2TR.
 	if len(witnessProg) != 32 {
@@ -51,7 +51,7 @@ func newAddressTaproot(hrp B, witnessProg B) (*AddressTaproot, error) {
 
 // decodeSegWitAddress parses a bech32 encoded segwit address string and
 // returns the witness version and witness program byte representation.
-func decodeSegWitAddress(address B) (byte, []byte, error) {
+func decodeSegWitAddress(address by) (byte, by, er) {
 	// Decode the bech32 encoded address.
 	_, data, bech32version, err := bech32.DecodeGeneric(address)
 	if err != nil {
@@ -98,8 +98,8 @@ func decodeSegWitAddress(address B) (byte, []byte, error) {
 
 // encodeSegWitAddress creates a bech32 (or bech32m for SegWit v1) encoded
 // address string representation from witness version and witness program.
-func encodeSegWitAddress(hrp B, witnessVersion byte,
-	witnessProgram B) (B, error) {
+func encodeSegWitAddress(hrp by, witnessVersion byte,
+	witnessProgram by) (by, er) {
 	// Group the address bytes into 5 bit groups, as this is what is used to
 	// encode each character in the address string.
 	converted, err := bech32.ConvertBits(witnessProgram, 8, 5, true)
@@ -108,10 +108,10 @@ func encodeSegWitAddress(hrp B, witnessVersion byte,
 	}
 	// Concatenate the witness version and program, and encode the resulting
 	// bytes using bech32 encoding.
-	combined := make([]byte, len(converted)+1)
+	combined := make(by, len(converted)+1)
 	combined[0] = witnessVersion
 	copy(combined[1:], converted)
-	var bech B
+	var bech by
 	switch witnessVersion {
 	case 0:
 		bech, err = bech32.Encode(hrp, combined)
@@ -141,7 +141,7 @@ func encodeSegWitAddress(hrp B, witnessVersion byte,
 // of an AddressSegWit.
 //
 // NOTE: This method is part of the Address interface.
-func (a *AddressSegWit) EncodeAddress() B {
+func (a *AddressSegWit) EncodeAddress() by {
 	str, err := encodeSegWitAddress(
 		a.hrp, a.witnessVersion, a.witnessProgram[:],
 	)

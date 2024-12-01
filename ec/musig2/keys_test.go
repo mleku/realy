@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"realy.lol/ec"
 	"realy.lol/ec/schnorr"
 	"realy.lol/ec/secp256k1"
@@ -24,8 +25,8 @@ const (
 )
 
 type keySortTestVector struct {
-	PubKeys    []string `json:"pubkeys"`
-	SortedKeys []string `json:"sorted_pubkeys"`
+	PubKeys    []st `json:"pubkeys"`
+	SortedKeys []st `json:"sorted_pubkeys"`
 }
 
 // TestMusig2KeySort tests that keys are properly sorted according to the
@@ -56,36 +57,36 @@ func TestMusig2KeySort(t *testing.T) {
 }
 
 type keyAggValidTest struct {
-	Indices  []int  `json:"key_indices"`
-	Expected string `json:"expected"`
+	Indices  []no `json:"key_indices"`
+	Expected st   `json:"expected"`
 }
 
 type keyAggError struct {
-	Type     string `json:"type"`
-	Signer   int    `json:"signer"`
-	Contring string `json:"contrib"`
+	Type     st `json:"type"`
+	Signer   no `json:"signer"`
+	Contring st `json:"contrib"`
 }
 
 type keyAggInvalidTest struct {
-	Indices      []int  `json:"key_indices"`
-	TweakIndices []int  `json:"tweak_indices"`
-	IsXOnly      []bool `json:"is_xonly"`
-	Comment      string `json:"comment"`
+	Indices      []no `json:"key_indices"`
+	TweakIndices []no `json:"tweak_indices"`
+	IsXOnly      []bo `json:"is_xonly"`
+	Comment      st   `json:"comment"`
 }
 
 type keyAggTestVectors struct {
-	PubKeys      []string            `json:"pubkeys"`
-	Tweaks       []string            `json:"tweaks"`
+	PubKeys      []st                `json:"pubkeys"`
+	Tweaks       []st                `json:"tweaks"`
 	ValidCases   []keyAggValidTest   `json:"valid_test_cases"`
 	InvalidCases []keyAggInvalidTest `json:"error_test_cases"`
 }
 
-func keysFromIndices(t *testing.T, indices []int,
-	pubKeys []string) ([]*btcec.PublicKey, error) {
+func keysFromIndices(t *testing.T, indices []no,
+	pubKeys []st) ([]*btcec.PublicKey, er) {
 	t.Helper()
 	inputKeys := make([]*btcec.PublicKey, len(indices))
 	for i, keyIdx := range indices {
-		var err error
+		var err er
 		inputKeys[i], err = btcec.ParsePubKey(
 			mustParseHex(pubKeys[keyIdx]),
 		)
@@ -96,8 +97,8 @@ func keysFromIndices(t *testing.T, indices []int,
 	return inputKeys, nil
 }
 
-func tweaksFromIndices(t *testing.T, indices []int,
-	tweaks []string, isXonly []bool) []KeyTweakDesc {
+func tweaksFromIndices(t *testing.T, indices []no,
+	tweaks []st, isXonly []bo) []KeyTweakDesc {
 
 	t.Helper()
 	testTweaks := make([]KeyTweakDesc, len(indices))
@@ -123,7 +124,7 @@ func TestMuSig2KeyAggTestVectors(t *testing.T) {
 	require.NoError(t, err)
 	var testCases keyAggTestVectors
 	require.NoError(t, json.Unmarshal(testVectorBytes, &testCases))
-	tweaks := make([][]byte, len(testCases.Tweaks))
+	tweaks := make([]by, len(testCases.Tweaks))
 	for i := range testCases.Tweaks {
 		tweaks[i] = mustParseHex(testCases.Tweaks[i])
 	}
@@ -216,38 +217,38 @@ func TestMuSig2KeyAggTestVectors(t *testing.T) {
 }
 
 type keyTweakInvalidTest struct {
-	Indices      []int  `json:"key_indices"`
-	NonceIndices []int  `json:"nonce_indices"`
-	TweakIndices []int  `json:"tweak_indices"`
-	IsXOnly      []bool `json:"is_only"`
-	SignerIndex  int    `json:"signer_index"`
-	Comment      string `json:"comment"`
+	Indices      []no `json:"key_indices"`
+	NonceIndices []no `json:"nonce_indices"`
+	TweakIndices []no `json:"tweak_indices"`
+	IsXOnly      []bo `json:"is_only"`
+	SignerIndex  no   `json:"signer_index"`
+	Comment      st   `json:"comment"`
 }
 
 type keyTweakValidTest struct {
-	Indices      []int  `json:"key_indices"`
-	NonceIndices []int  `json:"nonce_indices"`
-	TweakIndices []int  `json:"tweak_indices"`
-	IsXOnly      []bool `json:"is_xonly"`
-	SignerIndex  int    `json:"signer_index"`
-	Expected     string `json:"expected"`
-	Comment      string `json:"comment"`
+	Indices      []no `json:"key_indices"`
+	NonceIndices []no `json:"nonce_indices"`
+	TweakIndices []no `json:"tweak_indices"`
+	IsXOnly      []bo `json:"is_xonly"`
+	SignerIndex  no   `json:"signer_index"`
+	Expected     st   `json:"expected"`
+	Comment      st   `json:"comment"`
 }
 
 type keyTweakVector struct {
-	SecKey       string                `json:"sk"`
-	PubKeys      []string              `json:"pubkeys"`
-	PrivNonce    string                `json:"secnonce"`
-	PubNonces    []string              `json:"pnonces"`
-	AggNnoce     string                `json:"aggnonce"`
-	Tweaks       []string              `json:"tweaks"`
-	Msg          string                `json:"msg"`
+	SecKey       st                    `json:"sk"`
+	PubKeys      []st                  `json:"pubkeys"`
+	PrivNonce    st                    `json:"secnonce"`
+	PubNonces    []st                  `json:"pnonces"`
+	AggNnoce     st                    `json:"aggnonce"`
+	Tweaks       []st                  `json:"tweaks"`
+	Msg          st                    `json:"msg"`
 	ValidCases   []keyTweakValidTest   `json:"valid_test_cases"`
 	InvalidCases []keyTweakInvalidTest `json:"error_test_cases"`
 }
 
-func pubNoncesFromIndices(t *testing.T, nonceIndices []int,
-	pubNonces []string) [][PubNonceSize]byte {
+func pubNoncesFromIndices(t *testing.T, nonceIndices []no,
+	pubNonces []st) [][PubNonceSize]byte {
 
 	nonces := make([][PubNonceSize]byte, len(nonceIndices))
 	for i, idx := range nonceIndices {

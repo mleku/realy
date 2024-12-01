@@ -17,8 +17,8 @@ import (
 // RelayInterface is a wrapper thing that unifies Store and Relay under a common
 // API.
 type RelayInterface interface {
-	Publish(c Ctx, evt *event.T) E
-	QuerySync(c Ctx, f *filter.T, opts ...ws.SubscriptionOption) ([]*event.T, E)
+	Publish(c cx, evt *event.T) er
+	QuerySync(c cx, f *filter.T, opts ...ws.SubscriptionOption) ([]*event.T, er)
 }
 
 type Relay struct {
@@ -27,7 +27,7 @@ type Relay struct {
 
 var _ RelayInterface = (*Relay)(nil)
 
-func (w Relay) Publish(c Ctx, evt *event.T) (err E) {
+func (w Relay) Publish(c cx, evt *event.T) (err er) {
 	if evt.Kind.IsEphemeral() {
 		// do not store ephemeral events
 		return nil
@@ -50,7 +50,7 @@ func (w Relay) Publish(c Ctx, evt *event.T) (err E) {
 					continue
 				}
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
-					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
+					return errorf.W(st(normalize.Invalid.F("not replacing newer event")))
 				}
 				// not deleting these events because some clients are retarded and the query
 				// will pull the new one but a backup can recover the data of old ones
@@ -92,7 +92,7 @@ func (w Relay) Publish(c Ctx, evt *event.T) (err E) {
 				err = nil
 				log.I.F("maybe replace %s", ev.Serialize())
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
-					return errorf.W(S(normalize.Invalid.F("not replacing newer event")))
+					return errorf.W(st(normalize.Invalid.F("not replacing newer event")))
 				}
 				// not deleting these events because some clients are retarded and the query
 				// will pull the new one but a backup can recover the data of old ones
@@ -127,8 +127,8 @@ func (w Relay) Publish(c Ctx, evt *event.T) (err E) {
 	return
 }
 
-func (w Relay) QuerySync(c Ctx, f *filter.T,
-	opts ...ws.SubscriptionOption) ([]*event.T, E) {
+func (w Relay) QuerySync(c cx, f *filter.T,
+	opts ...ws.SubscriptionOption) ([]*event.T, er) {
 
 	evs, err := w.I.QueryEvents(c, f)
 	if chk.E(err) {

@@ -2,10 +2,10 @@ package nwc
 
 type LookupInvoiceRequest struct {
 	Request
-	PaymentHash, Invoice B
+	PaymentHash, Invoice by
 }
 
-func NewLookupInvoiceRequest(paymentHash, invoice B) *LookupInvoiceRequest {
+func NewLookupInvoiceRequest(paymentHash, invoice by) *LookupInvoiceRequest {
 	return &LookupInvoiceRequest{
 		Request{Methods.LookupInvoice}, paymentHash, invoice,
 	}

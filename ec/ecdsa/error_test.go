@@ -13,7 +13,7 @@ import (
 func TestErrorKindStringer(t *testing.T) {
 	tests := []struct {
 		in   ErrorKind
-		want string
+		want st
 	}{
 		{ErrSigTooShort, "ErrSigTooShort"},
 		{ErrSigTooLong, "ErrSigTooLong"},
@@ -53,7 +53,7 @@ func TestErrorKindStringer(t *testing.T) {
 func TestError(t *testing.T) {
 	tests := []struct {
 		in   Error
-		want string
+		want st
 	}{{
 		Error{Description: "some error"},
 		"some error",
@@ -74,10 +74,10 @@ func TestError(t *testing.T) {
 // a specific error kind via errors.Is and unwrapped via errors.As.
 func TestErrorKindIsAs(t *testing.T) {
 	tests := []struct {
-		name      string
-		err       error
-		target    error
-		wantMatch bool
+		name      st
+		err       er
+		target    er
+		wantMatch bo
 		wantAs    ErrorKind
 	}{{
 		name:      "ErrSigTooShort == ErrSigTooShort",

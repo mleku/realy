@@ -12,7 +12,7 @@ func TestT(t *testing.T) {
 	v := New(randomBytes)
 	buf := new(bytes.Buffer)
 	v.Write(buf)
-	randomCopy := make([]byte, len(randomBytes))
+	randomCopy := make(by, len(randomBytes))
 	buf2 := bytes.NewBuffer(buf.Bytes())
 	v2 := New(randomCopy)
 	el := v2.Read(buf2).(*T)

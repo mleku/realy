@@ -17,17 +17,17 @@ import (
 type Unsigned struct{ V uint64 }
 
 func NewUnsigned[V int64 | int32 | int16 | int8 | uint64 | uint32 | uint16 |
-uint8](i V) *Signed {
+	uint8](i V) *Signed {
 
 	return &Signed{int64(i)}
 }
 
-func (u *Unsigned) Marshal(dst B) (b B) {
+func (u *Unsigned) Marshal(dst by) (b by) {
 	b, _ = ints.New(u.V).MarshalJSON(dst)
 	return
 }
 
-func (u *Unsigned) Unmarshal(dst B) (rem B, err E) {
+func (u *Unsigned) Unmarshal(dst by) (rem by, err er) {
 	rem = dst
 	n := ints.New(u.V)
 	if rem, err = n.UnmarshalJSON(dst); chk.E(err) {

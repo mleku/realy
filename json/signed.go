@@ -23,7 +23,7 @@ type Signed struct{ V int64 }
 
 func NewSigned[V int64 | int32 | int16 | int8](i V) *Signed { return &Signed{int64(i)} }
 
-func (s *Signed) Marshal(dst B) (b B) {
+func (s *Signed) Marshal(dst by) (b by) {
 	b = dst
 	v := s.V
 	// we don't add implicit + to the front, only negative
@@ -35,9 +35,9 @@ func (s *Signed) Marshal(dst B) (b B) {
 	return
 }
 
-func (s *Signed) Unmarshal(dst B) (rem B, err E) {
+func (s *Signed) Unmarshal(dst by) (rem by, err er) {
 	rem = dst
-	var neg bool
+	var neg bo
 	// first byte can be `-` or `+`
 	if rem[0] == '-' {
 		neg = true

@@ -32,13 +32,13 @@ import (
 // with errors.As.
 //
 //	assertErrorAsType(t, err, new(ErrFoo))
-func assertErrorAsType(t *testing.T, err error, typ interface{}, msgAndArgs ...interface{}) bool {
+func assertErrorAsType(t *testing.T, err er, typ interface{}, msgAndArgs ...interface{}) bo {
 	t.Helper()
 
 	return assert.True(t, errors.As(err, typ), msgAndArgs...)
 }
 
-func assertErrorJSONUnmarshalType(t *testing.T, err error, msgAndArgs ...interface{}) bool {
+func assertErrorJSONUnmarshalType(t *testing.T, err er, msgAndArgs ...interface{}) bo {
 	t.Helper()
 
 	return assertErrorAsType(t, err, new(*json.UnmarshalTypeError), msgAndArgs...)

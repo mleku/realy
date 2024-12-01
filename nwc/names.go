@@ -13,17 +13,17 @@ var Methods = struct {
 	LookupInvoice,
 	ListTransactions,
 	GetBalance,
-	GetInfo B
+	GetInfo by
 }{
-	B("pay_invoice"),
-	B("multi_pay_invoice"),
-	B("pay_keysend"),
-	B("multi_pay_keysend"),
-	B("make_invoice"),
-	B("lookup_invoice"),
-	B("list_transactions"),
-	B("get_balance"),
-	B("get_info"),
+	by("pay_invoice"),
+	by("multi_pay_invoice"),
+	by("pay_keysend"),
+	by("multi_pay_keysend"),
+	by("make_invoice"),
+	by("lookup_invoice"),
+	by("list_transactions"),
+	by("get_balance"),
+	by("get_info"),
 }
 
 // Keys are the proper JSON bytes for the JSON object keys of the structs of the
@@ -59,46 +59,46 @@ var Keys = struct {
 	Notifications,
 	NotificationType,
 	Notification,
-	PaymentHash B
+	PaymentHash by
 }{
-	B("method"),
-	B("params"),
-	B("result_type"),
-	B("error"),
-	B("result"),
-	B("invoice"),
-	B("amount"),
-	B("preimage"),
-	B("fees_paid"),
-	B("id"),
-	B("tlv_records"),
-	B("type"),
-	B("value"),
-	B("pubkey"),
-	B("description"),
-	B("description_hash"),
-	B("expiry"),
-	B("created_at"),
-	B("expires_at"),
-	B("metadata"),
-	B("settled_at"),
-	B("from"),
-	B("until"),
-	B("offset"),
-	B("unpaid"),
-	B("balance"),
-	B("notifications"),
-	B("notification_type"),
-	B("notification"),
-	B("payment_hash"),
+	by("method"),
+	by("params"),
+	by("result_type"),
+	by("error"),
+	by("result"),
+	by("invoice"),
+	by("amount"),
+	by("preimage"),
+	by("fees_paid"),
+	by("id"),
+	by("tlv_records"),
+	by("type"),
+	by("value"),
+	by("pubkey"),
+	by("description"),
+	by("description_hash"),
+	by("expiry"),
+	by("created_at"),
+	by("expires_at"),
+	by("metadata"),
+	by("settled_at"),
+	by("from"),
+	by("until"),
+	by("offset"),
+	by("unpaid"),
+	by("balance"),
+	by("notifications"),
+	by("notification_type"),
+	by("notification"),
+	by("payment_hash"),
 }
 
 // Notifications are the proper strings for the Notification.NotificationType
 var Notifications = struct {
-	PaymentReceived, PaymentSent B
+	PaymentReceived, PaymentSent by
 }{
-	B("payment_received"),
-	B("payment_sent"),
+	by("payment_received"),
+	by("payment_sent"),
 }
 
 var Errors = struct {
@@ -117,14 +117,14 @@ var Errors = struct {
 	// Internal - An internal error.
 	Internal,
 	// Other - Other error.
-	Other B
+	Other by
 }{
-	B("RATE_LIMITED"),
-	B("NOT_IMPLEMENTED"),
-	B("INSUFFICIENT_BALANCE"),
-	B("QUOTA_EXCEEDED"),
-	B("RESTRICTED"),
-	B("UNAUTHORIZED"),
-	B("INTERNAL"),
-	B("OTHER"),
+	by("RATE_LIMITED"),
+	by("NOT_IMPLEMENTED"),
+	by("INSUFFICIENT_BALANCE"),
+	by("QUOTA_EXCEEDED"),
+	by("RESTRICTED"),
+	by("UNAUTHORIZED"),
+	by("INTERNAL"),
+	by("OTHER"),
 }

@@ -13,16 +13,16 @@ import (
 )
 
 var (
-	jId        = B("id")
-	jPubkey    = B("pubkey")
-	jCreatedAt = B("created_at")
-	jKind      = B("kind")
-	jTags      = B("tags")
-	jContent   = B("content")
-	jSig       = B("sig")
+	jId        = by("id")
+	jPubkey    = by("pubkey")
+	jCreatedAt = by("created_at")
+	jKind      = by("kind")
+	jTags      = by("tags")
+	jContent   = by("content")
+	jSig       = by("sig")
 )
 
-func (ev *T) MarshalJSON(dst B) (b B, err error) {
+func (ev *T) MarshalJSON(dst by) (b by, err er) {
 	// open parentheses
 	dst = append(dst, '{')
 	// ID
@@ -60,8 +60,8 @@ func (ev *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (ev *T) UnmarshalJSON(b B) (r B, err error) {
-	key := make(B, 0, 9)
+func (ev *T) UnmarshalJSON(b by) (r by, err er) {
+	key := make(by, 0, 9)
 	r = b
 	for ; len(r) > 0; r = r[1:] {
 		if r[0] == '{' {
@@ -101,7 +101,7 @@ InVal:
 		if !equals(jId, key) {
 			goto invalid
 		}
-		var id B
+		var id by
 		if id, r, err = text.UnmarshalHex(r); chk.E(err) {
 			return
 		}
@@ -116,7 +116,7 @@ InVal:
 		if !equals(jPubkey, key) {
 			goto invalid
 		}
-		var pk B
+		var pk by
 		if pk, r, err = text.UnmarshalHex(r); chk.E(err) {
 			return
 		}
@@ -149,7 +149,7 @@ InVal:
 		if !equals(jSig, key) {
 			goto invalid
 		}
-		var sig B
+		var sig by
 		if sig, r, err = text.UnmarshalHex(r); chk.E(err) {
 			return
 		}
@@ -205,8 +205,8 @@ BetweenKV:
 AfterClose:
 	return
 invalid:
-	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(r)]),
-		S(r))
+	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", st(b), st(b[:len(r)]),
+		st(r))
 	return
 eof:
 	err = io.EOF

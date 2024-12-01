@@ -16,7 +16,7 @@ import (
 // is an error.  This is only provided for the hard-coded constants so errors in
 // the source code can be detected. It will only (and must only) be called with
 // hard-coded values.
-func hexToBytes(s string) []byte {
+func hexToBytes(s string) by {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -199,7 +199,7 @@ func TestRFC6979Compat(t *testing.T) {
 	}}
 	for i, test := range tests {
 		secKey := hexToBytes(test.key)
-		hash := sha256.Sum256([]byte(test.msg))
+		hash := sha256.Sum256(by(test.msg))
 		// Ensure deterministically generated nonce is the expected value.
 		gotNonce := NonceRFC6979(secKey, hash[:], nil, nil, 0)
 		wantNonce := hexToBytes(test.nonce)

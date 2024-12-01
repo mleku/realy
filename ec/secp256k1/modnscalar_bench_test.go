@@ -11,8 +11,8 @@ import (
 
 // benchmarkVals returns the raw bytes for a couple of unsigned 256-bit
 // big-endian integers used throughout the benchmarks.
-func benchmarkVals() [2][]byte {
-	return [2][]byte{
+func benchmarkVals() [2]by {
+	return [2]by{
 		hexToBytes("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364143"),
 		hexToBytes("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364144"),
 	}

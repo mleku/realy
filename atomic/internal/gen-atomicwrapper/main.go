@@ -72,35 +72,35 @@ func main() {
 	}
 }
 
-type stringList []string
+type stringList []st
 
-func (sl *stringList) String() string {
+func (sl *stringList) String() st {
 	return strings.Join(*sl, ",")
 }
 
-func (sl *stringList) Set(s string) error {
+func (sl *stringList) Set(s st) er {
 	for _, i := range strings.Split(s, ",") {
 		*sl = append(*sl, strings.TrimSpace(i))
 	}
 	return nil
 }
 
-func run(args []string) error {
+func run(args []st) er {
 	var opts struct {
-		Name    string
-		Wrapped string
-		Type    string
+		Name    st
+		Wrapped st
+		Type    st
 
 		Imports      stringList
-		Pack, Unpack string
+		Pack, Unpack st
 
-		CAS            bool
-		CompareAndSwap bool
-		Swap           bool
-		JSON           bool
+		CAS            bo
+		CompareAndSwap bo
+		Swap           bo
+		JSON           bo
 
-		File   string
-		ToYear int
+		File   st
+		ToYear no
 	}
 
 	opts.ToYear = time.Now().Year()
@@ -178,7 +178,7 @@ func run(args []string) error {
 		}
 	}
 
-	sort.Strings([]string(opts.Imports))
+	sort.Strings(opts.Imports)
 
 	var buff bytes.Buffer
 	if err := _tmpl.ExecuteTemplate(&buff, "wrapper.tmpl", opts); err != nil {

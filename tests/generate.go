@@ -11,12 +11,12 @@ import (
 	"realy.lol/timestamp"
 )
 
-func GenerateEvent(maxSize int) (ev *event.T, binSize int, err E) {
+func GenerateEvent(maxSize no) (ev *event.T, binSize no, err er) {
 	l := frand.Intn(maxSize * 6 / 8) // account for base64 expansion
 	ev = &event.T{
 		Kind:      kind.TextNote,
 		CreatedAt: timestamp.Now(),
-		Content:   B(base64.StdEncoding.EncodeToString(frand.Bytes(l))),
+		Content:   by(base64.StdEncoding.EncodeToString(frand.Bytes(l))),
 	}
 	signer := new(p256k.Signer)
 	if err = signer.Generate(); chk.E(err) {
@@ -25,7 +25,7 @@ func GenerateEvent(maxSize int) (ev *event.T, binSize int, err E) {
 	if err = ev.Sign(signer); chk.E(err) {
 		return
 	}
-	var bin []byte
+	var bin by
 	bin, err = ev.MarshalJSON(bin)
 	binSize = len(bin)
 	return

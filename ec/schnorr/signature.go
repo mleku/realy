@@ -23,7 +23,7 @@ var (
 	// ensures the same nonce is not generated for the same message and key
 	// as for other signing algorithms such as ECDSA.
 	//
-	// It is equal to SHA-256([]byte("BIP-340")).
+	// It is equal to SHA-256(by("BIP-340")).
 	rfc6979ExtraDataV0 = [32]uint8{
 		0xa3, 0xeb, 0x4c, 0x18, 0x2f, 0xae, 0x7e, 0xf4,
 		0xe8, 0x10, 0xc6, 0xee, 0x13, 0xb0, 0xe9, 0x26,
@@ -52,7 +52,7 @@ func NewSignature(r *btcec.FieldVal, s *btcec.ModNScalar) *Signature {
 //
 //	sig[0:32]  x coordinate of the point R, encoded as a big-endian uint256
 //	sig[32:64] s, encoded also as big-endian uint256
-func (sig Signature) Serialize() []byte {
+func (sig Signature) Serialize() by {
 	// Total length of returned signature is the length of r and s.
 	var b [SignatureSize]byte
 	sig.r.PutBytesUnchecked(b[0:32])
@@ -65,7 +65,7 @@ func (sig Signature) Serialize() []byte {
 //
 // - The r component must be in the valid range for secp256k1 field elements
 // - The s component must be in the valid range for secp256k1 scalars
-func ParseSignature(sig []byte) (*Signature, error) {
+func ParseSignature(sig by) (*Signature, er) {
 	// The signature must be the correct length.
 	sigLen := len(sig)
 	if sigLen < SignatureSize {
@@ -96,7 +96,7 @@ func ParseSignature(sig []byte) (*Signature, error) {
 // IsEqual compares this Signature instance to the one passed, returning true
 // if both Signatures are equivalent. A signature is equivalent to another, if
 // they both have the same scalar value for R and S.
-func (sig Signature) IsEqual(otherSig *Signature) bool {
+func (sig Signature) IsEqual(otherSig *Signature) bo {
 	return sig.r.Equals(&otherSig.r) && sig.s.Equals(&otherSig.s)
 }
 
@@ -107,7 +107,7 @@ func (sig Signature) IsEqual(otherSig *Signature) bool {
 // This differs from the exported Verify method in that it returns a specific
 // error to support better testing while the exported method simply returns a
 // bool indicating success or failure.
-func schnorrVerify(sig *Signature, hash []byte, pubKeyBytes []byte) error {
+func schnorrVerify(sig *Signature, hash by, pubKeyBytes by) er {
 	// The algorithm for producing a BIP-340 signature is described in
 	// README.md and is reproduced here for reference:
 	//
@@ -213,7 +213,7 @@ func schnorrVerify(sig *Signature, hash []byte, pubKeyBytes []byte) error {
 
 // Verify returns whether or not the signature is valid for the provided hash
 // and secp256k1 public key.
-func (sig *Signature) Verify(hash []byte, pubKey *btcec.PublicKey) bool {
+func (sig *Signature) Verify(hash by, pubKey *btcec.PublicKey) bo {
 	pubkeyBytes := SerializePubKey(pubKey)
 	return schnorrVerify(sig, hash, pubkeyBytes) == nil
 }
@@ -234,7 +234,7 @@ func zeroArray(a *[scalarSize]byte) {
 // NOT be 0.  Since this is an internal use function, these preconditions MUST
 // be satisified by the caller.
 func schnorrSign(privKey, nonce *btcec.ModNScalar, pubKey *btcec.PublicKey,
-	hash []byte, opts *signOptions) (*Signature, error) {
+	hash by, opts *signOptions) (*Signature, er) {
 
 	// The algorithm for producing a BIP-340 signature is described in
 	// README.md and is reproduced here for reference:
@@ -330,7 +330,7 @@ type SignOption func(*signOptions)
 type signOptions struct {
 	// fastSign determines if we'll skip the check at the end of the routine
 	// where we attempt to verify the produced signature.
-	fastSign bool
+	fastSign bo
 	// authNonce allows the user to pass in their own nonce information, which
 	// is useful for schemes like mu-sig.
 	authNonce *[32]byte
@@ -365,8 +365,8 @@ func CustomNonce(auxData [32]byte) SignOption {
 // which can expose the signer to constant time attacks.  As a result, this
 // function should not be used in situations where there is the possibility of
 // someone having EM field/cache/etc access.
-func Sign(privKey *btcec.SecretKey, hash []byte,
-	signOpts ...SignOption) (*Signature, error) {
+func Sign(privKey *btcec.SecretKey, hash by,
+	signOpts ...SignOption) (*Signature, er) {
 	// First, parse the set of optional signing options.
 	opts := defaultSignOptions()
 	for _, option := range signOpts {

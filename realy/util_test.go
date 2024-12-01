@@ -13,48 +13,46 @@ import (
 	"realy.lol/units"
 )
 
-// todo: this needs updating
-
 func startTestRelay(c context.T, t *testing.T, tr *testRelay) *Server {
 	t.Helper()
 	srv, _ := NewServer(ServerParams{
 		c, func() {}, tr, "", 500 * units.Kb, "", "",
 	})
-	started := make(chan bool)
+	started := make(chan bo)
 	go srv.Start("127.0.0.1", 0, started)
 	<-started
 	return srv
 }
 
 type testRelay struct {
-	Ctx
+	cx
 	Cancel      context.F
-	name        S
+	name        st
 	storage     store.I
-	init        func() E
+	init        func() er
 	onShutdown  func(context.T)
-	acceptEvent func(*event.T) bool
+	acceptEvent func(*event.T) bo
 }
 
-func (tr *testRelay) Name() S                   { return tr.name }
+func (tr *testRelay) Name() st                  { return tr.name }
 func (tr *testRelay) Storage(context.T) store.I { return tr.storage }
-func (tr *testRelay) Origin() S                 { return "example.com" }
-func (tr *testRelay) Init() E {
-	tr.Ctx, tr.Cancel = context.Cancel(context.Bg())
+func (tr *testRelay) Origin() st                { return "example.com" }
+func (tr *testRelay) Init() er {
+	tr.cx, tr.Cancel = context.Cancel(context.Bg())
 	if fn := tr.init; fn != nil {
 		return fn()
 	}
 	return nil
 }
 
-func (tr *testRelay) OnShutdown(ctx context.T) {
+func (tr *testRelay) OnShutdown(c context.T) {
 	if fn := tr.onShutdown; fn != nil {
-		fn(ctx)
+		fn(c)
 	}
 }
 
-func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin S,
-	authedPubkey B) (ok bool, notice S, after func()) {
+func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin st,
+	authedPubkey by) (ok bo, notice st, after func()) {
 	if fn := tr.acceptEvent; fn != nil {
 		return fn(evt), "", nil
 	}
@@ -62,12 +60,12 @@ func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, or
 }
 
 type testStorage struct {
-	init        func() E
+	init        func() er
 	close       func()
-	queryEvents func(context.T, *filter.T) ([]*event.T, E)
-	deleteEvent func(context.T, *eventid.T) E
-	saveEvent   func(context.T, *event.T) E
-	countEvents func(context.T, *filter.T) (N, bool, E)
+	queryEvents func(context.T, *filter.T) ([]*event.T, er)
+	deleteEvent func(context.T, *eventid.T) er
+	saveEvent   func(context.T, *event.T) er
+	countEvents func(context.T, *filter.T) (no, bo, er)
 }
 
 func (st *testStorage) Import(r io.Reader) {
@@ -75,64 +73,64 @@ func (st *testStorage) Import(r io.Reader) {
 	panic("implement me")
 }
 
-func (st *testStorage) Export(c store.Ctx, w io.Writer, pubkeys ...store.B) {
+func (st *testStorage) Export(c cx, w io.Writer, pubkeys ...by) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (st *testStorage) Sync() (err store.E) {
+func (st *testStorage) Sync() (err er) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (st *testStorage) Nuke() (err store.E) {
+func (st *testStorage) Nuke() (err er) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (st *testStorage) Path() store.S {
+func (st *testStorage) Path() st {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (st *testStorage) Init(path S) E {
+func (st *testStorage) Init(path st) er {
 	if fn := st.init; fn != nil {
 		return fn()
 	}
 	return nil
 }
 
-func (st *testStorage) Close() (err E) {
+func (st *testStorage) Close() (err er) {
 	if fn := st.close; fn != nil {
 		fn()
 	}
 	return
 }
 
-func (st *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err E) {
+func (st *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err er) {
 	if fn := st.queryEvents; fn != nil {
 		return fn(c, f)
 	}
 	return nil, nil
 }
 
-func (st *testStorage) DeleteEvent(c context.T, evt *eventid.T) E {
+func (st *testStorage) DeleteEvent(c context.T, evt *eventid.T) er {
 	if fn := st.deleteEvent; fn != nil {
 		return fn(c, evt)
 	}
 	return nil
 }
 
-func (st *testStorage) SaveEvent(c context.T, e *event.T) E {
+func (st *testStorage) SaveEvent(c context.T, e *event.T) er {
 	if fn := st.saveEvent; fn != nil {
 		return fn(c, e)
 	}
 	return nil
 }
 
-func (st *testStorage) CountEvents(ctx context.T, f *filter.T) (N, bool, E) {
+func (st *testStorage) CountEvents(c context.T, f *filter.T) (no, bo, er) {
 	if fn := st.countEvents; fn != nil {
-		return fn(ctx, f)
+		return fn(c, f)
 	}
 	return 0, false, nil
 }

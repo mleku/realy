@@ -12,13 +12,13 @@ func TestUnmarshalKindsArray(t *testing.T) {
 	for i := range k.K {
 		k.K[i] = kind.New(uint16(frand.Intn(65535)))
 	}
-	var dst B
-	var err error
+	var dst by
+	var err er
 	if dst, err = k.MarshalJSON(dst); chk.E(err) {
 		t.Fatal(err)
 	}
 	k2 := &T{}
-	var rem B
+	var rem by
 	if rem, err = k2.UnmarshalJSON(dst); chk.E(err) {
 		return
 	}

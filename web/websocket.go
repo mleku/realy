@@ -7,6 +7,7 @@ import (
 
 	"github.com/fasthttp/websocket"
 	"golang.org/x/time/rate"
+
 	"realy.lol/atomic"
 )
 
@@ -24,17 +25,17 @@ type Socket struct {
 func NewSocket(
 	conn *websocket.Conn,
 	req *http.Request,
-	challenge B,
+	challenge by,
 ) (ws *Socket) {
 	ws = &Socket{conn: conn, req: req}
-	ws.challenge.Store(S(challenge))
+	ws.challenge.Store(st(challenge))
 	ws.authRequested.Store(false)
 	ws.setRemoteFromReq(req)
 	return
 }
 
-func (ws *Socket) AuthRequested() bool { return ws.authRequested.Load() }
-func (ws *Socket) RequestAuth()        { ws.authRequested.Store(true) }
+func (ws *Socket) AuthRequested() bo { return ws.authRequested.Load() }
+func (ws *Socket) RequestAuth()      { ws.authRequested.Store(true) }
 
 func (ws *Socket) setRemoteFromReq(r *http.Request) {
 	var rr string
@@ -62,7 +63,7 @@ func (ws *Socket) setRemoteFromReq(r *http.Request) {
 	ws.remote.Store(rr)
 }
 
-func (ws *Socket) Write(p []byte) (n int, err error) {
+func (ws *Socket) Write(p by) (n no, err er) {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
 	err = ws.conn.WriteMessage(websocket.TextMessage, p)
@@ -72,24 +73,24 @@ func (ws *Socket) Write(p []byte) (n int, err error) {
 	return
 }
 
-func (ws *Socket) WriteJSON(any interface{}) E {
+func (ws *Socket) WriteJSON(any interface{}) er {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
 	return ws.conn.WriteJSON(any)
 }
 
-func (ws *Socket) WriteMessage(t int, b B) E {
+func (ws *Socket) WriteMessage(t no, b by) er {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
 	return ws.conn.WriteMessage(t, b)
 }
 
-func (ws *Socket) Challenge() S   { return ws.challenge.Load() }
-func (ws *Socket) RealRemote() S  { return ws.remote.Load() }
-func (ws *Socket) Authed() S      { return ws.authed.Load() }
-func (ws *Socket) AuthedBytes() B { return B(ws.authed.Load()) }
-func (ws *Socket) IsAuthed() bool { return ws.authed.Load() != "" }
-func (ws *Socket) SetAuthed(s S) {
+func (ws *Socket) Challenge() st   { return ws.challenge.Load() }
+func (ws *Socket) RealRemote() st  { return ws.remote.Load() }
+func (ws *Socket) Authed() st      { return ws.authed.Load() }
+func (ws *Socket) AuthedBytes() by { return by(ws.authed.Load()) }
+func (ws *Socket) IsAuthed() bo    { return ws.authed.Load() != "" }
+func (ws *Socket) SetAuthed(s st) {
 	log.T.F("setting authed %0x", s)
 	ws.authed.Store(s)
 }

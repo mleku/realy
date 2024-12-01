@@ -3,7 +3,6 @@ package ws
 import (
 	"bytes"
 	"compress/flate"
-	"context"
 	"crypto/tls"
 	"errors"
 	"io"
@@ -18,7 +17,7 @@ import (
 
 type Connection struct {
 	conn              net.Conn
-	enableCompression bool
+	enableCompression bo
 	controlHandler    wsutil.FrameHandlerFunc
 	flateReader       *wsflate.Reader
 	reader            *wsutil.Reader
@@ -28,8 +27,8 @@ type Connection struct {
 	msgStateW         *wsflate.MessageState
 }
 
-func NewConnection(ctx context.Context, url string, requestHeader http.Header,
-	tlsConfig *tls.Config) (*Connection, error) {
+func NewConnection(c cx, url string, requestHeader http.Header,
+	tlsConfig *tls.Config) (*Connection, er) {
 	dialer := ws.Dialer{
 		Header: ws.HandshakeHeaderHTTP(requestHeader),
 		Extensions: []httphead.Option{
@@ -37,7 +36,7 @@ func NewConnection(ctx context.Context, url string, requestHeader http.Header,
 		},
 		TLSConfig: tlsConfig,
 	}
-	conn, _, hs, err := dialer.Dial(ctx, url)
+	conn, _, hs, err := dialer.Dial(c, url)
 	if err != nil {
 		return nil, errorf.E("failed to dial: %w", err)
 	}
@@ -105,51 +104,51 @@ func NewConnection(ctx context.Context, url string, requestHeader http.Header,
 	}, nil
 }
 
-func (c *Connection) WriteMessage(ctx context.Context, data []byte) error {
+func (cn *Connection) WriteMessage(c cx, data by) er {
 	select {
-	case <-ctx.Done():
+	case <-c.Done():
 		return errors.New("context canceled")
 	default:
 	}
 
-	if c.msgStateW.IsCompressed() && c.enableCompression {
-		c.flateWriter.Reset(c.writer)
-		if _, err := io.Copy(c.flateWriter, bytes.NewReader(data)); chk.T(err) {
+	if cn.msgStateW.IsCompressed() && cn.enableCompression {
+		cn.flateWriter.Reset(cn.writer)
+		if _, err := io.Copy(cn.flateWriter, bytes.NewReader(data)); chk.T(err) {
 			return errorf.E("failed to write message: %w", err)
 		}
 
-		if err := c.flateWriter.Close(); chk.T(err) {
+		if err := cn.flateWriter.Close(); chk.T(err) {
 			return errorf.E("failed to close flate writer: %w", err)
 		}
 	} else {
-		if _, err := io.Copy(c.writer, bytes.NewReader(data)); chk.T(err) {
+		if _, err := io.Copy(cn.writer, bytes.NewReader(data)); chk.T(err) {
 			return errorf.E("failed to write message: %w", err)
 		}
 	}
 
-	if err := c.writer.Flush(); chk.T(err) {
+	if err := cn.writer.Flush(); chk.T(err) {
 		return errorf.E("failed to flush writer: %w", err)
 	}
 
 	return nil
 }
 
-func (c *Connection) ReadMessage(ctx context.Context, buf io.Writer) error {
+func (cn *Connection) ReadMessage(c cx, buf io.Writer) er {
 	for {
 		select {
-		case <-ctx.Done():
+		case <-c.Done():
 			return errors.New("context canceled")
 		default:
 		}
 
-		h, err := c.reader.NextFrame()
+		h, err := cn.reader.NextFrame()
 		if err != nil {
-			c.conn.Close()
+			cn.conn.Close()
 			return errorf.E("failed to advance frame: %w", err)
 		}
 
 		if h.OpCode.IsControl() {
-			if err := c.controlHandler(h, c.reader); chk.T(err) {
+			if err := cn.controlHandler(h, cn.reader); chk.T(err) {
 				return errorf.E("failed to handle control frame: %w", err)
 			}
 		} else if h.OpCode == ws.OpBinary ||
@@ -157,18 +156,18 @@ func (c *Connection) ReadMessage(ctx context.Context, buf io.Writer) error {
 			break
 		}
 
-		if err := c.reader.Discard(); chk.T(err) {
+		if err := cn.reader.Discard(); chk.T(err) {
 			return errorf.E("failed to discard: %w", err)
 		}
 	}
 
-	if c.msgStateR.IsCompressed() && c.enableCompression {
-		c.flateReader.Reset(c.reader)
-		if _, err := io.Copy(buf, c.flateReader); chk.T(err) {
+	if cn.msgStateR.IsCompressed() && cn.enableCompression {
+		cn.flateReader.Reset(cn.reader)
+		if _, err := io.Copy(buf, cn.flateReader); chk.T(err) {
 			return errorf.E("failed to read message: %w", err)
 		}
 	} else {
-		if _, err := io.Copy(buf, c.reader); chk.T(err) {
+		if _, err := io.Copy(buf, cn.reader); chk.T(err) {
 			return errorf.E("failed to read message: %w", err)
 		}
 	}
@@ -176,6 +175,6 @@ func (c *Connection) ReadMessage(ctx context.Context, buf io.Writer) error {
 	return nil
 }
 
-func (c *Connection) Close() error {
-	return c.conn.Close()
+func (cn *Connection) Close() er {
+	return cn.conn.Close()
 }

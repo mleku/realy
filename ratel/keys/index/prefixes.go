@@ -13,7 +13,7 @@ type P byte
 
 // Key writes a key with the P prefix byte and an arbitrary list of
 // keys.Element.
-func (p P) Key(element ...keys.Element) (b []byte) {
+func (p P) Key(element ...keys.Element) (b by) {
 	b = keys.Write(
 		append([]keys.Element{New(byte(p))}, element...)...)
 	// log.T.F("key %x", b)
@@ -24,13 +24,13 @@ func (p P) Key(element ...keys.Element) (b []byte) {
 func (p P) B() byte { return byte(p) }
 
 // I returns the index.P as an int (for use with the KeySizes.
-func (p P) I() int { return int(p) }
+func (p P) I() no { return no(p) }
 
 // GetAsBytes todo wat is dis?
-func GetAsBytes(prf ...P) (b [][]byte) {
-	b = make([][]byte, len(prf))
+func GetAsBytes(prf ...P) (b []by) {
+	b = make([]by, len(prf))
 	for i := range prf {
-		b[i] = []byte{byte(prf[i])}
+		b[i] = by{byte(prf[i])}
 	}
 	return
 }
@@ -112,7 +112,7 @@ const (
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop
 // for pulling events matching a serial
-var FilterPrefixes = [][]byte{
+var FilterPrefixes = []by{
 	{CreatedAt.B()},
 	{Id.B()},
 	{Kind.B()},
@@ -126,7 +126,7 @@ var FilterPrefixes = [][]byte{
 // KeySizes are the byte size of keys of each type of key prefix. int(P) or call the P.I() method
 // corresponds to the index 1:1. For future index additions be sure to add the
 // relevant KeySizes sum as it describes the data for a programmer.
-var KeySizes = []int{
+var KeySizes = []no{
 	// Event
 	1 + serial.Len,
 	// CreatedAt

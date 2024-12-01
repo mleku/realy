@@ -20,7 +20,7 @@ package text
 //	- A form feed, 0x0C, as \f
 //
 //	UTF-8 should be used for encoding.
-func NostrEscape(dst, src B) B {
+func NostrEscape(dst, src by) by {
 	l := len(src)
 	for i := 0; i < l; i++ {
 		c := src[i]
@@ -55,8 +55,8 @@ func NostrEscape(dst, src B) B {
 // appending it to the provided slice, it rewrites it, eliminating a memory
 // copy. Keep in mind that the original JSON will be mangled by this operation,
 // but the resultant slices will cost zero allocations.
-func NostrUnescape(dst B) (b B) {
-	var r, w int
+func NostrUnescape(dst by) (b by) {
+	var r, w no
 	for ; r < len(dst); r++ {
 		if dst[r] == '\\' {
 			r++

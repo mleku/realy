@@ -17,26 +17,26 @@ import (
 )
 
 type C struct {
-	AppName      S    `env:"APP_NAME" default:"realy"`
-	Profile      S    `env:"PROFILE" usage:"root path for all other path configurations (based on APP_NAME and OS specific location)"`
-	Listen       S    `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
-	Port         N    `env:"PORT" default:"3334" usage:"port to listen on"`
-	AdminUser    S    `env:"ADMIN_USER" default:"admin" usage:"admin user"`
-	AdminPass    S    `env:"ADMIN_PASS" usage:"admin password"`
-	LogLevel     S    `env:"LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
-	DbLogLevel   S    `env:"DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
-	AuthRequired bool `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
-	Owners       []S  `env:"OWNERS" usage:"list of npubs of users in hex format whose follow and mute list dictate accepting requests and events with AUTH_REQUIRED enabled - follows and follows follows are allowed to read/write, owners mutes events are rejected"`
-	DBSizeLimit  int  `env:"DB_SIZE_LIMIT" default:"0" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding, 0 means disabled"`
-	DBLowWater   int  `env:"DB_LOW_WATER" default:"60" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
-	DBHighWater  int  `env:"DB_HIGH_WATER" default:"80" usage:"the trigger point at which a GC run should start if exceeded"`
-	GCFrequency  int  `env:"GC_FREQUENCY" default:"3600" usage:"the frequency of checks of the current utilisation in minutes"`
-	Pprof        bool `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
-	MemLimit     int  `env:"MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
-	NWC          S    `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"`
+	AppName      st   `env:"APP_NAME" default:"realy"`
+	Profile      st   `env:"PROFILE" usage:"root path for all other path configurations (based on APP_NAME and OS specific location)"`
+	Listen       st   `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
+	Port         no   `env:"PORT" default:"3334" usage:"port to listen on"`
+	AdminUser    st   `env:"ADMIN_USER" default:"admin" usage:"admin user"`
+	AdminPass    st   `env:"ADMIN_PASS" usage:"admin password"`
+	LogLevel     st   `env:"LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	DbLogLevel   st   `env:"DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	AuthRequired bo   `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
+	Owners       []st `env:"OWNERS" usage:"list of npubs of users in hex format whose follow and mute list dictate accepting requests and events with AUTH_REQUIRED enabled - follows and follows follows are allowed to read/write, owners mutes events are rejected"`
+	DBSizeLimit  no   `env:"DB_SIZE_LIMIT" default:"0" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding, 0 means disabled"`
+	DBLowWater   no   `env:"DB_LOW_WATER" default:"60" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
+	DBHighWater  no   `env:"DB_HIGH_WATER" default:"80" usage:"the trigger point at which a GC run should start if exceeded"`
+	GCFrequency  no   `env:"GC_FREQUENCY" default:"3600" usage:"the frequency of checks of the current utilisation in minutes"`
+	Pprof        bo   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
+	MemLimit     no   `env:"MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
+	NWC          st   `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"`
 }
 
-func New() (cfg *C, err E) {
+func New() (cfg *C, err er) {
 	cfg = &C{}
 	if err = env.Load(cfg, nil); chk.T(err) {
 		return
@@ -53,7 +53,7 @@ func New() (cfg *C, err E) {
 		if err = env.Load(cfg, &env.Options{Source: e}); chk.E(err) {
 			return
 		}
-		var owners []S
+		var owners []st
 		// remove empties if any
 		for _, o := range cfg.Owners {
 			if len(o) == sha256.Size*2 {
@@ -67,7 +67,7 @@ func New() (cfg *C, err E) {
 
 // HelpRequested returns true if any of the common types of help invocation are
 // found as the first command line parameter/flag.
-func HelpRequested() (help bool) {
+func HelpRequested() (help bo) {
 	if len(os.Args) > 1 {
 		switch strings.ToLower(os.Args[1]) {
 		case "help", "-h", "--h", "-help", "--help", "?":
@@ -77,7 +77,7 @@ func HelpRequested() (help bool) {
 	return
 }
 
-func GetEnv() (requested bool) {
+func GetEnv() (requested bo) {
 	if len(os.Args) > 1 {
 		switch strings.ToLower(os.Args[1]) {
 		case "env":
@@ -93,11 +93,11 @@ func PrintEnv(cfg *C, printer io.Writer) {
 	for i := 0; i < t.NumField(); i++ {
 		k := t.Field(i).Tag.Get("env")
 		v := reflect.ValueOf(*cfg).Field(i).Interface()
-		var val S
+		var val st
 		switch v.(type) {
 		case string:
 			val = v.(string)
-		case int, bool:
+		case no, bo:
 			val = fmt.Sprint(v)
 		case []string:
 			arr := v.([]string)

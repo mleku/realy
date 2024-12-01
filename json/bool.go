@@ -9,23 +9,23 @@ import (
 //	truthValue := &json.Bool{}
 //
 // to get a default value which is false.
-type Bool struct{ V bool }
+type Bool struct{ V bo }
 
 const T = "true"
 const F = "false"
 
-var Bools = map[bool]B{
-	true:  B(T),
-	false: B(F),
+var Bools = map[bo]by{
+	true:  by(T),
+	false: by(F),
 }
 
-func (b2 *Bool) Marshal(dst B) (b B) {
+func (b2 *Bool) Marshal(dst by) (b by) {
 	b = dst
 	b = append(b, Bools[b2.V]...)
 	return
 }
 
-func (b2 *Bool) Unmarshal(dst B) (rem B, err E) {
+func (b2 *Bool) Unmarshal(dst by) (rem by, err er) {
 	rem = dst
 	// this is a shortcut evaluation because any text not in quotes in JSON is invalid so if
 	// it is something other than the exact correct, the next value will not match and the

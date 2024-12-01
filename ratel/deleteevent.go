@@ -14,17 +14,17 @@ import (
 	"realy.lol/timestamp"
 )
 
-func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
-	var foundSerial []byte
+func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
+	var foundSerial by
 	seri := serial.New(nil)
-	err = r.View(func(txn *badger.Txn) (err error) {
+	err = r.View(func(txn *badger.Txn) (err er) {
 		// query event by id to ensure we don't try to save duplicates
 		prf := index.Id.Key(id.New(eid))
 		it := txn.NewIterator(badger.IteratorOptions{})
 		defer it.Close()
 		it.Seek(prf)
 		if it.ValidForPrefix(prf) {
-			var k []byte
+			var k by
 			// get the serial
 			k = it.Item().Key()
 			// copy serial out
@@ -40,11 +40,11 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 	if foundSerial == nil {
 		return
 	}
-	var indexKeys []B
+	var indexKeys []by
 	ev := event.New()
-	var evKey, evb, counterKey, tombstoneKey B
+	var evKey, evb, counterKey, tombstoneKey by
 	// fetch the event to get its index keys
-	err = r.View(func(txn *badger.Txn) (err error) {
+	err = r.View(func(txn *badger.Txn) (err er) {
 		// retrieve the event record
 		evKey = keys.Write(index.New(index.Event), seri)
 		it := txn.NewIterator(badger.IteratorOptions{})
@@ -55,7 +55,7 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 				return
 			}
 			// log.I.S(evb)
-			var rem B
+			var rem by
 			if rem, err = ev.UnmarshalJSON(evb); chk.E(err) {
 				return
 			}
@@ -72,7 +72,7 @@ func (r *T) DeleteEvent(c Ctx, eid *eventid.T) (err E) {
 	if chk.E(err) {
 		return
 	}
-	err = r.Update(func(txn *badger.Txn) (err E) {
+	err = r.Update(func(txn *badger.Txn) (err er) {
 		if err = txn.Delete(evKey); chk.E(err) {
 		}
 		for _, key := range indexKeys {

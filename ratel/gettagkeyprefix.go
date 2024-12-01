@@ -22,7 +22,7 @@ import (
 // - Tag:       [ 6 ][ address/URL ][ 8b Serial ]
 //
 // This function produces the initial bytes without the index.
-func GetTagKeyPrefix(tagValue string) (key []byte, err error) {
+func GetTagKeyPrefix(tagValue string) (key by, err er) {
 	if k, pkb, d := eventstore.GetAddrTagElements(tagValue); len(pkb) == 32 {
 		// store value in the new special "a" tag index
 		var pk *pubkey.T

@@ -10,13 +10,13 @@ import (
 const Len = 16
 
 type T struct {
-	val B
+	val by
 }
 
 var _ keys.Element = &T{}
 
-func Make(eid *eventid.T) (v B) {
-	v = make(B, Len)
+func Make(eid *eventid.T) (v by) {
+	v = make(by, Len)
 	copy(v, eid.Bytes())
 	return
 }
@@ -33,7 +33,7 @@ func (t *T) Write(buf *bytes.Buffer) {
 }
 
 func (t *T) Read(buf *bytes.Buffer) (el keys.Element) {
-	b := make(B, Len)
+	b := make(by, Len)
 	if n, err := buf.Read(b); chk.E(err) || n < Len {
 		log.I.S(n, err)
 		return nil
@@ -42,4 +42,4 @@ func (t *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	return &T{val: b}
 }
 
-func (t *T) Len() int { return Len }
+func (t *T) Len() no { return Len }

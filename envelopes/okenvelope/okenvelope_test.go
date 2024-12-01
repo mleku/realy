@@ -9,8 +9,8 @@ import (
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {
-	var err error
-	rb, rb1, rb2 := make(B, 0, 65535), make(B, 0, 65535), make(B, 0, 65535)
+	var err er
+	rb, rb1, rb2 := make(by, 0, 65535), make(by, 0, 65535), make(by, 0, 65535)
 	for i := range 1000 {
 		randMsg := messages.RandomMessage()
 		req := NewFrom(eventid.Gen().Bytes(), i%2 == 1, randMsg)
@@ -19,7 +19,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		}
 		rb1 = rb1[:len(rb)]
 		copy(rb1, rb)
-		var rem B
+		var rem by
 		var l string
 		if l, rb, err = envelopes.Identify(rb); chk.E(err) {
 			t.Fatal(err)

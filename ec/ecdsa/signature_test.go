@@ -22,7 +22,7 @@ import (
 // is an error.  This is only provided for the hard-coded constants so errors in
 // the source code can be detected. It will only (and must only) be called with
 // hard-coded values.
-func hexToBytes(s string) []byte {
+func hexToBytes(s st) by {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -34,9 +34,9 @@ func hexToBytes(s string) []byte {
 // to DER rules.  The error paths are tested as well.
 func TestSignatureParsing(t *testing.T) {
 	tests := []struct {
-		name string
-		sig  []byte
-		err  error
+		name st
+		sig  by
+		err  er
 	}{{
 		// signature from Decred blockchain tx
 		// 76634e947f49dfc6228c3e8a09cd3e9e15893439fc06df7df0fc6f08d659856c:0
@@ -213,9 +213,9 @@ func TestSignatureParsing(t *testing.T) {
 // TestSignatureSerialize ensures that serializing signatures works as expected.
 func TestSignatureSerialize(t *testing.T) {
 	tests := []struct {
-		name     string
+		name     st
 		ecsig    *Signature
-		expected []byte
+		expected by
 	}{{
 		// signature from bitcoin blockchain tx
 		// 0437cd7f8525ceed2324359c2d0ba26006d92d85
@@ -277,15 +277,15 @@ func TestSignatureSerialize(t *testing.T) {
 // separately since it is intended for use in both normal and compact signature
 // tests.
 type signTest struct {
-	name     string // test description
-	key      string // hex encoded secret key
-	msg      string // hex encoded message to sign before hashing
-	hash     string // hex encoded hash of the message to sign
-	nonce    string // hex encoded nonce to use in the signature calculation
-	rfc6979  bool   // whether or not the nonce is an RFC6979 nonce
-	wantSigR string // hex encoded expected signature R
-	wantSigS string // hex encoded expected signature S
-	wantCode byte   // expected public key recovery code
+	name     st   // test description
+	key      st   // hex encoded secret key
+	msg      st   // hex encoded message to sign before hashing
+	hash     st   // hex encoded hash of the message to sign
+	nonce    st   // hex encoded nonce to use in the signature calculation
+	rfc6979  bo   // whether the nonce is an RFC6979 nonce
+	wantSigR st   // hex encoded expected signature R
+	wantSigS st   // hex encoded expected signature S
+	wantCode byte // expected public key recovery code
 }
 
 // // signTests returns several tests for ECDSA signatures that use a selected set
@@ -628,7 +628,7 @@ func TestSignAndVerifyRandom(t *testing.T) {
 		}
 		// Change a random bit in the hash that was originally signed and ensure
 		// the original good signature fails to verify the new bad message.
-		badHash := make([]byte, len(hash))
+		badHash := make(by, len(hash))
 		copy(badHash, hash[:])
 		randByte = rng.Intn(len(badHash))
 		randBit = rng.Intn(7)
@@ -647,10 +647,10 @@ func TestSignAndVerifyRandom(t *testing.T) {
 func TestSignFailures(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name  string // test description
-		key   string // hex encoded secret key
-		hash  string // hex encoded hash of the message to sign
-		nonce string // hex encoded nonce to use in the signature calculation
+		name  st // test description
+		key   st // hex encoded secret key
+		hash  st // hex encoded hash of the message to sign
+		nonce st // hex encoded nonce to use in the signature calculation
 	}{{
 		name:  "zero R is invalid (forced by using zero nonce)",
 		key:   "0000000000000000000000000000000000000000000000000000000000000001",
@@ -682,10 +682,10 @@ func TestVerifyFailures(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string // test description
-		key  string // hex encoded secret key
-		hash string // hex encoded hash of the message to sign
-		r, s string // hex encoded r and s components of signature to verify
+		name st // test description
+		key  st // hex encoded secret key
+		hash st // hex encoded hash of the message to sign
+		r, s st // hex encoded r and s components of signature to verify
 	}{{
 		name: "signature R is 0",
 		key:  "0000000000000000000000000000000000000000000000000000000000000001",
@@ -818,18 +818,17 @@ func TestSignatureIsEqual(t *testing.T) {
 // 	}
 // }
 
-// TestRecoverCompactErrors ensures several error paths in compact signature
-// recovery are detected as expected.  When possible, the signatures are
-// otherwise valid with the exception of the specific failure to ensure it's
-// robust against things like fault attacks.
+// TestRecoverCompactErrors ensures several error paths in compact signature recovery are
+// detected as expected. When possible, the signatures are otherwise valid, except the specific
+// failure to ensure it's robust against things like fault attacks.
 func TestRecoverCompactErrors(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string // test description
-		sig  string // hex encoded signature to recover pubkey from
-		hash string // hex encoded hash of message
-		err  error  // expected error
+		name st // test description
+		sig  st // hex encoded signature to recover pubkey from
+		hash st // hex encoded hash of message
+		err  er // expected error
 	}{{
 		name: "empty signature",
 		sig:  "",
@@ -1000,7 +999,7 @@ func TestSignAndRecoverCompactRandom(t *testing.T) {
 		}
 		// Test compact signatures for both the compressed and uncompressed
 		// versions of the public key.
-		for _, compressed := range []bool{true, false} {
+		for _, compressed := range []bo{true, false} {
 			// Sign the hash with the secret key and then ensure the original
 			// public key and compressed flag is recovered from the produced
 			// signature.
@@ -1023,7 +1022,7 @@ func TestSignAndRecoverCompactRandom(t *testing.T) {
 			}
 			// Change a random bit in the signature and ensure the bad signature
 			// fails to recover the original public key.
-			badSig := make([]byte, len(gotSig))
+			badSig := make(by, len(gotSig))
 			copy(badSig, gotSig)
 			randByte := rng.Intn(len(badSig)-1) + 1
 			randBit := rng.Intn(7)
@@ -1036,7 +1035,7 @@ func TestSignAndRecoverCompactRandom(t *testing.T) {
 			// Change a random bit in the hash that was originally signed and
 			// ensure the original good signature fails to recover the original
 			// public key.
-			badHash := make([]byte, len(hash))
+			badHash := make(by, len(hash))
 			copy(badHash, hash[:])
 			randByte = rng.Intn(len(badHash))
 			randBit = rng.Intn(7)

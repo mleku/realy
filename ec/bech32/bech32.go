@@ -18,12 +18,12 @@ import (
 const Charset = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
 // gen encodes the generator polynomial for the bech32 BCH checksum.
-var gen = []int{0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3}
+var gen = []no{0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3}
 
 // toBytes converts each character in the string 'chars' to the value of the
 // index of the corresponding character in 'charset'.
-func toBytes(chars B) (B, error) {
-	decoded := make(B, 0, len(chars))
+func toBytes(chars by) (by, er) {
+	decoded := make(by, 0, len(chars))
 	for i := 0; i < len(chars); i++ {
 		index := strings.IndexByte(Charset, chars[i])
 		if index < 0 {
@@ -41,12 +41,12 @@ func toBytes(chars B) (B, error) {
 // 32), otherwise the results are undefined.
 //
 // For more details on the polymod calculation, please refer to BIP 173.
-func bech32Polymod(hrp B, values, checksum B) int {
+func bech32Polymod(hrp by, values, checksum by) no {
 	check := 1
 	// Account for the high bits of the HRP in the checksum.
 	for i := 0; i < len(hrp); i++ {
 		b := check >> 25
-		hiBits := int(hrp[i]) >> 5
+		hiBits := no(hrp[i]) >> 5
 		check = (check&0x1ffffff)<<5 ^ hiBits
 		for i := 0; i < 5; i++ {
 			if (b>>uint(i))&1 == 1 {
@@ -66,7 +66,7 @@ func bech32Polymod(hrp B, values, checksum B) int {
 	// Account for the low bits of the HRP.
 	for i := 0; i < len(hrp); i++ {
 		b := check >> 25
-		loBits := int(hrp[i]) & 31
+		loBits := no(hrp[i]) & 31
 		check = (check&0x1ffffff)<<5 ^ loBits
 		for i := 0; i < 5; i++ {
 			if (b>>uint(i))&1 == 1 {
@@ -77,7 +77,7 @@ func bech32Polymod(hrp B, values, checksum B) int {
 	// Account for the values.
 	for _, v := range values {
 		b := check >> 25
-		check = (check&0x1ffffff)<<5 ^ int(v)
+		check = (check&0x1ffffff)<<5 ^ no(v)
 		for i := 0; i < 5; i++ {
 			if (b>>uint(i))&1 == 1 {
 				check ^= gen[i]
@@ -100,7 +100,7 @@ func bech32Polymod(hrp B, values, checksum B) int {
 		// Checksum is provided during decoding, so use it.
 		for _, v := range checksum {
 			b := check >> 25
-			check = (check&0x1ffffff)<<5 ^ int(v)
+			check = (check&0x1ffffff)<<5 ^ no(v)
 			for i := 0; i < 5; i++ {
 				if (b>>uint(i))&1 == 1 {
 					check ^= gen[i]
@@ -120,10 +120,10 @@ func bech32Polymod(hrp B, values, checksum B) int {
 // and 126), otherwise the results are undefined.
 //
 // For more details on the checksum calculation, please refer to BIP 173.
-func writeBech32Checksum(hrp B, data B, bldr *bytes.Buffer,
+func writeBech32Checksum(hrp by, data by, bldr *bytes.Buffer,
 	version Version) {
 
-	bech32Const := int(VersionToConsts[version])
+	bech32Const := no(VersionToConsts[version])
 	polymod := bech32Polymod(hrp, data, nil) ^ bech32Const
 	for i := 0; i < 6; i++ {
 		b := byte((polymod >> uint(5*(5-i))) & 31)
@@ -143,7 +143,7 @@ func writeBech32Checksum(hrp B, data B, bldr *bytes.Buffer,
 // Data MUST have more than 6 elements, otherwise this function panics.
 //
 // For more details on the checksum verification, please refer to BIP 173.
-func bech32VerifyChecksum(hrp B, data B) (Version, bool) {
+func bech32VerifyChecksum(hrp by, data by) (Version, bo) {
 	checksum := data[len(data)-6:]
 	values := data[:len(data)-6]
 	polymod := bech32Polymod(hrp, values, checksum)
@@ -163,14 +163,14 @@ func bech32VerifyChecksum(hrp B, data B) (Version, bool) {
 // decoder. This function will return the version of the decoded checksum
 // constant so higher level validation can be performed to ensure the correct
 // version of bech32 was used when encoding.
-func decodeNoLimit(bech B) (B, B, Version, error) {
+func decodeNoLimit(bech by) (by, by, Version, er) {
 	// The minimum allowed size of a bech32 string is 8 characters, since it
 	// needs a non-empty HRP, a separator, and a 6 character checksum.
 	if len(bech) < 8 {
 		return nil, nil, VersionUnknown, ErrInvalidLength(len(bech))
 	}
 	// Only	ASCII characters between 33 and 126 are allowed.
-	var hasLower, hasUpper bool
+	var hasLower, hasUpper bo
 	for i := 0; i < len(bech); i++ {
 		if bech[i] < 33 || bech[i] > 126 {
 			return nil, nil, VersionUnknown, ErrInvalidCharacter(bech[i])
@@ -228,7 +228,7 @@ func decodeNoLimit(bech B) (B, B, Version, error) {
 		err = ErrInvalidChecksum{
 			Expected:  expectedVersion0,
 			ExpectedM: expectedVersionM,
-			Actual:    string(actual),
+			Actual:    st(actual),
 		}
 		return nil, nil, VersionUnknown, err
 	}
@@ -244,7 +244,7 @@ func decodeNoLimit(bech B) (B, B, Version, error) {
 //
 // Note that the returned data is 5-bit (base32) encoded and the human-readable
 // part will be lowercase.
-func DecodeNoLimit(bech B) (B, B, error) {
+func DecodeNoLimit(bech by) (by, by, er) {
 	hrp, data, _, err := decodeNoLimit(bech)
 	return hrp, data, err
 }
@@ -254,7 +254,7 @@ func DecodeNoLimit(bech B) (B, B, error) {
 //
 // Note that the returned data is 5-bit (base32) encoded and the human-readable
 // part will be lowercase.
-func Decode(bech B) (B, B, error) {
+func Decode(bech by) (by, by, er) {
 	// The maximum allowed length for a bech32 string is 90.
 	if len(bech) > 90 {
 		return nil, nil, ErrInvalidLength(len(bech))
@@ -267,7 +267,7 @@ func Decode(bech B) (B, B, error) {
 // return bech32 version that matches the decoded checksum. This method should
 // be used when decoding segwit addresses, as it enables additional
 // verification to ensure the proper checksum is used.
-func DecodeGeneric(bech B) (B, B, Version, error) {
+func DecodeGeneric(bech by) (by, by, Version, er) {
 	// The maximum allowed length for a bech32 string is 90.
 	if len(bech) > 90 {
 		return nil, nil, VersionUnknown, ErrInvalidLength(len(bech))
@@ -278,7 +278,7 @@ func DecodeGeneric(bech B) (B, B, Version, error) {
 // encodeGeneric is the base bech32 encoding function that is aware of the
 // existence of the checksum versions. This method is private, as the Encode
 // and EncodeM methods are intended to be used instead.
-func encodeGeneric(hrp B, data B, version Version) (B, error) {
+func encodeGeneric(hrp by, data by, version Version) (by, er) {
 	// The resulting bech32 string is the concatenation of the lowercase
 	// hrp, the separator 1, data and the 6-byte checksum.
 	hrp = bytes.ToLower(hrp)
@@ -288,7 +288,7 @@ func encodeGeneric(hrp B, data B, version Version) (B, error) {
 	bldr.WriteString("1")
 	// Write the data part, using the bech32 charset.
 	for _, b := range data {
-		if int(b) >= len(Charset) {
+		if no(b) >= len(Charset) {
 			return nil, ErrInvalidDataByte(b)
 		}
 		bldr.WriteByte(Charset[b])
@@ -302,21 +302,21 @@ func encodeGeneric(hrp B, data B, version Version) (B, error) {
 // human-readable part (HRP).  The HRP will be converted to lowercase if needed
 // since mixed cased encodings are not permitted and lowercase is used for
 // checksum purposes.  Note that the bytes must each encode 5 bits (base32).
-func Encode(hrp, data B) (B, error) {
+func Encode(hrp, data by) (by, er) {
 	return encodeGeneric(hrp, data, Version0)
 }
 
 // EncodeM is the exactly same as the Encode method, but it uses the new
 // bech32m constant instead of the original one. It should be used whenever one
 // attempts to encode a segwit address of v1 and beyond.
-func EncodeM(hrp, data B) (B, error) {
+func EncodeM(hrp, data by) (by, er) {
 	return encodeGeneric(hrp, data, VersionM)
 }
 
 // ConvertBits converts a byte slice where each byte is encoding fromBits bits,
 // to a byte slice where each byte is encoding toBits bits.
-func ConvertBits(data B, fromBits, toBits uint8, pad bool) (B,
-	error) {
+func ConvertBits(data by, fromBits, toBits uint8, pad bo) (by,
+	er) {
 
 	if fromBits < 1 || fromBits > 8 || toBits < 1 || toBits > 8 {
 		return nil, ErrInvalidBitGroups{}
@@ -326,9 +326,9 @@ func ConvertBits(data B, fromBits, toBits uint8, pad bool) (B,
 	// by a byte depending on whether padding is used or not and if the input
 	// data is a multiple of both fromBits and toBits, but we ignore that and
 	// just size it to the maximum possible.
-	maxSize := len(data)*int(fromBits)/int(toBits) + 1
+	maxSize := len(data)*no(fromBits)/no(toBits) + 1
 	// The final bytes, each byte encoding toBits bits.
-	regrouped := make(B, 0, maxSize)
+	regrouped := make(by, 0, maxSize)
 	// Keep track of the next byte we create and how many bits we have
 	// added to it out of the toBits goal.
 	nextByte := byte(0)
@@ -383,7 +383,7 @@ func ConvertBits(data B, fromBits, toBits uint8, pad bool) (B,
 // human-readable part (HRP).  The HRP will be converted to lowercase if needed
 // since mixed cased encodings are not permitted and lowercase is used for
 // checksum purposes.
-func EncodeFromBase256(hrp, data B) (B, error) {
+func EncodeFromBase256(hrp, data by) (by, er) {
 	converted, err := ConvertBits(data, 8, 5, true)
 	if err != nil {
 		return nil, err
@@ -394,7 +394,7 @@ func EncodeFromBase256(hrp, data B) (B, error) {
 // DecodeToBase256 decodes a bech32-encoded string into its associated
 // human-readable part (HRP) and base32-encoded data, converts that data to a
 // base256-encoded byte slice and returns it along with the lowercase HRP.
-func DecodeToBase256(bech B) (B, B, error) {
+func DecodeToBase256(bech by) (by, by, er) {
 	hrp, data, err := Decode(bech)
 	if err != nil {
 		return nil, nil, err

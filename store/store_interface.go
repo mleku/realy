@@ -14,31 +14,31 @@ type I interface {
 	// allowing a storage to initialize its internal resources. The parameters can be
 	// used by the database implementations to set custom parameters such as cache
 	// management and other relevant parameters to the specific implementation.
-	Init(path S) (err E)
+	Init(path st) (err er)
 	// Path returns the directory of the database.
-	Path() (s S)
+	Path() (s st)
 	// Close must be called after you're done using the store, to free up resources
 	// and so on.
-	Close() (err E)
+	Close() (err er)
 	// Nuke deletes everything in the database.
-	Nuke() (err E)
+	Nuke() (err er)
 	// QueryEvents is invoked upon a client's REQ as described in NIP-01. It returns
 	// the matching events in reverse chronological order in a slice.
-	QueryEvents(c Ctx, f *filter.T) (evs event.Ts, err E)
+	QueryEvents(c cx, f *filter.T) (evs event.Ts, err er)
 	// CountEvents performs the same work as QueryEvents but instead of delivering
 	// the events that were found it just returns the count of events
-	CountEvents(c Ctx, f *filter.T) (count N, approx bool, err E)
+	CountEvents(c cx, f *filter.T) (count no, approx bo, err er)
 	// DeleteEvent is used to handle deletion events, as per NIP-09.
-	DeleteEvent(c Ctx, ev *eventid.T) (err E)
+	DeleteEvent(c cx, ev *eventid.T) (err er)
 	// SaveEvent is called once Relay.AcceptEvent reports true.
-	SaveEvent(c Ctx, ev *event.T) (err E)
+	SaveEvent(c cx, ev *event.T) (err er)
 	// Import reads in a stream of line structured JSON of events to save into the
 	// store.
 	Import(r io.Reader)
 	// Export writes a stream of line structured JSON of all events in the store. If
 	// pubkeys are present, only those with these pubkeys in the `pubkey` field and
 	// in `p` tags will be included.
-	Export(c Ctx, w io.Writer, pubkeys ...B)
+	Export(c cx, w io.Writer, pubkeys ...by)
 	// Sync signals the event store to flush its buffers.
-	Sync() (err E)
+	Sync() (err er)
 }

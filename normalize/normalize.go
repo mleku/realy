@@ -10,10 +10,10 @@ import (
 
 var (
 	hp    = bytes.HasPrefix
-	WS    = B("ws://")
-	WSS   = B("wss://")
-	HTTP  = B("http://")
-	HTTPS = B("https://")
+	WS    = by("ws://")
+	WSS   = by("wss://")
+	HTTP  = by("http://")
+	HTTPS = by("https://")
 )
 
 // URL normalizes the URL
@@ -23,8 +23,8 @@ var (
 // - Adds ws:// to addresses with any other port
 //
 // - Converts http/s to ws/s
-func URL[V S | B](v V) (b B) {
-	u := B(v)
+func URL[V st | by](v V) (b by) {
+	u := by(v)
 	if len(u) == 0 {
 		return nil
 	}
@@ -36,10 +36,10 @@ func URL[V S | B](v V) (b B) {
 	//
 	// if a protocol prefix is present, we assume it is already complete. Converting http/s to
 	// websocket equivalent will be done later anyway.
-	if bytes.Contains(u, []byte(":")) &&
+	if bytes.Contains(u, by(":")) &&
 		!(hp(u, HTTP) || hp(u, HTTPS) || hp(u, WS) || hp(u, WSS)) {
 
-		split := bytes.Split(u, B(":"))
+		split := bytes.Split(u, by(":"))
 		if len(split) != 2 {
 			log.D.F("Error: more than one ':' in URL: '%s'", u)
 			// this is a malformed URL if it has more than one ":", return empty
@@ -71,7 +71,7 @@ func URL[V S | B](v V) (b B) {
 	if !(hp(u, HTTP) || hp(u, HTTPS) || hp(u, WS) || hp(u, WSS)) {
 		u = append(WSS, u...)
 	}
-	var err error
+	var err er
 	var p *url.URL
 	if p, err = url.Parse(string(u)); chk.E(err) {
 		return
@@ -84,20 +84,20 @@ func URL[V S | B](v V) (b B) {
 		p.Scheme = "ws"
 	}
 	// remove trailing path slash
-	p.Path = S(bytes.TrimRight(B(p.Path), "/"))
-	return B(p.String())
+	p.Path = st(bytes.TrimRight(by(p.Path), "/"))
+	return by(p.String())
 }
 
-// Msg constructs a properly formatted message with a machine readable prefix for OK and CLOSED
+// Msg constructs a properly formatted message with a machine-readable prefix for OK and CLOSED
 // envelopes.
-func Msg(prefix Reason, format S, params ...any) B {
+func Msg(prefix Reason, format st, params ...any) by {
 	if len(prefix) < 1 {
 		prefix = Error
 	}
-	return B(fmt.Sprintf(prefix.S()+": "+format, params...))
+	return by(fmt.Sprintf(prefix.S()+": "+format, params...))
 }
 
-type Reason B
+type Reason by
 
 var (
 	AuthRequired = Reason("auth-required")
@@ -111,7 +111,7 @@ var (
 	Restricted   = Reason("restricted")
 )
 
-func (r Reason) S() S                        { return S(r) }
-func (r Reason) B() B                        { return B(r) }
-func (r Reason) IsPrefix(reason B) bool      { return bytes.HasPrefix(reason, r.B()) }
-func (r Reason) F(format S, params ...any) B { return Msg(r, format, params...) }
+func (r Reason) S() st                         { return st(r) }
+func (r Reason) B() by                         { return by(r) }
+func (r Reason) IsPrefix(reason by) bo         { return bytes.HasPrefix(reason, r.B()) }
+func (r Reason) F(format st, params ...any) by { return Msg(r, format, params...) }

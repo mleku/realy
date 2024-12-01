@@ -8,22 +8,22 @@ import (
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 	for _ = range 100 {
-		b := make(B, frand.Intn(48)+1)
-		bc := make(B, len(b))
+		b := make(by, frand.Intn(48)+1)
+		bc := make(by, len(b))
 		_, _ = frand.Read(b)
 		copy(bc, b)
-		var err error
+		var err er
 		var si *Id
 		if si, err = NewId(b); chk.E(err) {
 			t.Fatal(err)
 		}
-		var m B
+		var m by
 		if m, err = si.MarshalJSON(nil); chk.E(err) {
 			t.Fatal(err)
 		}
 		var ui *Id
 		ui, _ = NewId("")
-		var rem B
+		var rem by
 		if rem, err = ui.UnmarshalJSON(m); chk.E(err) {
 			t.Fatal(err)
 		}

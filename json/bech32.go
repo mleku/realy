@@ -13,15 +13,15 @@ import (
 //
 // When decoding, point this variable at the expected HRP, if it doesn't match in what is
 // encoded, it returns an error.
-type Bech32 struct{ HRP, V B }
+type Bech32 struct{ HRP, V by }
 
-func (b2 *Bech32) Marshal(dst B) (b B) {
-	var err E
-	var b5 B
+func (b2 *Bech32) Marshal(dst by) (b by) {
+	var err er
+	var b5 by
 	if b5, err = bech32encoding.ConvertForBech32(b2.V); chk.E(err) {
 		return
 	}
-	var bb B
+	var bb by
 	if bb, err = bech32.Encode(b2.HRP, b5); chk.E(err) {
 		return
 	}
@@ -31,12 +31,12 @@ func (b2 *Bech32) Marshal(dst B) (b B) {
 	return
 }
 
-func (b2 *Bech32) Unmarshal(dst B) (rem B, err E) {
-	var c B
+func (b2 *Bech32) Unmarshal(dst by) (rem by, err er) {
+	var c by
 	if c, rem, err = text.UnmarshalQuoted(dst); chk.E(err) {
 		return
 	}
-	var b5, hrp B
+	var b5, hrp by
 	if hrp, b5, err = bech32.Decode(c); chk.E(err) {
 		return
 	}

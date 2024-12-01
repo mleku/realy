@@ -42,10 +42,10 @@ func TestGenerateSecretKeyFromRand(t *testing.T) {
 
 // mockSecretKeyReaderFunc is an adapter to allow the use of an ordinary
 // function as an io.Reader.
-type mockSecretKeyReaderFunc func([]byte) (int, error)
+type mockSecretKeyReaderFunc func(by) (no, er)
 
 // Read calls the function with the provided parameter and returns the result.
-func (f mockSecretKeyReaderFunc) Read(p []byte) (int, error) {
+func (f mockSecretKeyReaderFunc) Read(p by) (no, er) {
 	return f(p)
 }
 
@@ -60,12 +60,12 @@ func TestGenerateSecretKeyCorners(t *testing.T) {
 	// 3rd invocation: The curve order + 1
 	// 4th invocation: 1 (32-byte big endian)
 	oneModN := hexToModNScalar("01")
-	var numReads int
-	mockReader := mockSecretKeyReaderFunc(func(p []byte) (int, error) {
+	var numReads no
+	mockReader := mockSecretKeyReaderFunc(func(p by) (no, er) {
 		numReads++
 		switch numReads {
 		case 1:
-			return copy(p, bytes.Repeat([]byte{0x00}, len(p))), nil
+			return copy(p, bytes.Repeat(by{0x00}, len(p))), nil
 		case 2:
 			return copy(p, curveParams.N.Bytes()), nil
 		case 3:
@@ -94,7 +94,7 @@ func TestGenerateSecretKeyCorners(t *testing.T) {
 func TestGenerateSecretKeyError(t *testing.T) {
 	// Create a mock reader that returns an error.
 	errDisabled := errors.New("disabled")
-	mockReader := mockSecretKeyReaderFunc(func(p []byte) (int, error) {
+	mockReader := mockSecretKeyReaderFunc(func(p by) (no, er) {
 		return 0, errDisabled
 	})
 	// Generate a secret key using the mock reader and ensure the expected
@@ -110,9 +110,9 @@ func TestGenerateSecretKeyError(t *testing.T) {
 // correct associated public key as well serializes back to the original bytes.
 func TestSecKeys(t *testing.T) {
 	tests := []struct {
-		name string
-		sec  string // hex encoded secret key to test
-		pub  string // expected hex encoded serialized compressed public key
+		name st
+		sec  st // hex encoded secret key to test
+		pub  st // expected hex encoded serialized compressed public key
 	}{{
 		name: "random secret key 1",
 		sec:  "eaf02ca348c524e6392655ba4d29603cd1a7347d9d65cfe93ce1ebffdca22694",

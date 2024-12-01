@@ -2266,7 +2266,7 @@ func TestBlockSize(t *testing.T) {
 	}
 }
 
-func benchmarkSize(b *testing.B, size int) {
+func benchmarkSize(b *testing.B, size no) {
 	var bench = New()
 	var buf = make([]byte, size)
 	b.SetBytes(int64(size))
@@ -2495,7 +2495,7 @@ var largeUnmarshalTests = []unmarshalTest{
 	},
 }
 
-func safeSum(h hash.Hash) (sum []byte, err error) {
+func safeSum(h hash.Hash) (sum []byte, err er) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("sum panic: %v", r)

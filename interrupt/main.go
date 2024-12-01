@@ -16,7 +16,7 @@ type HandlerWithSource struct {
 }
 
 var (
-	RestartRequested bool // = true
+	RestartRequested bo // = true
 	requested        atomic.Bool
 
 	// ch is used to receive SIGINT (Ctrl+C) signals.
@@ -108,7 +108,7 @@ func Request() {
 	}
 	requested.Store(true)
 	ShutdownRequestChan.Q()
-	var ok bool
+	var ok bo
 	select {
 	case _, ok = <-ShutdownRequestChan:
 	default:
@@ -121,7 +121,7 @@ func Request() {
 // GoroutineDump returns a string with the current goroutine dump in order to show what's going
 // on in case of timeout.
 func GoroutineDump() string {
-	buf := make([]byte, 1<<18)
+	buf := make(by, 1<<18)
 	n := runtime.Stack(buf, true)
 	return string(buf[:n])
 }
@@ -134,6 +134,6 @@ func RequestRestart() {
 }
 
 // Requested returns true if an interrupt has been requested
-func Requested() bool {
+func Requested() bo {
 	return requested.Load()
 }

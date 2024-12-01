@@ -9,9 +9,9 @@ type T struct {
 	F []*filter.T
 }
 
-func Make(l int) *T { return &T{F: make([]*filter.T, l)} }
+func Make(l no) *T { return &T{F: make([]*filter.T, l)} }
 
-func (f *T) GetFingerprints() (fps []uint64, err E) {
+func (f *T) GetFingerprints() (fps []uint64, err er) {
 	for _, ff := range f.F {
 		var fp uint64
 		if fp, err = ff.Fingerprint(); chk.E(err) {
@@ -22,11 +22,11 @@ func (f *T) GetFingerprints() (fps []uint64, err E) {
 	return
 }
 
-func (f *T) Len() int { return len(f.F) }
+func (f *T) Len() no { return len(f.F) }
 
 func New(ff ...*filter.T) (f *T) { return &T{F: ff} }
 
-func (f *T) Match(event *event.T) bool {
+func (f *T) Match(event *event.T) bo {
 	for _, f := range f.F {
 		if f.Matches(event) {
 			return true
@@ -35,16 +35,16 @@ func (f *T) Match(event *event.T) bool {
 	return false
 }
 
-func (f *T) String() (s S) {
-	var b B
-	var err E
+func (f *T) String() (s st) {
+	var b by
+	var err er
 	if b, err = f.MarshalJSON(nil); chk.E(err) {
 		return
 	}
-	return S(b)
+	return st(b)
 }
 
-func (f *T) MarshalJSON(dst B) (b B, err error) {
+func (f *T) MarshalJSON(dst by) (b by, err er) {
 	b = dst
 	b = append(b, '[')
 	end := len(f.F) - 1
@@ -60,7 +60,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (f *T) UnmarshalJSON(b B) (r B, err error) {
+func (f *T) UnmarshalJSON(b by) (r by, err er) {
 	r = b[:]
 	for len(r) > 0 {
 		switch r[0] {
@@ -97,7 +97,7 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 	return
 }
 
-func GenFilters(n int) (ff *T, err error) {
+func GenFilters(n no) (ff *T, err er) {
 	ff = &T{}
 	for _ = range n {
 		var f *filter.T

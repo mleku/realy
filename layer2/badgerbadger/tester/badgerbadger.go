@@ -23,20 +23,20 @@ import (
 )
 
 type Counter struct {
-	id        B
-	size      int
-	requested int
+	id        by
+	size      no
+	requested no
 }
 
 func main() {
 	lol.NoTimeStomp.Store(true)
 	lol.SetLogLevel(lol.LevelNames[lol.Debug])
 	var (
-		err            error
-		sec            B
+		err            er
+		sec            by
 		mx             sync.Mutex
 		counter        []Counter
-		total          int
+		total          no
 		MaxContentSize = units.Mb / 2
 		TotalSize      = 1
 		MaxDelay       = time.Second / 40
@@ -48,7 +48,7 @@ func main() {
 	if sec, err = keys.GenerateSecretKey(); chk.E(err) {
 		panic(err)
 	}
-	var nsec B
+	var nsec by
 	if nsec, err = bech32encoding.HexToNsec(sec); chk.E(err) {
 		panic(err)
 	}
@@ -102,7 +102,7 @@ end:
 		newEvent := qu.T()
 		go func() {
 			ticker := time.NewTicker(time.Second)
-			var fetchIDs []B
+			var fetchIDs []by
 			// start fetching loop
 			for {
 				select {
@@ -110,7 +110,7 @@ end:
 					// make new request, not necessarily from existing... bias rng
 					// factor by request count
 					mx.Lock()
-					var sum int
+					var sum no
 					for i := range counter {
 						rn := frand.Intn(256)
 						if sum > diff {
@@ -154,7 +154,7 @@ end:
 			}
 		}()
 		var ev *event.T
-		var bs int
+		var bs no
 	out:
 		for {
 			select {
@@ -181,7 +181,7 @@ end:
 			if err = twoLevel.SaveEvent(sc, ev); chk.E(err) {
 				continue end
 			}
-			delay := frand.Intn(int(MaxDelay))
+			delay := frand.Intn(no(MaxDelay))
 			log.T.Ln("waiting between", delay, "ns")
 			if delay == 0 {
 				continue

@@ -11,7 +11,7 @@ package secp256k1
 //
 // It is recommended to securely hash the result before using as a cryptographic
 // key.
-func GenerateSharedSecret(seckey *SecretKey, pubkey *PublicKey) []byte {
+func GenerateSharedSecret(seckey *SecretKey, pubkey *PublicKey) by {
 	var point, result JacobianPoint
 	pubkey.AsJacobian(&point)
 	ScalarMultNonConst(&seckey.Key, &point, &result)

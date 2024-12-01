@@ -5,11 +5,11 @@ import (
 )
 
 func TestT_MarshalUnmarshal(t *testing.T) {
-	var err error
+	var err er
 	const bufLen = 4000000
-	dst := make([]byte, 0, bufLen)
-	dst1 := make(B, 0, bufLen)
-	dst2 := make(B, 0, bufLen)
+	dst := make(by, 0, bufLen)
+	dst1 := make(by, 0, bufLen)
+	dst2 := make(by, 0, bufLen)
 	for _ = range 20 {
 		f := New()
 		if f, err = GenFilter(); chk.E(err) {
@@ -20,7 +20,7 @@ func TestT_MarshalUnmarshal(t *testing.T) {
 		}
 		dst1 = append(dst1, dst...)
 		// now unmarshal
-		var rem B
+		var rem by
 		fa := New()
 		if rem, err = fa.UnmarshalJSON(dst); chk.E(err) {
 			t.Fatalf("unmarshal error: %v\n%s\n%s", err, dst, rem)

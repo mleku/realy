@@ -3,14 +3,17 @@ package main
 import (
 	"bytes"
 
+	"realy.lol/context"
 	"realy.lol/lol"
 )
 
 type (
-	B = []byte
-	S = string
-	E = error
-	N = int
+	bo = bool
+	by = []byte
+	st = string
+	er = error
+	no = int
+	cx = context.T
 )
 
 var (

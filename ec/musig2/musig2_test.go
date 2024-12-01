@@ -17,7 +17,7 @@ const (
 	testVectorBaseDir = "data"
 )
 
-func mustParseHex(str string) []byte {
+func mustParseHex(str st) by {
 	b, err := hex.Dec(str)
 	if err != nil {
 		panic(fmt.Errorf("unable to parse hex: %v", err))
@@ -67,7 +67,7 @@ func (s signerSet) combinedKey() *btcec.PublicKey {
 }
 
 // testMultiPartySign executes a multi-party signing context w/ 100 signers.
-func testMultiPartySign(t *testing.T, taprootTweak []byte,
+func testMultiPartySign(t *testing.T, taprootTweak by,
 	tweaks ...KeyTweakDesc) {
 
 	const numSigners = 100
@@ -123,7 +123,7 @@ func testMultiPartySign(t *testing.T, taprootTweak []byte,
 	for i, signCtx := range signers {
 		signCtx := signCtx
 		wg.Add(1)
-		go func(idx int, signer *Session) {
+		go func(idx no, signer *Session) {
 			defer wg.Done()
 			for j, otherCtx := range signers {
 				if idx == j {
@@ -141,7 +141,7 @@ func testMultiPartySign(t *testing.T, taprootTweak []byte,
 		}(i, signCtx)
 	}
 	wg.Wait()
-	msg := sha256.Sum256([]byte("let's get taprooty"))
+	msg := sha256.Sum256(by("let's get taprooty"))
 	// In the final step, we'll use the first signer as our combiner, and
 	// generate a signature for each signer, and then accumulate that with
 	// the combiner.
@@ -221,7 +221,7 @@ func TestMuSigMultiParty(t *testing.T) {
 	t.Run("taproot_bip_86", func(t *testing.T) {
 		t.Parallel()
 
-		testMultiPartySign(t, []byte{})
+		testMultiPartySign(t, by{})
 	})
 }
 
@@ -317,7 +317,7 @@ func TestMuSigEarlyNonce(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to create new session: %v", err)
 	}
-	msg := sha256.Sum256([]byte("let's get taprooty, LN style"))
+	msg := sha256.Sum256(by("let's get taprooty, LN style"))
 	// If we try to sign before we have the combined nonce, we shoudl get
 	// an error.
 	_, err = session1.Sign(msg)
@@ -378,10 +378,10 @@ func TestMuSigEarlyNonce(t *testing.T) {
 }
 
 type memsetRandReader struct {
-	i int
+	i no
 }
 
-func (mr *memsetRandReader) Read(buf []byte) (n int, err error) {
+func (mr *memsetRandReader) Read(buf by) (n no, err er) {
 	for i := range buf {
 		buf[i] = byte(mr.i)
 	}
