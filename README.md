@@ -1,8 +1,11 @@
 # realy.lol
 
-[![Documentation](https://img.shields.io/badge/godoc-documentation-brightgreen.svg)](https://pkg.go.dev/realy.lol)
-[![Support this project](https://img.shields.io/badge/donate-geyser_crowdfunding_project_page-brightgreen.svg)](https://geyser.fund/project/realy)
+[![Documentation](https://img.shields.io/badge/godoc-documentation-blue.svg)](https://pkg.go.dev/realy.lol)
+
+[![Support this project](https://img.shields.io/badge/donate-geyser_crowdfunding_project_page-orange.svg)](https://geyser.fund/project/realy)
+
 zap me: ⚡️mleku@getalby.com
+
 
 
 ![realy.png](./realy.png)
