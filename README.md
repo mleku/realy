@@ -4,7 +4,7 @@
 [![Support this project](https://img.shields.io/badge/donate-geyser_crowdfunding_project_page-brightgreen.svg)](https://geyser.fund/project/realy)
 
 ```shell
-#zaps go to fund this project. ⚡️realy@geyser.fund
+#zaps go to fund this project. ⚡️realy@geyser.fund or ⚡️mleku@getalby.com
 ```
 
 ![realy.png](./realy.png)
