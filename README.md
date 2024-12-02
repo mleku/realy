@@ -1,6 +1,7 @@
 # realy.lol
 
 [![Documentation](https://img.shields.io/badge/godoc-documentation-brightgreen.svg)](https://pkg.go.dev/realy.lol)
+[![Support this project](https://img.shields.io/badge/donate-geyser_crowdfunding_project_page-brightgreen.svg)](https://geyser.fund/project/realy)
 
 ![realy.png](./realy.png)
 
@@ -16,13 +17,14 @@ includes:
 - a cleaned up and unified fork of the btcd/dcred BIP-340 signatures, including the use of
   bitcoin core's BIP-340 implementation (more than 4x faster than btcd)
 - AVX/AVX2 optimized SHA256 and SIMD hex encoder
-- a bespoke, mutable byte slice based hash/pubkey/signature encoding in memory and the fastest
-  nostr binary codec that exists
+- [libsecp256k1](https://github.com/bitcoin/secp256k1)-enabled signature and signature verification
+  (see [here](p256k/README.md))
+- a bespoke, mutable byte slice based hash/pubkey/signature encoding in memory
 - custom badger based event store with a garbage collector that prunes off data with least recent
   access
 - vanity npub generator that can mine a 5 letter prefix in around 15 minutes on a 6 core Ryzen 5
   processor
-- reverse proxy tool with support for Go vanity imports and nip-05 npub DNS verification and own
+- reverse proxy tool with support for Go vanity imports and [nip-05](https://github.com/nostr-protocol/nips/blob/master/05.md) npub DNS verification and own
   TLS certificates
 
 ## Building

@@ -9,6 +9,6 @@ git checkout v0.6.0
 git submodule init
 git submodule update
 ./autogen.sh
-./configure --enable-module-schnorrsig --prefix=/usr
+./configure --enable-module-schnorrsig --enable-module-ecdh --prefix=/usr
 make -j1
 sudo make install
