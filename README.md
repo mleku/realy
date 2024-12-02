@@ -2,7 +2,10 @@
 
 [![Documentation](https://img.shields.io/badge/godoc-documentation-brightgreen.svg)](https://pkg.go.dev/realy.lol)
 [![Support this project](https://img.shields.io/badge/donate-geyser_crowdfunding_project_page-brightgreen.svg)](https://geyser.fund/project/realy)
-zap me: `⚡️mleku@getalby.com`
+
+```shell
+#zaps go to fund this project. ⚡️realy@geyser.fund
+```
 
 ![realy.png](./realy.png)
 
