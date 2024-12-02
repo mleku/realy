@@ -107,6 +107,10 @@ func NewServer(sp ServerParams, opts ...options.O) (*Server, er) {
 }
 
 func (s *Server) HTTPAuth(r *http.Request) (authed bo) {
+	if s.adminUser == "" || s.adminPass == "" {
+		// disallow this if it hasn't been configured, the default values are empty.
+		return
+	}
 	username, password, ok := r.BasicAuth()
 	if ok {
 		usernameHash := sha256.Sum256(by(username))
@@ -127,6 +131,7 @@ func (s *Server) HTTPAuth(r *http.Request) (authed bo) {
 func (s *Server) AuthFail(w http.ResponseWriter) {
 	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	fmt.Fprintf(w, "you may have not configured your admin username/password")
 }
 
 func (s *Server) HandleAdmin(w http.ResponseWriter, r *http.Request) {

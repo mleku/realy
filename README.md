@@ -77,29 +77,77 @@ To produce a static binary, whether you use the CGO secp256k1 or disable CGO as 
 
 will place it into your `~/bin/` directory, and it will work on any system of the same architecture with the same glibc major version (has been 2 for a long time).
 
-## Export and Import functions
+## Configuration
 
-You can export everything in the event store through the default http://localhost:3337 endpoint
+The default will run the relay with default settings, which will not be what you
+want.
+
+To see the curent active configuration:
+
+    realy env
+
+This output can be directed to the profile location to make the settings 
+editable without manually setting them on the commandline:
+
+    realy env > $HOME/.config/realy/.env
+
+You can now edit this file to alter the configuration.
+
+Note the configuration file is a "dotfile" so that if you are tinkering with the
+code you can wipe out a broken database with:
+
+    rm -rf $HOME/.config/realy/*
+
+and it leaves the config because this doesn't match a standard wildcard, all the
+database files wil be removed, however.
+
+Regarding the configuration system, this is an element of many servers that is 
+absurdly complex, and for which reason Realy does not use a complicated scheme,
+a simple library that allows automatic configuration of a series of options,
+added a simple info print:
+
+    realy help
+
+will show you the instructions, and the one simple extension of being able to
+use a standard formated .env file to configure all the options for an instance.
+
+## Administrative functions
+
+You can export everything in the event store through the default http://localhost:3334 endpoint
 like so:
 
-    curl http://localhost:3337/export > everything.jsonl
+    curl -u username:password http://localhost:3334/export > everything.jsonl
 
-or just all of the whitelisted users and all events with p tags with them in it:
+The username and password are configured in the environment variables 
 
-    curl http://localhost:3337/export/users > users.jsonl
+    ADMIN_USER=username
+    ADMIN_PASSWORD=password
 
-or just one user: (includes also matching p tags)
+Note that HTTP basic authentication this can only be alphanumeric values, but 
+make it long and strong because these functions are sensitive.
 
-    curl http://localhost:3337/export/4c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f > mleku.jsonl
+Or just all of the whitelisted users and all events with p tags with them in it:
 
-or several users with hyphens between the hexadecimal public keys: (ditto above)
+    curl -u username:password http://localhost:3334/export/users > users.jsonl
 
-    curl http://localhost:3337/export/4c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f-454bc2771a69e30843d0fccfde6e105ff3edc5c6739983ef61042633e4a9561a > mleku_gojiberra.jsonl
+Or just one user: (includes also matching p tags)
 
+    curl -u username:password http://localhost:3334/export/4c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f > mleku.jsonl
 
-and import also, to put one of these files (also nostrudel and coracle have functions to 
+Or several users with hyphens between the hexadecimal public keys: (ditto above)
+
+    curl -u username:password http://localhost:3334/export/4c800257a588a82849d049817c2bdaad984b25a45ad9f6dad66e47d3b47e3b2f-454bc2771a69e30843d0fccfde6e105ff3edc5c6739983ef61042633e4a9561a > mleku_gojiberra.jsonl
+
+And import also, to put one of these files (also nostrudel and coracle have functions to 
 export the app database of events in jsonl)
 
-    curl -XPOST -T nostrudel.jsonl http://localhost:3337/import
+    curl -u username:password -XPOST -T nostrudel.jsonl http://localhost:3334/import
 
-> todo: more documentation coming
+You can also shut down the realy as well:
+
+    curl -u username:password http://localhost:3334/shutdown
+
+Other administrative features will probably be added later, these are just the
+essentials.
+
+Other
