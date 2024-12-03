@@ -239,11 +239,9 @@ func TestEncodeDecodeNEventTestEncodeDecodeNEvent(t *testing.T) {
 func MustDecode[V st | by](s V) (ei *eventid.T) {
 	var err er
 	var b by
-	if b, err = hex.Dec(string(s)); chk.E(err) {
+	if b, err = hex.Dec(st(s)); chk.E(err) {
 		panic(err)
 	}
-	if ei, err = eventid.NewFromBytes(b); chk.E(err) {
-		panic(err)
-	}
+	ei = eventid.NewWith(b)
 	return
 }

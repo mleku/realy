@@ -18,7 +18,6 @@ import (
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/envelopes/okenvelope"
 	"realy.lol/event"
-	"realy.lol/eventid"
 	"realy.lol/kind"
 	"realy.lol/normalize"
 	"realy.lol/p256k"
@@ -69,12 +68,8 @@ func TestPublish(t *testing.T) {
 			t.Errorf("received event:\n%s\nwant:\n%s", env.T.Serialize(), textNote.Serialize())
 		}
 		// send back an ok nip-20 command result
-		var eid *eventid.T
-		if eid, err = eventid.NewFromBytes(textNote.ID); chk.E(err) {
-			t.Fatal(err)
-		}
 		var res by
-		if res, err = okenvelope.NewFrom(eid.Bytes(), true, nil).MarshalJSON(res); chk.E(err) {
+		if res, err = okenvelope.NewFrom(textNote.ID, true, nil).MarshalJSON(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {
@@ -117,12 +112,8 @@ func TestPublishBlocked(t *testing.T) {
 			t.Errorf("websocket.JSON.Receive: %v", err)
 		}
 		// send back a not ok nip-20 command result
-		var eid *eventid.T
-		if eid, err = eventid.NewFromBytes(textNote.ID); chk.E(err) {
-			t.Fatal(err)
-		}
 		var res by
-		if res, err = okenvelope.NewFrom(eid.Bytes(), false,
+		if res, err = okenvelope.NewFrom(textNote.ID, false,
 			normalize.Msg(normalize.Blocked, "no reason")).MarshalJSON(res); chk.E(err) {
 			t.Fatal(err)
 		}
@@ -130,7 +121,7 @@ func TestPublishBlocked(t *testing.T) {
 			t.Errorf("websocket.JSON.Send: %v", err)
 		}
 		// res := []any{"OK", textNote.ID, false, "blocked"}
-		websocket.JSON.Send(conn, res)
+		chk.E(websocket.JSON.Send(conn, res))
 	})
 	defer ws.Close()
 

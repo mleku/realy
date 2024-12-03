@@ -6,6 +6,7 @@ import (
 	"realy.lol/codec"
 	"realy.lol/envelopes"
 	"realy.lol/eventid"
+	"realy.lol/sha256"
 	"realy.lol/text"
 )
 
@@ -26,6 +27,10 @@ func NewFrom[V st | by](eid V, ok bo, msg ...by) *T {
 	var m by
 	if len(msg) > 0 {
 		m = msg[0]
+	}
+	if len(eid) != sha256.Size {
+		log.W.F("event ID unexpected length, expect %d got %d",
+			len(eid), sha256.Size)
 	}
 	return &T{EventID: eventid.NewWith(eid), OK: ok, Reason: m}
 }
@@ -67,9 +72,11 @@ func (en *T) UnmarshalJSON(b by) (r by, err er) {
 	if idHex, r, err = text.UnmarshalHex(r); chk.E(err) {
 		return
 	}
-	if en.EventID, err = eventid.NewFromBytes(idHex); chk.E(err) {
-		return
+	if len(idHex) != sha256.Size {
+		err = errorf.E("invalid size for ID, require %d got %d",
+			len(idHex), sha256.Size)
 	}
+	en.EventID = eventid.NewWith(idHex)
 	if r, err = text.Comma(r); chk.E(err) {
 		return
 	}

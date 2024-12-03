@@ -1,7 +1,6 @@
 package eventid
 
 import (
-	"bytes"
 	"errors"
 
 	"lukechampine.com/frand"
@@ -12,20 +11,32 @@ import (
 
 // T is the SHA256 hash in hexadecimal of the canonical form of an event as
 // produced by the output of T.ToCanonical().Bytes().
-type T struct {
-	b by
-}
+type T [sha256.Size]byte
 
+// New creates a new eventid.T. This is actually more wordy than simply creating a &T{} via
+// slice literal.
 func New() (ei *T) { return &T{} }
 
-func NewWith[V st | by](s V) (ei *T) { return &T{b: by(s)} }
+// NewWith creates an eventid.T out of bytes or string but assumes it is binary
+// and that it is the right length. The result is either truncated or padded automatically by
+// the use of the "copy" operation.
+func NewWith[V st | by](s V) (ei *T) {
+	id := T{}
+	copy(id[:], s)
+	return &id
+}
 
+// Set the value of an eventid.T with checking of the length before copying it.
 func (ei *T) Set(b by) (err er) {
+	if ei == nil {
+		err = errorf.E("event id is nil")
+		return
+	}
 	if len(b) != sha256.Size {
 		err = errorf.E("ID bytes incorrect size, got %d require %d", len(b), sha256.Size)
 		return
 	}
-	ei.b = b
+	copy(ei[:], b)
 	return
 }
 
@@ -38,45 +49,52 @@ func NewFromBytes(b by) (ei *T, err er) {
 }
 
 func (ei *T) String() st {
-	if ei.b == nil {
+	if ei == nil {
 		return ""
 	}
-	return hex.Enc(ei.b)
+	return hex.Enc(ei[:])
 }
 
-func (ei *T) ByteString(src by) (b by) { return hex.EncAppend(src, ei.b) }
+func (ei *T) ByteString(src by) (b by) {
+	return hex.EncAppend(src, ei[:])
+}
 
-func (ei *T) Bytes() (b by) { return ei.b }
+func (ei *T) Bytes() (b by) { return ei[:] }
 
 func (ei *T) Len() no {
 	if ei == nil {
 		log.W.Ln("nil event id")
 		return 0
 	}
-	if ei.b == nil {
-		return 0
-	}
-	return len(ei.b)
+	return len(ei)
 }
 
-func (ei *T) Equal(ei2 *T) bo { return bytes.Compare(ei.b, ei2.b) == 0 }
+func (ei *T) Equal(ei2 *T) (eq bo) {
+	if ei == nil || ei2 == nil {
+		log.W.Ln("can't compare to nil event id")
+		return
+	}
+	return *ei == *ei2
+}
 
 func (ei *T) MarshalJSON() (b by, err er) {
-	if ei.b == nil {
-		err = errors.New("eventid nil")
+	if ei == nil {
+		err = errors.New("event id is nil")
 		return
 	}
 	b = make(by, 0, 2*sha256.Size+2)
 	b = append(b, '"')
-	hex.EncAppend(b, ei.b)
+	hex.EncAppend(b, ei[:])
 	b = append(b, '"')
 	return
 }
 
 func (ei *T) UnmarshalJSON(b by) (err er) {
-	if len(ei.b) != sha256.Size {
-		ei.b = make(by, 0, sha256.Size)
+	if ei == nil {
+		err = errors.New("event id is nil")
+		return
 	}
+	// trim off the quotes.
 	b = b[1 : 2*sha256.Size+1]
 	if len(b) != 2*sha256.Size {
 		err = errorf.E("event ID hex incorrect size, got %d require %d",
@@ -84,8 +102,11 @@ func (ei *T) UnmarshalJSON(b by) (err er) {
 		log.E.Ln(string(b))
 		return
 	}
-	ei.b = make(by, 0, sha256.Size)
-	ei.b, err = hex.DecAppend(ei.b, b)
+	var bb by
+	if bb, err = hex.Dec(st(b)); chk.E(err) {
+		return
+	}
+	copy(ei[:], bb)
 	return
 }
 
@@ -96,10 +117,17 @@ func NewFromString(s st) (ei *T, err er) {
 		return nil, errorf.E("event ID hex wrong size, got %d require %d",
 			len(s), 2*sha256.Size)
 	}
-	ei = &T{b: make(by, 0, sha256.Size)}
-	ei.b, err = hex.DecAppend(ei.b, by(s))
+	ei = &T{}
+	b := make(by, 0, sha256.Size)
+	b, err = hex.DecAppend(b, by(s))
+	copy(ei[:], b)
 	return
 }
 
 // Gen creates a fake pseudorandom generated event ID for tests.
-func Gen() (ei *T) { return &T{frand.Bytes(sha256.Size)} }
+func Gen() (ei *T) {
+	b := frand.Bytes(sha256.Size)
+	ei = &T{}
+	copy(ei[:], b)
+	return
+}

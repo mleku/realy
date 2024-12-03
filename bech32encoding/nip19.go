@@ -99,7 +99,7 @@ func Decode(bech32string by) (prefix by, value any, err er) {
 				if len(v) < 32 {
 					return prefix, nil, errorf.E("id is less than 32 bytes (%d)", len(v))
 				}
-				result.ID, err = eventid.NewFromBytes(v)
+				result.ID = eventid.NewWith(v)
 			case TLVRelay:
 				result.Relays = append(result.Relays, v)
 			case TLVAuthor:

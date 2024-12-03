@@ -39,7 +39,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 			// get the serial
 			k = it.Item().Key()
 			// copy serial out
-			keys.Read(k, index.Empty(), id.New(eventid.New()), seri)
+			keys.Read(k, index.Empty(), id.New(&eventid.T{}), seri)
 			// save into foundSerial
 			foundSerial = seri.Val
 		}
