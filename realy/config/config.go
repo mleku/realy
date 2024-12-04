@@ -17,24 +17,23 @@ import (
 )
 
 type C struct {
-	AppName        st   `env:"APP_NAME" default:"realy"`
-	Profile        st   `env:"PROFILE" usage:"root path for all other path configurations (based on APP_NAME and OS specific location)"`
-	Listen         st   `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
-	Port           no   `env:"PORT" default:"3334" usage:"port to listen on"`
-	AdminUser      st   `env:"ADMIN_USER" default:"admin" usage:"admin user"`
-	AdminPass      st   `env:"ADMIN_PASS" usage:"admin password"`
-	LogLevel       st   `env:"LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
-	DbLogLevel     st   `env:"DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
-	AuthRequired   bo   `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access, implicitly enabled if any relay owners are set, otherwise makes the relay require auth."`
-	Owners         []st `env:"OWNERS" usage:"list of npubs of users in hex format; if any are present, AUTH_REQUIRED is implicitly enabled, the npubs of the owners' follow lists are whitelisted for general read/write access, and events published by users on owners' mute lists will not be saved on the relay."`
-	FollowsFollows bo   `env:"FOLLOWS_FOLLOWS" usage:"enable allowing access to the follows of owners follows (facilitates nip-65 inboxes to work for follows)"`
-	DBSizeLimit    no   `env:"DB_SIZE_LIMIT" default:"0" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding, 0 means disabled"`
-	DBLowWater     no   `env:"DB_LOW_WATER" default:"60" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
-	DBHighWater    no   `env:"DB_HIGH_WATER" default:"80" usage:"the trigger point at which a GC run should start if exceeded"`
-	GCFrequency    no   `env:"GC_FREQUENCY" default:"3600" usage:"the frequency of checks of the current utilisation in minutes"`
-	Pprof          bo   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
-	MemLimit       no   `env:"MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
-	NWC            st   `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"`
+	AppName      st   `env:"APP_NAME" default:"realy"`
+	Profile      st   `env:"PROFILE" usage:"root path for all other path configurations (based on APP_NAME and OS specific location)"`
+	Listen       st   `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
+	Port         no   `env:"PORT" default:"3334" usage:"port to listen on"`
+	AdminUser    st   `env:"ADMIN_USER" default:"admin" usage:"admin user"`
+	AdminPass    st   `env:"ADMIN_PASS" usage:"admin password"`
+	LogLevel     st   `env:"LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	DbLogLevel   st   `env:"DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	AuthRequired bo   `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
+	Owners       []st `env:"OWNERS" usage:"list of npubs of users in hex format whose follow and mute list dictate accepting requests and events with AUTH_REQUIRED enabled - follows and follows follows are allowed to read/write, owners mutes events are rejected"`
+	DBSizeLimit  no   `env:"DB_SIZE_LIMIT" default:"0" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding, 0 means disabled"`
+	DBLowWater   no   `env:"DB_LOW_WATER" default:"60" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
+	DBHighWater  no   `env:"DB_HIGH_WATER" default:"80" usage:"the trigger point at which a GC run should start if exceeded"`
+	GCFrequency  no   `env:"GC_FREQUENCY" default:"3600" usage:"the frequency of checks of the current utilisation in minutes"`
+	Pprof        bo   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
+	MemLimit     no   `env:"MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
+	NWC          st   `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"`
 }
 
 func New() (cfg *C, err er) {

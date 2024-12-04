@@ -2,6 +2,11 @@ package index
 
 import (
 	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/id"
+	"realy.lol/ratel/keys/kinder"
+	"realy.lol/ratel/keys/pubkey"
+	"realy.lol/ratel/keys/serial"
 )
 
 type P byte
@@ -116,4 +121,30 @@ var FilterPrefixes = []by{
 	{Tag.B()},
 	{Tag32.B()},
 	{TagAddr.B()},
+}
+
+// KeySizes are the byte size of keys of each type of key prefix. int(P) or call the P.I() method
+// corresponds to the index 1:1. For future index additions be sure to add the
+// relevant KeySizes sum as it describes the data for a programmer.
+var KeySizes = []no{
+	// Event
+	1 + serial.Len,
+	// CreatedAt
+	1 + createdat.Len + serial.Len,
+	// Id
+	1 + id.Len + serial.Len,
+	// Kind
+	1 + kinder.Len + createdat.Len + serial.Len,
+	// Pubkey
+	1 + pubkey.Len + createdat.Len + serial.Len,
+	// PubkeyKind
+	1 + pubkey.Len + kinder.Len + createdat.Len + serial.Len,
+	// Tag (worst case scenario)
+	1 + 100 + createdat.Len + serial.Len,
+	// Tag32
+	1 + pubkey.Len + createdat.Len + serial.Len,
+	// TagAddr
+	1 + kinder.Len + pubkey.Len + 100 + createdat.Len + serial.Len,
+	// Counter
+	1 + serial.Len,
 }
