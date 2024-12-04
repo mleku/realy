@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"realy.lol/context"
 	"realy.lol/ec/schnorr"
@@ -71,6 +72,11 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 	// if the authenticator is enabled we require auth to accept events
 	if !r.AuthEnabled() {
 		return true, "", nil
+	}
+	if evt.CreatedAt.I64()-10 > time.Now().Unix() {
+		return false,
+			"realy does not accept timestamps that are so obviously fake, fix your clock",
+			nil
 	}
 	if len(authedPubkey) != 32 {
 		return false, fmt.Sprintf("client not authed with auth required %s", origin), nil
