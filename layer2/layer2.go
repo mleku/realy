@@ -4,6 +4,9 @@ import (
 	"errors"
 	"io"
 	"path/filepath"
+	"sync"
+	"time"
+
 	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/eventid"
@@ -11,8 +14,6 @@ import (
 	"realy.lol/store"
 	"realy.lol/tag"
 	"realy.lol/timestamp"
-	"sync"
-	"time"
 )
 
 type Backend struct {
@@ -30,7 +31,7 @@ type Backend struct {
 	PollFrequency time.Duration
 	// PollOverlap is the multiple of the PollFrequency within which polling the L2
 	// is done to ensure any slow synchrony on the L2 is covered (2-4 usually).
-	PollOverlap timestamp.T
+	PollOverlap no
 	// EventSignal triggers when the L1 saves a new event from the L2
 	//
 	// caller is responsible for populating this so that a signal can pass to all
@@ -79,7 +80,7 @@ func (b *Backend) Init(path st) (err er) {
 				}
 				// todo now wat
 				_ = evs
-				last = until.I64() - b.PollOverlap.I64()*int64(b.PollFrequency/time.Second)
+				last = until.I64() - int64(time.Duration(b.PollOverlap)*b.PollFrequency/time.Second)
 			}
 		}
 	}()
