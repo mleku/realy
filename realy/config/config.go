@@ -112,11 +112,16 @@ func (kv KVSlice) Composit(kv2 KVSlice) (out KVSlice) {
 	return
 }
 
-func EnvKV(cfg *C) (m KVSlice) {
-	t := reflect.TypeOf(*cfg)
+// EnvKV turns a struct with `env` keys (used with go-simpler/env) into a standard formatted
+// environment variable key/value pair list, one per line. Note you must dereference a pointer
+// type to use this. This allows the composition of the config in this file with an extended
+// form with a customized variant of realy to produce correct environment variables both read
+// and write.
+func EnvKV(cfg any) (m KVSlice) {
+	t := reflect.TypeOf(cfg)
 	for i := 0; i < t.NumField(); i++ {
 		k := t.Field(i).Tag.Get("env")
-		v := reflect.ValueOf(*cfg).Field(i).Interface()
+		v := reflect.ValueOf(cfg).Field(i).Interface()
 		var val st
 		switch v.(type) {
 		case string:
@@ -129,13 +134,17 @@ func EnvKV(cfg *C) (m KVSlice) {
 				val = strings.Join(arr, ",")
 			}
 		}
+		// this can happen with embedded structs
+		if k == "" {
+			continue
+		}
 		m = append(m, KV{k, val})
 	}
 	return
 }
 
 func PrintEnv(cfg *C, printer io.Writer) {
-	for _, v := range EnvKV(cfg) {
+	for _, v := range EnvKV(*cfg) {
 		_, _ = fmt.Fprintf(printer, "%s=%s\n", v.Key, v.Value)
 	}
 }
