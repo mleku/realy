@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
 	"go-simpler.org/env"
@@ -91,6 +92,10 @@ type KV struct{ Key, Value st }
 
 type KVSlice []KV
 
+func (kv KVSlice) Len() int           { return len(kv) }
+func (kv KVSlice) Less(i, j int) bool { return kv[i].Key < kv[j].Key }
+func (kv KVSlice) Swap(i, j int)      { kv[i], kv[j] = kv[j], kv[i] }
+
 // Composit merges two KVSlice together, replacing the values of earlier keys with same named
 // KV items later in the slice (enabling compositing two together as a .env, as well as them
 // being composed as structs.
@@ -99,15 +104,16 @@ func (kv KVSlice) Composit(kv2 KVSlice) (out KVSlice) {
 	for _, p := range kv {
 		out = append(out, p)
 	}
+out:
 	for i, p := range kv2 {
-	out:
 		for j, q := range out {
 			// if the key is repeated, replace the value
 			if p.Key == q.Key {
 				out[j].Value = kv2[i].Value
-				break out
+				continue out
 			}
 		}
+		out = append(out, p)
 	}
 	return
 }
@@ -144,7 +150,9 @@ func EnvKV(cfg any) (m KVSlice) {
 }
 
 func PrintEnv(cfg *C, printer io.Writer) {
-	for _, v := range EnvKV(*cfg) {
+	kvs := EnvKV(*cfg)
+	sort.Sort(kvs)
+	for _, v := range kvs {
 		_, _ = fmt.Fprintf(printer, "%s=%s\n", v.Key, v.Value)
 	}
 }
