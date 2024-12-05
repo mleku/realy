@@ -1,0 +1,70 @@
+package realy
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"strings"
+
+	"realy.lol/event"
+	"realy.lol/normalize"
+	"realy.lol/realy/listeners"
+	"realy.lol/relay"
+	"realy.lol/relay/wrapper"
+	"realy.lol/store"
+)
+
+func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request, origin st,
+	authedPubkey by) (accepted bo, message by) {
+	if ev == nil {
+		return false, normalize.Invalid.F("empty event")
+	}
+	sto := rl.Storage(c)
+	wrap := &wrapper.Relay{I: sto}
+	advancedSaver, _ := sto.(relay.AdvancedSaver)
+	accept, notice, after := rl.AcceptEvent(c, ev, hr, origin, authedPubkey)
+	if !accept {
+		return false, normalize.Blocked.F(notice)
+	}
+	if ev.Tags.ContainsProtectedMarker() {
+		if len(authedPubkey) == 0 || !equals(ev.PubKey, authedPubkey) {
+			return false,
+				by(fmt.Sprintf("event with relay marker tag '-' (nip-70 protected event) "+
+					"may only be published by matching npub: %0x is not %0x",
+					authedPubkey, ev.PubKey))
+		}
+	}
+	if ev.Kind.IsEphemeral() {
+	} else {
+		if advancedSaver != nil {
+			advancedSaver.BeforeSave(c, ev)
+		}
+		if saveErr := wrap.Publish(c, ev); chk.E(saveErr) {
+			if errors.Is(saveErr, store.ErrDupEvent) {
+				return false, normalize.Error.F(saveErr.Error())
+			}
+			errmsg := saveErr.Error()
+			if listeners.NIP20prefixmatcher.MatchString(errmsg) {
+				if strings.Contains(errmsg, "tombstone") {
+					return false, normalize.Blocked.F("event was deleted, not storing it again")
+				}
+				return false, normalize.Error.F(errmsg)
+			} else {
+				return false, normalize.Error.F("failed to save (%s)", errmsg)
+			}
+		}
+		if advancedSaver != nil {
+			advancedSaver.AfterSave(ev)
+		}
+	}
+	var authRequired bo
+	if ar, ok := rl.(relay.Authenticator); ok {
+		authRequired = ar.AuthEnabled()
+	}
+	if after != nil {
+		after()
+	}
+	s.listeners.NotifyListeners(authRequired, ev)
+	accepted = true
+	return
+}

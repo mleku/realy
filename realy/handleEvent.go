@@ -1,0 +1,222 @@
+package realy
+
+import (
+	"bytes"
+
+	"realy.lol/envelopes/authenvelope"
+	"realy.lol/envelopes/eventenvelope"
+	"realy.lol/envelopes/okenvelope"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/hex"
+	"realy.lol/ints"
+	"realy.lol/kind"
+	"realy.lol/normalize"
+	"realy.lol/relay"
+	"realy.lol/sha256"
+	"realy.lol/store"
+	"realy.lol/tag"
+	"realy.lol/web"
+)
+
+func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by) {
+	log.T.F("handleEvent %s %s", ws.RealRemote(), req)
+	var err er
+	var ok bo
+	var rem by
+	advancedDeleter, _ := sto.(relay.AdvancedDeleter)
+	env := eventenvelope.NewSubmission()
+	if rem, err = env.UnmarshalJSON(req); chk.E(err) {
+		return
+	}
+	if len(rem) > 0 {
+		log.I.F("extra '%s'", rem)
+	}
+	accept, notice, after := s.relay.AcceptEvent(c, env.T, ws.Req(), ws.RealRemote(),
+		by(ws.Authed()))
+	if !accept {
+		var auther relay.Authenticator
+		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+			if !ws.AuthRequested() {
+				if err = okenvelope.NewFrom(env.ID, false,
+					normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.T(err) {
+				}
+				log.T.F("requesting auth from client %s", ws.RealRemote())
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
+					return
+				}
+				ws.RequestAuth()
+				return
+			} else {
+				if err = okenvelope.NewFrom(env.ID, false,
+					normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
+				}
+				log.T.F("requesting auth again from client %s", ws.RealRemote())
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
+					return
+				}
+				return
+			}
+		}
+		if err = okenvelope.NewFrom(env.ID, false,
+			normalize.Invalid.F(notice)).Write(ws); chk.T(err) {
+		}
+		return
+	}
+	if !equals(env.GetIDBytes(), env.ID) {
+		if err = okenvelope.NewFrom(env.ID, false,
+			normalize.Invalid.F("event id is computed incorrectly")).Write(ws); chk.E(err) {
+			return
+		}
+		return
+	}
+	if ok, err = env.Verify(); chk.T(err) {
+		if err = okenvelope.NewFrom(env.ID, false,
+			normalize.Error.F("failed to verify signature")).Write(ws); chk.E(err) {
+			return
+		}
+	} else if !ok {
+		if err = okenvelope.NewFrom(env.ID, false,
+			normalize.Error.F("signature is invalid")).Write(ws); chk.E(err) {
+			return
+		}
+		return
+	}
+	if env.T.Kind.K == kind.Deletion.K {
+		log.I.F("delete event\n%s", env.T.Serialize())
+		for _, t := range env.Tags.Value() {
+			var res []*event.T
+			if t.Len() >= 2 {
+				switch {
+				case equals(t.Key(), by("e")):
+					evId := make(by, sha256.Size)
+					if _, err = hex.DecBytes(evId, t.Value()); chk.E(err) {
+						continue
+					}
+					res, err = s.relay.Storage(c).QueryEvents(c, &filter.T{IDs: tag.New(evId)})
+					if err != nil {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {
+							return
+						}
+						return
+					}
+					for i := range res {
+						if res[i].Kind.Equal(kind.Deletion) {
+							if err = okenvelope.NewFrom(env.ID, false,
+								normalize.Blocked.F("not processing or storing delete event containing delete event references")).Write(ws); chk.E(err) {
+								return
+							}
+						}
+						if !equals(res[i].PubKey, env.T.PubKey) {
+							if err = okenvelope.NewFrom(env.ID, false,
+								normalize.Blocked.F("cannot delete other users' events")).Write(ws); chk.E(err) {
+								return
+							}
+						}
+					}
+				case equals(t.Key(), by("a")):
+					split := bytes.Split(t.Value(), by{':'})
+					if len(split) != 3 {
+						continue
+					}
+					kin := ints.New(uint16(0))
+					if _, err = kin.UnmarshalJSON(split[0]); chk.E(err) {
+						return
+					}
+					kk := kind.New(kin.Uint16())
+					if kk.Equal(kind.Deletion) {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Blocked.F("delete event kind may not be deleted")).Write(ws); chk.E(err) {
+							return
+						}
+					}
+					if !kk.IsParameterizedReplaceable() {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Error.F("delete tags with a tags containing non-parameterized-replaceable events cannot be processed")).Write(ws); chk.E(err) {
+							return
+						}
+					}
+					if !equals(split[1], env.T.PubKey) {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Blocked.F("cannot delete other users' events")).Write(ws); chk.E(err) {
+							return
+						}
+					}
+					f := filter.New()
+					f.Kinds.K = []*kind.T{kk}
+					aut := make(by, 0, len(split[1])/2)
+					if aut, err = hex.DecAppend(aut, split[1]); chk.E(err) {
+						return
+					}
+					f.Authors.Append(aut)
+					f.Tags.AppendTags(tag.New(by{'#', 'd'}, split[2]))
+					res, err = s.relay.Storage(c).QueryEvents(c, f)
+					if err != nil {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {
+							return
+						}
+						return
+					}
+				}
+			}
+			if len(res) < 1 {
+				continue
+			}
+			var resTmp []*event.T
+			for _, v := range res {
+				if env.T.CreatedAt.U64() >= v.CreatedAt.U64() {
+					resTmp = append(resTmp, v)
+				}
+			}
+			res = resTmp
+			for _, target := range res {
+				if target.Kind.K == kind.Deletion.K {
+					if err = okenvelope.NewFrom(env.ID, false,
+						normalize.Error.F("cannot delete delete event %s",
+							env.ID)).Write(ws); chk.E(err) {
+						return
+					}
+				}
+				if target.CreatedAt.Int() > env.T.CreatedAt.Int() {
+					log.I.F("not deleting\n%d%\nbecause delete event is older\n%d",
+						target.CreatedAt.Int(), env.T.CreatedAt.Int())
+					continue
+				}
+				if !equals(target.PubKey, env.PubKey) {
+					if err = okenvelope.NewFrom(env.ID, false,
+						normalize.Error.F("only author can delete event")).Write(ws); chk.E(err) {
+						return
+					}
+					return
+				}
+				if advancedDeleter != nil {
+					advancedDeleter.BeforeDelete(c, t.Value(), env.PubKey)
+				}
+				if err = sto.DeleteEvent(c, target.EventID()); chk.T(err) {
+					if err = okenvelope.NewFrom(env.ID, false,
+						normalize.Error.F(err.Error())).Write(ws); chk.E(err) {
+						return
+					}
+					return
+				}
+				if advancedDeleter != nil {
+					advancedDeleter.AfterDelete(t.Value(), env.PubKey)
+				}
+			}
+			res = nil
+		}
+		if err = okenvelope.NewFrom(env.ID, true).Write(ws); chk.E(err) {
+			return
+		}
+	}
+	ok, reason := s.addEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(), by(ws.Authed()))
+	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
+		return
+	}
+	if after != nil {
+		after()
+	}
+	return
+}
