@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"time"
 
 	"go-simpler.org/env"
 
@@ -132,7 +133,7 @@ func EnvKV(cfg any) (m KVSlice) {
 		switch v.(type) {
 		case string:
 			val = v.(string)
-		case no, bo:
+		case no, bo, time.Duration:
 			val = fmt.Sprint(v)
 		case []string:
 			arr := v.([]string)
