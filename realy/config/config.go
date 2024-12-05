@@ -33,7 +33,7 @@ type C struct {
 	GCFrequency  no   `env:"GC_FREQUENCY" default:"3600" usage:"the frequency of checks of the current utilisation in minutes"`
 	Pprof        bo   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
 	MemLimit     no   `env:"MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
-	NWC          st   `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"`
+	// NWC          st   `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"` // todo
 }
 
 func New() (cfg *C, err er) {
@@ -87,9 +87,33 @@ func GetEnv() (requested bo) {
 	return
 }
 
-func PrintEnv(cfg *C, printer io.Writer) {
-	t := reflect.TypeOf(*cfg)
+type KV struct{ Key, Value st }
 
+type KVSlice []KV
+
+// Composit merges two KVSlice together, replacing the values of earlier keys with same named
+// KV items later in the slice (enabling compositing two together as a .env, as well as them
+// being composed as structs.
+func (kv KVSlice) Composit(kv2 KVSlice) (out KVSlice) {
+	// duplicate the initial KVSlice
+	for _, p := range kv {
+		out = append(out, p)
+	}
+	for i, p := range kv2 {
+	out:
+		for j, q := range out {
+			// if the key is repeated, replace the value
+			if p.Key == q.Key {
+				out[j].Value = kv2[i].Value
+				break out
+			}
+		}
+	}
+	return
+}
+
+func EnvKV(cfg *C) (m KVSlice) {
+	t := reflect.TypeOf(*cfg)
 	for i := 0; i < t.NumField(); i++ {
 		k := t.Field(i).Tag.Get("env")
 		v := reflect.ValueOf(*cfg).Field(i).Interface()
@@ -105,7 +129,14 @@ func PrintEnv(cfg *C, printer io.Writer) {
 				val = strings.Join(arr, ",")
 			}
 		}
-		fmt.Fprintf(printer, "%s=%v\n", k, val)
+		m = append(m, KV{k, val})
+	}
+	return
+}
+
+func PrintEnv(cfg *C, printer io.Writer) {
+	for _, v := range EnvKV(cfg) {
+		_, _ = fmt.Fprintf(printer, "%s=%s\n", v.Key, v.Value)
 	}
 }
 
