@@ -123,7 +123,7 @@ out:
 // environment variable key/value pair list, one per line. Note you must dereference a pointer
 // type to use this. This allows the composition of the config in this file with an extended
 // form with a customized variant of realy to produce correct environment variables both read
-// and write.
+// and write, including replacing the default values and descriptions when printing the usage.
 func EnvKV(cfg any) (m KVSlice) {
 	t := reflect.TypeOf(cfg)
 	for i := 0; i < t.NumField(); i++ {

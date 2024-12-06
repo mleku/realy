@@ -356,7 +356,7 @@ func (r *Relay) CheckOwnerLists(c cx) {
 	}
 }
 
-func (r *Relay) AuthEnabled() bo { return r.C.AuthRequired }
+func (r *Relay) AuthEnabled() bo { return r.C.AuthRequired || len(r.C.Owners) > 0 }
 
 // ServiceUrl returns the address of the relay to send back in auth responses.
 // If auth is disabled this returns an empty string.

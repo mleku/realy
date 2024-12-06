@@ -15,6 +15,7 @@ import (
 
 func (s *Server) auth(r *http.Request) (authed bo) {
 	if s.adminUser == "" || s.adminPass == "" {
+		log.W.Ln("admin user and/or password not set")
 		// disallow this if it hasn't been configured, the default values are empty.
 		return
 	}
@@ -32,6 +33,7 @@ func (s *Server) auth(r *http.Request) (authed bo) {
 			return true
 		}
 	}
+	log.W.Ln("admin user failed to auth")
 	return
 }
 
