@@ -2,6 +2,7 @@ package realy
 
 import (
 	"bytes"
+	"strings"
 
 	"realy.lol/envelopes/authenvelope"
 	"realy.lol/envelopes/eventenvelope"
@@ -21,6 +22,9 @@ import (
 
 func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by) {
 	log.T.F("handleEvent %s %s", ws.RealRemote(), req)
+	if ws.AuthRequested() && len(ws.Authed()) == 0 {
+		return by("awaiting auth for event")
+	}
 	var err er
 	var ok bo
 	var rem by
@@ -35,27 +39,33 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by)
 	accept, notice, after := s.relay.AcceptEvent(c, env.T, ws.Req(), ws.RealRemote(),
 		by(ws.Authed()))
 	if !accept {
-		var auther relay.Authenticator
-		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
-			if !ws.AuthRequested() {
-				if err = okenvelope.NewFrom(env.ID, false,
-					normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.T(err) {
-				}
-				log.T.F("requesting auth from client %s", ws.RealRemote())
-				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
+		if strings.Contains(notice, "mute") {
+			if err = okenvelope.NewFrom(env.ID, false,
+				normalize.Blocked.F(notice)).Write(ws); chk.T(err) {
+			}
+		} else {
+			var auther relay.Authenticator
+			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+				if !ws.AuthRequested() {
+					if err = okenvelope.NewFrom(env.ID, false,
+						normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.T(err) {
+					}
+					log.T.F("requesting auth from client %s", ws.RealRemote())
+					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
+						return
+					}
+					ws.RequestAuth()
+					return
+				} else {
+					if err = okenvelope.NewFrom(env.ID, false,
+						normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
+					}
+					log.T.F("requesting auth again from client %s", ws.RealRemote())
+					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
+						return
+					}
 					return
 				}
-				ws.RequestAuth()
-				return
-			} else {
-				if err = okenvelope.NewFrom(env.ID, false,
-					normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
-				}
-				log.T.F("requesting auth again from client %s", ws.RealRemote())
-				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
-					return
-				}
-				return
 			}
 		}
 		if err = okenvelope.NewFrom(env.ID, false,

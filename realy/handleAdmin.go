@@ -90,6 +90,10 @@ func (s *Server) handleAdmin(w http.ResponseWriter, r *http.Request) {
 		sto := s.relay.Storage(context.Bg())
 		read := io.LimitReader(r.Body, r.ContentLength)
 		sto.Import(read)
+		if realy, ok := s.relay.(*app.Relay); ok {
+			realy.ZeroLists()
+			realy.CheckOwnerLists(context.Bg())
+		}
 	case strings.HasPrefix(r.URL.Path, "/shutdown"):
 		if ok := s.auth(r); !ok {
 			s.unauthorized(w)

@@ -4,6 +4,10 @@ import "fmt"
 
 type List []no
 
+func (l List) Len() int           { return len(l) }
+func (l List) Less(i, j int) bool { return l[i] < l[j] }
+func (l List) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
+
 // HasNumber returns true if the list contains a given number
 func (l List) HasNumber(n no) (idx no, has bo) {
 	for idx = range l {

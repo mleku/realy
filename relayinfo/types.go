@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"sort"
 	"sync"
 
 	"realy.lol/kinds"
@@ -22,6 +23,7 @@ func GetList(items ...NIP) (n number.List) {
 	for _, item := range items {
 		n = append(n, item.N())
 	}
+	sort.Sort(n)
 	return
 }
 

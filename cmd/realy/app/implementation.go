@@ -60,11 +60,17 @@ func (r *Relay) Init() (err er) {
 		}
 		return fmt.Sprintf("%v", ownerIds)
 	})
-	r.Followed = make(map[st]struct{})
-	r.OwnersFollowed = make(map[st]struct{})
-	r.Muted = make(map[st]struct{})
+	r.ZeroLists()
 	r.CheckOwnerLists(context.Bg())
 	return nil
+}
+
+func (r *Relay) ZeroLists() {
+	r.Followed = make(map[st]struct{})
+	r.OwnersFollowed = make(map[st]struct{})
+	r.OwnersFollowLists = r.OwnersFollowLists[:0]
+	r.Muted = make(map[st]struct{})
+	r.OwnersMuteLists = r.OwnersMuteLists[:0]
 }
 
 func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
@@ -92,11 +98,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 			for o := range r.OwnersFollowed {
 				if equals(by(o), evt.PubKey) {
 					return true, "", func() {
-						r.Followed = make(map[st]struct{})
-						r.OwnersFollowed = make(map[st]struct{})
-						r.OwnersFollowLists = r.OwnersFollowLists[:0]
-						r.Muted = make(map[st]struct{})
-						r.OwnersMuteLists = r.OwnersMuteLists[:0]
+						r.ZeroLists()
 						r.CheckOwnerLists(context.Bg())
 					}
 				}
@@ -107,11 +109,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 			for _, o := range r.Owners {
 				if equals(o, evt.PubKey) {
 					return true, "", func() {
-						r.Followed = make(map[st]struct{})
-						r.OwnersFollowed = make(map[st]struct{})
-						r.OwnersFollowLists = r.OwnersFollowLists[:0]
-						r.Muted = make(map[st]struct{})
-						r.OwnersMuteLists = r.OwnersMuteLists[:0]
+						r.ZeroLists()
 						r.CheckOwnerLists(context.Bg())
 					}
 				}
@@ -128,7 +126,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 					tt := tag.New(append(r.OwnersFollowLists, r.OwnersMuteLists...)...)
 					if evt.Tags.ContainsAny(by("e"), tt) {
 						return false,
-							"cannot delete owner's follow, owners's follows follow or mute events",
+							"cannot delete owner's follow, owners' follows follow or mute events",
 							nil
 					}
 					// next, check all a tags present are not follow/mute lists of the owners
@@ -173,7 +171,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 			// they come from a pubkey that is on the follow list.
 			for pk := range r.Muted {
 				if equals(evt.PubKey, by(pk)) {
-					return false, "rejecting event with pubkey " + st(evt.PubKey) +
+					return false, "rejecting event with pubkey " + hex.Enc(evt.PubKey) +
 						" because on owner mute list", nil
 				}
 			}
@@ -201,6 +199,7 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 	authedPubkey by) (allowed *filters.T, ok bo) {
 	// if the authenticator is enabled we require auth to process requests
 	if !r.AuthEnabled() {
+		allowed = ff
 		ok = true
 		return
 	}
@@ -356,12 +355,12 @@ func (r *Relay) CheckOwnerLists(c cx) {
 	}
 }
 
-func (r *Relay) AuthEnabled() bo { return r.C.AuthRequired }
+func (r *Relay) AuthEnabled() bo { return r.AuthRequired || len(r.Owners) > 0 }
 
 // ServiceUrl returns the address of the relay to send back in auth responses.
 // If auth is disabled this returns an empty string.
 func (r *Relay) ServiceUrl(req *http.Request) (s st) {
-	if !r.C.AuthRequired {
+	if !r.AuthEnabled() {
 		return
 	}
 	host := req.Header.Get("X-Forwarded-Host")

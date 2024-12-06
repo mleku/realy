@@ -19,7 +19,7 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req by, store store.I)
 		return normalize.Restricted.F("this relay does not support NIP-45")
 	}
 	if ws.AuthRequested() && len(ws.Authed()) == 0 {
-		return
+		return by("awaiting auth for count")
 	}
 	var err er
 	var rem by
