@@ -20,9 +20,6 @@ import (
 )
 
 func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by) {
-	if ws.AuthRequested() && len(ws.Authed()) == 0 {
-		return by("auth has been requested, awaiting authentication response")
-	}
 	log.T.F("handleEvent %s %s", ws.RealRemote(), req)
 	var err er
 	var ok bo
