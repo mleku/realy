@@ -25,21 +25,17 @@ func (en *T) ReasonString() string           { return st(en.Reason) }
 
 func (en *T) Write(w io.Writer) (err er) {
 	var b by
-	if b, err = en.MarshalJSON(b); chk.E(err) {
-		return
-	}
+	b = en.Marshal(b)
 	_, err = w.Write(b)
 	return
 }
 
-func (en *T) MarshalJSON(dst by) (b by, err er) {
+func (en *T) Marshal(dst by) (b by) {
 	b = dst
-	b, err = envelopes.Marshal(b, L,
-		func(bst by) (o by, err er) {
+	b = envelopes.Marshal(b, L,
+		func(bst by) (o by) {
 			o = bst
-			if o, err = en.Subscription.MarshalJSON(o); chk.E(err) {
-				return
-			}
+			o = en.Subscription.Marshal(o)
 			o = append(o, ',')
 			o = append(o, '"')
 			o = text.NostrEscape(o, en.Reason)
@@ -49,12 +45,12 @@ func (en *T) MarshalJSON(dst by) (b by, err er) {
 	return
 }
 
-func (en *T) UnmarshalJSON(b by) (r by, err er) {
+func (en *T) Unmarshal(b by) (r by, err er) {
 	r = b
 	if en.Subscription, err = subscription.NewId(by{0}); chk.E(err) {
 		return
 	}
-	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {
+	if r, err = en.Subscription.Unmarshal(r); chk.E(err) {
 		return
 	}
 	if en.Reason, r, err = text.UnmarshalQuoted(r); chk.E(err) {
@@ -68,7 +64,7 @@ func (en *T) UnmarshalJSON(b by) (r by, err er) {
 
 func Parse(b by) (t *T, rem by, err er) {
 	t = New()
-	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
+	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
 	}
 	return

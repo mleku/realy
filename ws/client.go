@@ -355,11 +355,11 @@ func (r *Client) publish(ctx cx, ev *event.T) (err er) {
 	// publish event
 	var b by
 	if ev.Kind.Equal(kind.ClientAuthentication) {
-		if b, err = authenvelope.NewResponseWith(ev).MarshalJSON(b); chk.E(err) {
+		if b = authenvelope.NewResponseWith(ev).Marshal(b); chk.E(err) {
 			return
 		}
 	} else {
-		if b, err = eventenvelope.NewSubmissionWith(ev).MarshalJSON(b); chk.E(err) {
+		if b = eventenvelope.NewSubmissionWith(ev).Marshal(b); chk.E(err) {
 			return
 		}
 	}

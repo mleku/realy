@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
+
 	"realy.lol/hex"
 	"realy.lol/tag"
 )
@@ -24,20 +25,20 @@ func TestMarshalUnmarshal(t *testing.T) {
 			}
 			tgs.t = append(tgs.t, tg)
 		}
-		b, _ = tgs.MarshalJSON(b)
-		bo := make(by, len(b))
-		copy(bo, b)
+		b = tgs.Marshal(b)
+		bb := make(by, len(b))
+		copy(bb, b)
 		ta := &T{}
-		rem, err = ta.UnmarshalJSON(b)
+		rem, err = ta.Unmarshal(b)
 		if chk.E(err) {
 			t.Fatal(err)
 		}
 		var bc by
-		bc, _ = ta.MarshalJSON(bc)
-		if !equals(bo, bc) {
-			t.Fatalf("got\n%s\nwant\n%s\n", bc, bo)
+		bc = ta.Marshal(bc)
+		if !equals(bb, bc) {
+			t.Fatalf("got\n%s\nwant\n%s\n", bc, bb)
 		}
-		b, rem, bo, bc = b[:0], rem[:0], bo[:0], bc[:0]
+		b, rem, bb, bc = b[:0], rem[:0], bb[:0], bc[:0]
 	}
 }
 
@@ -47,47 +48,39 @@ func TestEmpty(t *testing.T) {
 	var empty, empty1, empty2 *T
 	_, _, _ = empty, empty1, empty2
 	empty = New()
-	if b0, err = empty.MarshalJSON(b0); chk.E(err) {
-		t.Fatal(err)
-	}
+	b0 = empty.Marshal(b0)
 	bc = make(by, len(b0))
 	copy(bc, b0)
 	empty1 = New()
-	if b0, err = empty1.UnmarshalJSON(b0); chk.E(err) {
+	if b0, err = empty1.Unmarshal(b0); chk.E(err) {
 		t.Fatal(err)
 	}
 	empty2 = New()
-	if b1, err = empty2.MarshalJSON(b1); chk.E(err) {
-		t.Fatal(err)
-	}
+	b1 = empty2.Marshal(b1)
 	if !equals(bc, b1) {
 		t.Fatalf("'%s' == '%s' -> %v", bc, b1, equals(bc, b1))
 	}
 	b0, bc, b1 = b0[:0], bc[:0], b1[:0]
 	empty = New(&tag.T{})
-	if b0, err = empty.MarshalJSON(b0); chk.E(err) {
-		t.Fatal(err)
-	}
+	b0 = empty.Marshal(b0)
 	bc = make(by, len(b0))
 	copy(bc, b0)
 	empty1 = New()
-	if b0, err = empty1.UnmarshalJSON(b0); chk.E(err) {
+	if b0, err = empty1.Unmarshal(b0); chk.E(err) {
 		t.Fatal(err)
 	}
 	empty2 = New()
-	if b1, err = empty1.MarshalJSON(b1); chk.E(err) {
-		t.Fatal(err)
-	}
+	b1 = empty1.Marshal(b1)
 	if !equals(bc, b1) {
 		t.Fatalf("'%s' == '%s' -> %v", bc, b1, equals(bc, b1))
 	}
 	b0, bc, b1 = b0[:0], bc[:0], b1[:0]
 }
 
-func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
+func BenchmarkMarshalUnmarshal(bb *testing.B) {
 	var b, rem by
 	var err er
-	bb.Run("tag.MarshalJSON", func(bb *testing.B) {
+	bb.Run("tag.Marshal", func(bb *testing.B) {
 		bb.ReportAllocs()
 		for i := 0; i < bb.N; i++ {
 			n := frand.Intn(40) + 2
@@ -103,11 +96,11 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 				}
 				tgs.t = append(tgs.t, tg)
 			}
-			b, _ = tgs.MarshalJSON(b)
+			b = tgs.Marshal(b)
 			b = b[:0]
 		}
 	})
-	bb.Run("tag.MarshalJSONUnmarshalJSON", func(bb *testing.B) {
+	bb.Run("tag.MarshalUnmarshal", func(bb *testing.B) {
 		bb.ReportAllocs()
 		for i := 0; i < bb.N; i++ {
 			n := frand.Intn(40) + 2
@@ -122,9 +115,9 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 				}
 				tgs.t = append(tgs.t, tg)
 			}
-			b, _ = tgs.MarshalJSON(b)
+			b = tgs.Marshal(b)
 			ta := New()
-			rem, err = ta.UnmarshalJSON(b)
+			rem, err = ta.Unmarshal(b)
 			if chk.E(err) {
 				bb.Fatal(err)
 			}

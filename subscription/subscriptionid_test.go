@@ -6,7 +6,7 @@ import (
 	"lukechampine.com/frand"
 )
 
-func TestMarshalJSONUnmarshalJSON(t *testing.T) {
+func TestMarshalUnmarshal(t *testing.T) {
 	for _ = range 100 {
 		b := make(by, frand.Intn(48)+1)
 		bc := make(by, len(b))
@@ -18,13 +18,11 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 			t.Fatal(err)
 		}
 		var m by
-		if m, err = si.MarshalJSON(nil); chk.E(err) {
-			t.Fatal(err)
-		}
+		m = si.Marshal(nil)
 		var ui *Id
 		ui, _ = NewId("")
 		var rem by
-		if rem, err = ui.UnmarshalJSON(m); chk.E(err) {
+		if rem, err = ui.Unmarshal(m); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) > 0 {

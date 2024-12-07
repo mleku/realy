@@ -18,7 +18,7 @@ func TestSubmission(t *testing.T) {
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		ev := event.New()
-		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
+		if _, err = ev.Unmarshal(b); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
@@ -27,9 +27,7 @@ func TestSubmission(t *testing.T) {
 		}
 		rem = rem[:0]
 		ea := NewSubmissionWith(ev)
-		if rem, err = ea.MarshalJSON(rem); chk.E(err) {
-			t.Fatal(err)
-		}
+		rem = ea.Marshal(rem)
 		c = append(c, rem...)
 		var l string
 		if l, rem, err = envelopes.Identify(rem); chk.E(err) {
@@ -38,16 +36,14 @@ func TestSubmission(t *testing.T) {
 		if l != L {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
-		if rem, err = ea.UnmarshalJSON(rem); chk.E(err) {
+		if rem, err = ea.Unmarshal(rem); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
 			t.Fatalf("some of input remaining after marshal/unmarshal: '%s'",
 				rem)
 		}
-		if out, err = ea.MarshalJSON(out); chk.E(err) {
-			t.Fatal(err)
-		}
+		out = ea.Marshal(out)
 		if !equals(out, c) {
 			t.Fatalf("mismatched output\n%s\n\n%s\n", c, out)
 		}
@@ -62,7 +58,7 @@ func TestResult(t *testing.T) {
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		ev := event.New()
-		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
+		if _, err = ev.Unmarshal(b); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
@@ -73,9 +69,7 @@ func TestResult(t *testing.T) {
 		if ea, err = NewResultWith(subscription.NewStd().String(), ev); chk.E(err) {
 			t.Fatal(err)
 		}
-		if rem, err = ea.MarshalJSON(rem); chk.E(err) {
-			t.Fatal(err)
-		}
+		rem = ea.Marshal(rem)
 		c = append(c, rem...)
 		var l string
 		if l, rem, err = envelopes.Identify(rem); chk.E(err) {
@@ -84,16 +78,14 @@ func TestResult(t *testing.T) {
 		if l != L {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
-		if rem, err = ea.UnmarshalJSON(rem); chk.E(err) {
+		if rem, err = ea.Unmarshal(rem); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
 			t.Fatalf("some of input remaining after marshal/unmarshal: '%s'",
 				rem)
 		}
-		if out, err = ea.MarshalJSON(out); chk.E(err) {
-			t.Fatal(err)
-		}
+		out = ea.Marshal(out)
 		if !equals(out, c) {
 			t.Fatalf("mismatched output\n%s\n\n%s\n", c, out)
 		}

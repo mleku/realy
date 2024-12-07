@@ -77,13 +77,11 @@ func (k *T) Equals(t1 *T) bo {
 	return true
 }
 
-func (k *T) MarshalJSON(dst by) (b by, err er) {
+func (k *T) Marshal(dst by) (b by) {
 	b = dst
 	b = append(b, '[')
 	for i := range k.K {
-		if b, err = k.K[i].MarshalJSON(b); chk.E(err) {
-			return
-		}
+		b = k.K[i].Marshal(b)
 		if i != len(k.K)-1 {
 			b = append(b, ',')
 		}
@@ -92,7 +90,7 @@ func (k *T) MarshalJSON(dst by) (b by, err er) {
 	return
 }
 
-func (k *T) UnmarshalJSON(b by) (r by, err er) {
+func (k *T) Unmarshal(b by) (r by, err er) {
 	r = b
 	var openedBracket bo
 	for ; len(r) > 0; r = r[1:] {
@@ -107,7 +105,7 @@ func (k *T) UnmarshalJSON(b by) (r by, err er) {
 				continue
 			}
 			kk := ints.New(0)
-			if r, err = kk.UnmarshalJSON(r); chk.E(err) {
+			if r, err = kk.Unmarshal(r); chk.E(err) {
 				return
 			}
 			k.K = append(k.K, kind.New(kk.Uint16()))

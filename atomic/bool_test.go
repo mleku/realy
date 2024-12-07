@@ -123,7 +123,7 @@ func TestBool_InitializeDefaults(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
-			t.Run("MarshalJSON", func(t *testing.T) {
+			t.Run("Marshal", func(t *testing.T) {
 				b := tt.newBool()
 				marshalled, err := b.MarshalJSON()
 				require.NoError(t, err)

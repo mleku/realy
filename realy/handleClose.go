@@ -9,7 +9,7 @@ func (s *Server) handleClose(ws *web.Socket, req by) (note by) {
 	var err er
 	var rem by
 	env := closeenvelope.New()
-	if rem, err = env.UnmarshalJSON(req); chk.E(err) {
+	if rem, err = env.Unmarshal(req); chk.E(err) {
 		return by(err.Error())
 	}
 	if len(rem) > 0 {

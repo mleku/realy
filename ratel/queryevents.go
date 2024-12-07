@@ -126,7 +126,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 				ev := &event.T{}
 				if err = item.Value(func(eventValue by) (err er) {
 					var rem by
-					if rem, err = ev.UnmarshalJSON(eventValue); chk.E(err) {
+					if rem, err = ev.Unmarshal(eventValue); chk.E(err) {
 						ev = nil
 						eventValue = eventValue[:0]
 						return

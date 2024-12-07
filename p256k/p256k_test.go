@@ -44,7 +44,7 @@ func TestSignerVerify(t *testing.T) {
 		bc := make(by, 0, len(b))
 		bc = append(bc, b...)
 		ev := event.New()
-		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
+		if _, err = ev.Unmarshal(b); chk.E(err) {
 			t.Errorf("failed to marshal\n%s", b)
 		} else {
 			if valid, err = ev.Verify(); chk.T(err) || !valid {
@@ -96,7 +96,7 @@ func TestSignerSign(t *testing.T) {
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		ev := event.New()
-		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
+		if _, err = ev.Unmarshal(b); chk.E(err) {
 			t.Errorf("failed to marshal\n%s", b)
 		}
 		evs = append(evs, ev)

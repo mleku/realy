@@ -74,9 +74,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 				// we only need to restore the event binary and write the access counter key
 				// encode to binary
 				var bin by
-				if bin, err = ev.MarshalJSON(bin); chk.E(err) {
-					return
-				}
+				bin = ev.Marshal(bin)
 				if err = txn.Set(it.Item().Key(), bin); chk.E(err) {
 					return
 				}
@@ -97,9 +95,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 		return
 	}
 	var bin by
-	if bin, err = ev.MarshalJSON(bin); chk.T(err) {
-		return
-	}
+	bin = ev.Marshal(bin)
 	// otherwise, save new event record.
 	if err = r.Update(func(txn *badger.Txn) (err er) {
 		var idx by

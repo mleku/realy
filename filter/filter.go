@@ -91,7 +91,9 @@ var (
 	Search  = by("search")
 )
 
-func (f *T) MarshalJSON(dst by) (b by, err er) {
+func (f *T) Marshal(dst by) (b by) {
+	var err er
+	_ = err
 	var first bo
 	// sort the fields so they come out the same
 	f.Sort()
@@ -109,9 +111,7 @@ func (f *T) MarshalJSON(dst by) (b by, err er) {
 			first = true
 		}
 		dst = text.JSONKey(dst, Kinds)
-		if dst, err = f.Kinds.MarshalJSON(dst); chk.E(err) {
-			return
-		}
+		dst = f.Kinds.Marshal(dst)
 	}
 	if f.Authors.Len() > 0 {
 		if first {
@@ -184,9 +184,7 @@ func (f *T) MarshalJSON(dst by) (b by, err er) {
 			first = true
 		}
 		dst = text.JSONKey(dst, Since)
-		if dst, err = f.Since.MarshalJSON(dst); chk.E(err) {
-			return
-		}
+		dst = f.Since.Marshal(dst)
 	}
 	if f.Until != nil && f.Until.U64() > 0 {
 		if first {
@@ -195,9 +193,7 @@ func (f *T) MarshalJSON(dst by) (b by, err er) {
 			first = true
 		}
 		dst = text.JSONKey(dst, Until)
-		if dst, err = f.Until.MarshalJSON(dst); chk.E(err) {
-			return
-		}
+		dst = f.Until.Marshal(dst)
 	}
 	if len(f.Search) > 0 {
 		if first {
@@ -215,9 +211,7 @@ func (f *T) MarshalJSON(dst by) (b by, err er) {
 			first = true
 		}
 		dst = text.JSONKey(dst, Limit)
-		if dst, err = ints.New(*f.Limit).MarshalJSON(dst); chk.E(err) {
-			return
-		}
+		dst = ints.New(*f.Limit).Marshal(dst)
 	}
 	// close parentheses
 	dst = append(dst, '}')
@@ -225,12 +219,7 @@ func (f *T) MarshalJSON(dst by) (b by, err er) {
 	return
 }
 
-func (f *T) Serialize() (b by) {
-	b, _ = f.MarshalJSON(nil)
-	return
-}
-
-// func (f *T) String() (r S) { return S(f.Serialize()) }
+func (f *T) Serialize() (b by) { return f.Marshal(nil) }
 
 // states of the unmarshaler
 const (
@@ -243,7 +232,7 @@ const (
 	afterClose
 )
 
-func (f *T) UnmarshalJSON(b by) (r by, err er) {
+func (f *T) Unmarshal(b by) (r by, err er) {
 	r = b[:]
 	var key by
 	var state no
@@ -319,7 +308,7 @@ func (f *T) UnmarshalJSON(b by) (r by, err er) {
 					goto invalid
 				}
 				f.Kinds = kinds.NewWithCap(0)
-				if r, err = f.Kinds.UnmarshalJSON(r); chk.E(err) {
+				if r, err = f.Kinds.Unmarshal(r); chk.E(err) {
 					return
 				}
 				state = betweenKV
@@ -338,7 +327,7 @@ func (f *T) UnmarshalJSON(b by) (r by, err er) {
 					goto invalid
 				}
 				u := ints.New(0)
-				if r, err = u.UnmarshalJSON(r); chk.E(err) {
+				if r, err = u.Unmarshal(r); chk.E(err) {
 					return
 				}
 				f.Until = timestamp.FromUnix(int64(u.N))
@@ -348,7 +337,7 @@ func (f *T) UnmarshalJSON(b by) (r by, err er) {
 					goto invalid
 				}
 				l := ints.New(0)
-				if r, err = l.UnmarshalJSON(r); chk.E(err) {
+				if r, err = l.Unmarshal(r); chk.E(err) {
 					return
 				}
 				u := uint(l.N)
@@ -376,7 +365,7 @@ func (f *T) UnmarshalJSON(b by) (r by, err er) {
 						goto invalid
 					}
 					s := ints.New(0)
-					if r, err = s.UnmarshalJSON(r); chk.E(err) {
+					if r, err = s.Unmarshal(r); chk.E(err) {
 						return
 					}
 					f.Since = timestamp.FromUnix(int64(s.N))
@@ -448,7 +437,7 @@ func (f *T) Matches(ev *event.T) bo {
 }
 
 // Fingerprint returns an 8 byte truncated sha256 hash of the filter in the canonical form
-// created by MarshalJSON.
+// created by Marshal.
 //
 // This hash is generated via the JSON encoded form of the filter, with the Limit field removed.
 // This value should be set to zero after all results from a query of stored events, as per
@@ -457,9 +446,7 @@ func (f *T) Fingerprint() (fp uint64, err er) {
 	lim := f.Limit
 	f.Limit = nil
 	var b by
-	if b, err = f.MarshalJSON(b); chk.E(err) {
-		return
-	}
+	b = f.Marshal(b)
 	h := sha256.Sum256(b)
 	hb := h[:]
 	fp = binary.LittleEndian.Uint64(hb)

@@ -1,8 +1,6 @@
 package eventid
 
 import (
-	"errors"
-
 	"lukechampine.com/frand"
 
 	"realy.lol/hex"
@@ -77,11 +75,8 @@ func (ei *T) Equal(ei2 *T) (eq bo) {
 	return *ei == *ei2
 }
 
-func (ei *T) MarshalJSON() (b by, err er) {
-	if ei == nil {
-		err = errors.New("event id is nil")
-		return
-	}
+func (ei *T) Marshal(dst by) (b by) {
+	b = dst
 	b = make(by, 0, 2*sha256.Size+2)
 	b = append(b, '"')
 	hex.EncAppend(b, ei[:])
@@ -89,11 +84,7 @@ func (ei *T) MarshalJSON() (b by, err er) {
 	return
 }
 
-func (ei *T) UnmarshalJSON(b by) (err er) {
-	if ei == nil {
-		err = errors.New("event id is nil")
-		return
-	}
+func (ei *T) Unmarshal(b by) (rem by, err er) {
 	// trim off the quotes.
 	b = b[1 : 2*sha256.Size+1]
 	if len(b) != 2*sha256.Size {

@@ -24,7 +24,7 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req by, store store.I)
 	var err er
 	var rem by
 	env := countenvelope.New()
-	if rem, err = env.UnmarshalJSON(req); chk.E(err) {
+	if rem, err = env.Unmarshal(req); chk.E(err) {
 		return normalize.Error.F(err.Error())
 	}
 	if len(rem) > 0 {

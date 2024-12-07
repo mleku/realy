@@ -199,7 +199,7 @@ func UnmarshalStringArray(b by) (t []by, rem by, err er) {
 func MarshalKindsArray(dst by, ka *kinds.T) (b by) {
 	dst = append(dst, '[')
 	for i := range ka.K {
-		dst, _ = ka.K[i].MarshalJSON(dst)
+		dst = ka.K[i].Marshal(dst)
 		if i != len(ka.K)-1 {
 			dst = append(dst, ',')
 		}
@@ -225,7 +225,7 @@ func UnmarshalKindsArray(b by) (k *kinds.T, rem by, err er) {
 				continue
 			}
 			kk := ints.New(0)
-			if rem, err = kk.UnmarshalJSON(rem); chk.E(err) {
+			if rem, err = kk.Unmarshal(rem); chk.E(err) {
 				return
 			}
 			k.K = append(k.K, kind.New(kk.Uint16()))

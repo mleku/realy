@@ -64,10 +64,10 @@ func NewStd() (t *Id) {
 	return
 }
 
-func (si *Id) MarshalJSON(dst by) (b by, err er) {
+func (si *Id) Marshal(dst by) (b by) {
 	ue := text.NostrEscape(nil, si.T)
 	if len(ue) < 1 || len(ue) > 64 {
-		err = errorf.E("invalid subscription ID, must be between 1 and 64 "+
+		log.E.F("invalid subscription ID, must be between 1 and 64 "+
 			"characters, got %d (possibly due to escaping)", len(ue))
 		return
 	}
@@ -78,7 +78,7 @@ func (si *Id) MarshalJSON(dst by) (b by, err er) {
 	return
 }
 
-func (si *Id) UnmarshalJSON(b by) (r by, err er) {
+func (si *Id) Unmarshal(b by) (r by, err er) {
 	var openQuotes, escaping bo
 	var start no
 	r = b

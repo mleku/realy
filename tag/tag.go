@@ -223,8 +223,7 @@ func (t *T) Relay() (s by) {
 	return
 }
 
-// MarshalJSON appends the JSON form to the passed bytes.
-func (t *T) MarshalJSON(dst by) (b by, err er) {
+func (t *T) Marshal(dst by) (b by) {
 	dst = append(dst, '[')
 	for i, s := range t.field {
 		if i > 0 {
@@ -233,12 +232,10 @@ func (t *T) MarshalJSON(dst by) (b by, err er) {
 		dst = text.AppendQuote(dst, s, text.NostrEscape)
 	}
 	dst = append(dst, ']')
-	return dst, err
+	return dst
 }
 
-// UnmarshalJSON decodes the provided JSON tag list (array of strings), and
-// returns any remainder after the close bracket has been encountered.
-func (t *T) UnmarshalJSON(b by) (r by, err er) {
+func (t *T) Unmarshal(b by) (r by, err er) {
 	var inQuotes, openedBracket bo
 	var quoteStart no
 	// t.Field = []BS[B]{}
@@ -266,27 +263,8 @@ func (t *T) UnmarshalJSON(b by) (r by, err er) {
 	return
 }
 
-// func (t *T) String() string {
-// 	b, _ := t.MarshalJSON(nil)
-// 	return unsafe.String(&b[0], len(b))
-// }
-
 // Contains returns true if the provided element is found in the tag slice.
 func (t *T) Contains(s by) (b bo) {
-	// var isHex bool
-	// if t.Len() > 1 && (t.S(0) == "e" || t.S(0) == "p") {
-	// 	isHex = true
-	// }
-	// if isHex {
-	// 	o := "contains,["
-	// 	for _, i := range t.field {
-	// 		o += "\""
-	// 		o += hex.Enc(i)
-	// 		o += "\","
-	// 	}
-	// } else {
-	// 	log.I.F("contains %v\n%v", s, t.field)
-	// }
 	for i := range t.field {
 		if equals(t.field[i], s) {
 			return true

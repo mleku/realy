@@ -35,23 +35,16 @@ func (f *T) Match(event *event.T) bo {
 	return false
 }
 
-func (f *T) String() (s st) {
-	var b by
-	var err er
-	if b, err = f.MarshalJSON(nil); chk.E(err) {
-		return
-	}
-	return st(b)
-}
+func (f *T) String() (s st) { return st(f.Marshal(nil)) }
 
-func (f *T) MarshalJSON(dst by) (b by, err er) {
+func (f *T) Marshal(dst by) (b by) {
+	var err er
+	_ = err
 	b = dst
 	b = append(b, '[')
 	end := len(f.F) - 1
 	for i := range f.F {
-		if b, err = f.F[i].MarshalJSON(b); chk.E(err) {
-			return
-		}
+		b = f.F[i].Marshal(b)
 		if i < end {
 			b = append(b, ',')
 		}
@@ -60,7 +53,7 @@ func (f *T) MarshalJSON(dst by) (b by, err er) {
 	return
 }
 
-func (f *T) UnmarshalJSON(b by) (r by, err er) {
+func (f *T) Unmarshal(b by) (r by, err er) {
 	r = b[:]
 	for len(r) > 0 {
 		switch r[0] {
@@ -71,7 +64,7 @@ func (f *T) UnmarshalJSON(b by) (r by, err er) {
 			}
 			r = r[1:]
 			ffa := filter.New()
-			if r, err = ffa.UnmarshalJSON(r); chk.E(err) {
+			if r, err = ffa.Unmarshal(r); chk.E(err) {
 				return
 			}
 			f.F = append(f.F, ffa)
@@ -83,7 +76,7 @@ func (f *T) UnmarshalJSON(b by) (r by, err er) {
 				return
 			}
 			ffa := filter.New()
-			if r, err = ffa.UnmarshalJSON(r); chk.E(err) {
+			if r, err = ffa.Unmarshal(r); chk.E(err) {
 				return
 			}
 			f.F = append(f.F, ffa)

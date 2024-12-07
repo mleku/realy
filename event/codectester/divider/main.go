@@ -79,7 +79,7 @@ func main() {
 		cp = append(cp, line...)
 		ev := event.T{}
 		var rem by
-		if rem, err = ev.UnmarshalJSON(line); err != nil {
+		if rem, err = ev.Unmarshal(line); err != nil {
 			// these two error types are fatal... json cannot have linebreak characters in
 			// strings nor can events have keys that are other than the set defined in NIP-01.
 			if err.Error() != "invalid character '\\n' in quoted string" &&

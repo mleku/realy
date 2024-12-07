@@ -21,28 +21,28 @@ func (en *Challenge) Label() string                      { return L }
 
 func (en *Challenge) Write(w io.Writer) (err er) {
 	var b by
-	if b, err = en.MarshalJSON(b); chk.E(err) {
-		return
-	}
+	b = en.Marshal(b)
 	log.T.F("writing out challenge envelope: '%s'", b)
 	_, err = w.Write(b)
 	return
 }
 
-func (en *Challenge) MarshalJSON(dst by) (b by, err er) {
+func (en *Challenge) Marshal(dst by) (b by) {
 	b = dst
-	b, err = envs.Marshal(b, L,
-		func(bst by) (o by, err er) {
+	var err er
+	b = envs.Marshal(b, L,
+		func(bst by) (o by) {
 			o = bst
 			o = append(o, '"')
 			o = text.NostrEscape(o, en.Challenge)
 			o = append(o, '"')
 			return
 		})
+	_ = err
 	return
 }
 
-func (en *Challenge) UnmarshalJSON(b by) (r by, err er) {
+func (en *Challenge) Unmarshal(b by) (r by, err er) {
 	r = b
 	if en.Challenge, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
@@ -58,7 +58,7 @@ func (en *Challenge) UnmarshalJSON(b by) (r by, err er) {
 
 func ParseChallenge(b by) (t *Challenge, rem by, err er) {
 	t = NewChallenge()
-	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
+	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
 	}
 	return
@@ -76,14 +76,13 @@ func (en *Response) Label() string             { return L }
 
 func (en *Response) Write(w io.Writer) (err er) {
 	var b by
-	if b, err = en.MarshalJSON(b); chk.E(err) {
-		return
-	}
+	b = en.Marshal(b)
 	_, err = w.Write(b)
 	return
 }
 
-func (en *Response) MarshalJSON(dst by) (b by, err er) {
+func (en *Response) Marshal(dst by) (b by) {
+	var err er
 	if en == nil {
 		err = errorf.E("nil response")
 		return
@@ -93,15 +92,16 @@ func (en *Response) MarshalJSON(dst by) (b by, err er) {
 		return
 	}
 	b = dst
-	b, err = envs.Marshal(b, L, en.Event.MarshalJSON)
+	b = envs.Marshal(b, L, en.Event.Marshal)
+	_ = err
 	return
 }
 
-func (en *Response) UnmarshalJSON(b by) (r by, err er) {
+func (en *Response) Unmarshal(b by) (r by, err er) {
 	r = b
 	// literally just unmarshal the event
 	en.Event = event.New()
-	if r, err = en.Event.UnmarshalJSON(r); chk.E(err) {
+	if r, err = en.Event.Unmarshal(r); chk.E(err) {
 		return
 	}
 	if r, err = envs.SkipToTheEnd(r); chk.E(err) {
@@ -112,7 +112,7 @@ func (en *Response) UnmarshalJSON(b by) (r by, err er) {
 
 func ParseResponse(b by) (t *Response, rem by, err er) {
 	t = NewResponse()
-	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
+	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
 	}
 	return

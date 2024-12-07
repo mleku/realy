@@ -60,7 +60,7 @@ func TestPublish(t *testing.T) {
 			t.Errorf("got type %s, want %s", raw[0], eventenvelope.L)
 		}
 		env := eventenvelope.NewSubmission()
-		if raw[1], err = env.UnmarshalJSON(raw[1]); chk.E(err) {
+		if raw[1], err = env.Unmarshal(raw[1]); chk.E(err) {
 			t.Fatal(err)
 		}
 		// event := parseEventMessage(t, raw)
@@ -69,7 +69,7 @@ func TestPublish(t *testing.T) {
 		}
 		// send back an ok nip-20 command result
 		var res by
-		if res, err = okenvelope.NewFrom(textNote.ID, true, nil).MarshalJSON(res); chk.E(err) {
+		if res = okenvelope.NewFrom(textNote.ID, true, nil).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {
@@ -113,8 +113,8 @@ func TestPublishBlocked(t *testing.T) {
 		}
 		// send back a not ok nip-20 command result
 		var res by
-		if res, err = okenvelope.NewFrom(textNote.ID, false,
-			normalize.Msg(normalize.Blocked, "no reason")).MarshalJSON(res); chk.E(err) {
+		if res = okenvelope.NewFrom(textNote.ID, false,
+			normalize.Msg(normalize.Blocked, "no reason")).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {

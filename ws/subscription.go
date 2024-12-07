@@ -149,11 +149,8 @@ func (sub *Subscription) Close() {
 	if sub.Relay.IsConnected() {
 		id := sub.GetID()
 		closeMsg := closeenvelope.NewFrom(id)
-		var err er
 		var b by
-		if b, err = closeMsg.MarshalJSON(nil); chk.E(err) {
-			return
-		}
+		b = closeMsg.Marshal(nil)
 		log.D.F("{%s} sending %v", sub.Relay.URL, b)
 		<-sub.Relay.Write(b)
 	}
@@ -172,13 +169,9 @@ func (sub *Subscription) Fire() (err er) {
 
 	var b by
 	if sub.countResult == nil {
-		if b, err = reqenvelope.NewFrom(id, sub.Filters).MarshalJSON(b); chk.E(err) {
-			return
-		}
+		b = reqenvelope.NewFrom(id, sub.Filters).Marshal(b)
 	} else {
-		if b, err = countenvelope.NewRequest(id, sub.Filters).MarshalJSON(b); chk.E(err) {
-			return
-		}
+		b = countenvelope.NewRequest(id, sub.Filters).Marshal(b)
 	}
 	log.I.F("{%s} sending %s", sub.Relay.URL, b)
 	sub.live.Store(true)

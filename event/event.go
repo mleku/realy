@@ -47,29 +47,17 @@ type C chan *T
 
 func New() (ev *T) { return &T{} }
 
-func (ev *T) Serialize() (b by) {
-	b, _ = ev.MarshalJSON(nil)
-	return
-}
-
-// func (ev *T) String() (r S) { return S(ev.Serialize()) }
+func (ev *T) Serialize() (b by) { return ev.Marshal(nil) }
 
 func (ev *T) ToCanonical() (b by) {
 	b = append(b, "[0,\""...)
 	b = hex.EncAppend(b, ev.PubKey)
 	b = append(b, "\","...)
-	var err er
-	if b, err = ev.CreatedAt.MarshalJSON(b); chk.E(err) {
-		return
-	}
+	b = ev.CreatedAt.Marshal(b)
 	b = append(b, ',')
-	if b, err = ev.Kind.MarshalJSON(b); chk.E(err) {
-		return
-	}
+	b = ev.Kind.Marshal(b)
 	b = append(b, ',')
-	if b, err = ev.Tags.MarshalJSON(b); chk.E(err) {
-		panic(err)
-	}
+	b = ev.Tags.Marshal(b)
 	b = append(b, ',')
 	b = text.AppendQuote(b, ev.Content, text.NostrEscape)
 	b = append(b, ']')
@@ -82,10 +70,8 @@ func (ev *T) IDString() (s st)          { return hex.Enc(ev.ID) }
 func (ev *T) EventID() (eid *eventid.T) { return eventid.NewWith(ev.ID) }
 func (ev *T) PubKeyString() (s st)      { return hex.Enc(ev.PubKey) }
 func (ev *T) SigString() (s st)         { return hex.Enc(ev.Sig) }
-func (ev *T) TagStrings() (s [][]st) {
-	return ev.Tags.ToStringSlice()
-}
-func (ev *T) ContentString() (s st) { return st(ev.Content) }
+func (ev *T) TagStrings() (s [][]st)    { return ev.Tags.ToStringSlice() }
+func (ev *T) ContentString() (s st)     { return st(ev.Content) }
 
 func Hash(in by) (out by) {
 	h := sha256.Sum256(in)

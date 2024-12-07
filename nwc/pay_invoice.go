@@ -15,7 +15,7 @@ func NewPayInvoiceRequest[V st | by](invoice V, amount Msat) PayInvoiceRequest {
 	}
 }
 
-func (p PayInvoiceRequest) MarshalJSON(dst by) (b by, err er) {
+func (p PayInvoiceRequest) Marshal(dst by) (b by) {
 	// open parentheses
 	dst = append(dst, '{')
 	// method
@@ -41,7 +41,7 @@ func (p PayInvoiceRequest) MarshalJSON(dst by) (b by, err er) {
 	return
 }
 
-func (p PayInvoiceRequest) UnmarshalJSON(b by) (r by, err er) {
+func (p PayInvoiceRequest) Unmarshal(b by) (r by, err er) {
 
 	return
 }
@@ -58,7 +58,7 @@ func NewPayInvoiceResponse(preimage by, feesPaid Msat) PayInvoiceResponse {
 	}
 }
 
-func (p PayInvoiceResponse) MarshalJSON(dst by) (b by, err er) {
+func (p PayInvoiceResponse) Marshal(dst by) (b by) {
 	// open parentheses
 	dst = append(dst, '{')
 	// method
@@ -83,7 +83,7 @@ func (p PayInvoiceResponse) MarshalJSON(dst by) (b by, err er) {
 	return
 }
 
-func (p PayInvoiceResponse) UnmarshalJSON(b by) (r by, err er) {
+func (p PayInvoiceResponse) Unmarshal(b by) (r by, err er) {
 	// TODO implement me
 	panic("implement me")
 }

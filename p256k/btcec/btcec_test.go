@@ -39,7 +39,7 @@ func TestBTCECSignerVerify(t *testing.T) {
 		var valid bo
 		b := scanner.Bytes()
 		ev := event.New()
-		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
+		if _, err = ev.Unmarshal(b); chk.E(err) {
 			t.Errorf("failed to marshal\n%s", b)
 		} else {
 			if valid, err = ev.Verify(); chk.E(err) || !valid {
@@ -89,7 +89,7 @@ func TestBTCECSignerSign(t *testing.T) {
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		ev := event.New()
-		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
+		if _, err = ev.Unmarshal(b); chk.E(err) {
 			t.Errorf("failed to marshal\n%s", b)
 		}
 		evs = append(evs, ev)

@@ -94,22 +94,19 @@ func (t *T) FromVarint(dst by) (b by) { return ToVarint(dst, t) }
 
 func (t *T) String() (s st) {
 	b := make(by, 0, 20)
-	var err er
 	tt := ints.New(t.U64())
-	if b, err = tt.MarshalJSON(b); chk.E(err) {
-		return
-	}
+	b = tt.Marshal(b)
 	return unsafe.String(&b[0], len(b))
 }
 
-func (t *T) MarshalJSON(dst by) (b by, err er) {
+func (t *T) Marshal(dst by) (b by) {
 	tt := ints.New(t.U64())
-	return tt.MarshalJSON(dst)
+	return tt.Marshal(dst)
 }
 
-func (t *T) UnmarshalJSON(b by) (r by, err er) {
+func (t *T) Unmarshal(b by) (r by, err er) {
 	n := ints.New(0)
-	r, err = n.UnmarshalJSON(b)
+	r, err = n.Unmarshal(b)
 	*t = T(n.Uint64())
 	return
 }

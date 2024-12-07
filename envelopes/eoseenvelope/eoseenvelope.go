@@ -21,34 +21,30 @@ func NewFrom(id *subscription.Id) *T { return &T{Subscription: id} }
 func (en *T) Label() string          { return L }
 
 func (en *T) Write(w io.Writer) (err er) {
-	var b by
-	if b, err = en.MarshalJSON(b); chk.E(err) {
-		return
-	}
-	_, err = w.Write(b)
+	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-func (en *T) MarshalJSON(dst by) (b by, err er) {
+func (en *T) Marshal(dst by) (b by) {
+	var err er
 	b = dst
-	b, err = envelopes.Marshal(b, L,
-		func(bst by) (o by, err er) {
+	b = envelopes.Marshal(b, L,
+		func(bst by) (o by) {
 			o = bst
-			if o, err = en.Subscription.MarshalJSON(o); chk.E(err) {
-				return
-			}
+			o = en.Subscription.Marshal(o)
 			return
 		},
 	)
+	_ = err
 	return
 }
 
-func (en *T) UnmarshalJSON(b by) (r by, err er) {
+func (en *T) Unmarshal(b by) (r by, err er) {
 	r = b
 	if en.Subscription, err = subscription.NewId(by{0}); chk.E(err) {
 		return
 	}
-	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {
+	if r, err = en.Subscription.Unmarshal(r); chk.E(err) {
 		return
 	}
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
@@ -59,7 +55,7 @@ func (en *T) UnmarshalJSON(b by) (r by, err er) {
 
 func Parse(b by) (t *T, rem by, err er) {
 	t = New()
-	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
+	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
 	}
 	return

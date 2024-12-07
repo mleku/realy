@@ -69,11 +69,11 @@ func IsPrivileged(k ...*T) (is bo) {
 	return
 }
 
-func (k *T) MarshalJSON(dst by) (b by, err er) { return ints.New(k.ToU64()).MarshalJSON(dst) }
+func (k *T) Marshal(dst by) (b by) { return ints.New(k.ToU64()).Marshal(dst) }
 
-func (k *T) UnmarshalJSON(b by) (r by, err er) {
+func (k *T) Unmarshal(b by) (r by, err er) {
 	n := ints.New(0)
-	if r, err = n.UnmarshalJSON(b); chk.T(err) {
+	if r, err = n.Unmarshal(b); chk.T(err) {
 		return
 	}
 	k.K = n.Uint16()

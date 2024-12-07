@@ -32,40 +32,36 @@ func NewRequest(id *subscription.Id, filters *filters.T) *Request {
 func (en *Request) Label() string { return L }
 func (en *Request) Write(w io.Writer) (err er) {
 	var b by
-	if b, err = en.MarshalJSON(b); chk.E(err) {
-		return
-	}
+	b = en.Marshal(b)
 	_, err = w.Write(b)
 	return
 }
 
-func (en *Request) MarshalJSON(dst by) (b by, err er) {
+func (en *Request) Marshal(dst by) (b by) {
+	var err er
 	b = dst
-	b, err = envelopes.Marshal(b, L,
-		func(bst by) (o by, err er) {
+	b = envelopes.Marshal(b, L,
+		func(bst by) (o by) {
 			o = bst
-			if o, err = en.Subscription.MarshalJSON(o); chk.E(err) {
-				return
-			}
+			o = en.Subscription.Marshal(o)
 			o = append(o, ',')
-			if o, err = en.Filters.MarshalJSON(o); chk.E(err) {
-				return
-			}
+			o = en.Filters.Marshal(o)
 			return
 		})
+	_ = err
 	return
 }
 
-func (en *Request) UnmarshalJSON(b by) (r by, err er) {
+func (en *Request) Unmarshal(b by) (r by, err er) {
 	r = b
 	if en.Subscription, err = subscription.NewId(by{0}); chk.E(err) {
 		return
 	}
-	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {
+	if r, err = en.Subscription.Unmarshal(r); chk.E(err) {
 		return
 	}
 	en.Filters = filters.New()
-	if r, err = en.Filters.UnmarshalJSON(r); chk.E(err) {
+	if r, err = en.Filters.Unmarshal(r); chk.E(err) {
 		return
 	}
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
@@ -76,7 +72,7 @@ func (en *Request) UnmarshalJSON(b by) (r by, err er) {
 
 func ParseRequest(b by) (t *Request, rem by, err er) {
 	t = New()
-	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
+	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
 	}
 	return
@@ -104,35 +100,31 @@ func NewResponseFrom[V st | by](s V, cnt no, approx ...bo) (res *Response, err e
 }
 func (en *Response) Label() string { return L }
 func (en *Response) Write(w io.Writer) (err er) {
-	var b by
-	if b, err = en.MarshalJSON(b); chk.E(err) {
-		return
-	}
-	_, err = w.Write(b)
+	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-func (en *Response) MarshalJSON(dst by) (b by, err er) {
+func (en *Response) Marshal(dst by) (b by) {
+	var err er
 	b = dst
-	b, err = envelopes.Marshal(b, L,
-		func(bst by) (o by, err er) {
+	b = envelopes.Marshal(b, L,
+		func(bst by) (o by) {
 			o = bst
-			if o, err = en.ID.MarshalJSON(o); chk.E(err) {
-				return
-			}
+			o = en.ID.Marshal(o)
 			o = append(o, ',')
 			c := ints.New(en.Count)
-			o, err = c.MarshalJSON(o)
+			o = c.Marshal(o)
 			if en.Approximate {
 				o = append(dst, ',')
 				o = append(o, "true"...)
 			}
 			return
 		})
+	_ = err
 	return
 }
 
-func (en *Response) UnmarshalJSON(b by) (r by, err er) {
+func (en *Response) Unmarshal(b by) (r by, err er) {
 	r = b
 	var inID, inCount bo
 	for ; len(r) > 0; r = r[1:] {
@@ -167,7 +159,7 @@ func (en *Response) UnmarshalJSON(b by) (r by, err er) {
 			} else if !inCount {
 				inCount = true
 				n := ints.New(0)
-				if r, err = n.UnmarshalJSON(r); chk.E(err) {
+				if r, err = n.Unmarshal(r); chk.E(err) {
 					return
 				}
 				en.Count = no(n.Uint64())
@@ -193,7 +185,7 @@ func (en *Response) UnmarshalJSON(b by) (r by, err er) {
 
 func Parse(b by) (t *Response, rem by, err er) {
 	t = NewResponse()
-	if rem, err = t.UnmarshalJSON(b); chk.E(err) {
+	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
 	}
 	return

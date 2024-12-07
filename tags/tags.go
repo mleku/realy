@@ -331,7 +331,7 @@ func (t *T) MarshalTo(dst by) by {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
-		dst, _ = tt.MarshalJSON(dst)
+		dst = tt.Marshal(dst)
 	}
 	dst = append(dst, ']')
 	return dst
@@ -351,7 +351,7 @@ func (t *T) MarshalTo(dst by) by {
 // 	return buf.String()
 // }
 
-func (t *T) MarshalJSON(dst by) (b by, err er) {
+func (t *T) Marshal(dst by) (b by) {
 	b = dst
 	b = append(b, '[')
 	if t == nil || t.t == nil {
@@ -365,13 +365,13 @@ func (t *T) MarshalJSON(dst by) (b by, err er) {
 		if i > 0 {
 			b = append(b, ',')
 		}
-		b, _ = s.MarshalJSON(b)
+		b = s.Marshal(b)
 	}
 	b = append(b, ']')
 	return
 }
 
-func (t *T) UnmarshalJSON(b by) (r by, err er) {
+func (t *T) Unmarshal(b by) (r by, err er) {
 	r = b[:]
 	for len(r) > 0 {
 		switch r[0] {
@@ -393,7 +393,7 @@ func (t *T) UnmarshalJSON(b by) (r by, err er) {
 			switch r[0] {
 			case '[':
 				tt := &tag.T{}
-				if r, err = tt.UnmarshalJSON(r); chk.E(err) {
+				if r, err = tt.Unmarshal(r); chk.E(err) {
 					return
 				}
 				t.t = append(t.t, tt)

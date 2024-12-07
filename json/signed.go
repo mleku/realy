@@ -31,7 +31,7 @@ func (s *Signed) Marshal(dst by) (b by) {
 		b = append(b, '-')
 		v = -v
 	}
-	b, _ = ints.New(v).MarshalJSON(b)
+	b = ints.New(v).Marshal(b)
 	return
 }
 
@@ -47,7 +47,7 @@ func (s *Signed) Unmarshal(dst by) (rem by, err er) {
 		rem = rem[1:]
 	}
 	n := &ints.T{}
-	if rem, err = n.UnmarshalJSON(rem); chk.E(err) {
+	if rem, err = n.Unmarshal(rem); chk.E(err) {
 		return
 	}
 	s.V = int64(n.N)

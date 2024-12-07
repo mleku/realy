@@ -199,7 +199,7 @@ func TestHashString(t *testing.T) {
 // 		t.Errorf("String: wrong hash string - got %v, want %v",
 // 			newHash.String(), hashStr)
 // 	}
-// 	err = newHash.UnmarshalJSON(legacyHashStr)
+// 	err = newHash.Unmarshal(legacyHashStr)
 // 	if err != nil {
 // 		t.Errorf("Unmarshal legacy json error:%v, hash:%v", err, legacyHashStr)
 // 	}

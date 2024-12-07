@@ -34,9 +34,7 @@ var powers = []*T{
 const zero = '0'
 const nine = '9'
 
-// MarshalJSON encodes an uint64 into ASCII decimal format in a
-// by.
-func (n *T) MarshalJSON(dst by) (b by, err er) {
+func (n *T) Marshal(dst by) (b by) {
 	nn := n.N
 	b = dst
 	if n.N == 0 {
@@ -70,14 +68,14 @@ func (n *T) MarshalJSON(dst by) (b by, err er) {
 	return
 }
 
-// UnmarshalJSON reads a string, which must be a positive integer no larger than math.MaxUint64,
+// Unmarshal reads a string, which must be a positive integer no larger than math.MaxUint64,
 // skipping any non-numeric content before it.
 //
 // Note that leading zeros are not considered valid, but basically no such thing as machine
 // generated JSON integers with leading zeroes. Until this is disproven, this is the fastest way
 // to read a positive json integer, and a leading zero is decoded as a zero, and the remainder
 // returned.
-func (n *T) UnmarshalJSON(b by) (r by, err er) {
+func (n *T) Unmarshal(b by) (r by, err er) {
 	if len(b) < 1 {
 		err = errorf.E("zero length number")
 		return

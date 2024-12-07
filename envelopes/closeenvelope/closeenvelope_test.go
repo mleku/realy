@@ -7,7 +7,7 @@ import (
 	"realy.lol/subscription"
 )
 
-func TestMarshalJSONUnmarshalJSON(t *testing.T) {
+func TestMarshalUnmarshal(t *testing.T) {
 	var err er
 	rb, rb1, rb2 := make(by, 0, 65535), make(by, 0, 65535), make(by, 0, 65535)
 	for _ = range 1000 {
@@ -16,10 +16,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 			t.Fatal(err)
 		}
 		req := NewFrom(s)
-		if rb, err = req.MarshalJSON(rb); chk.E(err) {
-			t.Fatal(err)
-		}
-		// log.I.Ln(req.ID)
+		rb = req.Marshal(rb)
 		rb1 = rb1[:len(rb)]
 		copy(rb1, rb)
 		var rem by
@@ -31,7 +28,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
 		req2 := New()
-		if rem, err = req2.UnmarshalJSON(rb); chk.E(err) {
+		if rem, err = req2.Unmarshal(rb); chk.E(err) {
 			t.Fatal(err)
 		}
 		// log.I.Ln(req2.ID)
@@ -39,9 +36,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 			t.Fatalf("unmarshal failed, remainder\n%d %s",
 				len(rem), rem)
 		}
-		if rb2, err = req2.MarshalJSON(rb2); chk.E(err) {
-			t.Fatal(err)
-		}
+		rb2 = req2.Marshal(rb2)
 		if !equals(rb1, rb2) {
 			if len(rb1) != len(rb2) {
 				t.Fatalf("unmarshal failed, different lengths\n%d %s\n%d %s\n",

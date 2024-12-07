@@ -20,9 +20,7 @@ func TestAuth(t *testing.T) {
 	for _ = range 1000 {
 		ch := auth.GenerateChallenge()
 		chal := Challenge{Challenge: ch}
-		if b1, err = chal.MarshalJSON(b1); chk.E(err) {
-			t.Fatal(err)
-		}
+		b1 = chal.Marshal(b1)
 		oChal := make(by, len(b1))
 		copy(oChal, b1)
 		var rem by
@@ -34,7 +32,7 @@ func TestAuth(t *testing.T) {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
 		c2 := NewChallenge()
-		if rem, err = c2.UnmarshalJSON(b1); chk.E(err) {
+		if rem, err = c2.Unmarshal(b1); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
@@ -44,9 +42,7 @@ func TestAuth(t *testing.T) {
 			t.Fatalf("challenge mismatch\n%s\n%s",
 				chal.Challenge, c2.Challenge)
 		}
-		if b2, err = c2.MarshalJSON(b2); chk.E(err) {
-			t.Fatal(err)
-		}
+		b2 = c2.Marshal(b2)
 		if !equals(oChal, b2) {
 			t.Fatalf("challenge mismatch\n%s\n%s", oChal, b2)
 		}
@@ -55,9 +51,7 @@ func TestAuth(t *testing.T) {
 		if err = resp.Event.Sign(signer); chk.E(err) {
 			t.Fatal(err)
 		}
-		if b3, err = resp.MarshalJSON(b3); chk.E(err) {
-			t.Fatal(err)
-		}
+		b3 = resp.Marshal(b3)
 		oResp := make(by, len(b3))
 		copy(oResp, b3)
 		if l, b3, err = envelopes.Identify(b3); chk.E(err) {
@@ -67,12 +61,10 @@ func TestAuth(t *testing.T) {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
 		r2 := NewResponse()
-		if _, err = r2.UnmarshalJSON(b3); chk.E(err) {
+		if _, err = r2.Unmarshal(b3); chk.E(err) {
 			t.Fatal(err)
 		}
-		if b4, err = r2.MarshalJSON(b4); chk.E(err) {
-			t.Fatal(err)
-		}
+		b4 = r2.Marshal(b4)
 		if !equals(oResp, b4) {
 			t.Fatalf("challenge mismatch\n%s\n%s", oResp, b4)
 		}

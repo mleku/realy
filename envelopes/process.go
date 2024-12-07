@@ -4,16 +4,14 @@ import (
 	"io"
 )
 
-type Marshaler func(dst by) (b by, err er)
+type Marshaler func(dst by) (b by)
 
-func Marshal(dst by, label string, m Marshaler) (b by, err er) {
+func Marshal(dst by, label string, m Marshaler) (b by) {
 	b = dst
 	b = append(b, '[', '"')
 	b = append(b, label...)
 	b = append(b, '"', ',')
-	if b, err = m(b); chk.E(err) {
-		return
-	}
+	b = m(b)
 	b = append(b, ']')
 	return
 }

@@ -51,10 +51,7 @@ func (n Notification) NotificationType() by { return n.Type }
 // Msat  is milli-sat, max possible value is 1000 x 21 x 100 000 000 (well, under 19 places of 64 bits in base 10)
 type Msat uint64
 
-func (m Msat) Bytes(dst by) (b by) {
-	b, _ = ints.New(uint64(m)).MarshalJSON(dst)
-	return
-}
+func (m Msat) Bytes(dst by) (b by) { return ints.New(uint64(m)).Marshal(dst) }
 
 // Methods
 

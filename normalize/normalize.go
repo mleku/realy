@@ -47,7 +47,7 @@ func URL[V st | by](v V) (b by) {
 			return
 		}
 		p := ints.New(0)
-		_, err := p.UnmarshalJSON(split[1])
+		_, err := p.Unmarshal(split[1])
 		if chk.E(err) {
 			log.D.F("Error normalizing URL '%s': %s", u, err)
 			// again, without an error we must return nil

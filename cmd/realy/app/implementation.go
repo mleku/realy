@@ -137,7 +137,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 							continue
 						}
 						kin := ints.New(uint16(0))
-						if _, err := kin.UnmarshalJSON(split[0]); chk.E(err) {
+						if _, err := kin.Unmarshal(split[0]); chk.E(err) {
 							return
 						}
 						kk := kind.New(kin.Uint16())

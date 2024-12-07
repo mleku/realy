@@ -22,7 +22,7 @@ var (
 	jSig       = by("sig")
 )
 
-func (ev *T) MarshalJSON(dst by) (b by, err er) {
+func (ev *T) Marshal(dst by) (b by) {
 	// open parentheses
 	dst = append(dst, '{')
 	// ID
@@ -35,17 +35,15 @@ func (ev *T) MarshalJSON(dst by) (b by, err er) {
 	dst = append(dst, ',')
 	// CreatedAt
 	dst = text.JSONKey(dst, jCreatedAt)
-	if dst, err = ev.CreatedAt.MarshalJSON(dst); chk.E(err) {
-		return
-	}
+	dst = ev.CreatedAt.Marshal(dst)
 	dst = append(dst, ',')
 	// Kind
 	dst = text.JSONKey(dst, jKind)
-	dst, _ = ev.Kind.MarshalJSON(dst)
+	dst = ev.Kind.Marshal(dst)
 	dst = append(dst, ',')
 	// Tags
 	dst = text.JSONKey(dst, jTags)
-	dst, _ = ev.Tags.MarshalJSON(dst)
+	dst = ev.Tags.Marshal(dst)
 	dst = append(dst, ',')
 	// Content
 	dst = text.JSONKey(dst, jContent)
@@ -60,7 +58,7 @@ func (ev *T) MarshalJSON(dst by) (b by, err er) {
 	return
 }
 
-func (ev *T) UnmarshalJSON(b by) (r by, err er) {
+func (ev *T) Unmarshal(b by) (r by, err er) {
 	key := make(by, 0, 9)
 	r = b
 	for ; len(r) > 0; r = r[1:] {
@@ -132,7 +130,7 @@ InVal:
 			goto invalid
 		}
 		ev.Kind = kind.New(0)
-		if r, err = ev.Kind.UnmarshalJSON(r); chk.E(err) {
+		if r, err = ev.Kind.Unmarshal(r); chk.E(err) {
 			return
 		}
 		goto BetweenKV
@@ -141,7 +139,7 @@ InVal:
 			goto invalid
 		}
 		ev.Tags = tags.New()
-		if r, err = ev.Tags.UnmarshalJSON(r); chk.E(err) {
+		if r, err = ev.Tags.Unmarshal(r); chk.E(err) {
 			return
 		}
 		goto BetweenKV
@@ -174,7 +172,7 @@ InVal:
 				goto invalid
 			}
 			ev.CreatedAt = timestamp.New()
-			if r, err = ev.CreatedAt.UnmarshalJSON(r); chk.T(err) {
+			if r, err = ev.CreatedAt.Unmarshal(r); chk.T(err) {
 				return
 			}
 			goto BetweenKV

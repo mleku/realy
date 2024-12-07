@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
+
 	"realy.lol/kind"
 )
 
@@ -14,12 +15,12 @@ func TestUnmarshalKindsArray(t *testing.T) {
 	}
 	var dst by
 	var err er
-	if dst, err = k.MarshalJSON(dst); chk.E(err) {
+	if dst = k.Marshal(dst); chk.E(err) {
 		t.Fatal(err)
 	}
 	k2 := &T{}
 	var rem by
-	if rem, err = k2.UnmarshalJSON(dst); chk.E(err) {
+	if rem, err = k2.Unmarshal(dst); chk.E(err) {
 		return
 	}
 	if len(rem) > 0 {

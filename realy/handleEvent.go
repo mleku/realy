@@ -30,7 +30,7 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by)
 	var rem by
 	advancedDeleter, _ := sto.(relay.AdvancedDeleter)
 	env := eventenvelope.NewSubmission()
-	if rem, err = env.UnmarshalJSON(req); chk.E(err) {
+	if rem, err = env.Unmarshal(req); chk.E(err) {
 		return
 	}
 	if len(rem) > 0 {
@@ -131,7 +131,7 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by)
 						continue
 					}
 					kin := ints.New(uint16(0))
-					if _, err = kin.UnmarshalJSON(split[0]); chk.E(err) {
+					if _, err = kin.Unmarshal(split[0]); chk.E(err) {
 						return
 					}
 					kk := kind.New(kin.Uint16())

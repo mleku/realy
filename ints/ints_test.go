@@ -8,18 +8,16 @@ import (
 	"lukechampine.com/frand"
 )
 
-func TestMarshalJSONUnmarshalJSON(t *testing.T) {
+func TestMarshalUnmarshal(t *testing.T) {
 	b := make(by, 0, 8)
 	var rem by
 	var n *T
 	var err er
 	for _ = range 10000000 {
 		n = New(uint64(frand.Intn(math.MaxInt64)))
-		if b, err = n.MarshalJSON(b); chk.E(err) {
-			t.Fatal(err)
-		}
+		b = n.Marshal(b)
 		m := New(0)
-		if rem, err = m.UnmarshalJSON(b); chk.E(err) {
+		if rem, err = m.Unmarshal(b); chk.E(err) {
 			t.Fatal(err)
 		}
 		if n.N != m.N {
@@ -40,11 +38,11 @@ func BenchmarkByteStringToInt64(bb *testing.B) {
 	for i = range nTests {
 		testInts[i] = New(frand.Intn(math.MaxInt64))
 	}
-	bb.Run("MarshalJSON", func(bb *testing.B) {
+	bb.Run("Marshal", func(bb *testing.B) {
 		bb.ReportAllocs()
 		for i = 0; i < bb.N; i++ {
 			n := testInts[i%10000]
-			b, _ = n.MarshalJSON(b)
+			b = n.Marshal(b)
 			b = b[:0]
 		}
 	})
@@ -57,13 +55,13 @@ func BenchmarkByteStringToInt64(bb *testing.B) {
 			_ = s
 		}
 	})
-	bb.Run("MarshalJSONUnmarshalJSON", func(bb *testing.B) {
+	bb.Run("MarshalUnmarshal", func(bb *testing.B) {
 		bb.ReportAllocs()
 		m := New(0)
 		for i = 0; i < bb.N; i++ {
 			n := testInts[i%10000]
-			b, _ = m.MarshalJSON(b)
-			_, _ = n.UnmarshalJSON(b)
+			b = m.Marshal(b)
+			_, _ = n.Unmarshal(b)
 			b = b[:0]
 		}
 	})

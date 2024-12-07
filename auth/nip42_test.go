@@ -24,7 +24,7 @@ func TestCreateUnsigned(t *testing.T) {
 			t.Fatal(err)
 		}
 		if !ok {
-			bb, _ := ev.MarshalJSON(nil)
+			bb := ev.Marshal(nil)
 			t.Fatalf("failed to validate auth event\n%s", bb)
 		}
 	}

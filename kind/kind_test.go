@@ -17,9 +17,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 		mk[i] = make(by, 0, 5) // 16 bits max 65535 = 5 characters
 	}
 	for i := range k {
-		if mk[i], err = k[i].MarshalJSON(mk[i]); chk.E(err) {
-			t.Fatal(err)
-		}
+		mk[i] = k[i].Marshal(mk[i])
 	}
 	k2 := make([]*T, len(k))
 	for i := range k2 {
@@ -27,7 +25,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 	}
 	for i := range k2 {
 		var r by
-		if r, err = k2[i].UnmarshalJSON(mk[i]); chk.E(err) {
+		if r, err = k2[i].Unmarshal(mk[i]); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(r) != 0 {

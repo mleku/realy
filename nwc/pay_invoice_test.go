@@ -4,17 +4,17 @@ import (
 	"fmt"
 )
 
-func ExamplePayInvoiceRequest_MarshalJSON() {
+func ExamplePayInvoiceRequest_Marshal() {
 	ir := NewPayInvoiceRequest("lnbc50n1...", 0)
 	var b by
 	var err er
-	if b, err = ir.MarshalJSON(b); chk.E(err) {
+	if b = ir.Marshal(b); chk.E(err) {
 		return
 	}
 	fmt.Printf("%s\n", b)
 	b = b[:0]
 	ir = NewPayInvoiceRequest("lnbc50n1...", 123)
-	if b, err = ir.MarshalJSON(b); chk.E(err) {
+	if b = ir.Marshal(b); chk.E(err) {
 		return
 	}
 	fmt.Printf("%s\n", b)

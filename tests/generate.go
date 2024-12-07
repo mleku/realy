@@ -26,7 +26,7 @@ func GenerateEvent(maxSize no) (ev *event.T, binSize no, err er) {
 		return
 	}
 	var bin by
-	bin, err = ev.MarshalJSON(bin)
+	bin = ev.Marshal(bin)
 	binSize = len(bin)
 	return
 }

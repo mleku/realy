@@ -30,7 +30,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 	var err er
 	var rem by
 	env := reqenvelope.New()
-	if rem, err = env.UnmarshalJSON(req); chk.E(err) {
+	if rem, err = env.Unmarshal(req); chk.E(err) {
 		return normalize.Error.F(err.Error())
 	}
 	if len(rem) > 0 {

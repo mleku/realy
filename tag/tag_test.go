@@ -6,7 +6,7 @@ import (
 	"lukechampine.com/frand"
 )
 
-func TestMarshalJSONUnmarshalJSON(t *testing.T) {
+func TestMarshalUnmarshal(t *testing.T) {
 	var b, bo, bc by
 	for _ = range 100 {
 		n := frand.Intn(8)
@@ -17,16 +17,16 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 			tg.field = append(tg.field, b1)
 		}
 		// log.I.S(tg)
-		b, _ = tg.MarshalJSON(b)
+		b = tg.Marshal(b)
 		bo = make(by, len(b))
 		copy(bo, b)
 		tg2 := NewWithCap(n)
-		rem, err := tg2.UnmarshalJSON(b)
+		rem, err := tg2.Unmarshal(b)
 		// log.I.S(tg2)
 		if chk.E(err) {
 			t.Fatal(err)
 		}
-		bc, _ = tg2.MarshalJSON(bc)
+		bc = tg2.Marshal(bc)
 		log.I.F("\n\norig\n%s\n\ncopy\n%s\n", bo, bc)
 		if !equals(bo, bc) {
 			t.Fatalf("got\n%s\nwant\n%s", bo, bc)
@@ -42,29 +42,24 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 }
 
 func TestMarshalUnmarshalZeroLengthTag(t *testing.T) {
-	var err er
 	empty := by("[\"a\"]")
 	var b by
 	tg := &T{}
-	b, _ = tg.UnmarshalJSON(empty)
-	if b, err = tg.MarshalJSON(b); chk.E(err) {
-		t.Fatal(err)
-	}
+	b, _ = tg.Unmarshal(empty)
+	b = tg.Marshal(b)
 	if !equals(empty, b) {
 		t.Fatalf("got\n%s\nwant\n%s", b, empty)
 	}
 	empty = by("[]")
 	tg = &T{}
-	b, _ = tg.UnmarshalJSON(empty)
-	if b, err = tg.MarshalJSON(b); chk.E(err) {
-		t.Fatal(err)
-	}
+	b, _ = tg.Unmarshal(empty)
+	b = tg.Marshal(b)
 	if !equals(empty, b) {
 		t.Fatalf("got\n%s\nwant\n%s", b, empty)
 	}
 }
 
-func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
+func BenchmarkMarshalUnmarshal(bb *testing.B) {
 	b := make(by, 0, 40000000)
 	n := 4096
 	tg := NewWithCap(n)
@@ -73,20 +68,20 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 		_, _ = frand.Read(b1)
 		tg.field = append(tg.field, b1)
 	}
-	bb.Run("tag.MarshalJSON", func(bb *testing.B) {
+	bb.Run("tag.Marshal", func(bb *testing.B) {
 		bb.ReportAllocs()
 		for i := 0; i < bb.N; i++ {
-			b, _ = tg.MarshalJSON(b)
+			b = tg.Marshal(b)
 			b = b[:0]
 			tg.Clear()
 		}
 	})
-	bb.Run("tag.MarshalJSONUnmarshalJSON", func(bb *testing.B) {
+	bb.Run("tag.MarshalUnmarshal", func(bb *testing.B) {
 		bb.ReportAllocs()
 		var tg2 T
 		for i := 0; i < bb.N; i++ {
-			b, _ = tg.MarshalJSON(b)
-			_, _ = tg2.UnmarshalJSON(b)
+			b = tg.Marshal(b)
+			_, _ = tg2.Unmarshal(b)
 			b = b[:0]
 			tg.Clear()
 		}

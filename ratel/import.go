@@ -20,7 +20,7 @@ func (r *T) Import(rr io.Reader) {
 	for scan.Scan() {
 		b := scan.Bytes()
 		ev := &event.T{}
-		if _, err = ev.UnmarshalJSON(b); err != nil {
+		if _, err = ev.Unmarshal(b); err != nil {
 			continue
 		}
 		if err = r.SaveEvent(r.Ctx, ev); err != nil {

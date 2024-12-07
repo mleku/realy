@@ -134,7 +134,7 @@ func run(args []st) er {
 	flag.BoolVar(&opts.Swap, "swap", false,
 		"generate a `Swap(new) old` method; requires -pack and -unpack")
 	flag.BoolVar(&opts.JSON, "json", false,
-		"generate `MarshalJSON/UnmarshJSON` methods")
+		"generate `Marshal/UnmarshJSON` methods")
 
 	if err := flag.Parse(args); err != nil {
 		return err

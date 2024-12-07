@@ -19,7 +19,7 @@ func (s *Server) handleAuth(ws *web.Socket, req by) (msg by) {
 		var err er
 		var rem by
 		env := authenvelope.NewResponse()
-		if rem, err = env.UnmarshalJSON(req); chk.E(err) {
+		if rem, err = env.Unmarshal(req); chk.E(err) {
 			return
 		}
 		if len(rem) > 0 {
