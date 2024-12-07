@@ -21,6 +21,7 @@ func New[V uint | no | uint64 | uint32 | uint16 | uint8 | int64 | int32 | int16 
 }
 
 func (n *T) Uint64() uint64 { return n.N }
+func (n *T) Int64() int64   { return int64(n.N) }
 func (n *T) Uint16() uint16 { return uint16(n.N) }
 
 var powers = []*T{

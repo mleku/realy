@@ -19,9 +19,7 @@ var _ keys.Element = &T{}
 
 func New(c *timestamp.T) (p *T) { return &T{Val: c} }
 
-func (c *T) Write(buf *bytes.Buffer) {
-	buf.Write(c.Val.Bytes())
-}
+func (c *T) Write(buf *bytes.Buffer) { buf.Write(c.Val.Bytes()) }
 
 func (c *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	b := make(by, Len)

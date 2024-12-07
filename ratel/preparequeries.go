@@ -158,18 +158,18 @@ func PrepareQueries(f *filter.T) (
 		}
 		// log.T.S("other", qs)
 	}
-	var until uint64 = math.MaxUint64
+	var until int64 = math.MaxInt64
 	if f.Until != nil {
-		if fu := uint64(*f.Until); fu < until {
+		if fu := f.Until.I64(); fu < until {
 			until = fu - 1
 		}
 	}
 	for i, q := range qs {
-		qs[i].start = binary.BigEndian.AppendUint64(q.searchPrefix, until)
+		qs[i].start = binary.BigEndian.AppendUint64(q.searchPrefix, uint64(until))
 	}
 	// this is where we'll end the iteration
 	if f.Since != nil {
-		if fs := uint64(*f.Since); fs > since {
+		if fs := f.Since.U64(); fs > since {
 			since = fs
 		}
 	}

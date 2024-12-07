@@ -1,0 +1,109 @@
+package event
+
+import (
+	"reflect"
+
+	"realy.lol/hex"
+	"realy.lol/json"
+	"realy.lol/kind"
+	"realy.lol/tags"
+	"realy.lol/text"
+	"realy.lol/timestamp"
+)
+
+// ToCanonical converts the event to the canonical encoding used to derive the
+// event ID.
+func (ev *T) ToCanonical(dst by) (b by) {
+	b = dst
+	b = append(b, "[0,\""...)
+	b = hex.EncAppend(b, ev.PubKey)
+	b = append(b, "\","...)
+	b = ev.CreatedAt.Marshal(b)
+	b = append(b, ',')
+	b = ev.Kind.Marshal(b)
+	b = append(b, ',')
+	b = ev.Tags.Marshal(b)
+	b = append(b, ',')
+	b = text.AppendQuote(b, ev.Content, text.NostrEscape)
+	b = append(b, ']')
+	return
+}
+
+// GetIDBytes returns the raw SHA256 hash of the canonical form of an T.
+func (ev *T) GetIDBytes() by { return Hash(ev.ToCanonical(nil)) }
+
+func NewCanonical() (a *json.Array) {
+	a = &json.Array{
+		V: []json.I{
+			&json.Unsigned{}, // 0
+			&json.Hex{},      // pubkey
+			&timestamp.T{},   // created_at
+			&kind.T{},        // kind
+			&tags.T{},        // tags
+			&json.String{},   // content
+		},
+	}
+	return
+}
+
+func FromCanonical(b by) (ev *T, rem by, err er) {
+	id := Hash(b)
+	c := NewCanonical()
+	if rem, err = c.Unmarshal(b); chk.E(err) {
+		return
+	}
+	if len(rem) > 0 {
+		log.I.F("rem %s", rem)
+	}
+	// unwrap the array
+	x := (*c).V
+	if v, ok := x[0].(*json.Unsigned); !ok {
+		err = errorf.E("did not encode expected type in first field of canonical event %v %v",
+			reflect.TypeOf(x[0]), x[0])
+		return
+	} else {
+		if v.V != 0 {
+			err = errorf.E("unexpected value %d in first field of canonical event, expect 0", v.V)
+			return
+		}
+	}
+	// create the event, use the ID hash to populate the ID
+	ev = &T{ID: id}
+	// unwrap the pubkey
+	if v, ok := x[1].(*json.Hex); !ok {
+		err = errorf.E("failed to decode pubkey from canonical form of event %s", b)
+		return
+	} else {
+		ev.PubKey = v.V
+	}
+	// populate the timestamp field
+	if v, ok := x[2].(*timestamp.T); !ok {
+		err = errorf.E("did not encode expected type in third (created_at) field of canonical event %v %v",
+			reflect.TypeOf(x[0]), x[0])
+	} else {
+		ev.CreatedAt = v
+	}
+	// populate the kind field
+	if v, ok := x[3].(*kind.T); !ok {
+		err = errorf.E("did not encode expected type in fourth (kind) field of canonical event %v %v",
+			reflect.TypeOf(x[0]), x[0])
+	} else {
+		ev.Kind = v
+	}
+	// populate the tags field
+	if v, ok := x[3].(*tags.T); !ok {
+		err = errorf.E("did not encode expected type in fourth (tags) field of canonical event %v %v",
+			reflect.TypeOf(x[0]), x[0])
+	} else {
+		ev.Tags = v
+	}
+	// populate the content field
+	if v, ok := x[3].(*json.String); !ok {
+		err = errorf.E("did not encode expected type in fourth (content) field of canonical event %v %v",
+			reflect.TypeOf(x[0]), x[0])
+	} else {
+		ev.Content = v.V
+	}
+
+	return
+}

@@ -93,7 +93,7 @@ func main() {
 		if len(rem) > 0 {
 			log.I.F("remainder:\n%s", rem)
 		}
-		can := ev.ToCanonical()
+		can := ev.ToCanonical(nil)
 		eh := event.Hash(can)
 		eq := equals(ev.ID, eh)
 		if !eq {

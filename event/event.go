@@ -40,7 +40,7 @@ type T struct {
 type Ts []*T
 
 func (ev Ts) Len() no         { return len(ev) }
-func (ev Ts) Less(i, j no) bo { return *ev[i].CreatedAt > *ev[j].CreatedAt }
+func (ev Ts) Less(i, j no) bo { return ev[i].CreatedAt.I64() > ev[j].CreatedAt.I64() }
 func (ev Ts) Swap(i, j no)    { ev[i], ev[j] = ev[j], ev[i] }
 
 type C chan *T
@@ -48,21 +48,6 @@ type C chan *T
 func New() (ev *T) { return &T{} }
 
 func (ev *T) Serialize() (b by) { return ev.Marshal(nil) }
-
-func (ev *T) ToCanonical() (b by) {
-	b = append(b, "[0,\""...)
-	b = hex.EncAppend(b, ev.PubKey)
-	b = append(b, "\","...)
-	b = ev.CreatedAt.Marshal(b)
-	b = append(b, ',')
-	b = ev.Kind.Marshal(b)
-	b = append(b, ',')
-	b = ev.Tags.Marshal(b)
-	b = append(b, ',')
-	b = text.AppendQuote(b, ev.Content, text.NostrEscape)
-	b = append(b, ']')
-	return
-}
 
 // stringy functions for retarded other libraries
 
@@ -77,9 +62,6 @@ func Hash(in by) (out by) {
 	h := sha256.Sum256(in)
 	return h[:]
 }
-
-// GetIDBytes returns the raw SHA256 hash of the canonical form of an T.
-func (ev *T) GetIDBytes() by { return Hash(ev.ToCanonical()) }
 
 func GenerateRandomTextNoteEvent(sign signer.I, maxSize no) (ev *T,
 	err er) {

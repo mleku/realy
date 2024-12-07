@@ -149,7 +149,7 @@ func (pool *SimplePool) subMany(c cx, urls []st, ff *filters.T,
 	ctx, cancel := context.Cancel(c)
 	_ = cancel // do this so `go vet` will stop complaining
 	events := make(chan IncomingEvent)
-	seenAlready := xsync.NewMapOf[st, timestamp.T]()
+	seenAlready := xsync.NewMapOf[st, *timestamp.T]()
 	ticker := time.NewTicker(time.Duration(seenAlreadyDropTick) * time.Second)
 	eose := false
 	pending := xsync.NewCounter()
@@ -215,7 +215,7 @@ func (pool *SimplePool) subMany(c cx, urls []st, ff *filters.T,
 						}
 						if unique {
 							if _, seen := seenAlready.LoadOrStore(evt.EventID().String(),
-								*evt.CreatedAt); seen {
+								evt.CreatedAt); seen {
 								continue
 							}
 						}
@@ -225,9 +225,9 @@ func (pool *SimplePool) subMany(c cx, urls []st, ff *filters.T,
 						}
 					case <-ticker.C:
 						if eose {
-							old := timestamp.T(timestamp.Now().Int() - seenAlreadyDropTick)
-							seenAlready.Range(func(id st, value timestamp.T) bo {
-								if value < old {
+							old := &timestamp.T{int64(timestamp.Now().Int() - seenAlreadyDropTick)}
+							seenAlready.Range(func(id st, value *timestamp.T) bo {
+								if value.I64() < old.I64() {
 									seenAlready.Delete(id)
 								}
 								return true

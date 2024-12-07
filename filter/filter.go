@@ -553,8 +553,7 @@ func GenFilter() (f *T, err er) {
 		}
 	}
 	tn := no(timestamp.Now().I64())
-	before := timestamp.T(tn - frand.Intn(10000))
-	f.Since = &before
+	f.Since = &timestamp.T{int64(tn - frand.Intn(10000))}
 	f.Until = timestamp.Now()
 	f.Search = by("token search text")
 	return
