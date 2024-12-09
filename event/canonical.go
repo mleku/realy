@@ -1,8 +1,10 @@
 package event
 
 import (
+	"io"
 	"reflect"
 
+	"realy.lol/ec/schnorr"
 	"realy.lol/hex"
 	"realy.lol/json"
 	"realy.lol/kind"
@@ -46,11 +48,19 @@ func NewCanonical() (a *json.Array) {
 	return
 }
 
+// this is an absolute minimum length canonical encoded event
+var minimal = len(`[0,"0123456789abcdef0123456789abcdef",1733739427,0,[],""]`)
+
 // FromCanonical reverses the process of creating the canonical encoding, note that the signature is missing in this
 // form. Allocate an event.T before calling this.
 func (ev *T) FromCanonical(b by) (rem by, err er) {
 	rem = b
-	id := Hash(rem)
+	end := len(rem) - schnorr.SignatureSize
+	if end < minimal {
+		err = io.EOF
+		return
+	}
+	id := Hash(rem[:end])
 	c := NewCanonical()
 	if rem, err = c.Unmarshal(rem); chk.E(err) {
 		return
