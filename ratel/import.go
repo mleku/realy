@@ -30,7 +30,7 @@ func (r *T) Import(rr io.Reader) {
 			continue
 		}
 		count++
-		if count > 0 && count%1000 == 0 {
+		if count > 0 && count%10000 == 0 {
 			chk.T(r.DB.Sync())
 			chk.T(r.DB.RunValueLogGC(0.5))
 		}

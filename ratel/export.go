@@ -7,6 +7,7 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/hex"
 	"realy.lol/qu"
@@ -155,9 +156,27 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 					err = nil
 					continue
 				}
-				// send the event to client - the database stores correct JSON versions so no need to decode/encode.
-				if _, err = fmt.Fprintf(w, "%s\n", b); chk.E(err) {
-					return
+				// send the event to client
+				if r.UseCompact {
+					ev := &event.T{}
+					var rem by
+					rem, err = ev.UnmarshalCompact(b)
+					if chk.E(err) {
+						err = nil
+						continue
+					}
+					if len(rem) > 0 {
+						log.I.S(rem)
+					}
+					if _, err = fmt.Fprintf(w, "%s\n", ev.Marshal(nil)); chk.E(err) {
+						return
+					}
+
+				} else {
+					// the database stores correct JSON versions so no need to decode/encode.
+					if _, err = fmt.Fprintf(w, "%s\n", b); chk.E(err) {
+						return
+					}
 				}
 				counter++
 			}

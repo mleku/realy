@@ -53,6 +53,8 @@ func main() {
 			BlockCacheSize: units.Gb,
 			LogLevel:       lol.GetLogLevel(cfg.DbLogLevel),
 			MaxLimit:       ratel.DefaultMaxLimit,
+			UseCompact:     cfg.UseCompact,
+			Compression:    cfg.Compression,
 			Extra: []no{
 				cfg.DBSizeLimit,
 				cfg.DBLowWater,
