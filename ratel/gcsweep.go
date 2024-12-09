@@ -65,7 +65,7 @@ func (r *T) GCSweep(evs, idxs DelItems) (err er) {
 			}
 			ev := &event.T{}
 			var rem by
-			if rem, err = ev.Unmarshal(evb); chk.E(err) {
+			if rem, err = r.Unmarshal(ev, evb); chk.E(err) {
 				return
 			}
 			if len(rem) != 0 {

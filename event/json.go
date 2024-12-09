@@ -58,6 +58,8 @@ func (ev *T) Marshal(dst by) (b by) {
 	return
 }
 
+func Marshal(ev *T, dst by) (b by) { return ev.Marshal(dst) }
+
 func (ev *T) Unmarshal(b by) (r by, err er) {
 	key := make(by, 0, 9)
 	r = b
@@ -210,3 +212,5 @@ eof:
 	err = io.EOF
 	return
 }
+
+func Unmarshal(ev *T, b by) (r by, err er) { return ev.Unmarshal(b) }

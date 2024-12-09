@@ -27,7 +27,7 @@ func (u *Unsigned) Marshal(dst by) (b by) { return ints.New(u.V).Marshal(dst) }
 func (u *Unsigned) Unmarshal(dst by) (rem by, err er) {
 	rem = dst
 	n := ints.New(u.V)
-	if rem, err = n.Unmarshal(dst); chk.E(err) {
+	if rem, err = n.Unmarshal(rem); chk.E(err) {
 		return
 	}
 	u.V = n.N

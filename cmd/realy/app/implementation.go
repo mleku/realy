@@ -244,6 +244,8 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 	// not need logic and can just use the returned filter.
 	allowed = ff
 	// check that the client is authed to a pubkey in the owner follow list
+	r.Lock()
+	defer r.Unlock()
 	if len(r.Owners) > 0 {
 		for pk := range r.Followed {
 			if equals(authedPubkey, by(pk)) {

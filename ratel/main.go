@@ -47,6 +47,11 @@ type T struct {
 	// Flatten should be set to true to trigger a flatten at close... this is mainly
 	// triggered by running an import
 	Flatten bo
+	// UseCompact uses a compact encoding based on the canonical format (generate
+	// hash of it to get ID field with the signature in raw binary after.
+	UseCompact bo
+	// Compression sets the compression to use, none/snappy/zstd
+	Compression st
 }
 
 var _ store.I = (*T)(nil)
@@ -54,13 +59,15 @@ var _ store.I = (*T)(nil)
 type BackendParams struct {
 	Ctx                                cx
 	WG                                 *sync.WaitGroup
-	HasL2                              bo
+	HasL2, UseCompact                  bo
 	BlockCacheSize, LogLevel, MaxLimit no
+	Compression                        st // none,snappy,zstd
 	Extra                              []no
 }
 
 func New(p BackendParams, params ...no) *T {
-	return GetBackend(p.Ctx, p.WG, p.HasL2, p.BlockCacheSize, p.LogLevel, p.MaxLimit, params...)
+	return GetBackend(p.Ctx, p.WG, p.HasL2, p.UseCompact, p.BlockCacheSize, p.LogLevel, p.MaxLimit,
+		p.Compression, params...)
 }
 
 // GetBackend returns a reasonably configured badger.Backend.
@@ -72,8 +79,8 @@ func New(p BackendParams, params ...no) *T {
 // caller.
 //
 // Deprecated: use New instead.
-func GetBackend(Ctx cx, WG *sync.WaitGroup, hasL2 bo,
-	blockCacheSize, logLevel, maxLimit no, params ...no) (b *T) {
+func GetBackend(Ctx cx, WG *sync.WaitGroup, hasL2, useCompact bo,
+	blockCacheSize, logLevel, maxLimit no, compression st, params ...no) (b *T) {
 	var sizeLimit, lw, hw, freq = 0, 50, 66, 3600
 	switch len(params) {
 	case 4:
@@ -103,6 +110,8 @@ func GetBackend(Ctx cx, WG *sync.WaitGroup, hasL2 bo,
 		BlockCacheSize: blockCacheSize,
 		InitLogLevel:   logLevel,
 		MaxLimit:       maxLimit,
+		UseCompact:     useCompact,
+		Compression:    compression,
 	}
 	return
 }

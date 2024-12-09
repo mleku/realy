@@ -85,9 +85,7 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 					var appr bo
 					if err = item.Value(func(eventValue by) (err er) {
 						var rem by
-						if rem, err = ev.Unmarshal(eventValue); chk.E(err) {
-							ev = nil
-							eventValue = eventValue[:0]
+						if rem, err = r.Unmarshal(ev, eventValue); chk.E(err) {
 							return
 						}
 						if len(rem) > 0 {

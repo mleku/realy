@@ -19,7 +19,7 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 		c := make(by, 0, len(b))
 		c = append(c, b...)
 		ea := New()
-		if _, err = ea.Unmarshal(b); chk.E(err) {
+		if rem, err = ea.Unmarshal(b); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {

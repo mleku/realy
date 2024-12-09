@@ -19,6 +19,9 @@ func (r *T) Import(rr io.Reader) {
 	var count no
 	for scan.Scan() {
 		b := scan.Bytes()
+		if len(b) < 1 {
+			continue
+		}
 		ev := &event.T{}
 		if _, err = ev.Unmarshal(b); err != nil {
 			continue

@@ -17,10 +17,17 @@ func (r *T) Init(path st) (err er) {
 	log.I.Ln("opening ratel event store at", r.Path())
 	opts := badger.DefaultOptions(r.dataDir)
 	opts.BlockCacheSize = int64(r.BlockCacheSize)
-	opts.BlockSize = units.Mb
+	opts.BlockSize = 128 * units.Mb
 	opts.CompactL0OnClose = true
 	opts.LmaxCompaction = true
-	opts.Compression = options.None
+	switch r.Compression {
+	case "none":
+		opts.Compression = options.None
+	case "snappy":
+		opts.Compression = options.Snappy
+	case "zstd":
+		opts.Compression = options.ZSTD
+	}
 	r.Logger = NewLogger(r.InitLogLevel, r.dataDir)
 	opts.Logger = r.Logger
 	if r.DB, err = badger.Open(opts); chk.E(err) {

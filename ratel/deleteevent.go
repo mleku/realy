@@ -56,10 +56,12 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
 			}
 			// log.I.S(evb)
 			var rem by
-			if rem, err = ev.Unmarshal(evb); chk.E(err) {
+			if rem, err = r.Unmarshal(ev, evb); chk.E(err) {
 				return
 			}
-			_ = rem
+			if len(rem) != 0 {
+				log.I.S(rem)
+			}
 			// log.I.S(rem, ev, seri)
 			indexKeys = GetIndexKeysForEvent(ev, seri)
 			counterKey = GetCounterKey(seri)

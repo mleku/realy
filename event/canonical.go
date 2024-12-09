@@ -46,19 +46,19 @@ func NewCanonical() (a *json.Array) {
 	return
 }
 
-func FromCanonical(b by) (ev *T, rem by, err er) {
-	id := Hash(b)
+// FromCanonical reverses the process of creating the canonical encoding, note that the signature is missing in this
+// form. Allocate an event.T before calling this.
+func (ev *T) FromCanonical(b by) (rem by, err er) {
+	rem = b
+	id := Hash(rem)
 	c := NewCanonical()
-	if rem, err = c.Unmarshal(b); chk.E(err) {
+	if rem, err = c.Unmarshal(rem); chk.E(err) {
 		return
-	}
-	if len(rem) > 0 {
-		log.I.F("rem %s", rem)
 	}
 	// unwrap the array
 	x := (*c).V
 	if v, ok := x[0].(*json.Unsigned); !ok {
-		err = errorf.E("did not encode expected type in first field of canonical event %v %v",
+		err = errorf.E("did not decode expected type in first field of canonical event %v %v",
 			reflect.TypeOf(x[0]), x[0])
 		return
 	} else {
@@ -68,7 +68,7 @@ func FromCanonical(b by) (ev *T, rem by, err er) {
 		}
 	}
 	// create the event, use the ID hash to populate the ID
-	ev = &T{ID: id}
+	ev.ID = id
 	// unwrap the pubkey
 	if v, ok := x[1].(*json.Hex); !ok {
 		err = errorf.E("failed to decode pubkey from canonical form of event %s", b)
@@ -78,28 +78,28 @@ func FromCanonical(b by) (ev *T, rem by, err er) {
 	}
 	// populate the timestamp field
 	if v, ok := x[2].(*timestamp.T); !ok {
-		err = errorf.E("did not encode expected type in third (created_at) field of canonical event %v %v",
+		err = errorf.E("did not decode expected type in third (created_at) field of canonical event %v %v",
 			reflect.TypeOf(x[0]), x[0])
 	} else {
 		ev.CreatedAt = v
 	}
 	// populate the kind field
 	if v, ok := x[3].(*kind.T); !ok {
-		err = errorf.E("did not encode expected type in fourth (kind) field of canonical event %v %v",
+		err = errorf.E("did not decode expected type in fourth (kind) field of canonical event %v %v",
 			reflect.TypeOf(x[0]), x[0])
 	} else {
 		ev.Kind = v
 	}
 	// populate the tags field
-	if v, ok := x[3].(*tags.T); !ok {
-		err = errorf.E("did not encode expected type in fourth (tags) field of canonical event %v %v",
+	if v, ok := x[4].(*tags.T); !ok {
+		err = errorf.E("did not decode expected type in fifth (tags) field of canonical event %v %v",
 			reflect.TypeOf(x[0]), x[0])
 	} else {
 		ev.Tags = v
 	}
 	// populate the content field
-	if v, ok := x[3].(*json.String); !ok {
-		err = errorf.E("did not encode expected type in fourth (content) field of canonical event %v %v",
+	if v, ok := x[5].(*json.String); !ok {
+		err = errorf.E("did not decode expected type in sixth (content) field of canonical event %v %v",
 			reflect.TypeOf(x[0]), x[0])
 	} else {
 		ev.Content = v.V

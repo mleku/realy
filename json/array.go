@@ -1,5 +1,9 @@
 package json
 
+import (
+	"io"
+)
+
 // An Array is an ordered list of values.
 type Array struct{ V []I }
 
@@ -38,9 +42,18 @@ func (a *Array) Unmarshal(dst by) (rem by, err er) {
 			if rem, err = a.V[element].Unmarshal(rem); chk.E(err) {
 				return
 			}
+			element++
+			if len(rem) < 1 {
+				err = io.EOF
+				return
+			}
 			if rem[0] == ']' {
 				rem = rem[1:]
 				// done
+				return
+			}
+			if element == len(a.V) {
+				err = io.EOF
 				return
 			}
 		}

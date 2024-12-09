@@ -50,7 +50,7 @@ func main() {
 		ratel.BackendParams{
 			Ctx:            c,
 			WG:             &wg,
-			BlockCacheSize: units.Gb * 16,
+			BlockCacheSize: units.Gb,
 			LogLevel:       lol.GetLogLevel(cfg.DbLogLevel),
 			MaxLimit:       ratel.DefaultMaxLimit,
 			Extra: []no{
