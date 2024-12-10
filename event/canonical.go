@@ -1,10 +1,8 @@
 package event
 
 import (
-	"io"
 	"reflect"
 
-	"realy.lol/ec/schnorr"
 	"realy.lol/hex"
 	"realy.lol/json"
 	"realy.lol/kind"
@@ -55,12 +53,7 @@ var minimal = len(`[0,"0123456789abcdef0123456789abcdef",1733739427,0,[],""]`)
 // form. Allocate an event.T before calling this.
 func (ev *T) FromCanonical(b by) (rem by, err er) {
 	rem = b
-	end := len(rem) - schnorr.SignatureSize
-	if end < minimal {
-		err = io.EOF
-		return
-	}
-	id := Hash(rem[:end])
+	id := Hash(rem)
 	c := NewCanonical()
 	if rem, err = c.Unmarshal(rem); chk.E(err) {
 		return

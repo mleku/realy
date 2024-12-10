@@ -15,10 +15,14 @@ func (ev *T) MarshalCompact(dst by) (b by) {
 }
 
 func (ev *T) UnmarshalCompact(b by) (rem by, err er) {
+	rem = b
+	end := len(rem) - schnorr.SignatureSize
+	id := Hash(rem[:end])
 	if rem, err = ev.FromCanonical(b); chk.E(err) {
 		return
 	}
 	ev.Sig = rem[:schnorr.SignatureSize]
+	ev.ID = id
 	rem = rem[schnorr.SignatureSize:]
 	return
 }

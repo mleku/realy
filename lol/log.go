@@ -10,7 +10,6 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/fatih/color"
-	tsize "github.com/kopoli/go-terminal-size"
 
 	"realy.lol/atomic"
 )
@@ -78,7 +77,6 @@ type (
 )
 
 var (
-	width = 80
 	// sep is just a convenient shortcut for this very longwinded expression
 	sep = string(os.PathSeparator)
 	// writer can be swapped out for any io.*writer* that you want to use instead of
@@ -124,10 +122,6 @@ func init() {
 	// Main = &Logger{}
 	Main.Log, Main.Check, Main.Errorf = New(os.Stderr)
 	SetLoggers(Info)
-	// SetLoggers(Trace)
-	if s, err := tsize.GetSize(); err == nil {
-		width = s.Width - 4
-	}
 }
 
 func SetLoggers(level no) {
@@ -165,41 +159,6 @@ func JoinStrings(a ...any) (s string) {
 
 var msgCol = color.New(color.FgBlue).Sprint
 
-func BreakToWidth(s string) (out string) {
-	if len(s) < width {
-		return s
-	}
-	var ss []string
-	split := strings.Split(s, "\n")
-	for _, s := range split {
-		for len(s) > 0 {
-			if len(s) > width {
-				if strings.Contains(s[:width], ",") {
-					commas := strings.Split(s[:width], ",")
-					if len(commas) > 1 {
-						last := len(commas) - 1
-						ss = append(ss, strings.Join(commas[:last], ",")+",")
-						s = commas[last] + s[width:]
-					} else {
-						ss = append(ss, s[:width])
-						s = s[width:]
-					}
-				} else {
-					ss = append(ss, s[:width])
-					s = s[width:]
-				}
-			} else {
-				ss = append(ss, s)
-				s = s[:0]
-				ss = append(ss, "")
-			}
-		}
-	}
-	out = "\n" + strings.Join(ss, "\n")
-	strings.ReplaceAll(out, "\n\n", "\n")
-	return
-}
-
 func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 	return LevelPrinter{
 		Ln: func(a ...interface{}) {
@@ -210,7 +169,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				"%s%s %s %s\n",
 				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
-				BreakToWidth(JoinStrings(a...)),
+				JoinStrings(a...),
 				msgCol(GetLoc(2)),
 			)
 		},
@@ -222,7 +181,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				"%s%s %s %s\n",
 				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
-				BreakToWidth(fmt.Sprintf(format, a...)),
+				fmt.Sprintf(format, a...),
 				msgCol(GetLoc(2)),
 			)
 		},
@@ -246,7 +205,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				"%s%s %s %s\n",
 				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
-				BreakToWidth(closure()),
+				closure(),
 				msgCol(GetLoc(2)),
 			)
 		},
