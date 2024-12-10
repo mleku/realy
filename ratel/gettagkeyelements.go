@@ -15,7 +15,7 @@ import (
 	"realy.lol/ratel/keys/serial"
 )
 
-func GetTagKeyElements(tagValue string, CA *createdat.T,
+func GetTagKeyElements(tagKey, tagValue st, CA *createdat.T,
 	ser *serial.T) (prf index.P,
 	elems []keys.Element, err er) {
 
@@ -37,7 +37,7 @@ func GetTagKeyElements(tagValue string, CA *createdat.T,
 		}
 	}
 	// check for a tag
-	if strings.Count(tagValue, ":") == 2 {
+	if tagKey == "a" && strings.Count(tagValue, ":") == 2 {
 		// this means we will get 3 pieces here
 		split := strings.Split(tagValue, ":")
 		// middle element should be a public key so must be 64 hex ciphers
