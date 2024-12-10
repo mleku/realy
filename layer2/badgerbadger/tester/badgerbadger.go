@@ -61,10 +61,10 @@ func main() {
 	// test.
 	path := "./badgerbadgertest"
 	os.RemoveAll(path)
-	b1 := ratel.GetBackend(c, &wg, true, units.Gb, lol.Error, 4*units.Mb,
+	b1 := ratel.GetBackend(c, &wg, true, true, units.Gb, lol.Error, 4*units.Mb, "none",
 		TotalSize, LW, HW, 2)
 	// create L2 with no cache management
-	b2 := ratel.GetBackend(c, &wg, false, units.Gb, lol.Trace, 4*units.Mb)
+	b2 := ratel.GetBackend(c, &wg, false, true, units.Gb, lol.Trace, 4*units.Mb, "none")
 	// Respond to interrupt signal and clean up after interrupt or end of test.
 	// defer chk.E(os.RemoveAll(path))
 	interrupt.AddHandler(func() {
