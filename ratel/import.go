@@ -12,13 +12,14 @@ const maxLen = 500000000
 // Import accepts an event
 func (r *T) Import(rr io.Reader) {
 	r.Flatten = true
+	var err er
 	scan := bufio.NewScanner(rr)
 	buf := make(by, maxLen)
 	scan.Buffer(buf, maxLen)
-	var err er
-	var count no
+	var count, total no
 	for scan.Scan() {
 		b := scan.Bytes()
+		total += len(b) + 1
 		if len(b) < 1 {
 			continue
 		}
@@ -35,6 +36,7 @@ func (r *T) Import(rr io.Reader) {
 			chk.T(r.DB.RunValueLogGC(0.5))
 		}
 	}
+	log.I.F("read %d bytes and saved %d events", total, count)
 	err = scan.Err()
 	if chk.E(err) {
 	}

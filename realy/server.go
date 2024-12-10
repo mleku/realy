@@ -104,8 +104,9 @@ func (s *Server) Start(host st, port int, started ...chan bo) er {
 	}
 	s.Addr = ln.Addr().String()
 	s.httpServer = &http.Server{Handler: cors.Default().Handler(s), Addr: addr,
-		WriteTimeout: 7 * time.Second, ReadTimeout: 7 * time.Second,
-		IdleTimeout: 28 * time.Second}
+		//WriteTimeout: 7 * time.Second,
+		ReadHeaderTimeout: 7 * time.Second,
+		IdleTimeout:       28 * time.Second}
 	for _, startedC := range started {
 		close(startedC)
 	}
