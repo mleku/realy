@@ -8,6 +8,7 @@ import (
 	"realy.lol/relay"
 	"realy.lol/relayinfo"
 	"realy.lol/store"
+	"realy.lol/number"
 )
 
 func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
@@ -17,12 +18,7 @@ func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
 	if informationer, ok := s.relay.(relay.Informationer); ok {
 		info = informationer.GetNIP11InformationDocument()
 	} else {
-		supportedNIPs := relayinfo.GetList(relayinfo.BasicProtocol, relayinfo.EventDeletion,
-			relayinfo.RelayInformationDocument, relayinfo.GenericTagQueries,
-			relayinfo.NostrMarketplace,
-			relayinfo.EventTreatment, relayinfo.CommandResults,
-			relayinfo.ParameterizedReplaceableEvents,
-			relayinfo.ProtectedEvents)
+		var supportedNIPs number.List
 		var auther relay.Authenticator
 		if auther, ok = s.relay.(relay.Authenticator); ok && auther.ServiceUrl(r) != "" {
 			supportedNIPs = append(supportedNIPs, relayinfo.Authentication.N())
@@ -33,6 +29,17 @@ func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
 				supportedNIPs = append(supportedNIPs, relayinfo.CountingResults.N())
 			}
 		}
+		supportedNIPs = relayinfo.GetList(
+			relayinfo.BasicProtocol,
+			relayinfo.EventDeletion,
+			relayinfo.RelayInformationDocument,
+			relayinfo.GenericTagQueries,
+			relayinfo.NostrMarketplace,
+			relayinfo.EventTreatment,
+			relayinfo.CommandResults,
+			relayinfo.ParameterizedReplaceableEvents,
+			relayinfo.ProtectedEvents,
+		)
 		log.T.Ln("supported NIPs", supportedNIPs)
 		info = &relayinfo.T{Name: s.relay.Name(),
 			Description: "relay powered by the realy framework",
