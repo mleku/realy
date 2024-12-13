@@ -16,7 +16,7 @@ import (
 func startTestRelay(c context.T, t *testing.T, tr *testRelay) *Server {
 	t.Helper()
 	srv, _ := NewServer(ServerParams{
-		c, func() {}, tr, "", 500 * units.Kb, "", "",
+		c, func() {}, tr, "", 500 * units.Kb, "", "", nil,
 	})
 	started := make(chan bo)
 	go srv.Start("127.0.0.1", 0, started)
