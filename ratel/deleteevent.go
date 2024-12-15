@@ -12,7 +12,7 @@ import (
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/keys/tombstone"
 	"realy.lol/timestamp"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {

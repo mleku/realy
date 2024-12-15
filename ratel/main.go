@@ -10,7 +10,7 @@ import (
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/store"
 	"realy.lol/units"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 const DefaultMaxLimit = 512

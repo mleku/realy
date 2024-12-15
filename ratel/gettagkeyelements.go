@@ -13,7 +13,7 @@ import (
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 func GetTagKeyElements(tagKey, tagValue st, CA *createdat.T,

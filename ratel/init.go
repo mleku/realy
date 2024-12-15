@@ -9,7 +9,7 @@ import (
 	"github.com/dgraph-io/badger/v4/options"
 
 	"realy.lol/units"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 func (r *T) Init(path st) (err er) {

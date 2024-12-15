@@ -11,7 +11,7 @@ import (
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/tag"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 // GetIndexKeysForEvent generates all the index keys required to filter for

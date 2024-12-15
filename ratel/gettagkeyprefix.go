@@ -7,7 +7,7 @@ import (
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
 	eventstore "realy.lol/store"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 // GetTagKeyPrefix returns tag index prefixes based on the initial field of a

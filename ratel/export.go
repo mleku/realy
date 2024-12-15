@@ -15,7 +15,7 @@ import (
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/tags"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {

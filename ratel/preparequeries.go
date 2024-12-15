@@ -13,7 +13,7 @@ import (
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/timestamp"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 type Results struct {

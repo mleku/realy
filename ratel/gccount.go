@@ -15,7 +15,7 @@ import (
 	"realy.lol/sha256"
 	"realy.lol/timestamp"
 	"realy.lol/units"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 const KeyLen = serial.Len + 1

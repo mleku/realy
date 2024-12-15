@@ -11,7 +11,7 @@ import (
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/sha256"
 	"realy.lol/tag"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {

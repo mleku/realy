@@ -13,7 +13,7 @@ import (
 	"realy.lol/sha256"
 	eventstore "realy.lol/store"
 	"realy.lol/timestamp"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 func (r *T) SaveEvent(c cx, ev *event.T) (err er) {

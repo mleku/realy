@@ -15,7 +15,7 @@ import (
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/timestamp"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {

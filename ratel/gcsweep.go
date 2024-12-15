@@ -8,7 +8,7 @@ import (
 	"realy.lol/event"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/sha256"
-	"realy.lol/ratel/keys/prefixes"
+	"realy.lol/ratel/prefixes"
 )
 
 func (r *T) GCSweep(evs, idxs DelItems) (err er) {
