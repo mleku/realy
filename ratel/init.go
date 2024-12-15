@@ -8,8 +8,8 @@ import (
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
 
-	"realy.lol/ratel/keys/index"
 	"realy.lol/units"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func (r *T) Init(path st) (err er) {
@@ -56,7 +56,7 @@ func (r *T) runMigrations() (err er) {
 	return r.Update(func(txn *badger.Txn) (err er) {
 		var version uint16
 		var item *badger.Item
-		item, err = txn.Get(by{index.Version.B()})
+		item, err = txn.Get(prefixes.Version.Key())
 		if errors.Is(err, badger.ErrKeyNotFound) {
 			version = 0
 		} else if chk.E(err) {
@@ -71,7 +71,7 @@ func (r *T) runMigrations() (err er) {
 		if version < Version {
 			// if there is any data in the relay we will stop and notify the user, otherwise we
 			// just set version to 1 and proceed
-			prefix := by{index.Id.B()}
+			prefix := prefixes.Id.Key()
 			it := txn.NewIterator(badger.IteratorOptions{
 				PrefetchValues: true,
 				PrefetchSize:   100,
@@ -99,5 +99,5 @@ func (r *T) runMigrations() (err er) {
 func (r *T) bumpVersion(txn *badger.Txn, version uint16) er {
 	buf := make(by, 2)
 	binary.BigEndian.PutUint16(buf, version)
-	return txn.Set(by{index.Version.B()}, buf)
+	return txn.Set(prefixes.Version.Key(), buf)
 }

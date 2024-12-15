@@ -20,6 +20,7 @@ import (
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/timestamp"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func TestElement(t *testing.T) {
@@ -27,7 +28,7 @@ func TestElement(t *testing.T) {
 		var failed bo
 		{ // construct a typical key type of structure
 			// a prefix
-			np := index.Version
+			np := prefixes.Version
 			vp := index.New(byte(np))
 			// an id
 			fakeIdBytes := frand.Bytes(sha256.Size)

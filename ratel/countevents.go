@@ -8,10 +8,10 @@ import (
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/ratel/keys/createdat"
-	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/sha256"
 	"realy.lol/tag"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
@@ -53,7 +53,7 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 				// todo: matches that are replaceable/parameterized replaceable ones to decode
 				// todo: to check for replacements so we can actually not set the approx flag.
 				ser := serial.FromKey(k)
-				eventKey = index.Event.Key(ser)
+				eventKey = prefixes.Event.Key(ser)
 				// eventKeys = append(eventKeys, idx)
 			}
 			return

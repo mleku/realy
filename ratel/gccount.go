@@ -15,6 +15,7 @@ import (
 	"realy.lol/sha256"
 	"realy.lol/timestamp"
 	"realy.lol/units"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 const KeyLen = serial.Len + 1
@@ -32,7 +33,7 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 
 	// log.D.Ln("running GC count", r.Path())
 	overallStart := time.Now()
-	prf := by{byte(index.Event)}
+	prf := prefixes.Event.Key()
 	evStream := r.DB.NewStream()
 	evStream.Prefix = prf
 	var countMx sync.Mutex
@@ -74,7 +75,7 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	var countFresh count.Freshes
 	// pruneStarted := time.Now()
 	counterStream := r.DB.NewStream()
-	counterStream.Prefix = by{index.Counter.B()}
+	counterStream.Prefix = by{prefixes.Counter.B()}
 	v := make(by, createdat.Len)
 	countFresh = make(count.Freshes, 0, totalCounter)
 	counterStream.ChooseKey = func(item *badger.Item) (b bo) {
@@ -139,7 +140,7 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	if r.HasL2 {
 		// lastly, we need to count the size of all relevant transactions from the
 		// pruned set
-		for _, fp := range index.FilterPrefixes {
+		for _, fp := range prefixes.FilterPrefixes {
 			// this can all be done concurrently
 			go func(fp by) {
 				evStream = r.DB.NewStream()

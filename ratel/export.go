@@ -11,11 +11,11 @@ import (
 	"realy.lol/filter"
 	"realy.lol/hex"
 	"realy.lol/qu"
-	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/tags"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
@@ -124,7 +124,7 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 				for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
 					item := it.Item()
 					k := item.KeyCopy(nil)
-					evKey := index.Event.Key(serial.FromKey(k))
+					evKey := prefixes.Event.Key(serial.FromKey(k))
 					counter++
 					keyChan <- evKey
 				}
@@ -140,7 +140,7 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 	} else {
 		// blanket download requested
 		err = r.View(func(txn *badger.Txn) (err er) {
-			it := txn.NewIterator(badger.IteratorOptions{Prefix: index.Event.Key()})
+			it := txn.NewIterator(badger.IteratorOptions{Prefix: prefixes.Event.Key()})
 			defer it.Close()
 			for it.Rewind(); it.Valid(); it.Next() {
 				select {

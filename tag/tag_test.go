@@ -27,7 +27,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 			t.Fatal(err)
 		}
 		bc = tg2.Marshal(bc)
-		log.I.F("\n\norig\n%s\n\ncopy\n%s\n", bo, bc)
+		// log.I.F("\n\norig\n%s\n\ncopy\n%s\n", bo, bc)
 		if !equals(bo, bc) {
 			t.Fatalf("got\n%s\nwant\n%s", bo, bc)
 		}

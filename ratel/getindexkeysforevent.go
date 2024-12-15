@@ -11,6 +11,7 @@ import (
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/tag"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 // GetIndexKeysForEvent generates all the index keys required to filter for
@@ -26,24 +27,24 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz []by) {
 	PK, _ := pubkey.New(ev.PubKey)
 	// indexes
 	{ // ~ by id
-		k := index.Id.Key(ID, ser)
+		k := prefixes.Id.Key(ID, ser)
 		// log.T.F("id key: %x %0x %0x", k[0], k[1:9], k[9:])
 		keyz = append(keyz, k)
 	}
 	{ // ~ by pubkey+date
-		k := index.Pubkey.Key(PK, CA, ser)
+		k := prefixes.Pubkey.Key(PK, CA, ser)
 		// log.T.F("pubkey + date key: %x %0x %0x %0x",
 		// 	k[0], k[1:9], k[9:17], k[17:])
 		keyz = append(keyz, k)
 	}
 	{ // ~ by kind+date
-		k := index.Kind.Key(K, CA, ser)
+		k := prefixes.Kind.Key(K, CA, ser)
 		// log.T.F("kind + date key: %x %0x %0x %0x",
 		// 	k[0], k[1:3], k[3:11], k[11:])
 		keyz = append(keyz, k)
 	}
 	{ // ~ by pubkey+kind+date
-		k := index.PubkeyKind.Key(PK, K, CA, ser)
+		k := prefixes.PubkeyKind.Key(PK, K, CA, ser)
 		// log.T.F("pubkey + kind + date key: %x %0x %0x %0x %0x",
 		// 	k[0], k[1:9], k[9:11], k[11:19], k[19:])
 		keyz = append(keyz, k)
@@ -85,7 +86,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz []by) {
 		keyz = append(keyz, k)
 	}
 	{ // ~ by date only
-		k := index.CreatedAt.Key(CA, ser)
+		k := prefixes.CreatedAt.Key(CA, ser)
 		// log.T.F("date key: %x %0x %0x", k[0], k[1:9], k[9:])
 		keyz = append(keyz, k)
 	}

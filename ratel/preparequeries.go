@@ -9,11 +9,11 @@ import (
 	"realy.lol/eventid"
 	"realy.lol/filter"
 	"realy.lol/ratel/keys/id"
-	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/timestamp"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 type Results struct {
@@ -52,7 +52,7 @@ func PrepareQueries(f *filter.T) (
 				// just ignore it, clients will be clients
 				continue
 			}
-			prf := index.Id.Key(ih)
+			prf := prefixes.Id.Key(ih)
 			// log.T.F("id prefix to search on %0x from key %0x", prf, ih.Val)
 			qs[i] = query{
 				index:        i,
@@ -73,7 +73,7 @@ func PrepareQueries(f *filter.T) (
 					// bogus filter, continue anyway
 					continue
 				}
-				sp := index.Pubkey.Key(pk)
+				sp := prefixes.Pubkey.Key(pk)
 				// log.I.F("search only for authors %0x from pub key %0x", sp, pk.Val)
 				qs[i] = query{
 					index:        i,
@@ -95,7 +95,7 @@ func PrepareQueries(f *filter.T) (
 						continue authors
 					}
 					ki := kinder.New(kind.K)
-					sp := index.PubkeyKind.Key(pk, ki)
+					sp := prefixes.PubkeyKind.Key(pk, ki)
 					// log.T.F("search for authors from pub key %0x and kind %0x", pk.Val, ki.Val)
 					qs[i] = query{index: i, queryFilter: f, searchPrefix: sp}
 					i++
@@ -142,7 +142,7 @@ func PrepareQueries(f *filter.T) (
 		qs = make([]query, f.Kinds.Len())
 		for i, kind := range f.Kinds.K {
 			kk := kinder.New(kind.K)
-			ki := index.Kind.Key(kk)
+			ki := prefixes.Kind.Key(kk)
 			qs[i] = query{
 				index:        i,
 				queryFilter:  f,
@@ -153,7 +153,7 @@ func PrepareQueries(f *filter.T) (
 	default:
 		if len(qs) > 0 {
 			qs[0] = query{index: 0, queryFilter: f,
-				searchPrefix: index.CreatedAt.Key()}
+				searchPrefix: prefixes.CreatedAt.Key()}
 			ext = nil
 		}
 		// log.T.S("other", qs)

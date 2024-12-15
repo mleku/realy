@@ -13,6 +13,7 @@ import (
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func GetTagKeyElements(tagKey, tagValue st, CA *createdat.T,
@@ -30,7 +31,7 @@ func GetTagKeyElements(tagKey, tagValue st, CA *createdat.T,
 			if pkk, err = pubkey.NewFromBytes(pkb); chk.E(err) {
 				return
 			}
-			prf, elems = index.Tag32, keys.Make(pkk, ser)
+			prf, elems = prefixes.Tag32, keys.Make(pkk, ser)
 			return
 		} else {
 			err = nil
@@ -55,7 +56,7 @@ func GetTagKeyElements(tagKey, tagValue st, CA *createdat.T,
 				if pk, err = pubkey.NewFromBytes(pkb); chk.E(err) {
 					return
 				}
-				prf = index.TagAddr
+				prf = prefixes.TagAddr
 				elems = keys.Make(kinder.New(k), pk, arb.NewFromString(d), CA,
 					ser)
 				return
@@ -63,7 +64,7 @@ func GetTagKeyElements(tagKey, tagValue st, CA *createdat.T,
 		}
 	}
 	// store whatever as utf-8
-	prf = index.Tag
+	prf = prefixes.Tag
 	elems = keys.Make(arb.NewFromString(tagValue), CA, ser)
 	return
 }

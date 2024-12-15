@@ -11,11 +11,11 @@ import (
 	"realy.lol/filter"
 	"realy.lol/hex"
 	"realy.lol/ratel/keys/createdat"
-	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/timestamp"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
@@ -64,7 +64,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 					}
 				}
 				ser := serial.FromKey(k)
-				idx := index.Event.Key(ser)
+				idx := prefixes.Event.Key(ser)
 				eventKeys[st(idx)] = struct{}{}
 			}
 			return

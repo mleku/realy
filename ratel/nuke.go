@@ -1,22 +1,22 @@
 package ratel
 
 import (
-	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func (r *T) Nuke() (err er) {
-	log.W.F("nukening database at %s", r.dataDir)
+	log.W.F("nuking database at %s", r.dataDir)
 	if err = r.DB.DropPrefix([]by{
-		{index.Event.B()},
-		{index.CreatedAt.B()},
-		{index.Id.B()},
-		{index.Kind.B()},
-		{index.Pubkey.B()},
-		{index.PubkeyKind.B()},
-		{index.Tag.B()},
-		{index.Tag32.B()},
-		{index.TagAddr.B()},
-		{index.Counter.B()},
+		{prefixes.Event.B()},
+		{prefixes.CreatedAt.B()},
+		{prefixes.Id.B()},
+		{prefixes.Kind.B()},
+		{prefixes.Pubkey.B()},
+		{prefixes.PubkeyKind.B()},
+		{prefixes.Tag.B()},
+		{prefixes.Tag32.B()},
+		{prefixes.TagAddr.B()},
+		{prefixes.Counter.B()},
 	}...); chk.E(err) {
 		return
 	}

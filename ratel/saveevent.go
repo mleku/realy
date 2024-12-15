@@ -13,6 +13,7 @@ import (
 	"realy.lol/sha256"
 	eventstore "realy.lol/store"
 	"realy.lol/timestamp"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
@@ -30,7 +31,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 	var ts by
 	err = r.View(func(txn *badger.Txn) (err er) {
 		// query event by id to ensure we don't try to save duplicates
-		prf := index.Id.Key(id.New(eventid.NewWith(ev.ID)))
+		prf := prefixes.Id.Key(id.New(eventid.NewWith(ev.ID)))
 		it := txn.NewIterator(badger.IteratorOptions{})
 		defer it.Close()
 		it.Seek(prf)
@@ -44,7 +45,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 			foundSerial = seri.Val
 		}
 		// if the event was deleted we don't want to save it again
-		ts = index.Tombstone.Key(id.New(eventid.NewWith(ev.ID)))
+		ts = prefixes.Tombstone.Key(id.New(eventid.NewWith(ev.ID)))
 		it.Seek(ts)
 		if it.ValidForPrefix(ts) {
 			deleted = true
@@ -61,7 +62,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 		// log.D.F("found possible duplicate or stub for %s", ev.Serialize())
 		err = r.Update(func(txn *badger.Txn) (err er) {
 			// retrieve the event record
-			evKey := keys.Write(index.New(index.Event), seri)
+			evKey := keys.Write(index.New(prefixes.Event), seri)
 			it := txn.NewIterator(badger.IteratorOptions{})
 			defer it.Close()
 			it.Seek(evKey)

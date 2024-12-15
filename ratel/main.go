@@ -7,10 +7,10 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/store"
 	"realy.lol/units"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 const DefaultMaxLimit = 512
@@ -127,7 +127,7 @@ func (r *T) SerialKey() (idx by, ser *serial.T) {
 		panic(err)
 	}
 	ser = serial.New(s)
-	return index.Event.Key(ser), ser
+	return prefixes.Event.Key(ser), ser
 }
 
 // Serial returns the next monotonic conflict free unique serial on the database.

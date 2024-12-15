@@ -12,6 +12,7 @@ import (
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/keys/tombstone"
 	"realy.lol/timestamp"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
@@ -19,7 +20,7 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
 	seri := serial.New(nil)
 	err = r.View(func(txn *badger.Txn) (err er) {
 		// query event by id to ensure we don't try to save duplicates
-		prf := index.Id.Key(id.New(eid))
+		prf := prefixes.Id.Key(id.New(eid))
 		it := txn.NewIterator(badger.IteratorOptions{})
 		defer it.Close()
 		it.Seek(prf)
@@ -46,7 +47,7 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
 	// fetch the event to get its index keys
 	err = r.View(func(txn *badger.Txn) (err er) {
 		// retrieve the event record
-		evKey = keys.Write(index.New(index.Event), seri)
+		evKey = keys.Write(index.New(prefixes.Event), seri)
 		it := txn.NewIterator(badger.IteratorOptions{})
 		defer it.Close()
 		it.Seek(evKey)
@@ -66,7 +67,7 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
 			indexKeys = GetIndexKeysForEvent(ev, seri)
 			counterKey = GetCounterKey(seri)
 			ts := tombstone.NewWith(ev.EventID())
-			tombstoneKey = index.Tombstone.Key(ts, createdat.New(timestamp.Now()))
+			tombstoneKey = prefixes.Tombstone.Key(ts, createdat.New(timestamp.Now()))
 			return
 		}
 		return

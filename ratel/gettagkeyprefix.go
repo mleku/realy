@@ -4,10 +4,10 @@ import (
 	"realy.lol/hex"
 	"realy.lol/ratel/keys"
 	"realy.lol/ratel/keys/arb"
-	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
 	eventstore "realy.lol/store"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 // GetTagKeyPrefix returns tag index prefixes based on the initial field of a
@@ -33,22 +33,22 @@ func GetTagKeyPrefix(tagValue string) (key by, err er) {
 		if len(d) > 0 {
 			els = append(els, arb.NewFromString(d))
 		}
-		key = index.TagAddr.Key(els...)
+		key = prefixes.TagAddr.Key(els...)
 	} else if pkb, _ := hex.Dec(tagValue); len(pkb) == 32 {
 		// store value as bytes
 		var pkk *pubkey.T
 		if pkk, err = pubkey.NewFromBytes(pkb); chk.E(err) {
 			return
 		}
-		key = index.Tag32.Key(pkk)
+		key = prefixes.Tag32.Key(pkk)
 	} else {
 		// store whatever as utf-8
 		if len(tagValue) > 0 {
 			var a *arb.T
 			a = arb.NewFromString(tagValue)
-			key = index.Tag.Key(a)
+			key = prefixes.Tag.Key(a)
 		} else {
-			key = index.Tag.Key()
+			key = prefixes.Tag.Key()
 		}
 	}
 	return

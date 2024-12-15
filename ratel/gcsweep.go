@@ -6,9 +6,9 @@ import (
 	"github.com/dgraph-io/badger/v4"
 
 	"realy.lol/event"
-	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/sha256"
+	"realy.lol/ratel/keys/prefixes"
 )
 
 func (r *T) GCSweep(evs, idxs DelItems) (err er) {
@@ -33,7 +33,7 @@ func (r *T) GCSweep(evs, idxs DelItems) (err er) {
 	// 	defer wg.Done()
 	stream := r.DB.NewStream()
 	// get all the event indexes to delete/prune
-	stream.Prefix = by{index.Event.B()}
+	stream.Prefix = prefixes.Event.Key()
 	stream.ChooseKey = func(item *badger.Item) (boo bo) {
 		if item.KeySize() != 1+serial.Len {
 			return
@@ -96,9 +96,9 @@ func (r *T) GCSweep(evs, idxs DelItems) (err er) {
 	if len(idxs) > 0 && r.HasL2 {
 		log.I.Ln("pruning indexes")
 		// we have to remove everything
-		prfs := []by{{index.Event.B()}}
-		prfs = append(prfs, index.FilterPrefixes...)
-		prfs = append(prfs, by{index.Counter.B()})
+		prfs := []by{prefixes.Event.Key()}
+		prfs = append(prfs, prefixes.FilterPrefixes...)
+		prfs = append(prfs, by{prefixes.Counter.B()})
 		for _, prf := range prfs {
 			stream = r.DB.NewStream()
 			stream.Prefix = prf

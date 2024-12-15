@@ -205,10 +205,10 @@ func TestT_ContainsAny(t *testing.T) {
 	x := tag.New(by{'b'}, c, b, a)
 	y := tag.New(by{'b'}, b, a, c)
 	z := tag.New(by{'b'}, v)
-	_, _ = v, err
 	tt := New(w, x, y)
 	ttt := New(x, y)
-	log.I.S(tt.ContainsAny(by{'b'}, z))
-	log.I.S(ttt.ContainsAny(by{'b'}, z))
+	_, _, _, _, _ = v, err, z, tt, ttt
+	// log.I.S(tt.ContainsAny(by{'b'}, z))
+	// log.I.S(ttt.ContainsAny(by{'b'}, z))
 
 }
