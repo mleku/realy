@@ -210,7 +210,7 @@ func ToPath[V st | by](path []V) (b by) {
 }
 
 func Read[V by | st](g *T, path V) (b by, err er) {
-	log.I.F("Read %s %s", path, b)
+	log.I.F("Read %s", path)
 	pb := by(path)
 	if !bytes.HasPrefix(pb, by{'/'}) {
 		err = errorf.E("path must begin with the root /, '%s'", path)
@@ -220,7 +220,8 @@ func Read[V by | st](g *T, path V) (b by, err er) {
 	parent := serial.Make(0)
 	var found bo
 	for i, v := range split {
-		log.I.F("%s", v)
+		_ = i
+		// log.I.F("%s", v)
 		if err = g.DB.View(func(txn *badger.Txn) (err er) {
 			it := txn.NewIterator(badger.DefaultIteratorOptions)
 			defer it.Close()
@@ -235,8 +236,8 @@ func Read[V by | st](g *T, path V) (b by, err er) {
 				if !bytes.HasPrefix(k, prf) {
 					continue
 				}
-				log.I.F("%d %s == %s", i, val, v)
 				if equals(v, val) {
+					// log.I.F("%0x %d %s == %s", k, i, val, v)
 					parent = serial.FromKey(k)
 					found = true
 					return
@@ -252,10 +253,14 @@ func Read[V by | st](g *T, path V) (b by, err er) {
 		if err = g.DB.View(func(txn *badger.Txn) (err er) {
 			it := txn.NewIterator(badger.DefaultIteratorOptions)
 			defer it.Close()
-			it.Seek(valKey)
-			if it.Valid() {
+			// log.I.S(valKey)
+			for it.Seek(valKey); it.ValidForPrefix(valKey); it.Next() {
+				// k := it.Item().Key()
+				// log.I.S(k, valKey, it.Item().Key())
 				b, err = it.Item().ValueCopy(nil)
+				// log.I.S(valKey, b)
 				return
+
 			}
 			return
 		}); chk.E(err) {
@@ -270,7 +275,7 @@ func Read[V by | st](g *T, path V) (b by, err er) {
 }
 
 func Write[V by | st](g *T, path, b V) (err er) {
-	log.I.F("Write %s %s", path, b)
+	// log.I.F("Write %s %s", path, b)
 	pb := by(path)
 	if !bytes.HasPrefix(pb, by{'/'}) {
 		err = errorf.E("path must begin with the root /, '%s'", path)
@@ -294,8 +299,8 @@ func Write[V by | st](g *T, path, b V) (err er) {
 				if !bytes.HasPrefix(k, prf) {
 					continue
 				}
-				log.I.F("%d %s == %s", i, val, v)
 				if equals(v, val) {
+					log.I.F("found %0x %d %s == %s", k, i, val, v)
 					parent = serial.FromKey(k)
 					found = true
 					return
@@ -313,9 +318,9 @@ func Write[V by | st](g *T, path, b V) (err er) {
 			ser = g.Serial()
 		}
 		seri := serial.Make(ser)
-		log.I.F("writing %d %0x %0x %s", prefixes.Node, parent.Val, seri.Val, v)
 		if err = g.DB.Update(func(txn *badger.Txn) (err er) {
 			k := prefixes.Node.Key(parent, seri)
+			log.I.F("writing %0x %s", k, v)
 			if err = txn.Set(k, v); chk.E(err) {
 				return
 			}
@@ -328,6 +333,7 @@ func Write[V by | st](g *T, path, b V) (err er) {
 	if err = g.DB.Update(func(txn *badger.Txn) (err er) {
 		// write the value
 		prf := prefixes.Value.Key(parent)
+		log.I.F("writing %0x `%s`", prf, b)
 		if err = txn.Set(prf, by(b)); chk.E(err) {
 			return
 		}

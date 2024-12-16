@@ -49,16 +49,37 @@ func TestWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	log.I.F("/path/four = '%s'", b)
+	b = b[:0]
 	fmt.Fprintln(os.Stderr)
 	if b, err = Read(g, "/path/to/one"); chk.E(err) {
 		t.Fatal(err)
 	}
 	log.I.F("/path/to/one = '%s'", b)
+	b = b[:0]
 	fmt.Fprintln(os.Stderr)
+	b = b[:0]
 	if b, err = Read(g, "/path/to/other/two"); chk.E(err) {
 		t.Fatal(err)
 	}
 	log.I.F("/path/to/other/two = '%s'", b)
+	fmt.Fprintln(os.Stderr)
+	b = b[:0]
+	if b, err = Read(g, "/path/to"); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.F("/path/to = '%s'", b)
+	fmt.Fprintln(os.Stderr)
+	b = b[:0]
+	if b, err = Read(g, "/path/to/other"); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.F("/path/to/other = '%s'", b)
+	b = b[:0]
+	fmt.Fprintln(os.Stderr)
+	if b, err = Read(g, "/path/to/one"); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.F("/path/to/one = '%s'", b)
 	fmt.Fprintln(os.Stderr)
 	g.DB.View(func(txn *badger.Txn) (err er) {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
