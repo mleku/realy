@@ -42,15 +42,16 @@ func FromKey(k by) (p *T) {
 	return &T{Val: key}
 }
 
-func Make(s uint64) (ser by) {
-	ser = make(by, 8)
-	binary.BigEndian.PutUint64(ser, s)
+func Make(s uint64) (ser *T) {
+	v := make(by, Len)
+	binary.BigEndian.PutUint64(v, s)
+	ser = &T{Val: v}
 	return
 }
 
 func (p *T) Write(buf *bytes.Buffer) {
 	if len(p.Val) != Len {
-		panic(fmt.Sprintln("must use New or initialize Val with len", Len))
+		panic(fmt.Sprintf("must use New or initialize Val with len %d, %d %0x", Len, len(p.Val), p.Val))
 	}
 	buf.Write(p.Val)
 }

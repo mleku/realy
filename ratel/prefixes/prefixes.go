@@ -15,7 +15,9 @@ const (
 	//
 	//   [ 255 ][ 2 byte/16 bit version code ]
 	Version index.P = 255
+)
 
+const (
 	// Event is the prefix used with a Serial counter value provided by badgerDB to
 	// provide conflict-free 8 byte 64-bit unique keys for event records, which
 	// follows the prefix.
