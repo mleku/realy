@@ -209,6 +209,66 @@ func ToPath[V st | by](path []V) (b by) {
 	return
 }
 
+func Read[V by | st](g *T, path V) (b by, err er) {
+	log.I.F("Read %s %s", path, b)
+	pb := by(path)
+	if !bytes.HasPrefix(pb, by{'/'}) {
+		err = errorf.E("path must begin with the root /, '%s'", path)
+		return
+	}
+	split := bytes.Split(pb, by{'/'})[1:]
+	parent := serial.Make(0)
+	var found bo
+	for i, v := range split {
+		log.I.F("%s", v)
+		if err = g.DB.View(func(txn *badger.Txn) (err er) {
+			it := txn.NewIterator(badger.DefaultIteratorOptions)
+			defer it.Close()
+			prf := prefixes.Node.Key(parent)
+			for it.Rewind(); it.Valid(); it.Next() {
+				item := it.Item()
+				var val by
+				if val, err = item.ValueCopy(nil); chk.E(err) {
+					return
+				}
+				k := item.KeyCopy(nil)
+				if !bytes.HasPrefix(k, prf) {
+					continue
+				}
+				log.I.F("%d %s == %s", i, val, v)
+				if equals(v, val) {
+					parent = serial.FromKey(k)
+					found = true
+					return
+				}
+			}
+			return
+		}); chk.E(err) {
+			return
+		}
+	}
+	if found {
+		valKey := prefixes.Value.Key(parent)
+		if err = g.DB.View(func(txn *badger.Txn) (err er) {
+			it := txn.NewIterator(badger.DefaultIteratorOptions)
+			defer it.Close()
+			it.Seek(valKey)
+			if it.Valid() {
+				b, err = it.Item().ValueCopy(nil)
+				return
+			}
+			return
+		}); chk.E(err) {
+			return
+		}
+		// the value should now be returned
+		return
+	} else {
+		// if there is no value it's as though there is no value
+	}
+	return
+}
+
 func Write[V by | st](g *T, path, b V) (err er) {
 	log.I.F("Write %s %s", path, b)
 	pb := by(path)

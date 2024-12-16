@@ -26,30 +26,47 @@ func TestWrite(t *testing.T) {
 		LogLevel:    "trace",
 		Compression: "zstd",
 	}); chk.E(err) {
-		return
+		t.Fatal(err)
 	}
 	if err = g.Init(); chk.E(err) {
-		return
+		t.Fatal(err)
 	}
 	interrupt.AddHandler(func() { cancel() })
 	if err = Write(g, "/path/to/one", "1"); chk.E(err) {
-		return
+		t.Fatal(err)
 	}
 	fmt.Fprintln(os.Stderr)
 	if err = Write(g, "/path/to/other/two", "2"); chk.E(err) {
-		return
+		t.Fatal(err)
 	}
 	fmt.Fprintln(os.Stderr)
 	if err = Write(g, "/path/four", "4"); chk.E(err) {
-		return
+		t.Fatal(err)
 	}
+	fmt.Fprintln(os.Stderr)
+	var b by
+	if b, err = Read(g, "/path/four"); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.F("/path/four = '%s'", b)
+	fmt.Fprintln(os.Stderr)
+	if b, err = Read(g, "/path/to/one"); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.F("/path/to/one = '%s'", b)
+	fmt.Fprintln(os.Stderr)
+	if b, err = Read(g, "/path/to/other/two"); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.F("/path/to/other/two = '%s'", b)
 	fmt.Fprintln(os.Stderr)
 	g.DB.View(func(txn *badger.Txn) (err er) {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
 		defer it.Close()
+		log.I.F("content of db:")
 		for it.Rewind(); it.Valid(); it.Next() {
 			v, _ := it.Item().ValueCopy(nil)
-			log.I.F("%0x %0x %s", it.Item().Key(), v, v)
+			log.I.F("%0x [%s] %s", it.Item().Key(), it.Item().Key(), v)
 		}
 		return
 	})
