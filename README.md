@@ -4,8 +4,7 @@
 
 [![Support this project](https://img.shields.io/badge/donate-geyser_crowdfunding_project_page-orange.svg)](https://geyser.fund/project/realy)
 
-zap me: ⚡️mleku@getalby.com
-
+zap me: ⚡️mleku@getalby.com support through geyser: ⚡️realy@geyser.fund
 
 
 ![realy.png](./realy.png)
