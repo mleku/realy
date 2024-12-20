@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"realy.lol/cmd/realy/app"
-	"realy.lol/context"
 	"realy.lol/hex"
 	"realy.lol/sha256"
 )
@@ -36,7 +35,8 @@ func (s *Server) auth(r *http.Request) (authed bo) {
 }
 
 func (s *Server) unauthorized(w http.ResponseWriter) {
-	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+	w.Header().Set("WWW-Authenticate",
+		`Basic realm="restricted", charset="UTF-8"`)
 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	fmt.Fprintf(w, "you may have not configured your admin username/password")
 }
@@ -49,11 +49,12 @@ func (s *Server) handleAdmin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.I.F("export of event data requested on admin port")
-		sto := s.relay.Storage(context.Bg())
+		sto := s.relay.Storage()
 		if strings.Count(r.URL.Path, "/") > 1 {
 			split := strings.Split(r.URL.Path, "/")
 			if len(split) != 3 {
-				fprintf(w, "incorrectly formatted export parameter: '%s'", r.URL.Path)
+				fprintf(w, "incorrectly formatted export parameter: '%s'",
+					r.URL.Path)
 				return
 			}
 			switch split[2] {
@@ -87,12 +88,12 @@ func (s *Server) handleAdmin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.I.F("import of event data requested on admin port %s", r.RequestURI)
-		sto := s.relay.Storage(context.Bg())
+		sto := s.relay.Storage()
 		read := io.LimitReader(r.Body, r.ContentLength)
 		sto.Import(read)
 		if realy, ok := s.relay.(*app.Relay); ok {
 			realy.ZeroLists()
-			realy.CheckOwnerLists(context.Bg())
+			realy.CheckOwnerLists()
 		}
 	case strings.HasPrefix(r.URL.Path, "/shutdown"):
 		if ok := s.auth(r); !ok {

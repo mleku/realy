@@ -14,12 +14,13 @@ import (
 	"realy.lol/store"
 )
 
-func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request, origin st,
+func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request,
+	origin st,
 	authedPubkey by) (accepted bo, message by) {
 	if ev == nil {
 		return false, normalize.Invalid.F("empty event")
 	}
-	sto := rl.Storage(c)
+	sto := rl.Storage()
 	wrap := &wrapper.Relay{I: sto}
 	advancedSaver, _ := sto.(relay.AdvancedSaver)
 	accept, notice, after := rl.AcceptEvent(c, ev, hr, origin, authedPubkey)

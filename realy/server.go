@@ -33,6 +33,7 @@ type Server struct {
 	authRequired         bo
 	maxLimit             no
 	adminUser, adminPass st
+	spiderKey            by
 	listeners            *listeners.T
 }
 
@@ -43,6 +44,7 @@ type ServerParams struct {
 	DbPath               st
 	MaxLimit             no
 	AdminUser, AdminPass st
+	SpiderKey            st
 }
 
 func NewServer(sp ServerParams, opts ...options.O) (*Server, er) {
@@ -67,7 +69,7 @@ func NewServer(sp ServerParams, opts ...options.O) (*Server, er) {
 		adminPass:    sp.AdminPass,
 		listeners:    listeners.New(),
 	}
-	if storage := sp.Rl.Storage(context.Bg()); storage != nil {
+	if storage := sp.Rl.Storage(); storage != nil {
 		if err := storage.Init(sp.DbPath); chk.T(err) {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
@@ -104,7 +106,7 @@ func (s *Server) Start(host st, port int, started ...chan bo) er {
 	}
 	s.Addr = ln.Addr().String()
 	s.httpServer = &http.Server{Handler: cors.Default().Handler(s), Addr: addr,
-		//WriteTimeout: 7 * time.Second,
+		// WriteTimeout: 7 * time.Second,
 		ReadHeaderTimeout: 7 * time.Second,
 		IdleTimeout:       28 * time.Second}
 	for _, startedC := range started {
@@ -123,12 +125,13 @@ func (s *Server) Shutdown() {
 	defer s.clientsMu.Unlock()
 	for conn := range s.clients {
 		log.I.Ln("disconnecting", conn.RemoteAddr())
-		chk.E(conn.WriteControl(websocket.CloseMessage, nil, time.Now().Add(time.Second)))
+		chk.E(conn.WriteControl(websocket.CloseMessage, nil,
+			time.Now().Add(time.Second)))
 		chk.E(conn.Close())
 		delete(s.clients, conn)
 	}
 	log.W.Ln("closing event store")
-	chk.E(s.relay.Storage(s.Ctx).Close())
+	chk.E(s.relay.Storage().Close())
 	log.W.Ln("shutting down relay listener")
 	chk.E(s.httpServer.Shutdown(s.Ctx))
 	if f, ok := s.relay.(relay.ShutdownAware); ok {
@@ -140,4 +143,7 @@ func (s *Server) Router() *http.ServeMux {
 	return s.serveMux
 }
 
-func fprintf(w io.Writer, format st, a ...any) { _, _ = fmt.Fprintf(w, format, a...) }
+func fprintf(w io.Writer, format st, a ...any) {
+	_, _ = fmt.Fprintf(w, format,
+		a...)
+}

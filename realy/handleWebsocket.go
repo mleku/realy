@@ -46,7 +46,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 			s.options.PerConnectionLimiter.Burst()))
 	}
 	ctx, cancel := context.Cancel(context.Bg())
-	sto := s.relay.Storage(ctx)
+	sto := s.relay.Storage()
 	go func() {
 		defer func() {
 			cancel()
@@ -77,8 +77,10 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 		for {
 			typ, message, err = conn.ReadMessage()
 			if err != nil {
-				if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure,
-					websocket.CloseGoingAway, websocket.CloseNoStatusReceived,
+				if websocket.IsUnexpectedCloseError(err,
+					websocket.CloseNormalClosure,
+					websocket.CloseGoingAway,
+					websocket.CloseNoStatusReceived,
 					websocket.CloseAbnormalClosure) {
 					log.W.F("unexpected close error from %s: %v",
 						r.Header.Get("X-Forwarded-For"), err)
@@ -92,7 +94,8 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			if typ == websocket.PingMessage {
-				if err = ws.WriteMessage(websocket.PongMessage, nil); chk.E(err) {
+				if err = ws.WriteMessage(websocket.PongMessage,
+					nil); chk.E(err) {
 				}
 				continue
 			}

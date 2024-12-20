@@ -63,7 +63,7 @@ func main() {
 			},
 		},
 	)
-	r := &app.Relay{C: cfg, Store: storage}
+	r := &app.Relay{Ctx: c, C: cfg, Store: storage}
 	go app.MonitorResources(c)
 	var server *realy.Server
 	if server, err = realy.NewServer(realy.ServerParams{
@@ -73,7 +73,9 @@ func main() {
 		DbPath:    cfg.Profile,
 		MaxLimit:  ratel.DefaultMaxLimit,
 		AdminUser: cfg.AdminUser,
-		AdminPass: cfg.AdminPass}); chk.E(err) {
+		AdminPass: cfg.AdminPass,
+		SpiderKey: cfg.SpiderKey,
+	}); chk.E(err) {
 
 		os.Exit(1)
 	}
