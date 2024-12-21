@@ -19,6 +19,9 @@ import (
 	"realy.lol/realy"
 	"realy.lol/realy/config"
 	"realy.lol/units"
+	"realy.lol/bech32encoding"
+	"realy.lol/hex"
+	"realy.lol/ec/secp256k1"
 )
 
 func main() {
@@ -36,6 +39,22 @@ func main() {
 		os.Exit(0)
 	}
 	log.I.Ln("log level", cfg.LogLevel)
+	var prf by
+	var val any
+	spiderKey := make(by, secp256k1.SecKeyBytesLen)
+	if prf, val, err = bech32encoding.Decode(by(cfg.SpiderKey)); chk.E(err) {
+		log.E.F("SPIDER_KEY decode error: '%s' hrp: %s", err.Error(), prf)
+		spiderKey = nil
+	} else {
+		if sk, ok := val.(by); ok {
+			var n no
+			if n, err = hex.DecBytes(spiderKey, sk); chk.E(err) {
+				log.E.F("failed to decode hex: '%s' at %d",
+					err.Error(), n)
+				spiderKey = nil
+			}
+		}
+	}
 	lol.SetLogLevel(cfg.LogLevel)
 	if cfg.Pprof {
 		defer profile.Start(profile.MemProfile).Stop()
@@ -52,7 +71,7 @@ func main() {
 			WG:             &wg,
 			BlockCacheSize: units.Gb,
 			LogLevel:       lol.GetLogLevel(cfg.DbLogLevel),
-			MaxLimit:       ratel.DefaultMaxLimit,
+			MaxLimit:       cfg.MaxLimit,
 			UseCompact:     cfg.UseCompact,
 			Compression:    cfg.Compression,
 			Extra: []no{
@@ -63,7 +82,7 @@ func main() {
 			},
 		},
 	)
-	r := &app.Relay{Ctx: c, C: cfg, Store: storage}
+	r := &app.Relay{Ctx: c, C: cfg, Store: storage, MaxLimit: cfg.MaxLimit}
 	go app.MonitorResources(c)
 	var server *realy.Server
 	if server, err = realy.NewServer(realy.ServerParams{
@@ -71,12 +90,11 @@ func main() {
 		Cancel:    cancel,
 		Rl:        r,
 		DbPath:    cfg.Profile,
-		MaxLimit:  ratel.DefaultMaxLimit,
+		MaxLimit:  cfg.MaxLimit,
 		AdminUser: cfg.AdminUser,
 		AdminPass: cfg.AdminPass,
-		SpiderKey: cfg.SpiderKey,
+		SpiderKey: spiderKey,
 	}); chk.E(err) {
-
 		os.Exit(1)
 	}
 	if err != nil {

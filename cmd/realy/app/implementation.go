@@ -26,7 +26,8 @@ type Relay struct {
 	sync.Mutex
 	Ctx cx
 	*config.C
-	Store store.I
+	Store    store.I
+	MaxLimit no
 	// Owners' pubkeys
 	Owners                   []by
 	Followed, OwnersFollowed map[st]struct{}
@@ -63,7 +64,7 @@ func (r *Relay) Init() (err er) {
 	r.ZeroLists()
 	r.CheckOwnerLists()
 	// start up the spider, if configured
-	r.Spider()
+	go r.Spider()
 	return nil
 }
 
@@ -268,8 +269,9 @@ func (r *Relay) CheckOwnerLists() {
 		// need to search DB for moderator npub follow lists, followed npubs are allowed access.
 		if len(r.Followed) < 1 {
 			// add the owners themselves of course
-			for i := range r.Owners {
-				r.Followed[st(r.Owners[i])] = struct{}{}
+			for _, v := range r.Owners {
+				r.Followed[st(v)] = struct{}{}
+				r.OwnersFollowed[st(v)] = struct{}{}
 			}
 			log.D.Ln("regenerating owners follow lists")
 			if evs, err = r.Store.QueryEvents(r.Ctx,
@@ -280,12 +282,12 @@ func (r *Relay) CheckOwnerLists() {
 				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.ID)
 				for _, t := range ev.Tags.F() {
 					if equals(t.Key(), by("p")) {
-						var p by
-						if p, err = hex.Dec(st(t.Value())); chk.E(err) {
+						var v by
+						if v, err = hex.Dec(st(t.Value())); chk.E(err) {
 							continue
 						}
-						r.Followed[st(p)] = struct{}{}
-						r.OwnersFollowed[st(p)] = struct{}{}
+						r.Followed[st(v)] = struct{}{}
+						r.OwnersFollowed[st(v)] = struct{}{}
 					}
 				}
 			}
@@ -306,11 +308,11 @@ func (r *Relay) CheckOwnerLists() {
 				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.ID)
 				for _, t := range ev.Tags.F() {
 					if equals(t.Key(), by("p")) {
-						var p by
-						if p, err = hex.Dec(st(t.Value())); err != nil {
+						var v by
+						if v, err = hex.Dec(st(t.Value())); err != nil {
 							continue
 						}
-						r.Followed[st(p)] = struct{}{}
+						r.Followed[st(v)] = struct{}{}
 					}
 				}
 			}

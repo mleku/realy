@@ -4,7 +4,11 @@ import (
 	"time"
 	"realy.lol/kinds"
 	"realy.lol/kind"
+	"realy.lol/event"
 	"realy.lol/filter"
+	"realy.lol/tag"
+	"strings"
+	"realy.lol/ws"
 )
 
 func (r *Relay) Spider() {
@@ -20,7 +24,7 @@ func (r *Relay) Spider() {
 	// re-run the spider every hour to catch any updates that for whatever
 	// reason permitted users may have uploaded to other relays via other
 	// clients that may not be sending to us.
-	ticker := time.NewTicker(time.Hour)
+	ticker := time.NewTicker(time.Hour * 24)
 	for {
 		select {
 		case <-r.Ctx.Done():
@@ -41,9 +45,168 @@ var RelayKinds = &kinds.T{
 
 // spider is the actual function that does a spider run
 func (r *Relay) spider() {
-	// first find all the relays that we currently know about.
-	filter := filter.T{Kinds: RelayKinds}
+	var err er
+	var evs event.Ts
 	sto := r.Storage()
-	_ = filter
-	_ = sto
+	// count how many npubs we need to search with
+	r.Lock()
+	nUsers := len(r.Followed)
+	// n := r.MaxLimit / 2
+	// we probably want to be conservative with how many we query at once
+	// on rando relays, so make `n` small
+	n := 20
+	nQueries := nUsers / n
+	// make the list
+	users := make([]st, 0, nUsers)
+	for v := range r.Followed {
+		users = append(users, v)
+	}
+	r.Unlock()
+	// break into chunks for each query
+	chunks := make([][]st, 0, nQueries)
+	// starting from the nearest integer (from the total divided by the number
+	// per chunk) we know
+	for i := nQueries * n; i > 0; i -= n {
+		// take the last segment
+		last := users[i:]
+		// if it happens to be a round number, don't collect an empty slice
+		if len(last) < 1 {
+			continue
+		}
+		chunks = append(chunks, users[i:])
+		// snip what we took out of the main slice
+		users = users[:i]
+	}
+	relays := make(map[st]struct{})
+	usersWithRelays := make(map[st]struct{})
+	for _, v := range chunks {
+		f := &filter.T{Kinds: RelayKinds, Authors: tag.New(v...)}
+		if evs, err = sto.QueryEvents(r.Ctx, f); chk.E(err) {
+			// fatal
+			return
+		}
+		// log.I.F("%d relay events found", len(evs))
+		for _, ev := range evs {
+			relays, usersWithRelays = filterRelays(ev, relays, usersWithRelays)
+		}
+	}
+	log.I.F("%d relays found in db, of %d users",
+		len(relays), len(usersWithRelays))
+	log.W.F("****************** starting spider ******************")
+	// now spider all these relays for the users, and get even moar relays
+spide:
+	for rely := range relays {
+		select {
+		case <-r.Ctx.Done():
+			var o st
+			for v := range relays {
+				o += v + "\n"
+			}
+			// log.I.F("found relays: %d\n%s", len(relays), o)
+			log.W.F("shutting down")
+			return
+		default:
+		}
+		rl := ws.NewRelay(r.Ctx, rely)
+		if err = rl.Connect(r.Ctx); chk.E(err) {
+			// chk.E(rl.Close())
+			continue spide
+		}
+		log.D.F("connected to '%s'", rely)
+		// first get some estimate of how many of these events the relay has, if
+		// possible
+		var count no
+		for i, v := range chunks {
+			log.D.F("chunk %d/%d from %s so far: %d relays %d users %d",
+				i, len(chunks), rely, count, len(relays), len(usersWithRelays))
+			f := &filter.T{Kinds: RelayKinds, Authors: tag.New(v...)}
+			if evs, err = rl.QuerySync(r.Ctx, f); chk.E(err) {
+				chk.E(rl.Close())
+				continue spide
+			}
+			count += len(evs)
+			for _, ev := range evs {
+				relays, usersWithRelays = filterRelays(ev, relays,
+					usersWithRelays)
+			}
+		}
+		log.I.F("got %d results from %s", count, rely)
+		chk.E(rl.Close())
+	}
+	// var o st
+	// for v := range relays {
+	// 	o += v + "\n"
+	// }
+	log.I.F("%d relays found, of %d users",
+		len(relays), len(usersWithRelays))
+}
+
+func filterRelays(ev *event.T,
+	relays, usersWithRelays map[st]struct{}) (r, u map[st]struct{}) {
+	// log.I.S(ev)
+	var foundSome bo
+	t := ev.Tags.GetAll(tag.New("r"))
+next:
+	for _, tr := range t.F() {
+		v := st(tr.Value())
+		if len(v) < 5 {
+			continue
+		}
+		// we only want wss, very often ws:// is not routeable address.
+		if !strings.HasPrefix(v, "wss") {
+			continue
+		}
+		// remove ones with extra shit after the relay
+		if strings.ContainsAny(v, " \n\r\f\t") {
+			for i := range v {
+				switch v[i] {
+				case ' ', '\n', '\t', '\r', '\f':
+					// log.I.F("%s", v)
+					// log.I.F("%s", ev.Serialize())
+					v = v[:i]
+					continue next
+				}
+			}
+		}
+		// we don't want URLs with query parameters, mostly nostr.wine
+		// these are not interesting. also, if they have @ symbols. or
+		// = in case the user didn't put the ? in properly also.
+		if strings.Contains(v, "\"") {
+			log.E.F("%s", v)
+			panic("wtf")
+			continue
+		}
+		if strings.Contains(v, "?") ||
+			strings.Contains(v, "@") ||
+			strings.Contains(v, "=") {
+			// log.E.F("%s", v)
+			continue
+		}
+
+		// get rid of the slashes
+		if strings.HasSuffix(v, "/") {
+			// trim it off
+			v = v[:len(v)-1]
+		}
+		// and lastly, we aren't going to use tor for this, so, nope.
+		// also no .local this is not routeable
+		if strings.Contains(v, ".onion") ||
+			strings.Contains(v, ".local") {
+			continue
+		}
+		// weirdly sometimes there is addresses with multiple mangled
+		// protocol things in them, this is a waste of time also.
+		if len(strings.Split(v, "//")) > 2 {
+			continue
+		}
+		// finally, because people are dumb and don't know that URLs are
+		// case-insensitive, standardise them
+		v = strings.ToLower(v)
+		relays[v] = struct{}{}
+		foundSome = true
+	}
+	if foundSome {
+		usersWithRelays[st(ev.PubKey)] = struct{}{}
+	}
+	return relays, usersWithRelays
 }

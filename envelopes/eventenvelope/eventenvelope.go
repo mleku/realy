@@ -69,7 +69,8 @@ type Result struct {
 
 var _ codec.Envelope = (*Result)(nil)
 
-func NewResult() *Result { return &Result{} }
+func NewResult() *Result { return &Result{Event: &event.T{}} }
+
 func NewResultWith[V st | by](s V, ev *event.T) (res *Result, err er) {
 	if len(s) < 0 || len(s) > 64 {
 		err = errorf.E("subscription id must be length > 0 and <= 64")
@@ -77,6 +78,7 @@ func NewResultWith[V st | by](s V, ev *event.T) (res *Result, err er) {
 	}
 	return &Result{subscription.MustNew(s), ev}, nil
 }
+
 func (en *Result) Label() st { return L }
 
 func (en *Result) Write(w io.Writer) (err er) {
@@ -114,6 +116,7 @@ func (en *Result) Unmarshal(b by) (r by, err er) {
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
 		return
 	}
+	// log.I.S(en.Event)
 	return
 }
 

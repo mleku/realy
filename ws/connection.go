@@ -27,10 +27,10 @@ type Connection struct {
 	msgStateW         *wsflate.MessageState
 }
 
-func NewConnection(c cx, url string, requestHeader http.Header,
+func NewConnection(c cx, url string, header http.Header,
 	tlsConfig *tls.Config) (*Connection, er) {
 	dialer := ws.Dialer{
-		Header: ws.HandshakeHeaderHTTP(requestHeader),
+		Header: ws.HandshakeHeaderHTTP(header),
 		Extensions: []httphead.Option{
 			wsflate.DefaultParameters.Option(),
 		},
@@ -57,9 +57,10 @@ func NewConnection(c cx, url string, requestHeader http.Header,
 	if enableCompression {
 		msgStateR.SetCompressed(true)
 
-		flateReader = wsflate.NewReader(nil, func(r io.Reader) wsflate.Decompressor {
-			return flate.NewReader(r)
-		})
+		flateReader = wsflate.NewReader(nil,
+			func(r io.Reader) wsflate.Decompressor {
+				return flate.NewReader(r)
+			})
 	}
 
 	controlHandler := wsutil.ControlFrameHandler(conn, ws.StateClientSide)
@@ -79,13 +80,14 @@ func NewConnection(c cx, url string, requestHeader http.Header,
 	if enableCompression {
 		msgStateW.SetCompressed(true)
 
-		flateWriter = wsflate.NewWriter(nil, func(w io.Writer) wsflate.Compressor {
-			fw, err := flate.NewWriter(w, 4)
-			if err != nil {
-				log.E.F("Failed to create flate writer: %v", err)
-			}
-			return fw
-		})
+		flateWriter = wsflate.NewWriter(nil,
+			func(w io.Writer) wsflate.Compressor {
+				fw, err := flate.NewWriter(w, 4)
+				if err != nil {
+					log.E.F("Failed to create flate writer: %v", err)
+				}
+				return fw
+			})
 	}
 
 	writer := wsutil.NewWriter(conn, state, ws.OpText)
@@ -104,24 +106,24 @@ func NewConnection(c cx, url string, requestHeader http.Header,
 	}, nil
 }
 
-func (cn *Connection) WriteMessage(c cx, data by) er {
+func (cn *Connection) WriteMessage(c cx, data by) (err er) {
 	select {
 	case <-c.Done():
 		return errors.New("context canceled")
 	default:
 	}
-
 	if cn.msgStateW.IsCompressed() && cn.enableCompression {
 		cn.flateWriter.Reset(cn.writer)
-		if _, err := io.Copy(cn.flateWriter, bytes.NewReader(data)); chk.T(err) {
+		if _, err = io.Copy(cn.flateWriter,
+			bytes.NewReader(data)); chk.T(err) {
 			return errorf.E("failed to write message: %w", err)
 		}
 
-		if err := cn.flateWriter.Close(); chk.T(err) {
+		if err = cn.flateWriter.Close(); chk.T(err) {
 			return errorf.E("failed to close flate writer: %w", err)
 		}
 	} else {
-		if _, err := io.Copy(cn.writer, bytes.NewReader(data)); chk.T(err) {
+		if _, err = io.Copy(cn.writer, bytes.NewReader(data)); chk.T(err) {
 			return errorf.E("failed to write message: %w", err)
 		}
 	}
@@ -143,12 +145,12 @@ func (cn *Connection) ReadMessage(c cx, buf io.Writer) er {
 
 		h, err := cn.reader.NextFrame()
 		if err != nil {
-			cn.conn.Close()
+			chk.E(cn.conn.Close())
 			return errorf.E("failed to advance frame: %w", err)
 		}
 
 		if h.OpCode.IsControl() {
-			if err := cn.controlHandler(h, cn.reader); chk.T(err) {
+			if err = cn.controlHandler(h, cn.reader); chk.T(err) {
 				return errorf.E("failed to handle control frame: %w", err)
 			}
 		} else if h.OpCode == ws.OpBinary ||
@@ -156,7 +158,7 @@ func (cn *Connection) ReadMessage(c cx, buf io.Writer) er {
 			break
 		}
 
-		if err := cn.reader.Discard(); chk.T(err) {
+		if err = cn.reader.Discard(); chk.T(err) {
 			return errorf.E("failed to discard: %w", err)
 		}
 	}

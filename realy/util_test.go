@@ -37,9 +37,9 @@ type testRelay struct {
 	acceptEvent func(*event.T) bo
 }
 
-func (tr *testRelay) Name() st                  { return tr.name }
-func (tr *testRelay) Storage(context.T) store.I { return tr.storage }
-func (tr *testRelay) Origin() st                { return "example.com" }
+func (tr *testRelay) Name() st         { return tr.name }
+func (tr *testRelay) Storage() store.I { return tr.storage }
+func (tr *testRelay) Origin() st       { return "example.com" }
 func (tr *testRelay) Init() er {
 	tr.cx, tr.Cancel = context.Cancel(context.Bg())
 	if fn := tr.init; fn != nil {
@@ -54,7 +54,8 @@ func (tr *testRelay) OnShutdown(c context.T) {
 	}
 }
 
-func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin st,
+func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
+	origin st,
 	authedPubkey by) (ok bo, notice st, after func()) {
 	if fn := tr.acceptEvent; fn != nil {
 		return fn(evt), "", nil
@@ -110,7 +111,8 @@ func (st *testStorage) Close() (err er) {
 	return
 }
 
-func (st *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err er) {
+func (st *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts,
+	err er) {
 	if fn := st.queryEvents; fn != nil {
 		return fn(c, f)
 	}

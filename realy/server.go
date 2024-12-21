@@ -44,7 +44,7 @@ type ServerParams struct {
 	DbPath               st
 	MaxLimit             no
 	AdminUser, AdminPass st
-	SpiderKey            st
+	SpiderKey            by
 }
 
 func NewServer(sp ServerParams, opts ...options.O) (*Server, er) {

@@ -2,7 +2,6 @@ package ratel
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/dgraph-io/badger/v4"
@@ -19,7 +18,7 @@ import (
 )
 
 func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
-	log.T.F("QueryEvents,%s", f.Serialize())
+	// log.T.F("QueryEvents,%s", f.Serialize())
 	evMap := make(map[st]*event.T)
 	var queries []query
 	var extraFilter *filter.T
@@ -76,7 +75,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 			}
 		}
 	}
-	log.T.F("found %d event indexes", len(eventKeys))
+	// log.T.F("found %d event indexes", len(eventKeys))
 	select {
 	case <-r.Ctx.Done():
 		return
@@ -137,7 +136,8 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 						for i, evc := range evMap {
 							// replaceable means there should be only the newest for the
 							// pubkey and kind.
-							if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
+							if equals(ev.PubKey,
+								evc.PubKey) && ev.Kind.Equal(evc.Kind) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
 									// log.T.F("event %0x,%s\nreplaces %0x,%s",
 									// 	ev.ID, ev.Serialize(),
@@ -159,7 +159,8 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 						for i, evc := range evMap {
 							// parameterized replaceable means there should only be the
 							// newest for a pubkey, kind and the value field of the `d` tag.
-							if ev.Kind.Equal(evc.Kind) && equals(ev.PubKey, evc.PubKey) &&
+							if ev.Kind.Equal(evc.Kind) && equals(ev.PubKey,
+								evc.PubKey) &&
 								equals(ev.Tags.GetFirst(tag.New("d")).Value(),
 									ev.Tags.GetFirst(tag.New("d")).Value()) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
@@ -200,9 +201,10 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 							return
 						}
 					}
-					// if there is no limit, cap it at the MaxLimit, assume this was the
-					// intent or the client is erroneous, if any limit greater is
-					// requested this will be used instead as the previous clause.
+					// if there is no limit, cap it at the MaxLimit, assume this
+					// was the intent or the client is erroneous, if any limit
+					// greater is requested this will be used instead as the
+					// previous clause.
 					if len(evMap) >= r.MaxLimit {
 						log.T.F("found MaxLimit events: %d", len(evMap))
 						done = true
@@ -238,15 +240,16 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 			evs = append(evs, evMap[i])
 		}
 		sort.Sort(event.Descending(evs))
-		log.T.C(func() string {
-			evIds := make([]string, len(evs))
-			for i, ev := range evs {
-				evIds[i] = hex.Enc(ev.ID)
-			}
-			heading := fmt.Sprintf("query complete,%d events found,%s", len(evs),
-				f.Serialize())
-			return fmt.Sprintf("%s\nevents,%v", heading, evIds)
-		})
+		// log.T.C(func() string {
+		// 	evIds := make([]string, len(evs))
+		// 	for i, ev := range evs {
+		// 		evIds[i] = hex.Enc(ev.ID)
+		// 	}
+		// 	heading := fmt.Sprintf("query complete,%d events found,%s",
+		// 		len(evs),
+		// 		f.Serialize())
+		// 	return fmt.Sprintf("%s\nevents,%v", heading, evIds)
+		// })
 		// bump the access times on all retrieved events. do this in a goroutine so the
 		// user's events are delivered immediately
 		go func() {
@@ -268,8 +271,8 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 				})
 			}
 		}()
-	} else {
-		log.T.F("no events found,%s", f.Serialize())
+		// } else {
+		// 	log.T.F("no events found,%s", f.Serialize())
 	}
 	// }
 	return

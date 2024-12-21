@@ -39,7 +39,8 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 	allowed := env.Filters
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
 		var accepted bo
-		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
+		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T,
+			env.Filters,
 			by(ws.Authed()))
 		if !accepted || allowed == nil {
 			var auther relay.Authenticator
@@ -48,7 +49,8 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.E(err) {
 				}
-				log.T.F("requesting auth from client from %s, challenge '%s'", ws.RealRemote(),
+				log.T.F("requesting auth from client from %s, challenge '%s'",
+					ws.RealRemote(),
 					ws.Challenge())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
@@ -67,7 +69,8 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.E(err) {
 				}
-				log.T.F("requesting auth from client from %s, challenge '%s'", ws.RealRemote(),
+				log.T.F("requesting auth from client from %s, challenge '%s'",
+					ws.RealRemote(),
 					ws.Challenge())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
@@ -86,7 +89,8 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 		}
 		if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 			if f.Kinds.IsPrivileged() {
-				log.T.F("privileged request with auth enabled\n%s", f.Serialize())
+				log.T.F("privileged request with auth enabled\n%s",
+					f.Serialize())
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("#p"))
 				switch {
@@ -95,7 +99,8 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 					if err = closedenvelope.NewFrom(env.Subscription,
 						normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.E(err) {
 					}
-					log.I.F("requesting auth from client from %s", ws.RealRemote())
+					log.I.F("requesting auth from client from %s",
+						ws.RealRemote())
 					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 						return
 					}
@@ -112,7 +117,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 			}
 		}
 		var events event.Ts
-		log.D.F("query from %s %0x,%s", ws.RealRemote(), ws.AuthedBytes(), f.Serialize())
+		// log.D.F("query from %s %0x,%s", ws.RealRemote(), ws.AuthedBytes(), f.Serialize())
 		if events, err = sto.QueryEvents(c, f); err != nil {
 			log.E.F("eventstore: %v", err)
 			if errors.Is(err, badger.ErrDBClosed) {
@@ -160,7 +165,8 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 				break
 			}
 			var res *eventenvelope.Result
-			if res, err = eventenvelope.NewResultWith(env.Subscription.T, ev); chk.E(err) {
+			if res, err = eventenvelope.NewResultWith(env.Subscription.T,
+				ev); chk.E(err) {
 				return
 			}
 			if err = res.Write(ws); chk.E(err) {

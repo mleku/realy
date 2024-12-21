@@ -29,7 +29,7 @@ type C struct {
 	DbLogLevel   st   `env:"DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
 	AuthRequired bo   `env:"AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
 	Owners       []st `env:"OWNERS" usage:"list of npubs of users in hex format whose follow and mute list dictate accepting requests and events with AUTH_REQUIRED enabled - follows and follows follows are allowed to read/write"`
-	SpiderKey    st   `env:"SPIDER_KEY" usage:"secret key that is used for directory spidering to auth-required relays for whitelisted users of the relay, implicitly enables directory spider"`
+	SpiderKey    st   `env:"SPIDER_KEY" usage:"secret key that is used for directory spidering to auth-required relays for whitelisted users of the relay, implicitly enables directory spider, in bech32 nsec form"`
 	DBSizeLimit  no   `env:"DB_SIZE_LIMIT" default:"0" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding, 0 means disabled"`
 	DBLowWater   no   `env:"DB_LOW_WATER" default:"60" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
 	DBHighWater  no   `env:"DB_HIGH_WATER" default:"80" usage:"the trigger point at which a GC run should start if exceeded"`
@@ -38,6 +38,7 @@ type C struct {
 	MemLimit     no   `env:"MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
 	UseCompact   bo   `env:"USE_COMPACT" default:"false" usage:"use the compact database encoding for the ratel event store"`
 	Compression  st   `env:"COMPRESSION" default:"none" usage:"compress the database, [none|snappy|zstd]"`
+	MaxLimit     no   `env:"MAX_LIMIT" default:"512" usage:"max number of results to return from queries if none specified"`
 	// NWC          st   `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"` // todo
 }
 

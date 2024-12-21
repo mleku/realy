@@ -49,7 +49,9 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by,
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 				if !ws.AuthRequested() {
 					if err = okenvelope.NewFrom(env.ID, false,
-						normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.T(err) {
+						normalize.AuthRequired.
+							F("auth required for request processing")).
+						Write(ws); chk.T(err) {
 					}
 					log.T.F("requesting auth from client %s", ws.RealRemote())
 					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {

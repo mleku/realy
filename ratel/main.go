@@ -19,10 +19,11 @@ type T struct {
 	Ctx     cx
 	WG      *sync.WaitGroup
 	dataDir st
-	// DBSizeLimit is the number of bytes we want to keep the data store from exceeding.
+	// DBSizeLimit is the number of bytes we want to keep the data store from
+	// exceeding.
 	DBSizeLimit no
-	// DBLowWater is the percentage of DBSizeLimit a GC run will reduce the used storage down
-	// to.
+	// DBLowWater is the percentage of DBSizeLimit a GC run will reduce the used
+	// storage down to.
 	DBLowWater no
 	// DBHighWater is the trigger point at which a GC run should start if exceeded.
 	DBHighWater no
@@ -38,17 +39,18 @@ type T struct {
 	seq *badger.Sequence
 	// Threads is how many CPU threads we dedicate to concurrent actions, flatten and GC mark
 	Threads no
-	// MaxLimit is a default limit that applies to a query without a limit, to avoid sending out
-	// too many events to a client from a malformed or excessively broad filter.
+	// MaxLimit is a default limit that applies to a query without a limit, to
+	// avoid sending out too many events to a client from a malformed or
+	// excessively broad filter.
 	MaxLimit no
-	// ActuallyDelete sets whether we actually delete or rewrite deleted entries with a modified
-	// deleted prefix value (8th bit set)
+	// ActuallyDelete sets whether we actually delete or rewrite deleted entries
+	// with a modified deleted prefix value (8th bit set)
 	ActuallyDelete bo
-	// Flatten should be set to true to trigger a flatten at close... this is mainly
-	// triggered by running an import
+	// Flatten should be set to true to trigger a flatten at close... this is
+	// mainly triggered by running an import
 	Flatten bo
-	// UseCompact uses a compact encoding based on the canonical format (generate
-	// hash of it to get ID field with the signature in raw binary after.
+	// UseCompact uses a compact encoding based on the canonical format
+	// with the signature in binary form appended to the end.
 	UseCompact bo
 	// Compression sets the compression to use, none/snappy/zstd
 	Compression st
@@ -66,7 +68,8 @@ type BackendParams struct {
 }
 
 func New(p BackendParams, params ...no) *T {
-	return GetBackend(p.Ctx, p.WG, p.HasL2, p.UseCompact, p.BlockCacheSize, p.LogLevel, p.MaxLimit,
+	return GetBackend(p.Ctx, p.WG, p.HasL2, p.UseCompact, p.BlockCacheSize,
+		p.LogLevel, p.MaxLimit,
 		p.Compression, params...)
 }
 
@@ -80,7 +83,8 @@ func New(p BackendParams, params ...no) *T {
 //
 // Deprecated: use New instead.
 func GetBackend(Ctx cx, WG *sync.WaitGroup, hasL2, useCompact bo,
-	blockCacheSize, logLevel, maxLimit no, compression st, params ...no) (b *T) {
+	blockCacheSize, logLevel, maxLimit no, compression st,
+	params ...no) (b *T) {
 	var sizeLimit, lw, hw, freq = 0, 50, 66, 3600
 	switch len(params) {
 	case 4:
