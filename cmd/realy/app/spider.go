@@ -128,6 +128,9 @@ spide:
 			for _, ev := range evs {
 				relays, usersWithRelays = filterRelays(ev, relays,
 					usersWithRelays)
+				if err = r.Storage().SaveEvent(r.Ctx, ev); chk.E(err) {
+					continue
+				}
 			}
 		}
 		log.I.F("got %d results from %s", count, rely)
