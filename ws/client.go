@@ -49,10 +49,12 @@ type Client struct {
 	connectionContextCancel       context.F
 	challenge                     by // NIP-42 challenge, we only keep the last
 	noticeHandler                 func(st)
+	signer                        signer.I
 	customHandler                 func(by)
 	okCallbacks                   *xsync.MapOf[st, func(bo, st)]
 	writeQueue                    chan writeRequest
 	subscriptionChannelCloseQueue chan *Subscription
+	authSent                      atomic.Bool
 }
 
 type writeRequest struct {
@@ -61,7 +63,7 @@ type writeRequest struct {
 }
 
 // NewRelay returns a new relay. The relay connection will be closed when the context is canceled.
-func NewRelay(c cx, url st) *Client {
+func NewRelay(c cx, url st, sign ...signer.I) *Client {
 	ctx, cancel := context.Cancel(c)
 	r := &Client{
 		URL:                           st(normalize.URL(by(url))),
@@ -72,11 +74,15 @@ func NewRelay(c cx, url st) *Client {
 		writeQueue:                    make(chan writeRequest),
 		subscriptionChannelCloseQueue: make(chan *Subscription),
 	}
+	if len(sign) > 0 {
+		r.signer = sign[0]
+	}
 	return r
 }
 
-// RelayConnect returns a relay object connected to url. Once successfully connected, cancelling
-// ctx has no effect. To close the connection, call r.Close().
+// RelayConnect returns a relay object connected to url. Once successfully
+// connected, cancelling ctx has no effect. To close the connection, call
+// r.Close().
 func RelayConnect(ctx cx, url st) (*Client, er) {
 	r := NewRelay(context.Bg(), url)
 	err := r.Connect(ctx)
@@ -106,7 +112,7 @@ func (r *Client) Connect(c cx) er { return r.ConnectWithTLS(c, nil) }
 // using customized tls.Config (CA's, etc.).
 func (r *Client) ConnectWithTLS(ctx cx, tlsConfig *tls.Config) (err er) {
 	if r.connectionContext == nil || r.Subscriptions == nil {
-		return errorf.E("relay must be initialized with a call to NewRelay()")
+		return errorf.E("relay must be initialized")
 	}
 	if r.URL == "" {
 		return errorf.E("relay url unset")
@@ -206,7 +212,13 @@ func (r *Client) ConnectWithTLS(ctx cx, tlsConfig *tls.Config) (err er) {
 				if len(env.Challenge) == 0 {
 					continue
 				}
+				log.I.F("challenge accepted: %s",
+					env.Challenge)
 				r.challenge = env.Challenge
+				if r.signer != nil {
+					// reply then
+					go chk.E(r.Auth(r.connectionContext, r.signer))
+				}
 
 			case eventenvelope.L:
 				env := eventenvelope.NewResult()
@@ -253,6 +265,13 @@ func (r *Client) ConnectWithTLS(ctx cx, tlsConfig *tls.Config) (err er) {
 				if env, rem, err = closedenvelope.Parse(msg); chk.E(err) {
 					continue
 				}
+				if bytes.HasPrefix(env.Reason, normalize.AuthRequired) {
+					if r.authSent.Load() {
+						// we sent auth, so probably this means we aren't on the
+						// whitelist, disconnect.
+						r.connectionContextCancel()
+					}
+				}
 				if subscription, ok := r.Subscriptions.Load(env.Subscription.String()); ok {
 					subscription.dispatchClosed(env.ReasonString())
 				}
@@ -274,8 +293,8 @@ func (r *Client) ConnectWithTLS(ctx cx, tlsConfig *tls.Config) (err er) {
 				if cb, ok := r.okCallbacks.Load(env.EventID.String()); ok {
 					cb(env.OK, env.ReasonString())
 				} else {
-					log.I.F("{%s} got an unexpected OK message for event %s",
-						r.URL, env.EventID)
+					log.I.F("{%s} got an unexpected OK message for event %s\n%s",
+						r.URL, env.EventID, msg)
 				}
 			}
 		}
@@ -303,6 +322,8 @@ func (r *Client) Auth(c cx, sign signer.I) (err er) {
 	if err = authEvent.Sign(sign); chk.T(err) {
 		return errorf.E("error signing auth event: %w", err)
 	}
+	log.I.F("sending auth %s to %s", authEvent.Serialize(), r.URL)
+	r.authSent.Store(true)
 	return r.publish(c, authEvent)
 }
 

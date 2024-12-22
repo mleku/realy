@@ -46,10 +46,13 @@ func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
 			Nips:        supportedNIPs, Software: "https://realy.lol",
 			Version: version,
 			Limitation: relayinfo.Limits{
-				MaxLimit:     s.maxLimit,
-				AuthRequired: s.authRequired,
+				MaxLimit:         &s.maxLimit,
+				AuthRequired:     s.authRequired,
+				RestrictedWrites: s.authRequired,
 			},
-			Icon: "https://cdn.satellite.earth/ac9778868fbf23b63c47c769a74e163377e6ea94d3f0f31711931663d035c4f6.png"}
+			Icon: "https://cdn.satellite.earth/ac9778868fbf23b63c47c769a74e163377e6ea94d3f0f31711931663d035c4f6.png",
+		}
+
 	}
 	if err := json.NewEncoder(w).Encode(info); chk.E(err) {
 	}

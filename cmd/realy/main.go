@@ -22,6 +22,7 @@ import (
 	"realy.lol/bech32encoding"
 	"realy.lol/hex"
 	"realy.lol/ec/secp256k1"
+	"realy.lol/p256k"
 )
 
 func main() {
@@ -39,19 +40,29 @@ func main() {
 		os.Exit(0)
 	}
 	log.I.Ln("log level", cfg.LogLevel)
-	var prf by
+	var prf, spiderKey by
 	var val any
-	spiderKey := make(by, secp256k1.SecKeyBytesLen)
-	if prf, val, err = bech32encoding.Decode(by(cfg.SpiderKey)); chk.E(err) {
-		log.E.F("SPIDER_KEY decode error: '%s' hrp: %s", err.Error(), prf)
-		spiderKey = nil
-	} else {
-		if sk, ok := val.(by); ok {
-			var n no
-			if n, err = hex.DecBytes(spiderKey, sk); chk.E(err) {
-				log.E.F("failed to decode hex: '%s' at %d",
-					err.Error(), n)
-				spiderKey = nil
+	var sign *p256k.Signer
+	if len(cfg.SpiderKey) > 60 {
+		spiderKey = make(by, secp256k1.SecKeyBytesLen)
+		log.I.F("%s", cfg.SpiderKey)
+		if prf, val, err = bech32encoding.Decode(by(cfg.SpiderKey)); chk.E(err) {
+			log.E.F("SPIDER_KEY decode error: '%s' hrp: %s", err.Error(), prf)
+			spiderKey = nil
+		} else {
+			if sk, ok := val.(by); ok {
+				if spiderKey, err = hex.Dec(st(sk)); chk.E(err) {
+					log.E.F("failed to decode hex: '%s'", err.Error())
+					spiderKey = nil
+				}
+				sign = &p256k.Signer{}
+				if err = sign.InitSec(spiderKey); chk.E(err) {
+					// if this didn't work, disable the spider key
+					cfg.SpiderKey = ""
+					// also nil the signer so it doesn't panic.
+					sign = nil
+				}
+				log.I.F("signer enabled for %x", sign.Pub())
 			}
 		}
 	}
@@ -82,7 +93,13 @@ func main() {
 			},
 		},
 	)
-	r := &app.Relay{Ctx: c, C: cfg, Store: storage, MaxLimit: cfg.MaxLimit}
+	r := &app.Relay{
+		Ctx:          c,
+		C:            cfg,
+		Store:        storage,
+		MaxLimit:     cfg.MaxLimit,
+		SpiderSigner: sign,
+	}
 	go app.MonitorResources(c)
 	var server *realy.Server
 	if server, err = realy.NewServer(realy.ServerParams{
@@ -93,7 +110,6 @@ func main() {
 		MaxLimit:  cfg.MaxLimit,
 		AdminUser: cfg.AdminUser,
 		AdminPass: cfg.AdminPass,
-		SpiderKey: spiderKey,
 	}); chk.E(err) {
 		os.Exit(1)
 	}

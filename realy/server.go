@@ -33,8 +33,8 @@ type Server struct {
 	authRequired         bo
 	maxLimit             no
 	adminUser, adminPass st
-	spiderKey            by
-	listeners            *listeners.T
+	// spiderSigner         signer.I
+	listeners *listeners.T
 }
 
 type ServerParams struct {
@@ -44,7 +44,6 @@ type ServerParams struct {
 	DbPath               st
 	MaxLimit             no
 	AdminUser, AdminPass st
-	SpiderKey            by
 }
 
 func NewServer(sp ServerParams, opts ...options.O) (*Server, er) {

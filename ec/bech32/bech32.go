@@ -378,6 +378,14 @@ func ConvertBits(data by, fromBits, toBits uint8, pad bo) (by,
 	return regrouped, nil
 }
 
+func Convert5to8(data by, pad bo) (by, er) {
+	return ConvertBits(data, 5, 8, pad)
+}
+
+func Convert8to5(data by, pad bo) (by, er) {
+	return ConvertBits(data, 8, 5, pad)
+}
+
 // EncodeFromBase256 converts a base256-encoded byte slice into a base32-encoded
 // byte slice and then encodes it into a bech32 string with the given
 // human-readable part (HRP).  The HRP will be converted to lowercase if needed

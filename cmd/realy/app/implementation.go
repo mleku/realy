@@ -20,6 +20,7 @@ import (
 	"realy.lol/realy/config"
 	"realy.lol/store"
 	"realy.lol/tag"
+	"realy.lol/signer"
 )
 
 type Relay struct {
@@ -36,7 +37,8 @@ type Relay struct {
 	OwnersFollowLists []by
 	// KnownRelays is a map populated by the Spider from all RelayKinds events
 	// found on the relay.
-	KnownRelays map[st]struct{}
+	KnownRelays  map[st]struct{}
+	SpiderSigner signer.I
 }
 
 func (r *Relay) Name() st { return r.C.AppName }

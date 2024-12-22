@@ -9,6 +9,8 @@ import (
 	"realy.lol/tag"
 	"strings"
 	"realy.lol/ws"
+	"realy.lol/relayinfo"
+	"net/url"
 )
 
 func (r *Relay) Spider() {
@@ -45,6 +47,10 @@ var RelayKinds = &kinds.T{
 
 // spider is the actual function that does a spider run
 func (r *Relay) spider() {
+	log.I.F("spidering")
+	if r.SpiderSigner == nil {
+		panic("bro the signer still not hear")
+	}
 	var err er
 	var evs event.Ts
 	sto := r.Storage()
@@ -54,7 +60,7 @@ func (r *Relay) spider() {
 	// n := r.MaxLimit / 2
 	// we probably want to be conservative with how many we query at once
 	// on rando relays, so make `n` small
-	n := 20
+	n := 100
 	nQueries := nUsers / n
 	// make the list
 	users := make([]st, 0, nUsers)
@@ -62,6 +68,7 @@ func (r *Relay) spider() {
 		users = append(users, v)
 	}
 	r.Unlock()
+	log.I.F("making query chunks")
 	// break into chunks for each query
 	chunks := make([][]st, 0, nQueries)
 	// starting from the nearest integer (from the total divided by the number
@@ -78,6 +85,7 @@ func (r *Relay) spider() {
 		users = users[:i]
 	}
 	relays := make(map[st]struct{})
+	relaysUsed := make(map[st]struct{})
 	usersWithRelays := make(map[st]struct{})
 	for _, v := range chunks {
 		f := &filter.T{Kinds: RelayKinds, Authors: tag.New(v...)}
@@ -85,7 +93,7 @@ func (r *Relay) spider() {
 			// fatal
 			return
 		}
-		// log.I.F("%d relay events found", len(evs))
+		log.D.F("%d relay events found", len(evs))
 		for _, ev := range evs {
 			relays, usersWithRelays = filterRelays(ev, relays, usersWithRelays)
 		}
@@ -94,8 +102,16 @@ func (r *Relay) spider() {
 		len(relays), len(usersWithRelays))
 	log.W.F("****************** starting spider ******************")
 	// now spider all these relays for the users, and get even moar relays
+	var second bo
+	var found no
 spide:
 	for rely := range relays {
+		if found > 5 {
+			// that's enough for now
+			log.I.S("got events from %d relays queried, "+
+				"finishing spider for today", found)
+			return
+		}
 		select {
 		case <-r.Ctx.Done():
 			var o st
@@ -107,29 +123,64 @@ spide:
 			return
 		default:
 		}
-		rl := ws.NewRelay(r.Ctx, rely)
+		// fetch the relay info
+		var inf *relayinfo.T
+		if inf, err = relayinfo.Fetch(r.Ctx, by(rely)); chk.E(err) {
+			delete(relays, rely)
+			log.I.F("deleted relay %s now %d relays on list",
+				rely, len(relays))
+			continue spide
+		}
+		if !inf.Limitation.AuthRequired {
+			continue spide
+		}
+		log.I.S(inf)
+		rl := ws.NewRelay(r.Ctx, rely, r.SpiderSigner)
 		if err = rl.Connect(r.Ctx); chk.E(err) {
 			// chk.E(rl.Close())
 			continue spide
 		}
 		log.D.F("connected to '%s'", rely)
+		relaysUsed[rely] = struct{}{}
 		// first get some estimate of how many of these events the relay has, if
 		// possible
 		var count no
+		var average time.Duration
+		var looked bo
 		for i, v := range chunks {
-			log.D.F("chunk %d/%d from %s so far: %d relays %d users %d",
-				i, len(chunks), rely, count, len(relays), len(usersWithRelays))
-			f := &filter.T{Kinds: RelayKinds, Authors: tag.New(v...)}
+			log.D.F("chunk %d/%d from %s so far: %d relays %d users %d, av response %v",
+				i, len(chunks), rely, count, len(relays), len(usersWithRelays),
+				average)
+			f := &filter.T{
+				Kinds:   &kinds.T{K: kind.Directory},
+				Authors: tag.New(v...),
+			}
+			started := time.Now()
 			if evs, err = rl.QuerySync(r.Ctx, f); chk.E(err) {
 				chk.E(rl.Close())
 				continue spide
 			}
+			average += time.Now().Sub(started)
+			average /= 2
 			count += len(evs)
+			if !looked && count > 5 {
+				if len(evs) > 0 {
+					looked = true
+					found++
+				}
+			}
 			for _, ev := range evs {
 				relays, usersWithRelays = filterRelays(ev, relays,
 					usersWithRelays)
 				if err = r.Storage().SaveEvent(r.Ctx, ev); chk.E(err) {
 					continue
+				}
+			}
+			if i > 5 {
+				if average > time.Second {
+					log.I.F("relay %s is throttling us, move on", rely)
+					chk.E(rl.Close())
+					continue spide
 				}
 			}
 		}
@@ -142,11 +193,33 @@ spide:
 	// }
 	log.I.F("%d relays found, of %d users",
 		len(relays), len(usersWithRelays))
+	// filter out the relays we used
+	for rely := range relaysUsed {
+		delete(relays, rely)
+	}
+	if !second {
+		log.I.F("%d new relays found, spidering these", len(relays))
+		second = true
+		goto spide
+	} else {
+		// we only will spider the additional ones found
+		o := "relays found:\n"
+		for v := range relaysUsed {
+			o = v + "\n"
+		}
+		log.I.F("%s", o)
+		return
+	}
 }
 
 func filterRelays(ev *event.T,
 	relays, usersWithRelays map[st]struct{}) (r, u map[st]struct{}) {
 	// log.I.S(ev)
+	if !(ev.Kind.Equal(kind.RelayListMetadata) ||
+		ev.Kind.Equal(kind.DMRelaysList)) {
+
+		return relays, usersWithRelays
+	}
 	var foundSome bo
 	t := ev.Tags.GetAll(tag.New("r"))
 next:
@@ -174,11 +247,6 @@ next:
 		// we don't want URLs with query parameters, mostly nostr.wine
 		// these are not interesting. also, if they have @ symbols. or
 		// = in case the user didn't put the ? in properly also.
-		if strings.Contains(v, "\"") {
-			log.E.F("%s", v)
-			panic("wtf")
-			continue
-		}
 		if strings.Contains(v, "?") ||
 			strings.Contains(v, "@") ||
 			strings.Contains(v, "=") {
@@ -186,6 +254,13 @@ next:
 			continue
 		}
 
+		// this means some kind of parsing error or format error. it shouldn't
+		// happen, but this check was here because the client code used to have
+		// a concurrency issue with overwriting event bytes.
+		if strings.Contains(v, "\"") {
+			log.E.F("%s", v)
+			continue
+		}
 		// get rid of the slashes
 		if strings.HasSuffix(v, "/") {
 			// trim it off
@@ -202,9 +277,22 @@ next:
 		if len(strings.Split(v, "//")) > 2 {
 			continue
 		}
+		// some relays have subpaths for specific users, so we will just ignore
+		// relay URLs that contain `npub1` and more than 3 `/` characters, which
+		// is a match on wss://filter.nostr.wine/npub1xxxxxx
+		if strings.Contains(v, "/npub1") &&
+			!strings.Contains(v, "//npub1") &&
+			strings.Count(v, "/") > 2 {
+			continue
+		}
 		// finally, because people are dumb and don't know that URLs are
 		// case-insensitive, standardise them
 		v = strings.ToLower(v)
+		// penultimate test, does it validate as a URL at all
+		_, err := url.Parse(v)
+		if chk.E(err) {
+			return relays, usersWithRelays
+		}
 		relays[v] = struct{}{}
 		foundSome = true
 	}

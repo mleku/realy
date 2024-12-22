@@ -24,6 +24,11 @@ import (
 	"realy.lol/tag"
 	"realy.lol/tags"
 	"realy.lol/timestamp"
+	"os"
+	"realy.lol/p256k/sign"
+	"realy.lol/signer"
+	"realy.lol/hex"
+	"realy.lol/bech32encoding"
 )
 
 func TestPublish(t *testing.T) {
@@ -65,11 +70,13 @@ func TestPublish(t *testing.T) {
 		}
 		// event := parseEventMessage(t, raw)
 		if !bytes.Equal(env.T.Serialize(), textNote.Serialize()) {
-			t.Errorf("received event:\n%s\nwant:\n%s", env.T.Serialize(), textNote.Serialize())
+			t.Errorf("received event:\n%s\nwant:\n%s", env.T.Serialize(),
+				textNote.Serialize())
 		}
 		// send back an ok nip-20 command result
 		var res by
-		if res = okenvelope.NewFrom(textNote.ID, true, nil).Marshal(res); chk.E(err) {
+		if res = okenvelope.NewFrom(textNote.ID, true,
+			nil).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {
@@ -114,7 +121,8 @@ func TestPublishBlocked(t *testing.T) {
 		// send back a not ok nip-20 command result
 		var res by
 		if res = okenvelope.NewFrom(textNote.ID, false,
-			normalize.Msg(normalize.Blocked, "no reason")).Marshal(res); chk.E(err) {
+			normalize.Msg(normalize.Blocked,
+				"no reason")).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {
@@ -203,7 +211,8 @@ func TestConnectContextCanceled(t *testing.T) {
 	cancel() // make ctx expired
 	_, err := RelayConnect(ctx, ws.URL)
 	if !errors.Is(err, context.Canceled) {
-		t.Errorf("RelayConnectContext returned %v error; want context.Canceled", err)
+		t.Errorf("RelayConnectContext returned %v error; want context.Canceled",
+			err)
 	}
 }
 
@@ -236,8 +245,8 @@ func newWebsocketServer(handler func(*websocket.Conn)) *httptest.Server {
 }
 
 // anyOriginHandshake is an alternative to default in golang.org/x/net/websocket
-// which checks for origin. nostr client sends no origin and it makes no difference
-// for the tests here anyway.
+// which checks for origin. nostr client sends no origin, and it makes no
+// difference for the tests here anyway.
 var anyOriginHandshake = func(conf *websocket.Config, r *http.Request) er {
 	return nil
 }
@@ -248,4 +257,43 @@ func mustRelayConnect(url string) *Client {
 		panic(err.Error())
 	}
 	return rl
+}
+
+func TestConnectWithAuth(t *testing.T) {
+	var err er
+	var s signer.I
+	key, found := os.LookupEnv("NSEC")
+	if !found {
+		t.Fatal("must set NSEC to a valid bech32 secret")
+	}
+	if s, err = sign.FromNsec(key); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.S(s.Pub())
+	var nsec by
+	if nsec, err = bech32encoding.BinToNsec(s.Sec()); chk.E(err) {
+		t.Fatal(err)
+	}
+	if !equals(by(key), nsec) {
+		t.Fatal("failed to re-encode back to nsec")
+	}
+	key, found = os.LookupEnv("HSEC")
+	if !found {
+		t.Fatal("must set HSEC to a valid hex secret")
+	}
+	if s, err = sign.FromHsec(key); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.S(s.Pub())
+	hpub := hex.Enc(s.Pub())
+	// log.I.S(hpub)
+	if s, err = sign.FromHpub(hpub); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.S(s.Pub())
+	var npub by
+	if npub, err = bech32encoding.BinToNpub(s.Pub()); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.F("%s", npub)
 }

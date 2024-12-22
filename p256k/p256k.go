@@ -5,6 +5,7 @@ package p256k
 import (
 	btcec "realy.lol/ec"
 	realy "realy.lol/signer"
+	"realy.lol/ec/schnorr"
 )
 
 func init() {
@@ -42,11 +43,13 @@ func (s *Signer) Generate() (err er) {
 	return
 }
 
+// InitSec loads a provided secret key into the signer. This also initializes
+// a pubkey, as well as enabling creating signatures.
 func (s *Signer) InitSec(skb by) (err er) {
 	var cs *Sec
-	var cx *XPublicKey
+	var xp *XPublicKey
 	var cp *PublicKey
-	if s.pkb, cs, cx, cp, err = FromSecretBytes(skb); chk.E(err) {
+	if s.pkb, cs, xp, cp, err = FromSecretBytes(skb); chk.E(err) {
 		if err.Error() != "provided secret generates a public key with odd Y coordinate, fixed version returned" {
 			log.E.Ln(err)
 			return
@@ -54,12 +57,15 @@ func (s *Signer) InitSec(skb by) (err er) {
 	}
 	s.skb = skb
 	s.SecretKey = &cs.Key
-	s.PublicKey = cx.Key
+	s.PublicKey = xp.Key
 	s.ECPublicKey = cp.Key
 	s.BTCECSec, _ = btcec.PrivKeyFromBytes(s.skb)
 	return
 }
 
+// InitPub initializes a signer to do verification. This can either be a 257 bit
+// 33 byte key with 2 or 3 prefix or an x-only pubkey that is the same without
+// the prefix.
 func (s *Signer) InitPub(pub by) (err er) {
 	var up *Pub
 	if up, err = PubFromBytes(pub); chk.E(err) {
@@ -71,7 +77,7 @@ func (s *Signer) InitPub(pub by) (err er) {
 }
 
 func (s *Signer) Sec() (b by)   { return s.skb }
-func (s *Signer) Pub() (b by)   { return s.pkb[1:] }
+func (s *Signer) Pub() (b by)   { return s.pkb[len(s.pkb)-schnorr.PubKeyBytesLen:] }
 func (s *Signer) ECPub() (b by) { return s.pkb }
 
 func (s *Signer) Sign(msg by) (sig by, err er) {
