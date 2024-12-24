@@ -18,7 +18,7 @@ func startTestRelay(c context.T, t *testing.T, tr *testRelay) *Server {
 	srv, _ := NewServer(ServerParams{
 		Ctx:      c,
 		Cancel:   func() {},
-		Rl:       tr,
+		I:        tr,
 		MaxLimit: 500 * units.Kb,
 	})
 	started := make(chan bo)
@@ -111,7 +111,8 @@ func (st *testStorage) Close() (err er) {
 	return
 }
 
-func (st *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts,
+func (st *testStorage) QueryEvents(c context.T, f *filter.T,
+	ours ...bo) (evs event.Ts,
 	err er) {
 	if fn := st.queryEvents; fn != nil {
 		return fn(c, f)

@@ -12,8 +12,8 @@ import (
 )
 
 type Socket struct {
-	mutex         sync.Mutex
-	conn          *websocket.Conn
+	mutex sync.Mutex
+	*websocket.Conn
 	req           *http.Request
 	challenge     atomic.String
 	remote        atomic.String
@@ -27,7 +27,7 @@ func NewSocket(
 	req *http.Request,
 	challenge by,
 ) (ws *Socket) {
-	ws = &Socket{conn: conn, req: req}
+	ws = &Socket{Conn: conn, req: req}
 	ws.challenge.Store(st(challenge))
 	ws.authRequested.Store(false)
 	ws.setRemoteFromReq(req)
@@ -58,7 +58,7 @@ func (ws *Socket) setRemoteFromReq(r *http.Request) {
 	} else {
 		// if that fails, fall back to the remote (probably the proxy, unless the realy is
 		// actually directly listening)
-		rr = ws.conn.NetConn().RemoteAddr().String()
+		rr = ws.Conn.NetConn().RemoteAddr().String()
 	}
 	ws.remote.Store(rr)
 }
@@ -66,7 +66,7 @@ func (ws *Socket) setRemoteFromReq(r *http.Request) {
 func (ws *Socket) Write(p by) (n no, err er) {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
-	err = ws.conn.WriteMessage(websocket.TextMessage, p)
+	err = ws.Conn.WriteMessage(websocket.TextMessage, p)
 	if err != nil {
 		n = len(p)
 	}
@@ -76,13 +76,13 @@ func (ws *Socket) Write(p by) (n no, err er) {
 func (ws *Socket) WriteJSON(any interface{}) er {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
-	return ws.conn.WriteJSON(any)
+	return ws.Conn.WriteJSON(any)
 }
 
 func (ws *Socket) WriteMessage(t no, b by) er {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
-	return ws.conn.WriteMessage(t, b)
+	return ws.Conn.WriteMessage(t, b)
 }
 
 func (ws *Socket) Challenge() st   { return ws.challenge.Load() }

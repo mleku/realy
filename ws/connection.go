@@ -16,7 +16,7 @@ import (
 )
 
 type Connection struct {
-	conn              net.Conn
+	net.Conn
 	enableCompression bo
 	controlHandler    wsutil.FrameHandlerFunc
 	flateReader       *wsflate.Reader
@@ -27,7 +27,7 @@ type Connection struct {
 	msgStateW         *wsflate.MessageState
 }
 
-func NewConnection(c cx, url string, header http.Header,
+func NewConnection(c cx, url by, header http.Header,
 	tlsConfig *tls.Config) (*Connection, er) {
 	dialer := ws.Dialer{
 		Header: ws.HandshakeHeaderHTTP(header),
@@ -36,7 +36,7 @@ func NewConnection(c cx, url string, header http.Header,
 		},
 		TLSConfig: tlsConfig,
 	}
-	conn, _, hs, err := dialer.Dial(c, url)
+	conn, _, hs, err := dialer.Dial(c, st(url))
 	if err != nil {
 		return nil, errorf.E("failed to dial: %w", err)
 	}
@@ -94,7 +94,7 @@ func NewConnection(c cx, url string, header http.Header,
 	writer.SetExtensions(&msgStateW)
 
 	return &Connection{
-		conn:              conn,
+		Conn:              conn,
 		enableCompression: enableCompression,
 		controlHandler:    controlHandler,
 		flateReader:       flateReader,
@@ -145,7 +145,7 @@ func (cn *Connection) ReadMessage(c cx, buf io.Writer) er {
 
 		h, err := cn.reader.NextFrame()
 		if err != nil {
-			chk.E(cn.conn.Close())
+			chk.E(cn.Conn.Close())
 			return errorf.E("failed to advance frame: %w", err)
 		}
 
@@ -178,5 +178,5 @@ func (cn *Connection) ReadMessage(c cx, buf io.Writer) er {
 }
 
 func (cn *Connection) Close() er {
-	return cn.conn.Close()
+	return cn.Conn.Close()
 }

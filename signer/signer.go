@@ -1,8 +1,8 @@
 package signer
 
 type I interface {
-	// Generate creates a fresh new key pair from system entropy, and ensures it is even (so
-	// ECDH works).
+	// Generate creates a fresh new key pair from system entropy, and ensures it
+	// is even (so ECDH works).
 	Generate() (err er)
 	// InitSec initialises the secret (signing) key from the raw bytes, and also
 	// derives the public key because it can.
@@ -22,10 +22,11 @@ type I interface {
 	Verify(msg, sig by) (valid bo, err er)
 	// Zero wipes the secret key to prevent memory leaks.
 	Zero()
-	// ECDH returns a shared secret derived using Elliptic Curve Diffie Hellman on the I
-	// secret and provided pubkey.
+	// ECDH returns a shared secret derived using Elliptic Curve Diffie-Hellman
+	// on the secret and provided pubkey.
 	ECDH(pub by) (secret by, err er)
-	// Negate flips the the secret key to change between odd and even compressed public key.
+	// Negate flips the secret key to change between odd and even compressed
+	// public key.
 	Negate()
 }
 

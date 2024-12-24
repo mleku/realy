@@ -36,7 +36,7 @@ func TestServerStartShutdown(t *testing.T) {
 	srv, _ := NewServer(ServerParams{
 		Ctx:      c,
 		Cancel:   cancel,
-		Rl:       rl,
+		I:        rl,
 		MaxLimit: ratel.DefaultMaxLimit,
 	})
 	ready := make(chan bo)
@@ -61,7 +61,7 @@ func TestServerStartShutdown(t *testing.T) {
 	}
 
 	// verify server shuts down
-	defer srv.Cancel()
+	defer srv.cancel()
 	srv.Shutdown()
 	if !shutdown {
 		t.Error("didn't call testRelay.onShutdown")
@@ -83,13 +83,13 @@ func TestServerShutdownWebsocket(t *testing.T) {
 	// connect a client to it
 	ctx1, cancel := context.Timeout(context.Bg(), 2*time.Second)
 	defer cancel()
-	client, err := ws.RelayConnect(ctx1, "ws://"+srv.Addr)
+	client, err := ws.Connect(ctx1, "ws://"+srv.Addr)
 	if err != nil {
 		t.Fatalf("nostr.RelayConnectContext: %v", err)
 	}
 
 	// now, shut down the server
-	defer srv.Cancel()
+	defer srv.cancel()
 	srv.Shutdown()
 
 	// wait for the client to receive a "connection close"
@@ -100,6 +100,7 @@ func TestServerShutdownWebsocket(t *testing.T) {
 	}
 	var closedError wsutil.ClosedError
 	if !errors.As(err, &closedError) {
-		t.Errorf("client.ConnectionError: %v (%T); want wsutil.ClosedError", err, err)
+		t.Errorf("client.ConnectionError: %v (%T); want wsutil.ClosedError",
+			err, err)
 	}
 }

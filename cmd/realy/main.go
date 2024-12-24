@@ -105,7 +105,7 @@ func main() {
 	if server, err = realy.NewServer(realy.ServerParams{
 		Ctx:       c,
 		Cancel:    cancel,
-		Rl:        r,
+		I:         r,
 		DbPath:    cfg.Profile,
 		MaxLimit:  cfg.MaxLimit,
 		AdminUser: cfg.AdminUser,

@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) handleAuth(ws *web.Socket, req by) (msg by) {
-	if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+	if auther, ok := s.I.(relay.Authenticator); ok && auther.AuthEnabled() {
 		svcUrl := auther.ServiceUrl(ws.Req())
 		if svcUrl == "" {
 			return
@@ -26,7 +26,8 @@ func (s *Server) handleAuth(ws *web.Socket, req by) (msg by) {
 			log.I.F("extra '%s'", rem)
 		}
 		var valid bo
-		if valid, err = auth.Validate(env.Event, by(ws.Challenge()), svcUrl); chk.E(err) {
+		if valid, err = auth.Validate(env.Event, by(ws.Challenge()),
+			svcUrl); chk.E(err) {
 			if err := okenvelope.NewFrom(env.Event.ID, false,
 				normalize.Error.F(err.Error())).Write(ws); chk.E(err) {
 				return by(err.Error())
@@ -39,10 +40,12 @@ func (s *Server) handleAuth(ws *web.Socket, req by) (msg by) {
 			}
 			return normalize.Restricted.F("auth response does not validate")
 		} else {
-			if err = okenvelope.NewFrom(env.Event.ID, true, by{}).Write(ws); chk.E(err) {
+			if err = okenvelope.NewFrom(env.Event.ID, true,
+				by{}).Write(ws); chk.E(err) {
 				return
 			}
-			log.D.F("%s authed to pubkey,%0x", ws.RealRemote(), env.Event.PubKey)
+			log.D.F("%s authed to pubkey,%0x", ws.RealRemote(),
+				env.Event.PubKey)
 			ws.SetAuthed(st(env.Event.PubKey))
 		}
 	}

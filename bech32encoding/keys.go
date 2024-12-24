@@ -22,12 +22,16 @@ var (
 )
 
 // ConvertForBech32 performs the bit expansion required for encoding into Bech32.
-func ConvertForBech32(b8 by) (b5 by, err er) { return bech32.ConvertBits(b8, 8,
-	5, true) }
+func ConvertForBech32(b8 by) (b5 by, err er) {
+	return bech32.ConvertBits(b8, 8,
+		5, true)
+}
 
 // ConvertFromBech32 collapses together the bit expanded 5 bit numbers encoded in bech32.
-func ConvertFromBech32(b5 by) (b8 by, err er) { return bech32.ConvertBits(b5, 5,
-	8, true) }
+func ConvertFromBech32(b5 by) (b8 by, err er) {
+	return bech32.ConvertBits(b5, 5,
+		8, true)
+}
 
 // SecretKeyToNsec encodes an secp256k1 secret key as a Bech32 string (nsec).
 func SecretKeyToNsec(sk *secp256k1.SecretKey) (encoded by, err er) {
@@ -170,6 +174,7 @@ func BinToNsec(sk by) (nsec by, err er) {
 
 // SecretKeyToHex converts a secret key to the hex encoding.
 func SecretKeyToHex(sk *btcec.SecretKey) (hexSec by) {
+	hexSec = make(by, btcec.SecKeyBytesLen*2)
 	hex.EncBytes(hexSec, sk.Serialize())
 	return
 }

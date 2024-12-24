@@ -65,7 +65,7 @@ func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request,
 	if after != nil {
 		after()
 	}
-	s.listeners.NotifyListeners(authRequired, ev)
+	s.NotifyListeners(authRequired, ev)
 	accepted = true
 	return
 }

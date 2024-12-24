@@ -14,16 +14,16 @@ func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	log.T.Ln("handling relay information document")
 	var info *relayinfo.T
-	if informationer, ok := s.relay.(relay.Informationer); ok {
+	if informationer, ok := s.I.(relay.Informationer); ok {
 		info = informationer.GetNIP11InformationDocument()
 	} else {
 		var supportedNIPs number.List
 		var auther relay.Authenticator
-		if auther, ok = s.relay.(relay.Authenticator); ok && auther.ServiceUrl(r) != "" {
+		if auther, ok = s.I.(relay.Authenticator); ok && auther.ServiceUrl(r) != "" {
 			supportedNIPs = append(supportedNIPs, relayinfo.Authentication.N())
 		}
 		var storage store.I
-		if s.relay.Storage() != nil {
+		if s.I.Storage() != nil {
 			if _, ok = storage.(relay.EventCounter); ok {
 				supportedNIPs = append(supportedNIPs,
 					relayinfo.CountingResults.N())
@@ -41,7 +41,7 @@ func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
 			relayinfo.ProtectedEvents,
 		)
 		log.T.Ln("supported NIPs", supportedNIPs)
-		info = &relayinfo.T{Name: s.relay.Name(),
+		info = &relayinfo.T{Name: s.I.Name(),
 			Description: "nostr relay powered by the realy framework",
 			Nips:        supportedNIPs, Software: "https://realy.lol",
 			Version: version,

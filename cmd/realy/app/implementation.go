@@ -302,7 +302,7 @@ func (r *Relay) CheckOwnerLists() {
 			}
 			if evs, err = r.Store.QueryEvents(r.Ctx,
 				&filter.T{Authors: tag.New(followed...),
-					Kinds: kinds.New(kind.FollowList)}); chk.E(err) {
+					Kinds: kinds.New(kind.FollowList)}, true); chk.E(err) {
 			}
 			for _, ev := range evs {
 				// we want to protect the follow lists of users as well, they
@@ -321,7 +321,8 @@ func (r *Relay) CheckOwnerLists() {
 			evs = evs[:0]
 		}
 		// log this info
-		log.I.F("%d allowed npubs", len(r.Followed))
+		log.I.F("%d owner followed; %d allowed npubs",
+			len(r.OwnersFollowed), len(r.Followed))
 		// r.Followed
 		// r.OwnersFollowed
 		// o := "followed:\n"

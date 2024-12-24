@@ -37,7 +37,7 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by,
 	if len(rem) > 0 {
 		log.I.F("extra '%s'", rem)
 	}
-	accept, notice, after := s.relay.AcceptEvent(c, env.T, ws.Req(),
+	accept, notice, after := s.I.AcceptEvent(c, env.T, ws.Req(),
 		ws.RealRemote(), by(ws.Authed()))
 	if !accept {
 		if strings.Contains(notice, "mute") {
@@ -46,7 +46,7 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by,
 			}
 		} else {
 			var auther relay.Authenticator
-			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+			if auther, ok = s.I.(relay.Authenticator); ok && auther.AuthEnabled() {
 				if !ws.AuthRequested() {
 					if err = okenvelope.NewFrom(env.ID, false,
 						normalize.AuthRequired.
@@ -107,7 +107,7 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by,
 					if _, err = hex.DecBytes(evId, t.Value()); chk.E(err) {
 						continue
 					}
-					res, err = s.relay.Storage().QueryEvents(c,
+					res, err = s.I.Storage().QueryEvents(c,
 						&filter.T{IDs: tag.New(evId)})
 					if err != nil {
 						if err = okenvelope.NewFrom(env.ID, false,
@@ -166,7 +166,7 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by,
 					}
 					f.Authors.Append(aut)
 					f.Tags.AppendTags(tag.New(by{'#', 'd'}, split[2]))
-					res, err = s.relay.Storage().QueryEvents(c, f)
+					res, err = s.I.Storage().QueryEvents(c, f)
 					if err != nil {
 						if err = okenvelope.NewFrom(env.ID, false,
 							normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {
@@ -226,7 +226,7 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by,
 			return
 		}
 	}
-	ok, reason := s.addEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(),
+	ok, reason := s.addEvent(c, s.I, env.T, ws.Req(), ws.RealRemote(),
 		by(ws.Authed()))
 	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
 		return

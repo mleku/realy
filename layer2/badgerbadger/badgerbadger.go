@@ -51,7 +51,8 @@ func (b *Backend) DeleteEvent(c cx, eid *eventid.T) (err er) {
 
 // QueryEvents searches for events that match a filter and returns them
 // asynchronously over a provided channel.
-func (b *Backend) QueryEvents(c cx, f *filter.T) (ch event.Ts, err er) {
+func (b *Backend) QueryEvents(c cx, f *filter.T, ours ...bo) (ch event.Ts,
+	err er) {
 	return b.Backend.QueryEvents(c, f)
 }
 

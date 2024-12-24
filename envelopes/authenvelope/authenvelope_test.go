@@ -46,8 +46,7 @@ func TestAuth(t *testing.T) {
 		if !equals(oChal, b2) {
 			t.Fatalf("challenge mismatch\n%s\n%s", oChal, b2)
 		}
-		resp := Response{Event: auth.CreateUnsigned(signer.Pub(), ch,
-			relayURL)}
+		resp := Response{Event: auth.CreateUnsigned(ch, relayURL)}
 		if err = resp.Event.Sign(signer); chk.E(err) {
 			t.Fatal(err)
 		}

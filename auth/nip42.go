@@ -25,13 +25,12 @@ func GenerateChallenge() (b by) {
 
 // CreateUnsigned creates an event which should be sent via an "AUTH" command.
 // If the authentication succeeds, the user will be authenticated as pubkey.
-func CreateUnsigned(pubkey, challenge by, relayURL string) (ev *event.T) {
+func CreateUnsigned(challenge by, relayURL st) (ev *event.T) {
 	return &event.T{
-		PubKey:    pubkey,
 		CreatedAt: timestamp.Now(),
 		Kind:      kind.ClientAuthentication,
 		Tags: tags.New(tag.New("relay", relayURL),
-			tag.New("challenge", string(challenge))),
+			tag.New("challenge", st(challenge))),
 	}
 }
 

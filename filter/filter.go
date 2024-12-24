@@ -18,6 +18,7 @@ import (
 	"realy.lol/tags"
 	"realy.lol/text"
 	"realy.lol/timestamp"
+	"golang.org/x/exp/constraints"
 )
 
 func Present(i *uint) bo { return i != nil }
@@ -40,6 +41,11 @@ type T struct {
 	Until   *timestamp.T `json:"until,omitempty"`
 	Search  by           `json:"search,omitempty"`
 	Limit   *uint        `json:"limit,omitempty"`
+}
+
+func L[V constraints.Integer](l V) (u *uint) {
+	uu := uint(l)
+	return &uu
 }
 
 func New() (f *T) {
@@ -317,7 +323,8 @@ func (f *T) Unmarshal(b by) (r by, err er) {
 					goto invalid
 				}
 				var ff []by
-				if ff, r, err = text.UnmarshalHexArray(r, schnorr.PubKeyBytesLen); chk.E(err) {
+				if ff, r, err = text.UnmarshalHexArray(r,
+					schnorr.PubKeyBytesLen); chk.E(err) {
 					return
 				}
 				f.Authors = tag.New(ff...)

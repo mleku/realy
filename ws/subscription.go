@@ -12,10 +12,11 @@ import (
 	"realy.lol/event"
 	"realy.lol/filters"
 	"realy.lol/subscription"
+	"realy.lol/qu"
 )
 
 type Subscription struct {
-	label   st
+	label   by
 	counter no
 
 	Relay   *Client
@@ -31,16 +32,16 @@ type Subscription struct {
 
 	// The EndOfStoredEvents channel is closed when an EOSE comes for that
 	// subscription
-	EndOfStoredEvents chan struct{}
+	EndOfStoredEvents qu.C
 
 	// The ClosedReason channel emits the reason when a CLOSED message is
 	// received
-	ClosedReason chan st
+	ClosedReason chan by
 
 	// Context will be .Done() when the subscription ends
 	Context cx
 
-	match  func(*event.T) bool // this will be either Filters.Match or Filters.MatchIgnoringTimestampConstraints
+	match  func(*event.T) bo // this will be either Filters.Match or Filters.MatchIgnoringTimestampConstraints
 	live   atomic.Bool
 	eosed  atomic.Bool
 	closed atomic.Bool
@@ -64,7 +65,7 @@ type SubscriptionOption interface {
 
 // WithLabel puts a label on the subscription (it is prepended to the automatic
 // id) that is sent to relays.
-type WithLabel st
+type WithLabel by
 
 func (_ WithLabel) IsSubscriptionOption() {}
 
@@ -74,7 +75,7 @@ var _ SubscriptionOption = (WithLabel)("")
 // concatenation of the label and a serial number.
 func (sub *Subscription) GetID() (id *subscription.Id) {
 	var err er
-	if id, err = subscription.NewId(sub.label + ":" + strconv.Itoa(sub.counter)); chk.E(err) {
+	if id, err = subscription.NewId(st(sub.label) + ":" + strconv.Itoa(sub.counter)); chk.E(err) {
 		return
 	}
 	return
@@ -125,7 +126,7 @@ func (sub *Subscription) dispatchEose() {
 	}
 }
 
-func (sub *Subscription) dispatchClosed(reason st) {
+func (sub *Subscription) dispatchClosed(reason by) {
 	if sub.closed.CompareAndSwap(false, true) {
 		go func() {
 			sub.ClosedReason <- reason
@@ -154,7 +155,7 @@ func (sub *Subscription) Close() {
 		closeMsg := closeenvelope.NewFrom(id)
 		var b by
 		b = closeMsg.Marshal(nil)
-		log.T.F("client ( %s ) -> %s", sub.Relay.URL, b)
+		log.T.F("client ( %s ) -> %s", sub.Relay.URL(), b)
 		<-sub.Relay.Write(b)
 	}
 }
@@ -176,7 +177,7 @@ func (sub *Subscription) Fire() (err er) {
 	} else {
 		b = countenvelope.NewRequest(id, sub.Filters).Marshal(b)
 	}
-	log.T.F("client ( %s ) -> %s", sub.Relay.URL, b)
+	log.T.F("client ( %s ) -> %s", sub.Relay.URL(), b)
 	sub.live.Store(true)
 	if err = <-sub.Relay.Write(b); chk.T(err) {
 		sub.cancel()

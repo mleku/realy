@@ -13,7 +13,8 @@ import (
 	"realy.lol/web"
 )
 
-func (s *Server) handleCount(c context.T, ws *web.Socket, req by, store store.I) (msg by) {
+func (s *Server) handleCount(c context.T, ws *web.Socket, req by,
+	store store.I) (msg by) {
 	counter, ok := store.(relay.EventCounter)
 	if !ok {
 		return normalize.Restricted.F("this relay does not support NIP-45")
@@ -23,7 +24,7 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req by, store store.I)
 	}
 	var err er
 	var rem by
-	env := countenvelope.New()
+	env := countenvelope.NewRequest(nil, nil)
 	if rem, err = env.Unmarshal(req); chk.E(err) {
 		return normalize.Error.F(err.Error())
 	}
@@ -34,13 +35,14 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req by, store store.I)
 		return normalize.Error.F("COUNT has no <subscription id>")
 	}
 	allowed := env.Filters
-	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
+	if accepter, ok := s.I.(relay.ReqAcceptor); ok {
 		var accepted bo
-		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
+		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T,
+			env.Filters,
 			by(ws.Authed()))
 		if !accepted || allowed == nil {
 			var auther relay.Authenticator
-			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
+			if auther, ok = s.I.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
 				ws.RequestAuth()
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for count processing")).Write(ws); chk.E(err) {
@@ -57,12 +59,13 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req by, store store.I)
 		defer func() {
 			var auther relay.Authenticator
 			var ok bo
-			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
+			if auther, ok = s.I.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
 				ws.RequestAuth()
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.E(err) {
 				}
-				log.T.F("requesting auth from client from %s, challenge '%s'", ws.RealRemote(),
+				log.T.F("requesting auth from client from %s, challenge '%s'",
+					ws.RealRemote(),
 					ws.Challenge())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
@@ -76,7 +79,7 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req by, store store.I)
 	if allowed != nil {
 		for _, f := range allowed.F {
 			var auther relay.Authenticator
-			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+			if auther, ok = s.I.(relay.Authenticator); ok && auther.AuthEnabled() {
 				if f.Kinds.Contains(kind.EncryptedDirectMessage) || f.Kinds.Contains(kind.GiftWrap) {
 					senders := f.Authors
 					receivers := f.Tags.GetAll(tag.New("p"))
@@ -102,7 +105,8 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req by, store store.I)
 		}
 	}
 	var res *countenvelope.Response
-	if res, err = countenvelope.NewResponseFrom(env.Subscription.T, total, approx); chk.E(err) {
+	if res, err = countenvelope.NewResponseFrom(env.Subscription.T, total,
+		approx); chk.E(err) {
 		return
 	}
 	if err = res.Write(ws); chk.E(err) {

@@ -5,6 +5,7 @@ import (
 	"realy.lol/bech32encoding"
 	"realy.lol/hex"
 	"realy.lol/p256k"
+	"realy.lol/event"
 )
 
 func FromNsec[V st | by](sec V) (s signer.I, err er) {
@@ -59,5 +60,17 @@ func FromHpub[V st | by](pub V) (v signer.I, err er) {
 	}
 	// log.I.S(sign)
 	v = sign
+	return
+}
+
+func SignEvent(s signer.I, ev *event.T) (res *event.T, err er) {
+	res = ev
+	// must set the pubkey first as it's part of the canonical encoding.
+	res.PubKey = s.Pub()
+	id := res.GetIDBytes()
+	if res.Sig, err = s.Sign(id); chk.E(err) {
+		return
+	}
+	ev.ID = id
 	return
 }

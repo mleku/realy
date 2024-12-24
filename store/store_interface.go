@@ -24,7 +24,10 @@ type I interface {
 	Nuke() (err er)
 	// QueryEvents is invoked upon a client's REQ as described in NIP-01. It returns
 	// the matching events in reverse chronological order in a slice.
-	QueryEvents(c cx, f *filter.T) (evs event.Ts, err er)
+	//
+	// if ours is set, this means that limits applying to external clients are
+	// not in force (eg maxlimit).
+	QueryEvents(c cx, f *filter.T, ours ...bo) (evs event.Ts, err er)
 	// CountEvents performs the same work as QueryEvents but instead of delivering
 	// the events that were found it just returns the count of events
 	CountEvents(c cx, f *filter.T) (count no, approx bo, err er)

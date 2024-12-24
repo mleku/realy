@@ -22,17 +22,17 @@ func (r *Relay) Spider() {
 		return
 	}
 	// we run at first startup
-	r.spider()
+	r.spider(true)
 	// re-run the spider every hour to catch any updates that for whatever
 	// reason permitted users may have uploaded to other relays via other
 	// clients that may not be sending to us.
-	ticker := time.NewTicker(time.Hour * 24)
+	ticker := time.NewTicker(time.Hour)
 	for {
 		select {
 		case <-r.Ctx.Done():
 			return
 		case <-ticker.C:
-			r.spider()
+			r.spider(false)
 		}
 	}
 }
@@ -46,7 +46,7 @@ var RelayKinds = &kinds.T{
 }
 
 // spider is the actual function that does a spider run
-func (r *Relay) spider() {
+func (r *Relay) spider(full bo) {
 	log.I.F("spidering")
 	if r.SpiderSigner == nil {
 		panic("bro the signer still not hear")
@@ -60,7 +60,7 @@ func (r *Relay) spider() {
 	// n := r.MaxLimit / 2
 	// we probably want to be conservative with how many we query at once
 	// on rando relays, so make `n` small
-	n := 100
+	n := r.MaxLimit
 	nQueries := nUsers / n
 	// make the list
 	users := make([]st, 0, nUsers)
@@ -68,6 +68,19 @@ func (r *Relay) spider() {
 		users = append(users, v)
 	}
 	r.Unlock()
+	relays := make(map[st]struct{})
+	relaysUsed := make(map[st]struct{})
+	usersWithRelays := make(map[st]struct{})
+	log.I.F("finding relay events")
+	f := &filter.T{Kinds: RelayKinds, Authors: tag.New(users...)}
+	if evs, err = sto.QueryEvents(r.Ctx, f, true); chk.E(err) {
+		// fatal
+		return
+	}
+	for _, ev := range evs {
+		relays, usersWithRelays = filterRelays(ev, relays, usersWithRelays)
+	}
+
 	log.I.F("making query chunks")
 	// break into chunks for each query
 	chunks := make([][]st, 0, nQueries)
@@ -84,20 +97,17 @@ func (r *Relay) spider() {
 		// snip what we took out of the main slice
 		users = users[:i]
 	}
-	relays := make(map[st]struct{})
-	relaysUsed := make(map[st]struct{})
-	usersWithRelays := make(map[st]struct{})
-	for _, v := range chunks {
-		f := &filter.T{Kinds: RelayKinds, Authors: tag.New(v...)}
-		if evs, err = sto.QueryEvents(r.Ctx, f); chk.E(err) {
-			// fatal
-			return
-		}
-		log.D.F("%d relay events found", len(evs))
-		for _, ev := range evs {
-			relays, usersWithRelays = filterRelays(ev, relays, usersWithRelays)
-		}
-	}
+	// for i, v := range chunks {
+	// 	f := &filter.T{Kinds: RelayKinds, Authors: tag.New(v...)}
+	// 	if evs, err = sto.QueryEvents(r.Ctx, f); chk.E(err) {
+	// 		// fatal
+	// 		return
+	// 	}
+	// 	log.D.F("%d relay events found %d/%d", len(evs), i, len(chunks))
+	// 	for _, ev := range evs {
+	// 		relays, usersWithRelays = filterRelays(ev, relays, usersWithRelays)
+	// 	}
+	// }
 	log.I.F("%d relays found in db, of %d users",
 		len(relays), len(usersWithRelays))
 	log.W.F("****************** starting spider ******************")
@@ -106,9 +116,8 @@ func (r *Relay) spider() {
 	var found no
 spide:
 	for rely := range relays {
-		if found > 5 {
-			// that's enough for now
-			log.I.S("got events from %d relays queried, "+
+		if found > 2 {
+			log.W.F("got events from %d relays queried, "+
 				"finishing spider for today", found)
 			return
 		}
@@ -131,11 +140,12 @@ spide:
 				rely, len(relays))
 			continue spide
 		}
-		if !inf.Limitation.AuthRequired {
-			continue spide
-		}
+		// if !inf.Limitation.AuthRequired {
+		// 	continue spide
+		// }
 		log.I.S(inf)
-		rl := ws.NewRelay(r.Ctx, rely, r.SpiderSigner)
+		var rl *ws.Client
+		rl, err = ws.ConnectWithAuth(r.Ctx, rely, r.SpiderSigner)
 		if err = rl.Connect(r.Ctx); chk.E(err) {
 			// chk.E(rl.Close())
 			continue spide
@@ -146,11 +156,18 @@ spide:
 		// possible
 		var count no
 		var average time.Duration
-		var looked bo
 		for i, v := range chunks {
 			log.D.F("chunk %d/%d from %s so far: %d relays %d users %d, av response %v",
 				i, len(chunks), rely, count, len(relays), len(usersWithRelays),
 				average)
+			if i > 3 {
+				if average > time.Second {
+					log.I.F("relay %s is throttling us, move on", rely)
+					chk.E(rl.Close())
+					continue spide
+				}
+				found++
+			}
 			f := &filter.T{
 				Kinds:   &kinds.T{K: kind.Directory},
 				Authors: tag.New(v...),
@@ -163,34 +180,18 @@ spide:
 			average += time.Now().Sub(started)
 			average /= 2
 			count += len(evs)
-			if !looked && count > 5 {
-				if len(evs) > 0 {
-					looked = true
-					found++
-				}
-			}
 			for _, ev := range evs {
 				relays, usersWithRelays = filterRelays(ev, relays,
 					usersWithRelays)
-				if err = r.Storage().SaveEvent(r.Ctx, ev); chk.E(err) {
+				if err = r.Storage().SaveEvent(r.Ctx, ev); err != nil {
 					continue
 				}
 			}
-			if i > 5 {
-				if average > time.Second {
-					log.I.F("relay %s is throttling us, move on", rely)
-					chk.E(rl.Close())
-					continue spide
-				}
-			}
 		}
-		log.I.F("got %d results from %s", count, rely)
+		log.I.F("%d found so far in this spider run; "+
+			"got %d results from %s", found, count, rely)
 		chk.E(rl.Close())
 	}
-	// var o st
-	// for v := range relays {
-	// 	o += v + "\n"
-	// }
 	log.I.F("%d relays found, of %d users",
 		len(relays), len(usersWithRelays))
 	// filter out the relays we used

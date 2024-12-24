@@ -17,7 +17,13 @@ import (
 	"realy.lol/ratel/prefixes"
 )
 
-func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
+func (r *T) QueryEvents(c cx, f *filter.T, ours ...bo) (evs event.Ts, err er) {
+	var nolimit bo
+	if ours != nil {
+		if ours[0] {
+			nolimit = true
+		}
+	}
 	// log.T.F("QueryEvents,%s", f.Serialize())
 	evMap := make(map[st]*event.T)
 	var queries []query
@@ -190,6 +196,9 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 					continue
 				}
 				if extraFilter == nil || extraFilter.Matches(ev) {
+					// if nolimit {
+					// 	log.T.F("found %0x", ev.ID)
+					// }
 					evMap[hex.Enc(ev.ID)] = ev
 					// add event counter key to accessed
 					ser := serial.FromKey(eventKey)
@@ -205,7 +214,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 					// was the intent or the client is erroneous, if any limit
 					// greater is requested this will be used instead as the
 					// previous clause.
-					if len(evMap) >= r.MaxLimit {
+					if !nolimit && len(evMap) >= r.MaxLimit {
 						log.T.F("found MaxLimit events: %d", len(evMap))
 						done = true
 						return
