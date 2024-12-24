@@ -8,6 +8,7 @@ import (
 	"realy.lol/relayinfo"
 	"realy.lol/store"
 	"realy.lol/number"
+	"realy.lol"
 )
 
 func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +45,7 @@ func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
 		info = &relayinfo.T{Name: s.I.Name(),
 			Description: "nostr relay powered by the realy framework",
 			Nips:        supportedNIPs, Software: "https://realy.lol",
-			Version: version,
+			Version: version.V,
 			Limitation: relayinfo.Limits{
 				MaxLimit:         &s.maxLimit,
 				AuthRequired:     s.authRequired,

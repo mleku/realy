@@ -130,6 +130,8 @@ var (
 	NIP75                          = ZapGoals
 	ApplicationSpecificData        = NIP{"Application-specific data", 78}
 	NIP78                          = ApplicationSpecificData
+	NostrRelayChat                 = NIP{"Nostr Relay Chat", 79}
+	NIP79                          = NostrRelayChat
 	Highlights                     = NIP{"Highlights", 84}
 	NIP84                          = Highlights
 	RecommendedApplicationHandlers = NIP{"Recommended Application Handlers", 89}
@@ -146,19 +148,63 @@ var (
 	NIP99                          = ClassifiedListings
 )
 
-var NIPMap = map[no]NIP{1: NIP1, 2: NIP2, 3: NIP3, 4: NIP4, 5: NIP5, 8: NIP8,
+var NIPMap = map[no]NIP{
+	1:  NIP1,
+	2:  NIP2,
+	3:  NIP3,
+	4:  NIP4,
+	5:  NIP5,
+	8:  NIP8,
 	9:  NIP9,
-	11: NIP11, 12: NIP12, 14: NIP14, 15: NIP15, 16: NIP16, 18: NIP18, 19: NIP19,
+	11: NIP11,
+	12: NIP12,
+	14: NIP14,
+	15: NIP15,
+	16: NIP16,
+	18: NIP18,
+	19: NIP19,
 	20: NIP20,
-	21: NIP21, 22: NIP22, 23: NIP23, 24: NIP24, 25: NIP25, 26: NIP26, 27: NIP27,
+	21: NIP21,
+	22: NIP22,
+	23: NIP23,
+	24: NIP24,
+	25: NIP25,
+	26: NIP26,
+	27: NIP27,
 	28: NIP28,
-	30: NIP30, 32: NIP32, 33: NIP33, 36: NIP36, 38: NIP38, 39: NIP39, 40: NIP40,
+	30: NIP30,
+	32: NIP32,
+	33: NIP33,
+	36: NIP36,
+	38: NIP38,
+	39: NIP39,
+	40: NIP40,
 	42: NIP42,
-	44: NIP44, 45: NIP45, 46: NIP46, 47: NIP47, 48: NIP48, 50: NIP50, 51: NIP51,
+	44: NIP44,
+	45: NIP45,
+	46: NIP46,
+	47: NIP47,
+	48: NIP48,
+	50: NIP50,
+	51: NIP51,
 	52: NIP52,
-	53: NIP53, 56: NIP56, 57: NIP57, 58: NIP58, 65: NIP65, 72: NIP72, 75: NIP75,
+	53: NIP53,
+	56: NIP56,
+	57: NIP57,
+	58: NIP58,
+	65: NIP65,
+	72: NIP72,
+	75: NIP75,
 	78: NIP78,
-	84: NIP84, 89: NIP89, 90: NIP90, 94: NIP94, 96: NIP96, 98: NIP98, 99: NIP99}
+	79: NIP79,
+	84: NIP84,
+	89: NIP89,
+	90: NIP90,
+	94: NIP94,
+	96: NIP96,
+	98: NIP98,
+	99: NIP99,
+}
 
 type Limits struct {
 	// MaxMessageLength is the maximum number of bytes for incoming JSON

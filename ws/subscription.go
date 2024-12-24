@@ -3,8 +3,8 @@ package ws
 import (
 	"strconv"
 	"sync"
-	"sync/atomic"
 
+	"realy.lol/atomic"
 	"realy.lol/context"
 	"realy.lol/envelopes/closeenvelope"
 	"realy.lol/envelopes/countenvelope"

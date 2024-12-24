@@ -37,6 +37,13 @@ If you just want to make it run from source, you should check out a tagged versi
 explain what state the commit is at. In general, the most stable versions are new minor tags, eg v1.2.0 or v1.23.0, and minor 
 patch versions may not be stable and occasionally may not compile (not very often).
 
+The actual executable things are found in the [cmd](cmd/) directory. Currently there is 4 things you can find in there:
+
+- birb - a pure Go GUI for working with NIP-79 (provisional) Nostr Relay Chat protocol built using [gio](https://gioui.org) that will eventually work on all platforms, linux X/Wayland, Windows, Mac, iOS, Android and WASM browser module
+- lerproxy - a very simple to configure reverse proxy that provides SSL/TLS via LetsEncrypt or optionally with your own certificates, as well as NIP-05 DNS verification and Go vanity imports
+- realy - a nostr relay with a number of unique features, built from forks of the go-nostr library and relayer relay
+- vainstr - a vanity key miner to generate bech32 encoded nostr public keys with a chosen text beginning, end or anywhere
+
 ## Repository Policy
 
 In general, the main `dev` branch will build, but occasionally may not. It is where new commits are added once they are 
@@ -75,6 +82,11 @@ To produce a static binary, whether you use the CGO secp256k1 or disable CGO as 
     go build --ldflags '-extldflags "-static"' -o ~/bin/realy ./cmd/realy/.
 
 will place it into your `~/bin/` directory, and it will work on any system of the same architecture with the same glibc major version (has been 2 for a long time).
+
+## Birb chat client dependencies
+
+You can follow the [directions](https://gioui.org/doc/install) from gioui.org or if you are running an ubuntu/debian
+based linux distribution use the script [here](gio/ubuntu_install.sh) 
 
 ## Configuration
 
@@ -123,7 +135,7 @@ The username and password are configured in the environment variables
     ADMIN_PASSWORD=password
 
 Note that HTTP basic authentication this can only be alphanumeric values, but 
-make it long and strong because these functions are sensitive.
+make it long and strong because these functions can do bad things to your relay. If these variables are unset (default) these functions will not be available.
 
 Or just all of the whitelisted users and all events with p tags with them in it:
 

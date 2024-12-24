@@ -118,7 +118,7 @@ spide:
 	for rely := range relays {
 		if found > 2 {
 			log.W.F("got events from %d relays queried, "+
-				"finishing spider for today", found)
+				"finishing spider for this hour", found)
 			return
 		}
 		select {

@@ -2,10 +2,10 @@ package ws
 
 import (
 	"fmt"
-	"sync/atomic"
 	"testing"
 	"time"
 
+	"realy.lol/atomic"
 	"realy.lol/context"
 	"realy.lol/filter"
 	"realy.lol/filters"
