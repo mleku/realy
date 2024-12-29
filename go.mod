@@ -22,6 +22,7 @@ require (
 	go-simpler.org/env v0.12.0
 	golang.org/x/crypto v0.31.0
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
+	golang.org/x/image v0.18.0
 	golang.org/x/lint v0.0.0-20241112194109-818c5a804067
 	golang.org/x/net v0.33.0
 	golang.org/x/sync v0.10.0
@@ -31,6 +32,8 @@ require (
 )
 
 require (
+	gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 // indirect
+	gioui.org/shader v1.0.8 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
@@ -38,6 +41,7 @@ require (
 	github.com/dgraph-io/ristretto/v2 v2.0.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
+	github.com/go-text/typesetting v0.1.1 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/flatbuffers v24.12.23+incompatible // indirect
@@ -52,6 +56,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.58.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
+	golang.org/x/exp/shiny v0.0.0-20240707233637-46b078467d37 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20241217172543-b2144cdd0a67 // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
