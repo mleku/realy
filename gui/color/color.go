@@ -21,9 +21,9 @@ type C st
 
 // NRGBA returns the corresponding color with an optional alpha value,
 // otherwise it is set to 0xff (no alpha).
-func (c C) NRGBA(A ...byte) color.NRGBA {
-	if len(A) > 1 {
-		return color.NRGBA{R: c[R], G: c[G], B: c[B], A: c[A[0]]}
+func (c C) NRGBA(b ...byte) color.NRGBA {
+	if len(b) == 1 {
+		return color.NRGBA{R: c[R], G: c[G], B: c[B], A: b[0]}
 	}
 	return color.NRGBA{R: c[R], G: c[G], B: c[B], A: 0xff}
 }
@@ -32,7 +32,7 @@ func (c C) NRGBA(A ...byte) color.NRGBA {
 // otherwise it is set to 0xff (no alpha).
 func (c C) RGBA(A ...byte) color.RGBA {
 	if len(A) > 1 {
-		return color.RGBA{R: c[R], G: c[G], B: c[B], A: c[A[0]]}
+		return color.RGBA{R: c[R], G: c[G], B: c[B], A: A[0]}
 	}
 	return color.RGBA{R: c[R], G: c[G], B: c[B], A: c[0xff]}
 }
@@ -337,12 +337,22 @@ const (
 	last
 )
 
+type Mode no
+
 const (
 	Day   = 0
 	Night = 1
 )
 
 type Theme [2][last]C
+
+type Palette struct {
+	Theme
+	Mode
+}
+
+// GetColor returns the requested Element.
+func (m *Palette) GetColor(el Element) C { return m.Theme[m.Mode][el] }
 
 // GetDefaultTheme returns the standard realy GUI theme, based on the theme
 // colors of Nostr and Bitcoin (purple and orange).
@@ -379,7 +389,7 @@ func GetDefaultTheme() (t Theme) {
 			DocBgDim:       Gray800,
 			DocBgHighlight: Black,
 			PanelText:      White,
-			PanelBg:        Gray700,
+			PanelBg:        Gray900,
 			PanelTextDim:   Gray300,
 			PanelBgDim:     Gray900,
 			Fatal:          Red700,
