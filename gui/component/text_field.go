@@ -40,7 +40,7 @@ type TextField struct {
 
 	// Animation state.
 	state
-	label  label
+	Label  label
 	border border
 	helper helper
 	anim   *Progress
@@ -85,9 +85,9 @@ func (in TextField) IsActive() bool {
 	return in.state >= activated
 }
 
-// IsErrored if input is in an errored state.
-// Typically this is when the validator has returned an error message.
-func (in *TextField) IsErrored() bool {
+// IsInvalid if input is in an error state, usually when the validator returns
+// an error.
+func (in *TextField) IsInvalid() bool {
 	return in.errored
 }
 
@@ -171,7 +171,7 @@ func (in *TextField) Update(gtx C, th *material.Theme, hint string) {
 		borderThickness       = unit.Dp(0.5)
 		borderThicknessActive = unit.Dp(2.0)
 	)
-	in.label.TextSize = unit.Sp(lerp(float32(textSmall), float32(textNormal), 1.0-in.anim.Progress()))
+	in.Label.TextSize = unit.Sp(lerp(float32(textSmall), float32(textNormal), 1.0-in.anim.Progress()))
 	switch in.state {
 	case inactive:
 		in.border.Thickness = borderThickness
@@ -186,7 +186,7 @@ func (in *TextField) Update(gtx C, th *material.Theme, hint string) {
 		in.border.Color = borderColorActive
 		in.helper.Color = borderColorHovered
 	}
-	if in.IsErrored() {
+	if in.IsInvalid() {
 		in.border.Color = dangerColor
 		in.helper.Color = dangerColor
 	}
@@ -199,17 +199,17 @@ func (in *TextField) Update(gtx C, th *material.Theme, hint string) {
 	if len(hint) > 0 {
 		spacing = 4
 	}
-	in.label.Smallest = layout.Inset{
+	in.Label.Smallest = layout.Inset{
 		Left:  spacing,
 		Right: spacing,
 	}.Layout(gtx, func(gtx C) D {
 		return material.Label(th, textSmall, hint).Layout(gtx)
 	})
 	macro.Stop()
-	labelTopInsetNormal := float32(in.label.Smallest.Size.Y) - float32(in.label.Smallest.Size.Y/4)
+	labelTopInsetNormal := float32(in.Label.Smallest.Size.Y) - float32(in.Label.Smallest.Size.Y/4)
 	topInsetDP := unit.Dp(labelTopInsetNormal / gtx.Metric.PxPerDp)
 	topInsetActiveDP := (topInsetDP / 2 * -1) - unit.Dp(in.border.Thickness)
-	in.label.Inset = layout.Inset{
+	in.Label.Inset = layout.Inset{
 		Top:  unit.Dp(lerp(float32(topInsetDP), float32(topInsetActiveDP), in.anim.Progress())),
 		Left: unit.Dp(10),
 	}
@@ -218,15 +218,15 @@ func (in *TextField) Update(gtx C, th *material.Theme, hint string) {
 func (in *TextField) Layout(gtx C, th *material.Theme, hint string) D {
 	in.Update(gtx, th, hint)
 	// Offset accounts for label height, which sticks above the border dimensions.
-	defer op.Offset(image.Pt(0, in.label.Smallest.Size.Y/2)).Push(gtx.Ops).Pop()
-	in.label.Inset.Layout(
+	defer op.Offset(image.Pt(0, in.Label.Smallest.Size.Y/2)).Push(gtx.Ops).Pop()
+	in.Label.Inset.Layout(
 		gtx,
 		func(gtx C) D {
 			return layout.Inset{
 				Left:  unit.Dp(4),
 				Right: unit.Dp(4),
 			}.Layout(gtx, func(gtx C) D {
-				label := material.Label(th, unit.Sp(in.label.TextSize), hint)
+				label := material.Label(th, unit.Sp(in.Label.TextSize), hint)
 				label.Color = in.border.Color
 				return label.Layout(gtx)
 			})
@@ -247,9 +247,9 @@ func (in *TextField) Layout(gtx C, th *material.Theme, hint string) D {
 							Y: gtx.Constraints.Min.Y,
 						}}
 					}
-					border := widget.Border{
+					b := widget.Border{
 						Color:        in.border.Color,
-						Width:        unit.Dp(in.border.Thickness),
+						Width:        in.border.Thickness,
 						CornerRadius: cornerRadius,
 					}
 					if gtx.Source.Focused(&in.Editor) || in.Editor.Len() > 0 {
@@ -266,9 +266,9 @@ func (in *TextField) Layout(gtx C, th *material.Theme, hint string) D {
 						visibleBorder.LineTo(f32.Point{
 							X: float32(gtx.Constraints.Max.X),
 						})
-						labelStartX := float32(gtx.Dp(in.label.Inset.Left))
-						labelEndX := labelStartX + float32(in.label.Smallest.Size.X)
-						labelEndY := float32(in.label.Smallest.Size.Y)
+						labelStartX := float32(gtx.Dp(in.Label.Inset.Left))
+						labelEndX := labelStartX + float32(in.Label.Smallest.Size.X)
+						labelEndY := float32(in.Label.Smallest.Size.Y)
 						visibleBorder.LineTo(f32.Point{
 							X: labelEndX,
 						})
@@ -289,7 +289,7 @@ func (in *TextField) Layout(gtx C, th *material.Theme, hint string) D {
 							Path: visibleBorder.End(),
 						}.Op().Push(gtx.Ops).Pop()
 					}
-					return border.Layout(gtx, dimsFunc)
+					return b.Layout(gtx, dimsFunc)
 				}),
 				layout.Stacked(func(gtx C) D {
 					return layout.UniformInset(unit.Dp(12)).Layout(
@@ -379,7 +379,7 @@ func (in *TextField) Layout(gtx C, th *material.Theme, hint string) D {
 	return D{
 		Size: image.Point{
 			X: dims.Size.X,
-			Y: dims.Size.Y + in.label.Smallest.Size.Y/2,
+			Y: dims.Size.Y + in.Label.Smallest.Size.Y/2,
 		},
 		Baseline: dims.Baseline,
 	}

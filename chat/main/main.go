@@ -30,8 +30,10 @@ func main() {
 	th.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
 	col := &color.Palette{Theme: color.GetDefaultTheme()}
 	col.Mode = color.Night
-	th.Bg = col.GetColor(color.DocBg).NRGBA()
 	th.Fg = col.GetColor(color.DocText).NRGBA()
+	th.Bg = col.GetColor(color.DocBg).NRGBA()
+	th.ContrastFg = col.GetColor(color.DocTextDim).NRGBA()
+	th.ContrastBg = col.GetColor(color.DocBgDim).NRGBA()
 	s := new(State).Init(th, col)
 	go func() {
 		w := new(app.Window)

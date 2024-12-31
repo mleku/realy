@@ -13,26 +13,30 @@ import (
 // types
 
 type (
-	Gx          = _l.Context
-	Dim         = _l.Dimensions
-	Widget      = _l.Widget
-	Axis        = _l.Axis
-	Alignment   = _l.Alignment
-	List        = _l.List
-	Constraints = _l.Constraints
-	Spacing     = _l.Spacing
-	Dp          = _u.Dp
-	Sp          = _u.Sp
-	Point       = _i.Point
-	Enum        = _w.Enum
-	FlexChild   = _l.FlexChild
-	Flex        = _l.Flex
-	Inset       = _l.Inset
-	Theme       = _m.Theme
-	Stack       = _l.Stack
-	Rectangle   = _i.Rectangle
-	NRGBA       = _c.NRGBA
-	Spacer      = _l.Spacer
+	Alignment         = _l.Alignment
+	Axis              = _l.Axis
+	Clickable         = _w.Clickable
+	Constraints       = _l.Constraints
+	Dim               = _l.Dimensions
+	Dp                = _u.Dp
+	Enum              = _w.Enum
+	Flex              = _l.Flex
+	FlexChild         = _l.FlexChild
+	Gx                = _l.Context
+	Icon              = _w.Icon
+	IconButtonStyle   = _m.IconButtonStyle
+	Inset             = _l.Inset
+	List              = _l.List
+	NRGBA             = _c.NRGBA
+	Point             = _i.Point
+	Rectangle         = _i.Rectangle
+	Sp                = _u.Sp
+	Spacer            = _l.Spacer
+	Spacing           = _l.Spacing
+	Stack             = _l.Stack
+	Theme             = _m.Theme
+	Widget            = _l.Widget
+	ButtonLayoutStyle = _m.ButtonLayoutStyle
 )
 
 // constants

@@ -32,7 +32,6 @@ func (r *Root) Init(th *Theme, col *color.Palette) *Root {
 
 func (r *Root) Layout(g Gx) Dim {
 	Fill(g.Ops, r.GetColor(color.DocBg).NRGBA())
-	// Body1(r.th, fmt.Sprintf("%dx%d", r.Size.X, r.Size.Y)).Layout(g)
 	flex := Flex{Axis: Horizontal}
 	if r.Size.X < 720 {
 		// at small sizes, only render panel
