@@ -28,9 +28,9 @@ func (p *Panel) Layout(g Gx) Dim {
 	FillShape(g.Ops, p.r.Palette.GetColor(color.PanelBg).NRGBA(),
 		clip.Rect(Rectangle{Max: g.Constraints.Max}).Op())
 	return Flex{}.Layout(g, Flexed(1, func(g Gx) Dim {
-		layout.UniformInset(Dp(l.TextSize)).Layout(g,
+		layout.UniformInset(Dp(l.TextSize)/2).Layout(g,
 			func(g Gx) Dim {
-				return Flex{Axis: Vertical, Spacing: SpaceEnd}.Layout(g,
+				return Flex{Axis: Vertical}.Layout(g,
 					Rigid(func(g Gx) Dim {
 						return p.PanelHeader.Layout(g)
 					}),
