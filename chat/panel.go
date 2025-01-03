@@ -4,13 +4,19 @@ import (
 	"realy.lol/gui/color"
 	"gioui.org/op/clip"
 	"gioui.org/layout"
+	"gioui.org/widget/material"
+	"gioui.org/widget"
 )
+
+type S []Relay
 
 type Panel struct {
 	r *Root
 	// when in small mode, top bar becomes navigation
 	Small bo
 	*PanelHeader
+	widget.List
+	S
 }
 
 func (p *Panel) Init(r *Root) *Panel {
@@ -35,12 +41,17 @@ func (p *Panel) Layout(g Gx) Dim {
 						return p.PanelHeader.Layout(g)
 					}),
 					Flexed(1, func(g Gx) Dim {
-						return Dim{Size: g.Constraints.Max}
+						if p.S == nil {
+							return Dim{}
+						}
+						return material.List(p.r.th, &p.List).Layout(g, 1, func(g Gx, item int) Dim {
+							return Dim{}
+							// return p.S[item]
+						})
 					}),
 				)
 			},
 		)
 		return Dim{Size: g.Constraints.Max}
 	}))
-	// return Dim{Size: g.Constraints.Max}
 }

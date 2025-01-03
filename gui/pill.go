@@ -8,7 +8,7 @@ type Pill struct {
 
 func (p Pill) Layout(g Gx) Dim {
 	ts := Dp(p.TextSize)
-	f := Filler{p.Color, ts * 3 / 2}
+	f := Filler{p.Color, ts * 6 / 5}
 	is := ts
 	v, h := is*2/3, is*4/3
 	i := Inset{v, v, h, h}

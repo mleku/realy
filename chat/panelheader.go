@@ -46,7 +46,7 @@ func (ph *PanelHeader) Layout(g Gx) (d Dim) {
 			g.Constraints.Min.X = g.Constraints.Min.Y
 			g.Constraints.Max.X = g.Constraints.Min.Y
 			ph.menuButton.Layout(g, func(g Gx) Dim {
-				return MenuIcon.Layout(g, ph.r.GetColor(color.PanelText).NRGBA())
+				return MenuIcon.Layout(g, ph.r.GetColor(color.PanelText).NRGBA(128))
 			})
 			// material.IconButton(ph.r.th, &ph.menuClickable, MenuIcon, "close").Layout(g)
 			return Dim{Size: g.Constraints.Min}
@@ -56,6 +56,9 @@ func (ph *PanelHeader) Layout(g Gx) (d Dim) {
 			// g.Constraints.Max.Y = g.Constraints.Min.Y
 			h := Dp(ph.r.th.TextSize) / 4
 			return Inset{0, 0, h, h}.Layout(g, func(g Gx) Dim {
+				// old := ph.r.th.Palette.Fg
+				// ph.r.th.Palette.Fg = NRGBA{}
+				// defer func() { ph.r.th.Palette.Fg = old }()
 				return ph.searchField.Layout(g, ph.r.th, "search")
 			})
 		}),
