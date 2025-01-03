@@ -42,12 +42,7 @@ func (s *Signer) InitSec(sec by) (err er) {
 	}
 	s.SecretKey = secp256k1.SecKeyFromBytes(sec)
 	s.PublicKey = s.SecretKey.PubKey()
-	log.I.S(s)
 	s.pkb = s.SecretKey.PubKey().SerializeCompressed()
-	// if s.pkb[0] != 2 {
-	// 	err = errorf.E("invalid odd pubkey from secret key %0x", s.pkb)
-	// 	return
-	// }
 	return
 }
 
