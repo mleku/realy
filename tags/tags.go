@@ -297,7 +297,7 @@ func (t *T) ContainsAny(tagName by, values *tag.T) bo {
 	if tagName[0] == 'e' || tagName[0] == 'p' {
 		log.I.S(t)
 	} else {
-		log.I.F("contains any '%s',%0x,%v", tagName, values.F(), t.t)
+		log.I.F("contains any '%s',%0x,%s", tagName, values.F(), t.Marshal(nil))
 	}
 	for _, v := range t.t {
 		if v.Len() < 2 {
