@@ -219,6 +219,7 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 	mux := http.NewServeMux()
 	for hostname, backendAddr := range mapping {
 		hn, ba := hostname, backendAddr
+		log.I.S(hn, ba)
 		path := "/"
 		if strings.Contains(hn, "/") {
 			spl := strings.Split(hn, "/")
@@ -229,6 +230,44 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 			// append \0 to address so addrlen for connect(2) is calculated in a
 			// way compatible with some other implementations (i.e. uwsgi)
 			network, ba = "unix", ba+st(byte(0))
+		} else if filepath.IsAbs(ba) {
+			network = "unix"
+			switch {
+			case strings.HasSuffix(ba, "/"):
+				// path specified as directory with explicit trailing slash; add
+				// this path as static site
+				fs := http.FileServer(http.Dir(ba))
+				mux.Handle(hn+path, fs)
+				continue
+			case strings.HasSuffix(ba, "nostr.json"):
+				log.I.Ln(hn, ba)
+				var fb by
+				if fb, err = os.ReadFile(ba); chk.E(err) {
+					continue
+				}
+				var v NostrJSON
+				if err = json.Unmarshal(fb, &v); chk.E(err) {
+					continue
+				}
+				var jb by
+				if jb, err = json.Marshal(v); chk.E(err) {
+					continue
+				}
+				nostrJSON := st(jb)
+				mux.HandleFunc(hn+"/.well-known/nostr.json",
+					func(writer http.ResponseWriter, request *http.Request) {
+						log.I.Ln("serving nostr json to", hn)
+						writer.Header().Set("Access-Control-Allow-Methods",
+							"GET,HEAD,PUT,PATCH,POST,DELETE")
+						writer.Header().Set("Access-Control-Allow-Origin", "*")
+						writer.Header().Set("Content-Type", "application/json")
+						writer.Header().Set("Content-Length", fmt.Sprint(len(nostrJSON)))
+						writer.Header().Set("strict-transport-security",
+							"max-age=0; includeSubDomains")
+						fmt.Fprint(writer, nostrJSON)
+					})
+				continue
+			}
 		} else if strings.HasPrefix(ba, "git+") {
 			split := strings.Split(ba, "git+")
 			if len(split) != 2 {
@@ -280,44 +319,6 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 					fmt.Fprint(writer, redirector)
 				})
 
-				continue
-			}
-		} else if filepath.IsAbs(ba) {
-			network = "unix"
-			switch {
-			case strings.HasSuffix(ba, st(os.PathSeparator)):
-				// path specified as directory with explicit trailing slash; add
-				// this path as static site
-				fs := http.FileServer(http.Dir(ba))
-				mux.Handle(hn+path, fs)
-				continue
-			case strings.HasSuffix(ba, "nostr.json"):
-				log.I.Ln(hn, ba)
-				var fb by
-				if fb, err = os.ReadFile(ba); chk.E(err) {
-					continue
-				}
-				var v NostrJSON
-				if err = json.Unmarshal(fb, &v); chk.E(err) {
-					continue
-				}
-				var jb by
-				if jb, err = json.Marshal(v); chk.E(err) {
-					continue
-				}
-				nostrJSON := st(jb)
-				mux.HandleFunc(hn+"/.well-known/nostr.json",
-					func(writer http.ResponseWriter, request *http.Request) {
-						log.I.Ln("serving nostr json to", hn)
-						writer.Header().Set("Access-Control-Allow-Methods",
-							"GET,HEAD,PUT,PATCH,POST,DELETE")
-						writer.Header().Set("Access-Control-Allow-Origin", "*")
-						writer.Header().Set("Content-Type", "application/json")
-						writer.Header().Set("Content-Length", fmt.Sprint(len(nostrJSON)))
-						writer.Header().Set("strict-transport-security",
-							"max-age=0; includeSubDomains")
-						fmt.Fprint(writer, nostrJSON)
-					})
 				continue
 			}
 		}
