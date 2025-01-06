@@ -33,6 +33,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 	if rem, err = env.Unmarshal(req); chk.E(err) {
 		return normalize.Error.F(err.Error())
 	}
+	log.I.S(env)
 	if len(rem) > 0 {
 		log.I.F("extra '%s'", rem)
 	}
@@ -40,8 +41,8 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 	if accepter, ok := s.I.(relay.ReqAcceptor); ok {
 		var accepted bo
 		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T,
-			env.Filters,
-			by(ws.Authed()))
+			env.Filters, by(ws.Authed()))
+		log.I.F("accepted: %v, allowed: %v", accepted, allowed)
 		if !accepted || allowed == nil {
 			var auther relay.Authenticator
 			if auther, ok = s.I.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
@@ -117,7 +118,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 			}
 		}
 		var events event.Ts
-		// log.D.F("query from %s %0x,%s", ws.RealRemote(), ws.AuthedBytes(), f.Serialize())
+		log.D.F("query from %s %0x,%s", ws.RealRemote(), ws.AuthedBytes(), f.Serialize())
 		if events, err = sto.QueryEvents(c, f); err != nil {
 			log.E.F("eventstore: %v", err)
 			if errors.Is(err, badger.ErrDBClosed) {
@@ -125,6 +126,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 			}
 			continue
 		}
+		// log.I.S(events)
 		if aut := ws.Authed(); ws.IsAuthed() {
 			var mutes event.Ts
 			if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),

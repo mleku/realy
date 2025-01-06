@@ -103,6 +103,7 @@ func (s *Server) readLoop(h *handleWs) {
 		}
 		log.T.F("received message\n%s", msg)
 		if h.Limiter() != nil {
+			log.I.F("enforcing rate limit")
 			if err = h.Limiter().Wait(context.TODO()); chk.T(err) {
 				log.W.F("unexpected limiter error %v", err)
 				continue
@@ -142,6 +143,7 @@ func (s *Server) ping(h *handleWs) {
 }
 
 func (s *Server) handleMessage(c cx, ws *web.Socket, msg by, sto store.I) {
+	log.T.F("received message\n%s\n", msg)
 	var notice by
 	var err er
 	var t st

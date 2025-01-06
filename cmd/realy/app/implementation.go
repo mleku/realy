@@ -196,6 +196,7 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 	authedPubkey by) (allowed *filters.T, ok bo) {
 	// if the authenticator is enabled we require auth to process requests
 	if !r.AuthEnabled() {
+		log.I.F("auth not enabled")
 		allowed = ff
 		ok = true
 		return
@@ -206,6 +207,7 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 	// to interact with users, even just such as to see their profile metadata or
 	// learn about deleted events.
 	if len(authedPubkey) == 0 {
+		log.I.F("no pubkey authed, filtering event to allow directory kinds only")
 		for _, f := range ff.F {
 			fk := f.Kinds.K
 			allowedKinds := kinds.New()
@@ -227,6 +229,7 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 			allowed.F = append(allowed.F, f)
 		}
 		if allowed != nil {
+			log.I.S(allowed)
 			// request has been filtered and can be processed. note that the caller should
 			// still send out an auth request after the filter has been processed.
 			ok = true
@@ -235,6 +238,7 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 	}
 	// if the client hasn't authed, reject
 	if len(authedPubkey) == 0 {
+		log.I.F("client not authed")
 		return
 	}
 	// client is permitted, pass through the filter so request/count processing does
@@ -244,6 +248,7 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 	r.Lock()
 	defer r.Unlock()
 	if len(r.Owners) > 0 {
+		log.I.F("checking pubkey %0x is in followed (%d keys)", authedPubkey, len(r.Followed))
 		for pk := range r.Followed {
 			if equals(authedPubkey, by(pk)) {
 				ok = true
@@ -251,6 +256,7 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 			}
 		}
 		// if the authed pubkey was not found, reject the request.
+		log.I.F("authed key not in relay whitelist")
 		return
 	}
 	// if auth is enabled and there is no moderators we just check that the pubkey
@@ -268,6 +274,7 @@ func (r *Relay) CheckOwnerLists() {
 		defer r.Unlock()
 		var err er
 		var evs []*event.T
+		var removed no
 		// need to search DB for moderator npub follow lists, followed npubs are allowed access.
 		if len(r.Followed) < 1 {
 			// add the owners themselves of course
@@ -319,10 +326,32 @@ func (r *Relay) CheckOwnerLists() {
 				}
 			}
 			evs = evs[:0]
+			// remove owner muted npubs from the Followed
+			if evs, err = r.Store.QueryEvents(r.Ctx,
+				&filter.T{Authors: tag.New(r.Owners...),
+					Kinds: kinds.New(kind.MuteList)}, true); chk.E(err) {
+			}
+			for _, ev := range evs {
+				for npub := range r.Followed {
+					for _, t := range ev.Tags.F() {
+						if equals(t.Key(), by("p")) {
+							var v by
+							if v, err = hex.Dec(st(t.Value())); err != nil {
+								continue
+							}
+							if equals(v, by(npub)) {
+								log.I.F("deleting followed key %0x because on owner's mute list %0x", v, ev.PubKey)
+								removed++
+								delete(r.Followed, st(v))
+							}
+						}
+					}
+				}
+			}
 		}
 		// log this info
-		log.I.F("%d owner followed; %d allowed npubs",
-			len(r.OwnersFollowed), len(r.Followed))
+		log.I.F("%d owner followed; %d allowed npubs, %d owner muted npubs not allowed access",
+			len(r.OwnersFollowed), len(r.Followed), removed)
 		// r.Followed
 		// r.OwnersFollowed
 		// o := "followed:\n"
