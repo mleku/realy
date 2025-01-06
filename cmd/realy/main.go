@@ -45,7 +45,7 @@ func main() {
 	var sign *p256k.Signer
 	if len(cfg.SpiderKey) > 60 {
 		spiderKey = make(by, secp256k1.SecKeyBytesLen)
-		log.I.F("%s", cfg.SpiderKey)
+		// log.I.F("%s", cfg.SpiderKey)
 		if prf, val, err = bech32encoding.Decode(by(cfg.SpiderKey)); chk.E(err) {
 			log.E.F("SPIDER_KEY decode error: '%s' hrp: %s", err.Error(), prf)
 			spiderKey = nil
