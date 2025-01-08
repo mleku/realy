@@ -123,7 +123,7 @@ func (s *Server) ping(h *handleWs) {
 	defer func() {
 		h.F()
 		h.Stop()
-		_ = h.Conn.Close()
+		chk.E(h.Conn.Close())
 	}()
 	var err er
 	for {
@@ -170,7 +170,7 @@ func (s *Server) handleMessage(c cx, ws *web.Socket, msg by, sto store.I) {
 		}
 	}
 	if len(notice) > 0 {
-		log.D.F("notice '%s' to %s", notice, ws.RealRemote())
+		log.D.F("notice %s", notice)
 		if err = noticeenvelope.NewFrom(notice).Write(ws); chk.E(err) {
 		}
 	}
