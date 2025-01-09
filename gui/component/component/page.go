@@ -18,13 +18,14 @@ type Page interface {
 }
 
 type Router struct {
-	pages   map[interface{}]Page
-	current interface{}
-	*component.ModalNavDrawer
-	NavAnim component.VisibilityAnimation
 	*component.AppBar
-	*component.ModalLayer
-	NonModalDrawer, BottomBar bool
+	*component.ModalNavDrawer
+	NavAnim        component.VisibilityAnimation
+	ModalLayer     *component.ModalLayer
+	pages          map[interface{}]Page
+	current        interface{}
+	NonModalDrawer bool
+	BottomBar      bool
 }
 
 func NewRouter() Router {
@@ -58,7 +59,7 @@ func (r *Router) Register(tag interface{}, p Page) {
 		r.AppBar.Title = navItem.Name
 		r.AppBar.SetActions(p.Actions(), p.Overflow())
 	}
-	r.ModalNavDrawer.AddNavItem(navItem)
+	r.ModalNavDrawer.NavDrawer.AddNavItem(navItem)
 }
 
 func (r *Router) SwitchTo(tag interface{}) {
@@ -88,8 +89,8 @@ func (r *Router) Layout(gtx layout.Context, th *material.Theme) layout.Dimension
 			log.Printf("Overflow action selected: %v", event)
 		}
 	}
-	if r.ModalNavDrawer.NavDestinationChanged() {
-		r.SwitchTo(r.ModalNavDrawer.CurrentNavDestination())
+	if r.ModalNavDrawer.NavDrawer.NavDestinationChanged() {
+		r.SwitchTo(r.ModalNavDrawer.NavDrawer.CurrentNavDestination())
 	}
 	paint.Fill(gtx.Ops, th.Palette.Bg)
 	content := layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

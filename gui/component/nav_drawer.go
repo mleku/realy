@@ -294,8 +294,8 @@ func (m *NavDrawer) NavDestinationChanged() bool {
 // ModalNavDrawer implements the Material Design Modal Navigation Drawer
 // described here: https://material.io/components/navigation-drawer
 type ModalNavDrawer struct {
-	*NavDrawer
-	sheet *ModalSheet
+	NavDrawer *NavDrawer
+	sheet     *ModalSheet
 }
 
 // NewModalNav configures a modal navigation drawer that will render itself into the provided ModalLayer
@@ -315,7 +315,7 @@ func ModalNavFrom(nav *NavDrawer, modal *ModalLayer) *ModalNavDrawer {
 func (m *ModalNavDrawer) Layout() layout.Dimensions {
 	m.sheet.LayoutModal(func(gtx C, th *material.Theme, anim *VisibilityAnimation) D {
 		dims := m.NavDrawer.LayoutContents(gtx, th, anim)
-		if m.selectedChanged {
+		if m.NavDrawer.selectedChanged {
 			anim.Disappear(gtx.Now)
 		}
 		return dims

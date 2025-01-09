@@ -130,10 +130,10 @@ The controls below allow you to see the various features available in our App Ba
 					func(gtx C) D {
 						if p.bottomBar.Update(gtx) {
 							if p.bottomBar.Value {
-								p.Router.ModalNavDrawer.Anchor = component.Bottom
+								p.Router.ModalNavDrawer.NavDrawer.Anchor = component.Bottom
 								p.Router.AppBar.Anchor = component.Bottom
 							} else {
-								p.Router.ModalNavDrawer.Anchor = component.Top
+								p.Router.ModalNavDrawer.NavDrawer.Anchor = component.Top
 								p.Router.AppBar.Anchor = component.Top
 							}
 							p.Router.BottomBar = p.bottomBar.Value

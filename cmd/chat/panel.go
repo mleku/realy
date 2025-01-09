@@ -1,4 +1,4 @@
-package chat
+package main
 
 import (
 	"realy.lol/gui/color"
@@ -25,13 +25,14 @@ func (p *Panel) Layout(g Gx) Dim {
 		g.Constraints.Min.X = 360
 	}
 	l := Body1(p.r.th, "panel")
-	FillShape(g.Ops, p.r.Palette.GetColor(color.Primary).NRGBA(),
+	FillShape(g.Ops, p.r.Palette.GetColor(color.PanelBg).NRGBA(),
 		clip.Rect(Rectangle{Max: g.Constraints.Max}).Op())
 	return Flex{}.Layout(g, Flexed(1, func(g Gx) Dim {
 		layout.UniformInset(Dp(l.TextSize)/2).Layout(g,
 			func(g Gx) Dim {
 				return Flex{Axis: Vertical}.Layout(g,
 					Rigid(func(g Gx) Dim {
+						// return Dim{}
 						return p.PanelHeader.Layout(g)
 					}),
 					Flexed(1, func(g Gx) Dim {

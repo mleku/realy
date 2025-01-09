@@ -40,6 +40,7 @@ func main() {
 		w.Option(app.MinSize(320, 320))
 		w.Option(app.Size(720, 1280))
 		w.Option(app.Decorated(false))
+		w.Option(app.Title("burbl.chat"))
 		if err := loop(w, s); chk.E(err) {
 			os.Exit(1)
 		}

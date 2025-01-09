@@ -28,6 +28,7 @@ node_modules/**
 /birb
 /birb/*
 /birb/**
+cmd/burbl/burbl
 
 # But not these files...
 !/.gitignore
