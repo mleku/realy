@@ -29,6 +29,8 @@ node_modules/**
 /birb/*
 /birb/**
 cmd/burbl/burbl
+go.work
+go.work.sum
 
 # But not these files...
 !/.gitignore

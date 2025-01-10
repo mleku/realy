@@ -25,8 +25,8 @@ func main() {
 		col.Mode = color.Night
 		th.Fg = col.GetColor(color.DocText).NRGBA()
 		th.Bg = col.GetColor(color.DocBg).NRGBA()
-		th.ContrastFg = col.GetColor(color.DocText).NRGBA()
-		th.ContrastBg = col.GetColor(color.DocBgHighlight).NRGBA()
+		th.ContrastFg = col.GetColor(color.DocBg).NRGBA()
+		th.ContrastBg = col.GetColor(color.DocText).NRGBA()
 		r := new(Root)
 		r.Palette = col
 		r.th = th

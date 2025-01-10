@@ -32,7 +32,6 @@ func (p *Panel) Layout(g Gx) Dim {
 			func(g Gx) Dim {
 				return Flex{Axis: Vertical}.Layout(g,
 					Rigid(func(g Gx) Dim {
-						// return Dim{}
 						return p.PanelHeader.Layout(g)
 					}),
 					Flexed(1, func(g Gx) Dim {
@@ -43,5 +42,4 @@ func (p *Panel) Layout(g Gx) Dim {
 		)
 		return Dim{Size: g.Constraints.Max}
 	}))
-	// return Dim{Size: g.Constraints.Max}
 }

@@ -67,11 +67,11 @@ var (
 	Flexed       = _l.Flexed
 	UniformInset = _l.UniformInset
 	Body1        = _m.Body1
-	Editor       = _m.Editor
-	RadioButton  = _m.RadioButton
-	Slider       = _m.Slider
-	Expanded     = _l.Expanded
-	Stacked      = _l.Stacked
-	FillShape    = _p.FillShape
-	Fill         = _p.Fill
+	// Editor       = _m.Editor
+	RadioButton = _m.RadioButton
+	Slider      = _m.Slider
+	Expanded    = _l.Expanded
+	Stacked     = _l.Stacked
+	FillShape   = _p.FillShape
+	Fill        = _p.Fill
 )

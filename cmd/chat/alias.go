@@ -37,6 +37,7 @@ type (
 	Theme             = _m.Theme
 	Widget            = _l.Widget
 	ButtonLayoutStyle = _m.ButtonLayoutStyle
+	ButtonStyle       = _m.ButtonStyle
 )
 
 // constants

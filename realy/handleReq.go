@@ -42,7 +42,6 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 		var accepted bo
 		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T,
 			env.Filters, by(ws.Authed()))
-		log.I.F("accepted: %v, allowed: %v", accepted, allowed)
 		if !accepted || allowed == nil {
 			var auther relay.Authenticator
 			if auther, ok = s.I.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {

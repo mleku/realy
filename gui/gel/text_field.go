@@ -59,7 +59,7 @@ type Validator = func(string) string
 type label struct {
 	TextSize unit.Sp
 	Inset    layout.Inset
-	Smallest layout.Dimensions
+	Smallest Dim
 }
 
 type border struct {
@@ -169,8 +169,8 @@ func (in *TextField) Update(g Gx, th *Theme, col *Palette, hint string) {
 		// TODO: derive from Theme.Error or Theme.Danger
 		dangerColor = col.GetColor(co.Warning).NRGBA()
 		// Border thickness transitions.
-		borderThickness       = unit.Dp(0.5)
-		borderThicknessActive = unit.Dp(2.0)
+		borderThickness       = Dp(0.5)
+		borderThicknessActive = Dp(2.0)
 	)
 	in.Label.TextSize = unit.Sp(lerp(float32(textSmall), float32(textNormal), 1.0-in.anim.Progress()))
 	switch in.state {
@@ -207,7 +207,8 @@ func (in *TextField) Update(g Gx, th *Theme, col *Palette, hint string) {
 		return material.Label(th, textSmall, hint).Layout(g)
 	})
 	macro.Stop()
-	labelTopInsetNormal := float32(in.Label.Smallest.Size.Y) - float32(in.Label.Smallest.Size.Y/4)
+	labelTopInsetNormal := float32(in.Label.Smallest.Size.Y) -
+		float32(in.Label.Smallest.Size.Y/4)
 	topInsetDP := unit.Dp(labelTopInsetNormal / g.Metric.PxPerDp)
 	topInsetActiveDP := (topInsetDP / 2 * -1) - unit.Dp(in.border.Thickness)
 	in.Label.Inset = layout.Inset{
@@ -220,12 +221,11 @@ func (in *TextField) Layout(g Gx, th *Theme, col *Palette, hint string) Dim {
 	in.Update(g, th, col, hint)
 	// Offset accounts for label height, which sticks above the border dimensions.
 	defer op.Offset(image.Pt(0, in.Label.Smallest.Size.Y/2)).Push(g.Ops).Pop()
-	in.Label.Inset.Layout(
-		g,
+	in.Label.Inset.Layout(g,
 		func(g Gx) Dim {
 			return layout.Inset{
-				Left:  unit.Dp(4),
-				Right: unit.Dp(4),
+				Left:  Dp(4),
+				Right: Dp(4),
 			}.Layout(g, func(g Gx) Dim {
 				l := material.Label(th, in.Label.TextSize, hint)
 				l.Color = in.border.Color
@@ -241,7 +241,7 @@ func (in *TextField) Layout(g Gx, th *Theme, col *Palette, hint string) Dim {
 			return layout.Stack{}.Layout(
 				g,
 				layout.Expanded(func(g Gx) Dim {
-					cornerRadius := unit.Dp(4)
+					cornerRadius := Dp(th.TextSize)
 					dimsFunc := func(g Gx) Dim {
 						return Dim{Size: image.Point{
 							X: g.Constraints.Max.X,
@@ -292,26 +292,27 @@ func (in *TextField) Layout(g Gx, th *Theme, col *Palette, hint string) Dim {
 					}
 					return b.Layout(g, dimsFunc)
 				}),
-				layout.Stacked(func(g Gx) Dim {
-					return layout.UniformInset(unit.Dp(12)).Layout(
+				Stacked(func(g Gx) Dim {
+					return UniformInset(unit.Dp(12)).Layout(
 						g,
 						func(g Gx) Dim {
 							g.Constraints.Min.X = g.Constraints.Max.X
 							return layout.Flex{
-								Axis:      layout.Horizontal,
-								Alignment: layout.Middle,
+								Axis:      Horizontal,
+								Alignment: Middle,
 							}.Layout(
 								g,
-								layout.Rigid(func(g Gx) Dim {
+								Rigid(func(g Gx) Dim {
 									if in.IsActive() && in.Prefix != nil {
 										return in.Prefix(g)
 									}
 									return Dim{}
 								}),
-								layout.Flexed(1, func(g Gx) Dim {
-									return material.Editor(th, &in.Editor, "").Layout(g)
+								Flexed(1, func(g Gx) Dim {
+									ed := material.Editor(th, &in.Editor, "").Layout(g)
+									return ed
 								}),
-								layout.Rigid(func(g Gx) Dim {
+								Rigid(func(g Gx) Dim {
 									if in.IsActive() && in.Suffix != nil {
 										return in.Suffix(g)
 									}
@@ -321,9 +322,9 @@ func (in *TextField) Layout(g Gx, th *Theme, col *Palette, hint string) Dim {
 						},
 					)
 				}),
-				layout.Expanded(func(g Gx) Dim {
+				Expanded(func(g Gx) Dim {
 					defer pointer.PassOp{}.Push(g.Ops).Pop()
-					defer clip.Rect(image.Rectangle{
+					defer clip.Rect(Rectangle{
 						Max: g.Constraints.Min,
 					}).Push(g.Ops).Pop()
 					in.click.Add(g.Ops)
@@ -336,38 +337,36 @@ func (in *TextField) Layout(g Gx, th *Theme, col *Palette, hint string) Dim {
 				Axis:      layout.Horizontal,
 				Alignment: layout.Middle,
 				Spacing:   layout.SpaceBetween,
-			}.Layout(
-				g,
-				layout.Rigid(func(g Gx) Dim {
+			}.Layout(g,
+				Rigid(func(g Gx) Dim {
 					if in.helper.Text == "" {
 						return Dim{}
 					}
 					return layout.Inset{
 						Top:  unit.Dp(4),
 						Left: unit.Dp(10),
-					}.Layout(
-						g,
+					}.Layout(g,
 						func(g Gx) Dim {
-							helper := material.Label(th, unit.Sp(12), in.helper.Text)
-							helper.Color = in.helper.Color
-							return helper.Layout(g)
+							h := material.Label(th, Sp(12), in.helper.Text)
+							h.Color = in.helper.Color
+							return h.Layout(g)
 						},
 					)
 				}),
-				layout.Rigid(func(g Gx) Dim {
+				Rigid(func(g Gx) Dim {
 					if in.CharLimit == 0 {
 						return Dim{}
 					}
 					return layout.Inset{
 						Top:   unit.Dp(4),
 						Right: unit.Dp(10),
-					}.Layout(
-						g,
+					}.Layout(g,
 						func(g Gx) Dim {
 							count := material.Label(
 								th,
 								unit.Sp(12),
-								strconv.Itoa(in.Editor.Len())+"/"+strconv.Itoa(int(in.CharLimit)),
+								strconv.Itoa(in.Editor.Len())+"/"+
+									strconv.Itoa(int(in.CharLimit)),
 							)
 							count.Color = in.helper.Color
 							return count.Layout(g)
