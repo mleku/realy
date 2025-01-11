@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gioui.org/widget/material"
+	"widget.mleku.dev/material"
 	"realy.lol/gui/color"
 	"realy.lol/gui"
 )

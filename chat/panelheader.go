@@ -2,7 +2,7 @@ package chat
 
 import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
-	"gioui.org/widget"
+	"widget.mleku.dev"
 	"realy.lol/gui/component"
 	"realy.lol/gui"
 	"realy.lol/gui/color"

@@ -8,9 +8,9 @@ import (
 	"gioui.org/font/gofont"
 	"gioui.org/gesture"
 	"gioui.org/op"
-	"gioui.org/text"
+	"widget.mleku.dev/text"
 	"gioui.org/unit"
-	"gioui.org/widget/material"
+	"widget.mleku.dev/material"
 	"realy.lol/gui/richtext"
 )
 

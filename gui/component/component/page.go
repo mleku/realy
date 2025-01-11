@@ -6,7 +6,7 @@ import (
 
 	"gioui.org/layout"
 	"gioui.org/op/paint"
-	"gioui.org/widget/material"
+	"widget.mleku.dev/material"
 	"realy.lol/gui/component"
 )
 

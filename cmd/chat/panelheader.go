@@ -2,9 +2,9 @@ package main
 
 import (
 	"golang.org/x/exp/shiny/materialdesign/icons"
-	"gioui.org/widget"
+	"widget.mleku.dev"
 	"realy.lol/gui/gel"
-	"gioui.org/text"
+	"widget.mleku.dev/text"
 	col "realy.lol/gui/color"
 )
 

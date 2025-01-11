@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gioui.org/widget"
+	"widget.mleku.dev"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 

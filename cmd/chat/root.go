@@ -5,7 +5,12 @@ import (
 
 	"realy.lol/gui/color"
 	"realy.lol/gui/gel"
+	realy "realy.lol"
+	"image"
+	"bytes"
 )
+
+var defaultAvatar, _, _ = image.Decode(bytes.NewReader(realy.Icon))
 
 type Root struct {
 	th *Theme
@@ -19,15 +24,15 @@ type Root struct {
 }
 
 func (r *Root) Init() *Root {
+	r.Chat = new(Chat).Init(r)
+	r.Panel = new(Panel).Init(r)
 	r.ModalLayer = gel.NewModal()
-	nav := gel.NewNav("username", "status text")
+	nav := gel.NewNav("username", "status text", defaultAvatar)
 	r.ModalNavDrawer = gel.ModalNavFrom(&nav, r.ModalLayer)
 	r.NavAnim = gel.VisibilityAnimation{
 		State:    gel.Invisible,
 		Duration: time.Millisecond * 200,
 	}
-	r.Chat = new(Chat).Init(r)
-	r.Panel = new(Panel).Init(r)
 	return r
 }
 
@@ -36,12 +41,14 @@ func (r *Root) Layout(g Gx) Dim {
 	flex := Flex{Axis: Horizontal}
 	if r.Panel.PanelHeader.menuClickable.Clicked(g) {
 		log.I.F("clicked menu button")
-		if !r.NavAnim.Visible() {
-			r.ModalNavDrawer.Appear(g.Now)
-			r.NavAnim.Disappear(g.Now)
-		} else {
-			r.NavAnim.Appear(g.Now)
+		if r.ModalLayer.Visible() {
+			log.I.F("hiding drawer")
 			r.ModalNavDrawer.Disappear(g.Now)
+			r.ModalLayer.Disappear(g.Now)
+		} else {
+			log.I.F("showing drawer")
+			r.ModalLayer.Disappear(g.Now)
+			r.ModalNavDrawer.Appear(g.Now)
 		}
 	}
 	if r.Size.X < 720 {

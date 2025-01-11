@@ -12,7 +12,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/unit"
-	"gioui.org/widget/material"
+	"widget.mleku.dev/material"
 )
 
 // Sheet implements the standard side sheet described here:

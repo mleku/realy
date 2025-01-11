@@ -9,7 +9,7 @@ import (
 	"gioui.org/font"
 	"gioui.org/op"
 	"gioui.org/op/paint"
-	"gioui.org/text"
+	"widget.mleku.dev/text"
 	"gioui.org/unit"
 	"golang.org/x/image/math/fixed"
 )
@@ -42,14 +42,14 @@ func (ss SpanStyle) Layout(g Gx, shape spanShape) Dim {
 
 // WrapPolicy defines line wrapping policies for styledtext. Due to complexities
 // of the styledtext implementation, there are fewer options available than in
-// [gioui.org/text.WrapPolicy].
+// [widget.mleku.dev/text.WrapPolicy].
 type WrapPolicy uint8
 
 const (
-	// WrapWords implements behavior like [gioui.org/text/.WrapWords]. This is the default,
+	// WrapWords implements behavior like [widget.mleku.dev/text/.WrapWords]. This is the default,
 	// as it prevents words from being split across lines.
 	WrapWords WrapPolicy = iota
-	// WrapGraphemes implements behavior like [gioui.org/text/.WrapGraphemes]. This often gives
+	// WrapGraphemes implements behavior like [widget.mleku.dev/text/.WrapGraphemes]. This often gives
 	// unpleasant results, as it will choose to split words across lines whenever it can. Some
 	// use-cases may still want this, however.
 	WrapGraphemes

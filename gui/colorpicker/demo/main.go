@@ -9,8 +9,8 @@ import (
 	"gioui.org/font/gofont"
 	"gioui.org/op"
 	"gioui.org/op/clip"
-	"gioui.org/text"
-	"gioui.org/widget/material"
+	"widget.mleku.dev/text"
+	"widget.mleku.dev/material"
 	"realy.lol/gui/colorpicker"
 )
 

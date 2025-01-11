@@ -4,8 +4,8 @@ import (
 	_l "gioui.org/layout"
 	_u "gioui.org/unit"
 	_i "image"
-	_w "gioui.org/widget"
-	_m "gioui.org/widget/material"
+	_w "widget.mleku.dev"
+	_m "widget.mleku.dev/material"
 	_c "image/color"
 	_p "gioui.org/op/paint"
 )

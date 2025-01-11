@@ -7,7 +7,7 @@ require (
 	github.com/alexflint/go-arg v1.5.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/badger/v4 v4.5.0
-	github.com/fasthttp/websocket v1.5.11
+	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.18.0
 	github.com/go-text/typesetting v0.1.1
 	github.com/gobwas/httphead v0.1.0
@@ -20,23 +20,24 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.10.0
 	github.com/templexxx/xhex v0.0.0-20200614015412-aed53437177b
-	github.com/yuin/goldmark v1.4.13
+	github.com/yuin/goldmark v1.7.8
 	go-simpler.org/env v0.12.0
-	golang.org/x/crypto v0.31.0
-	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
-	golang.org/x/exp/shiny v0.0.0-20240707233637-46b078467d37
-	golang.org/x/image v0.18.0
+	golang.org/x/crypto v0.32.0
+	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8
+	golang.org/x/exp/shiny v0.0.0-20250106191152-7588d65b2ba8
+	golang.org/x/image v0.23.0
 	golang.org/x/lint v0.0.0-20241112194109-818c5a804067
-	golang.org/x/net v0.33.0
+	golang.org/x/net v0.34.0
 	golang.org/x/sync v0.10.0
 	golang.org/x/text v0.21.0
-	golang.org/x/time v0.8.0
+	golang.org/x/time v0.9.0
 	honnef.co/go/tools v0.5.1
 	lukechampine.com/frand v1.5.1
+	widget.mleku.dev v0.7.4
 )
 
 require (
-	gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 // indirect
+	gioui.org/cpu v0.0.0-20220412190645-f1e9e8c3b1f7 // indirect
 	gioui.org/shader v1.0.8 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/alexflint/go-scalar v1.2.0 // indirect
@@ -61,8 +62,8 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20241217172543-b2144cdd0a67 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/tools v0.28.0 // indirect
-	google.golang.org/protobuf v1.36.1 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/tools v0.29.0 // indirect
+	google.golang.org/protobuf v1.36.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

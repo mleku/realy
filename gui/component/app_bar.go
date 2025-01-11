@@ -11,8 +11,8 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/unit"
-	"gioui.org/widget"
-	"gioui.org/widget/material"
+	"widget.mleku.dev"
+	"widget.mleku.dev/material"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 

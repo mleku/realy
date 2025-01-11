@@ -9,9 +9,9 @@ import (
 	"gioui.org/io/input"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/text"
+	"widget.mleku.dev/text"
 	"gioui.org/unit"
-	"gioui.org/widget/material"
+	"widget.mleku.dev/material"
 )
 
 // TestNilInteractiveText ensures that it is safe to lay out

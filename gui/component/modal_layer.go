@@ -5,7 +5,7 @@ import (
 
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/widget/material"
+	"widget.mleku.dev/material"
 )
 
 // ModalLayer is a widget drawn on top of the normal UI that can be populated

@@ -15,7 +15,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	"gioui.org/text"
+	"widget.mleku.dev/text"
 	"gioui.org/unit"
 	"golang.org/x/exp/slices"
 	"golang.org/x/image/math/fixed"

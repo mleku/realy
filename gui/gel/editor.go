@@ -25,7 +25,7 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
-	"gioui.org/text"
+	"widget.mleku.dev/text"
 	"gioui.org/unit"
 )
 

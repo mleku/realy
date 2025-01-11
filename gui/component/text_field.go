@@ -15,8 +15,8 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/unit"
-	"gioui.org/widget"
-	"gioui.org/widget/material"
+	"widget.mleku.dev"
+	"widget.mleku.dev/material"
 )
 
 // TextField implements the Material Design Text Field

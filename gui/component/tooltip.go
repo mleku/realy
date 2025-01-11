@@ -12,8 +12,8 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
-	"gioui.org/widget"
-	"gioui.org/widget/material"
+	"widget.mleku.dev"
+	"widget.mleku.dev/material"
 )
 
 // Tooltip implements a material design tool tip as defined at:

@@ -11,7 +11,7 @@ import (
 	"gioui.org/io/pointer"
 	"gioui.org/op"
 	"gioui.org/op/clip"
-	"gioui.org/text"
+	"widget.mleku.dev/text"
 	"realy.lol/gui/styledtext"
 )
 

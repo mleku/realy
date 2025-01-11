@@ -1,7 +1,7 @@
 package gel
 
 import (
-	"gioui.org/widget"
+	"widget.mleku.dev"
 	col "realy.lol/gui/color"
 )
 

@@ -19,7 +19,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	"gioui.org/widget"
+	"widget.mleku.dev"
 )
 
 // MuxState holds the state of a color multiplexer. A color multiplexer allows

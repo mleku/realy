@@ -11,8 +11,8 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/unit"
-	"gioui.org/widget"
-	"gioui.org/widget/material"
+	"widget.mleku.dev"
+	"widget.mleku.dev/material"
 )
 
 var (

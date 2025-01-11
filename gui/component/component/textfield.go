@@ -6,9 +6,9 @@ import (
 
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/text"
-	"gioui.org/widget"
-	"gioui.org/widget/material"
+	"widget.mleku.dev/text"
+	"widget.mleku.dev"
+	"widget.mleku.dev/material"
 	"realy.lol/gui/component"
 )
 

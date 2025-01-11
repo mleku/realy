@@ -4,8 +4,8 @@ import (
 	_l "gioui.org/layout"
 	_u "gioui.org/unit"
 	_i "image"
-	_w "gioui.org/widget"
-	_m "gioui.org/widget/material"
+	_w "widget.mleku.dev"
+	_m "widget.mleku.dev/material"
 	_c "image/color"
 	_p "gioui.org/op/paint"
 	_col "realy.lol/gui/color"
@@ -39,6 +39,7 @@ type (
 	Theme             = _m.Theme
 	Widget            = _l.Widget
 	ButtonLayoutStyle = _m.ButtonLayoutStyle
+	ButtonStyle       = _m.ButtonStyle
 )
 
 // constants

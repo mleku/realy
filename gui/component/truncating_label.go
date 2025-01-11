@@ -2,7 +2,7 @@ package component
 
 import (
 	"gioui.org/layout"
-	"gioui.org/widget/material"
+	"widget.mleku.dev/material"
 )
 
 // TruncatingLabelStyle is a type that forces a label to

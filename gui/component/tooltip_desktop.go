@@ -3,7 +3,7 @@
 
 package component
 
-import "gioui.org/widget/material"
+import "widget.mleku.dev/material"
 
 // PlatformTooltip creates a tooltip styled to the current platform
 // (desktop or mobile) by choosing based on the OS. This choice may

@@ -6,8 +6,8 @@ import (
 
 	"gioui.org/io/clipboard"
 	"gioui.org/layout"
-	"gioui.org/widget"
-	"gioui.org/widget/material"
+	"widget.mleku.dev"
+	"widget.mleku.dev/material"
 	"realy.lol/gui/component"
 )
 

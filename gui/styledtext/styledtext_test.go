@@ -9,7 +9,7 @@ import (
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/text"
+	"widget.mleku.dev/text"
 	"gioui.org/unit"
 )
 

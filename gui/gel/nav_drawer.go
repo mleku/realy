@@ -10,8 +10,8 @@ import (
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op/clip"
-	"gioui.org/widget"
-	"gioui.org/widget/material"
+	"widget.mleku.dev"
+	"widget.mleku.dev/material"
 
 	col "realy.lol/gui/color"
 )
@@ -153,26 +153,29 @@ func (n *renderNavItem) layoutBackground(g Gx, th *Theme, c *Palette) Dim {
 type NavDrawer struct {
 	AlphaPalette
 
-	Title    string
-	Subtitle string
+	Title    st
+	Subtitle st
+	Image    image.Image
+	ButtonStyle
 
 	// Anchor indicates whether content in the nav drawer should be anchored to
 	// the upper or lower edge of the drawer. This value should match the anchor
 	// of an app bar if an app bar is used in conjunction with this nav drawer.
 	Anchor VerticalAnchorPosition
 
-	selectedItem    int
-	selectedChanged bool // selected item changed during the last frame
+	selectedItem    no
+	selectedChanged bo // selected item changed during the last frame
 	items           []renderNavItem
 
 	navList layout.List
 }
 
 // NewNav configures a navigation drawer
-func NewNav(title, subtitle string) NavDrawer {
+func NewNav(title, subtitle st, img image.Image) NavDrawer {
 	m := NavDrawer{
 		Title:    title,
 		Subtitle: subtitle,
+		Image:    img,
 		AlphaPalette: AlphaPalette{
 			Hover:    hoverOverlayAlpha,
 			Selected: selectedOverlayAlpha,
@@ -183,100 +186,108 @@ func NewNav(title, subtitle string) NavDrawer {
 
 // AddNavItem inserts a navigation target into the drawer. This should be
 // invoked only from the layout thread to avoid nasty race conditions.
-func (m *NavDrawer) AddNavItem(item NavItem) {
-	m.items = append(m.items, renderNavItem{
+func (nd *NavDrawer) AddNavItem(item NavItem) {
+	nd.items = append(nd.items, renderNavItem{
 		NavItem:      item,
-		AlphaPalette: &m.AlphaPalette,
+		AlphaPalette: &nd.AlphaPalette,
 	})
-	if len(m.items) == 1 {
-		m.items[0].selected = true
+	if len(nd.items) == 1 {
+		nd.items[0].selected = true
 	}
 }
 
-func (m *NavDrawer) Layout(g Gx, th *Theme, c *Palette, anim *VisibilityAnimation) Dim {
+func (nd *NavDrawer) Layout(g Gx, th *Theme, c *Palette, anim *VisibilityAnimation) Dim {
 	sheet := NewSheet()
 	return sheet.Layout(g, th, c, anim, func(g Gx) Dim {
-		return m.LayoutContents(g, th, c, anim)
+		return nd.LayoutContents(g, th, c, anim)
 	})
 }
 
-func (m *NavDrawer) LayoutContents(g Gx, th *Theme, c *Palette, anim *VisibilityAnimation) Dim {
+func (nd *NavDrawer) LayoutContents(g Gx, th *Theme, c *Palette, anim *VisibilityAnimation) Dim {
 	if !anim.Visible() {
 		return Dim{}
 	}
 	spacing := layout.SpaceEnd
-	if m.Anchor == Bottom {
+	if nd.Anchor == Bottom {
 		spacing = layout.SpaceStart
 	}
 
 	layout.Flex{
 		Spacing: spacing,
-		Axis:    layout.Vertical,
+		Axis:    Vertical,
 	}.Layout(g,
 		layout.Rigid(func(g Gx) Dim {
 			return layout.Inset{
 				Left:   Dp(16),
 				Bottom: Dp(18),
 			}.Layout(g, func(g Gx) Dim {
-				return layout.Flex{Axis: layout.Vertical}.Layout(g,
-					layout.Rigid(func(g Gx) Dim {
-						g.Constraints.Max.Y = g.Dp(Dp(36))
-						g.Constraints.Min = g.Constraints.Max
-						title := material.Label(th, Sp(18), m.Title)
-						title.Font.Weight = font.Bold
-						return layout.SW.Layout(g, title.Layout)
+				return layout.Flex{Axis: Horizontal}.Layout(g,
+					Rigid(func(g Gx) Dim {
+
+						return Dim{Size: Point{X: 56, Y: 56}}
 					}),
-					layout.Rigid(func(g Gx) Dim {
-						g.Constraints.Max.Y = g.Dp(Dp(20))
-						g.Constraints.Min = g.Constraints.Max
-						return layout.SW.Layout(g, material.Label(th, Sp(12), m.Subtitle).Layout)
+					Rigid(func(g Gx) Dim {
+						return layout.Flex{Axis: Vertical}.Layout(g,
+							layout.Rigid(func(g Gx) Dim {
+								g.Constraints.Max.Y = g.Dp(Dp(36))
+								g.Constraints.Min = g.Constraints.Max
+								title := material.Label(th, Sp(18), nd.Title)
+								title.Font.Weight = font.Bold
+								return layout.SW.Layout(g, title.Layout)
+							}),
+							layout.Rigid(func(g Gx) Dim {
+								g.Constraints.Max.Y = g.Dp(Dp(20))
+								g.Constraints.Min = g.Constraints.Max
+								return layout.SW.Layout(g, material.Label(th, Sp(12), nd.Subtitle).Layout)
+							}),
+						)
 					}),
 				)
 			})
 		}),
 		layout.Flexed(1, func(g Gx) Dim {
-			return m.layoutNavList(g, th, c, anim)
+			return nd.layoutNavList(g, th, c, anim)
 		}),
 	)
 	return Dim{Size: g.Constraints.Max}
 }
 
-func (m *NavDrawer) layoutNavList(g Gx, th *Theme, c *Palette, anim *VisibilityAnimation) Dim {
-	m.selectedChanged = false
+func (nd *NavDrawer) layoutNavList(g Gx, th *Theme, c *Palette, anim *VisibilityAnimation) Dim {
+	nd.selectedChanged = false
 	g.Constraints.Min.Y = 0
-	m.navList.Axis = layout.Vertical
-	return m.navList.Layout(g, len(m.items), func(g Gx, index int) Dim {
+	nd.navList.Axis = layout.Vertical
+	return nd.navList.Layout(g, len(nd.items), func(g Gx, index int) Dim {
 		g.Constraints.Max.Y = g.Dp(Dp(48))
 		g.Constraints.Min = g.Constraints.Max
-		if m.items[index].Clicked(g) {
-			m.changeSelected(index)
+		if nd.items[index].Clicked(g) {
+			nd.changeSelected(index)
 		}
-		dimensions := m.items[index].Layout(g, th, c)
+		dimensions := nd.items[index].Layout(g, th, c)
 		return dimensions
 	})
 }
 
-func (m *NavDrawer) UnselectNavDestination() {
-	m.items[m.selectedItem].selected = false
-	m.selectedChanged = false
+func (nd *NavDrawer) UnselectNavDestination() {
+	nd.items[nd.selectedItem].selected = false
+	nd.selectedChanged = false
 }
 
-func (m *NavDrawer) changeSelected(newIndex int) {
-	if newIndex == m.selectedItem && m.items[m.selectedItem].selected {
+func (nd *NavDrawer) changeSelected(newIndex int) {
+	if newIndex == nd.selectedItem && nd.items[nd.selectedItem].selected {
 		return
 	}
-	m.items[m.selectedItem].selected = false
-	m.selectedItem = newIndex
-	m.items[m.selectedItem].selected = true
-	m.selectedChanged = true
+	nd.items[nd.selectedItem].selected = false
+	nd.selectedItem = newIndex
+	nd.items[nd.selectedItem].selected = true
+	nd.selectedChanged = true
 }
 
 // SetNavDestination changes the selected navigation item to the item with
 // the provided tag. If the provided tag does not exist, it has no effect.
-func (m *NavDrawer) SetNavDestination(tag interface{}) {
-	for i, item := range m.items {
+func (nd *NavDrawer) SetNavDestination(tag interface{}) {
+	for i, item := range nd.items {
 		if item.Tag == tag {
-			m.changeSelected(i)
+			nd.changeSelected(i)
 			break
 		}
 	}
@@ -284,14 +295,14 @@ func (m *NavDrawer) SetNavDestination(tag interface{}) {
 
 // CurrentNavDestination returns the tag of the navigation destination
 // selected in the drawer.
-func (m *NavDrawer) CurrentNavDestination() interface{} {
-	return m.items[m.selectedItem].Tag
+func (nd *NavDrawer) CurrentNavDestination() interface{} {
+	return nd.items[nd.selectedItem].Tag
 }
 
 // NavDestinationChanged returns whether the selected navigation destination
 // has changed since the last frame.
-func (m *NavDrawer) NavDestinationChanged() bool {
-	return m.selectedChanged
+func (nd *NavDrawer) NavDestinationChanged() bool {
+	return nd.selectedChanged
 }
 
 // ModalNavDrawer implements the Material Design Modal Navigation Drawer
@@ -302,8 +313,8 @@ type ModalNavDrawer struct {
 }
 
 // NewModalNav configures a modal navigation drawer that will render itself into the provided ModalLayer
-func NewModalNav(modal *ModalLayer, title, subtitle string) *ModalNavDrawer {
-	nav := NewNav(title, subtitle)
+func NewModalNav(modal *ModalLayer, title, subtitle st, img image.Image) *ModalNavDrawer {
+	nav := NewNav(title, subtitle, img)
 	return ModalNavFrom(&nav, modal)
 }
 

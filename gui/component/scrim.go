@@ -4,8 +4,8 @@ import (
 	"image/color"
 
 	"gioui.org/layout"
-	"gioui.org/widget"
-	"gioui.org/widget/material"
+	"widget.mleku.dev"
+	"widget.mleku.dev/material"
 )
 
 // Scrim implments a clickable translucent overlay. It can animate appearing
