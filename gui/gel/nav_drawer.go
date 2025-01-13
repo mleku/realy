@@ -155,8 +155,7 @@ type NavDrawer struct {
 
 	Title    st
 	Subtitle st
-	Image    image.Image
-	ButtonStyle
+	*ImageButtonStyle
 
 	// Anchor indicates whether content in the nav drawer should be anchored to
 	// the upper or lower edge of the drawer. This value should match the anchor
@@ -167,20 +166,20 @@ type NavDrawer struct {
 	selectedChanged bo // selected item changed during the last frame
 	items           []renderNavItem
 
-	navList layout.List
+	layout.List
 }
 
 // NewNav configures a navigation drawer
-func NewNav(title, subtitle st, img image.Image) NavDrawer {
+func NewNav(title, subtitle st, imgButton *ImageButtonStyle) NavDrawer {
 	m := NavDrawer{
 		Title:    title,
 		Subtitle: subtitle,
-		Image:    img,
 		AlphaPalette: AlphaPalette{
 			Hover:    hoverOverlayAlpha,
 			Selected: selectedOverlayAlpha,
 		},
 	}
+	m.ImageButtonStyle = imgButton
 	return m
 }
 
@@ -211,41 +210,41 @@ func (nd *NavDrawer) LayoutContents(g Gx, th *Theme, c *Palette, anim *Visibilit
 	if nd.Anchor == Bottom {
 		spacing = layout.SpaceStart
 	}
-
-	layout.Flex{
-		Spacing: spacing,
-		Axis:    Vertical,
-	}.Layout(g,
+	sz := Dp(th.TextSize / 2)
+	Flex{Spacing: spacing, Axis: Vertical}.Layout(g,
 		layout.Rigid(func(g Gx) Dim {
-			return layout.Inset{
+			return Inset{
 				Left:   Dp(16),
 				Bottom: Dp(18),
 			}.Layout(g, func(g Gx) Dim {
-				return layout.Flex{Axis: Horizontal}.Layout(g,
+				return Flex{Axis: Horizontal}.Layout(g,
 					Rigid(func(g Gx) Dim {
-
-						return Dim{Size: Point{X: 56, Y: 56}}
+						return UniformInset(sz).Layout(g,
+							nd.ImageButtonStyle.Layout)
+						// return Dim{Size: Point{X: 56, Y: 56}}
 					}),
 					Rigid(func(g Gx) Dim {
-						return layout.Flex{Axis: Vertical}.Layout(g,
-							layout.Rigid(func(g Gx) Dim {
-								g.Constraints.Max.Y = g.Dp(Dp(36))
-								g.Constraints.Min = g.Constraints.Max
-								title := material.Label(th, Sp(18), nd.Title)
-								title.Font.Weight = font.Bold
-								return layout.SW.Layout(g, title.Layout)
-							}),
-							layout.Rigid(func(g Gx) Dim {
-								g.Constraints.Max.Y = g.Dp(Dp(20))
-								g.Constraints.Min = g.Constraints.Max
-								return layout.SW.Layout(g, material.Label(th, Sp(12), nd.Subtitle).Layout)
-							}),
-						)
+						return UniformInset(sz).Layout(g, func(g Gx) Dim {
+							return Flex{Axis: Vertical}.Layout(g,
+								Rigid(func(g Gx) Dim {
+									// g.Constraints.Max.Y = g.Dp(Dp(36))
+									// g.Constraints.Min = g.Constraints.Max
+									title := material.Label(th, Sp(18), nd.Title)
+									title.Font.Weight = font.Bold
+									return layout.SW.Layout(g, title.Layout)
+								}),
+								Rigid(func(g Gx) Dim {
+									g.Constraints.Max.Y = g.Dp(Dp(20))
+									g.Constraints.Min = g.Constraints.Max
+									return layout.SW.Layout(g, material.Label(th, Sp(12), nd.Subtitle).Layout)
+								}),
+							)
+						})
 					}),
 				)
 			})
 		}),
-		layout.Flexed(1, func(g Gx) Dim {
+		Flexed(1, func(g Gx) Dim {
 			return nd.layoutNavList(g, th, c, anim)
 		}),
 	)
@@ -255,8 +254,8 @@ func (nd *NavDrawer) LayoutContents(g Gx, th *Theme, c *Palette, anim *Visibilit
 func (nd *NavDrawer) layoutNavList(g Gx, th *Theme, c *Palette, anim *VisibilityAnimation) Dim {
 	nd.selectedChanged = false
 	g.Constraints.Min.Y = 0
-	nd.navList.Axis = layout.Vertical
-	return nd.navList.Layout(g, len(nd.items), func(g Gx, index int) Dim {
+	nd.List.Axis = layout.Vertical
+	return nd.List.Layout(g, len(nd.items), func(g Gx, index int) Dim {
 		g.Constraints.Max.Y = g.Dp(Dp(48))
 		g.Constraints.Min = g.Constraints.Max
 		if nd.items[index].Clicked(g) {
@@ -313,8 +312,8 @@ type ModalNavDrawer struct {
 }
 
 // NewModalNav configures a modal navigation drawer that will render itself into the provided ModalLayer
-func NewModalNav(modal *ModalLayer, title, subtitle st, img image.Image) *ModalNavDrawer {
-	nav := NewNav(title, subtitle, img)
+func NewModalNav(modal *ModalLayer, title, subtitle st, imgButton *ImageButtonStyle) *ModalNavDrawer {
+	nav := NewNav(title, subtitle, imgButton)
 	return ModalNavFrom(&nav, modal)
 }
 

@@ -27,7 +27,7 @@ func (r *Root) Init() *Root {
 	r.Chat = new(Chat).Init(r)
 	r.Panel = new(Panel).Init(r)
 	r.ModalLayer = gel.NewModal()
-	nav := gel.NewNav("username", "status text", defaultAvatar)
+	nav := gel.NewNav("username", "status text", gel.ImageButton(r.th, &Clickable{}, defaultAvatar, "user avatar"))
 	r.ModalNavDrawer = gel.ModalNavFrom(&nav, r.ModalLayer)
 	r.NavAnim = gel.VisibilityAnimation{
 		State:    gel.Invisible,
