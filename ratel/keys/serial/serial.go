@@ -33,13 +33,15 @@ func New(ser by) (p *T) {
 }
 
 // FromKey expects the last Len bytes of the given slice to be the serial.
-func FromKey(k by) (p *T) {
+func FromKey(k by) (p *T, err er) {
 	if len(k) < Len {
-		panic(fmt.Sprintf("cannot get a serial without at least 8 bytes %x", k))
+		err = errorf.E("cannot get a serial without at least 8 bytes %x", k)
+		return
 	}
 	key := make(by, Len)
 	copy(key, k[len(k)-Len:])
-	return &T{Val: key}
+	p = &T{Val: key}
+	return
 }
 
 func Make(s uint64) (ser *T) {

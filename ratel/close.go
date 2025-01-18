@@ -8,7 +8,9 @@ func (r *T) Close() (err er) {
 		}
 		log.D.F("database flattened")
 	}
-	if err = r.seq.Release(); chk.E(err) {
+	if err = r.eventSeq.Release(); chk.E(err) {
+	}
+	if err = r.pubkeySeq.Release(); chk.E(err) {
 	}
 	log.D.F("database released")
 	if err = r.DB.Close(); chk.E(err) {

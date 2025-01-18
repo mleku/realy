@@ -238,7 +238,9 @@ func Read[V by | st](g *T, path V) (b by, err er) {
 				}
 				if equals(v, val) {
 					// log.I.F("%0x %d %s == %s", k, i, val, v)
-					parent = serial.FromKey(k)
+					if parent, err = serial.FromKey(k); chk.E(err) {
+						return
+					}
 					found = true
 					return
 				}
@@ -301,7 +303,9 @@ func Write[V by | st](g *T, path, b V) (err er) {
 				}
 				if equals(v, val) {
 					log.I.F("found %0x %d %s == %s", k, i, val, v)
-					parent = serial.FromKey(k)
+					if parent, err = serial.FromKey(k); chk.E(err) {
+						return
+					}
 					found = true
 					return
 				}

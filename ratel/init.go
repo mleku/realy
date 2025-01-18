@@ -34,7 +34,10 @@ func (r *T) Init(path st) (err er) {
 		return err
 	}
 	log.T.Ln("getting event store sequence index", r.dataDir)
-	if r.seq, err = r.DB.GetSequence(by("events"), 1000); chk.E(err) {
+	if r.eventSeq, err = r.DB.GetSequence(by("events"), 1000); chk.E(err) {
+		return err
+	}
+	if r.pubkeySeq, err = r.DB.GetSequence(by("pubkey"), 1000); chk.E(err) {
 		return err
 	}
 	log.T.Ln("running migrations", r.dataDir)

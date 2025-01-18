@@ -1,16 +1,13 @@
 package ratel
 
 import (
-	"encoding/binary"
 	"sync"
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.lol/ratel/keys/serial"
 	"realy.lol/store"
 	"realy.lol/units"
-	"realy.lol/ratel/prefixes"
 )
 
 const DefaultMaxLimit = 512
@@ -35,8 +32,10 @@ type T struct {
 	Logger         *logger
 	// DB is the badger db
 	*badger.DB
-	// seq is the monotonic collision free index for raw event storage.
-	seq *badger.Sequence
+	// eventSeq is the monotonic collision free index for raw event storage.
+	eventSeq *badger.Sequence
+	// pubkeySeq is the monotonic collision free index for raw event storage.
+	pubkeySeq *badger.Sequence
 	// Threads is how many CPU threads we dedicate to concurrent actions, flatten and GC mark
 	Threads no
 	// MaxLimit is a default limit that applies to a query without a limit, to
@@ -121,35 +120,3 @@ func GetBackend(Ctx cx, WG *sync.WaitGroup, hasL2, useCompact bo,
 }
 
 func (r *T) Path() st { return r.dataDir }
-
-// SerialKey returns a key used for storing events, and the raw serial counter
-// bytes to copy into index keys.
-func (r *T) SerialKey() (idx by, ser *serial.T) {
-	var err er
-	var s by
-	if s, err = r.SerialBytes(); chk.E(err) {
-		panic(err)
-	}
-	ser = serial.New(s)
-	return prefixes.Event.Key(ser), ser
-}
-
-// Serial returns the next monotonic conflict free unique serial on the database.
-func (r *T) Serial() (ser uint64, err er) {
-	if ser, err = r.seq.Next(); chk.E(err) {
-	}
-	// log.T.F("serial %x", ser)
-	return
-}
-
-// SerialBytes returns a new serial value, used to store an event record with a
-// conflict-free unique code (it is a monotonic, atomic, ascending counter).
-func (r *T) SerialBytes() (ser by, err er) {
-	var serU64 uint64
-	if serU64, err = r.Serial(); chk.E(err) {
-		panic(err)
-	}
-	ser = make(by, serial.Len)
-	binary.BigEndian.PutUint64(ser, serU64)
-	return
-}

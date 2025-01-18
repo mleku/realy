@@ -52,7 +52,10 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 				// todo: here we should get the kind field from the key and and collate the
 				// todo: matches that are replaceable/parameterized replaceable ones to decode
 				// todo: to check for replacements so we can actually not set the approx flag.
-				ser := serial.FromKey(k)
+				var ser *serial.T
+				if ser, err = serial.FromKey(k); chk.E(err) {
+					return
+				}
 				eventKey = prefixes.Event.Key(ser)
 				// eventKeys = append(eventKeys, idx)
 			}

@@ -124,7 +124,11 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 				for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
 					item := it.Item()
 					k := item.KeyCopy(nil)
-					evKey := prefixes.Event.Key(serial.FromKey(k))
+					var ser *serial.T
+					if ser, err = serial.FromKey(k); chk.E(err) {
+						return
+					}
+					evKey := prefixes.Event.Key(ser)
 					counter++
 					keyChan <- evKey
 				}

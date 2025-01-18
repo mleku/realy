@@ -11,7 +11,7 @@ import (
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/sha256"
-	eventstore "realy.lol/store"
+	"realy.lol/store"
 	"realy.lol/timestamp"
 	"realy.lol/ratel/prefixes"
 )
@@ -70,7 +70,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 				if it.Item().ValueSize() != sha256.Size {
 					// not a stub, we already have it
 					// log.D.F("duplicate event %0x", ev.ID)
-					return eventstore.ErrDupEvent
+					return store.ErrDupEvent
 				}
 				// we only need to restore the event binary and write the access counter key
 				// encode to binary
@@ -96,20 +96,19 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 		return
 	}
 	var bin by
+	ser := serial.Make(r.Serial())
+	idx := prefixes.Event.Key(ser)
+	// 	add the indexes
+	var indexKeys []by
+	indexKeys = GetIndexKeysForEvent(ev, ser)
 	bin = r.Marshal(ev, bin)
 	// otherwise, save new event record.
 	if err = r.Update(func(txn *badger.Txn) (err er) {
-		var idx by
-		var ser *serial.T
-		idx, ser = r.SerialKey()
 		// encode to binary
 		// raw event store
 		if err = txn.Set(idx, bin); chk.E(err) {
 			return
 		}
-		// 	add the indexes
-		var indexKeys []by
-		indexKeys = GetIndexKeysForEvent(ev, ser)
 		// log.I.S(indexKeys)
 		for _, k := range indexKeys {
 			if err = txn.Set(k, nil); chk.E(err) {

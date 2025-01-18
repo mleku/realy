@@ -42,10 +42,14 @@ func (r *T) GCSweep(evs, idxs DelItems) (err er) {
 			return
 		}
 		key := item.KeyCopy(nil)
-		ser := serial.FromKey(key).Uint64()
+		var ser *serial.T
+		if ser, err = serial.FromKey(key); chk.E(err) {
+			return
+		}
+		s64 := ser.Uint64()
 		var found bo
 		for i := range evs {
-			if evs[i] == ser {
+			if evs[i] == s64 {
 				found = true
 				break
 			}
@@ -107,10 +111,14 @@ func (r *T) GCSweep(evs, idxs DelItems) (err er) {
 					return
 				}
 				key := item.KeyCopy(nil)
-				ser := serial.FromKey(key).Uint64()
+				var ser *serial.T
+				if ser, err = serial.FromKey(key); chk.E(err) {
+					return
+				}
+				s64 := ser.Uint64()
 				var found bo
 				for _, idx := range idxs {
-					if idx == ser {
+					if idx == s64 {
 						found = true
 						break
 					}

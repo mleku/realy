@@ -7,6 +7,8 @@ import (
 	"realy.lol/ratel/keys/id"
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
+	"realy.lol/sha256"
+	"realy.lol/ec/schnorr"
 )
 
 const (
@@ -83,6 +85,12 @@ const (
 	//
 	// [ 10 ][ 16 bytes first/left half of event ID ][ 8 bytes timestamp ]
 	Tombstone
+
+	// PubkeyIndex is the prefix for an index that stores a mapping between pubkeys
+	// and a pubkey serial.
+	//
+	// [ 11 ][ 32 bytes pubkey ][ 8 bytes pubkey serial ]
+	PubkeyIndex
 )
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop
@@ -122,4 +130,8 @@ var KeySizes = []no{
 	1 + kinder.Len + pubkey.Len + 100 + createdat.Len + serial.Len,
 	// Counter
 	1 + serial.Len,
+	// Tombstone
+	1 + sha256.Size/2 + serial.Len,
+	// PubkeyIndex
+	1 + schnorr.PubKeyBytesLen + serial.Len,
 }

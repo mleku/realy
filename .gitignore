@@ -76,6 +76,7 @@ go.work.sum
 !*.m
 !*.gz
 !*.java
-
+!event/examples/out.jsonl
 # ...even if they are in subdirectories
 !*/
+/go.work.sum
