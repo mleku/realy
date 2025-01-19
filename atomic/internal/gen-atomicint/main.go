@@ -34,16 +34,14 @@ import (
 	"fmt"
 	"go/format"
 	"io"
-	"log"
 	"os"
 	"text/template"
 	"time"
 )
 
 func main() {
-	log.SetFlags(0)
 	if err := run(os.Args[1:]); err != nil {
-		log.Fatalf("%+v", err)
+		log.F.F("%+v", err)
 	}
 }
 
