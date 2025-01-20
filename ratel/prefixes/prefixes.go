@@ -87,9 +87,10 @@ const (
 	Tombstone
 
 	// PubkeyIndex is the prefix for an index that stores a mapping between pubkeys
-	// and a pubkey serial.
+	// and a pubkey serial. It uses the serial first to make scans over sorted
+	// records faster for the more frequent operation of retrieve.
 	//
-	// [ 11 ][ 32 bytes pubkey ][ 8 bytes pubkey serial ]
+	// [ 11 ][ 8 bytes pubkey serial ][ 32 bytes pubkey ]
 	PubkeyIndex
 )
 
@@ -133,5 +134,5 @@ var KeySizes = []no{
 	// Tombstone
 	1 + sha256.Size/2 + serial.Len,
 	// PubkeyIndex
-	1 + schnorr.PubKeyBytesLen + serial.Len,
+	1 + serial.Len + schnorr.PubKeyBytesLen,
 }
