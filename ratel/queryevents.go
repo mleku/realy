@@ -68,7 +68,10 @@ func (r *T) QueryEvents(c cx, f *filter.T, ours ...bo) (evs event.Ts, err er) {
 						break
 					}
 				}
-				ser := serial.FromKey(k)
+				var ser *serial.T
+				if ser, err = serial.FromKey(k); chk.E(err) {
+					return
+				}
 				idx := prefixes.Event.Key(ser)
 				eventKeys[st(idx)] = struct{}{}
 			}
@@ -201,7 +204,10 @@ func (r *T) QueryEvents(c cx, f *filter.T, ours ...bo) (evs event.Ts, err er) {
 					// }
 					evMap[hex.Enc(ev.ID)] = ev
 					// add event counter key to accessed
-					ser := serial.FromKey(eventKey)
+					var ser *serial.T
+					if ser, err = serial.FromKey(eventKey); chk.E(err) {
+						return
+					}
 					accessed[st(ser.Val)] = struct{}{}
 					if filter.Present(f.Limit) {
 						*f.Limit--

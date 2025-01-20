@@ -44,7 +44,10 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 		}
 		key := make(by, index.Len+serial.Len)
 		item.KeyCopy(key)
-		ser := serial.FromKey(key)
+		var ser *serial.T
+		if ser, err = serial.FromKey(key); chk.E(err) {
+			return
+		}
 		size := uint32(item.ValueSize())
 		totalCounter++
 		countMx.Lock()
@@ -81,11 +84,15 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	counterStream.ChooseKey = func(item *badger.Item) (b bo) {
 		key := make(by, index.Len+serial.Len)
 		item.KeyCopy(key)
-		s64 := serial.FromKey(key).Uint64()
+		var s64 *serial.T
+		if s64, err = serial.FromKey(key); chk.E(err) {
+			return
+		}
+		ser := s64.Uint64()
 		countMx.Lock()
 		countFresh = append(countFresh,
 			&count.Fresh{
-				Serial:    s64,
+				Serial:    ser,
 				Freshness: timestamp.FromUnix(int64(binary.BigEndian.Uint64(v))),
 			})
 		countMx.Unlock()
@@ -147,7 +154,10 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 				evStream.Prefix = fp
 				evStream.ChooseKey = func(item *badger.Item) (b bo) {
 					k := item.KeyCopy(nil)
-					ser := serial.FromKey(k)
+					var ser *serial.T
+					if ser, err = serial.FromKey(k); chk.E(err) {
+						return
+					}
 					uSer := ser.Uint64()
 					countMx.Lock()
 					// the pruned map allows us to (more) directly find the slice index relevant to
