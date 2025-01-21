@@ -32,7 +32,7 @@ func TestRequest(t *testing.T) {
 		if l != L {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
-		req2 := New()
+		req2 := NewRequest(nil, nil)
 		if rem, err = req2.Unmarshal(rb); chk.E(err) {
 			t.Fatal(err)
 		}

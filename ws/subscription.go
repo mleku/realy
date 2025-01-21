@@ -3,8 +3,8 @@ package ws
 import (
 	"strconv"
 	"sync"
-	"sync/atomic"
 
+	"realy.lol/atomic"
 	"realy.lol/context"
 	"realy.lol/envelopes/closeenvelope"
 	"realy.lol/envelopes/countenvelope"
@@ -12,10 +12,11 @@ import (
 	"realy.lol/event"
 	"realy.lol/filters"
 	"realy.lol/subscription"
+	"realy.lol/qu"
 )
 
 type Subscription struct {
-	label   st
+	label   by
 	counter no
 
 	Relay   *Client
@@ -24,27 +25,30 @@ type Subscription struct {
 	// for this to be treated as a COUNT and not a REQ this must be set
 	countResult chan no
 
-	// The Events channel emits all EVENTs that come in a Subscription will be closed when the
-	// subscription ends
+	// The Events channel emits all EVENTs that come in a Subscription will be
+	// closed when the subscription ends
 	Events event.C
 	mu     sync.Mutex
 
-	// The EndOfStoredEvents channel is closed when an EOSE comes for that subscription
-	EndOfStoredEvents chan struct{}
+	// The EndOfStoredEvents channel is closed when an EOSE comes for that
+	// subscription
+	EndOfStoredEvents qu.C
 
-	// The ClosedReason channel emits the reason when a CLOSED message is received
-	ClosedReason chan st
+	// The ClosedReason channel emits the reason when a CLOSED message is
+	// received
+	ClosedReason chan by
 
 	// Context will be .Done() when the subscription ends
 	Context cx
 
+	match  func(*event.T) bo // this will be either Filters.Match or Filters.MatchIgnoringTimestampConstraints
 	live   atomic.Bool
 	eosed  atomic.Bool
 	closed atomic.Bool
 	cancel context.F
 
-	// This keeps track of the events we've received before the EOSE that we must dispatch
-	// before closing the EndOfStoredEvents channel
+	// This keeps track of the events we've received before the EOSE that we
+	// must dispatch before closing the EndOfStoredEvents channel
 	storedwg sync.WaitGroup
 }
 
@@ -59,19 +63,19 @@ type SubscriptionOption interface {
 	IsSubscriptionOption()
 }
 
-// WithLabel puts a label on the subscription (it is prepended to the automatic id) that is sent
-// to relays.
-type WithLabel st
+// WithLabel puts a label on the subscription (it is prepended to the automatic
+// id) that is sent to relays.
+type WithLabel by
 
 func (_ WithLabel) IsSubscriptionOption() {}
 
 var _ SubscriptionOption = (WithLabel)("")
 
-// GetID return the Nostr subscription ID as given to the Client
-// it is a concatenation of the label and a serial number.
+// GetID return the Nostr subscription ID as given to the Client it is a
+// concatenation of the label and a serial number.
 func (sub *Subscription) GetID() (id *subscription.Id) {
 	var err er
-	if id, err = subscription.NewId(sub.label + ":" + strconv.Itoa(sub.counter)); chk.E(err) {
+	if id, err = subscription.NewId(st(sub.label) + ":" + strconv.Itoa(sub.counter)); chk.E(err) {
 		return
 	}
 	return
@@ -82,8 +86,8 @@ func (sub *Subscription) start() {
 	// the subscription ends once the context is canceled (if not already)
 	sub.Unsub() // this will set sub.live to false
 
-	// do this so we don't have the possibility of closing the Events channel and then trying to
-	// send to it
+	// do this so we don't have the possibility of closing the Events channel
+	// and then trying to send to it
 	sub.mu.Lock()
 	close(sub.Events)
 	sub.mu.Unlock()
@@ -122,7 +126,7 @@ func (sub *Subscription) dispatchEose() {
 	}
 }
 
-func (sub *Subscription) dispatchClosed(reason st) {
+func (sub *Subscription) dispatchClosed(reason by) {
 	if sub.closed.CompareAndSwap(false, true) {
 		go func() {
 			sub.ClosedReason <- reason
@@ -130,13 +134,13 @@ func (sub *Subscription) dispatchClosed(reason st) {
 	}
 }
 
-// Unsub closes the subscription, sending "CLOSE" to realy as in NIP-01. Unsub() also closes the
-// channel sub.Events and makes a new one.
+// Unsub closes the subscription, sending "CLOSE" to realy as in NIP-01. Unsub()
+// also closes the channel sub.Events and makes a new one.
 func (sub *Subscription) Unsub() {
 	// cancel the context (if it's not canceled already)
 	sub.cancel()
-	// mark subscription as closed and send a CLOSE to the realy (naïve sync.Once
-	// implementation)
+	// mark subscription as closed and send a CLOSE to the realy (naïve
+	// sync.Once implementation)
 	if sub.live.CompareAndSwap(true, false) {
 		sub.Close()
 	}
@@ -151,16 +155,16 @@ func (sub *Subscription) Close() {
 		closeMsg := closeenvelope.NewFrom(id)
 		var b by
 		b = closeMsg.Marshal(nil)
-		log.D.F("{%s} sending %v", sub.Relay.URL, b)
+		log.T.F("client ( %s ) -> %s", sub.Relay.URL(), b)
 		<-sub.Relay.Write(b)
 	}
 }
 
-// Sub sets sub.Filters and then calls sub.Fire(ctx). The subscription will be closed if the
-// context expires.
+// Sub sets sub.Filters and then calls sub.F1ire(ctx). The subscription will be
+// closed if the context expires.
 func (sub *Subscription) Sub(_ cx, ff *filters.T) {
 	sub.Filters = ff
-	sub.Fire()
+	chk.E(sub.Fire())
 }
 
 // Fire sends the "REQ" command to the realy.
@@ -173,9 +177,9 @@ func (sub *Subscription) Fire() (err er) {
 	} else {
 		b = countenvelope.NewRequest(id, sub.Filters).Marshal(b)
 	}
-	log.I.F("{%s} sending %s", sub.Relay.URL, b)
+	log.T.F("client ( %s ) -> %s", sub.Relay.URL(), b)
 	sub.live.Store(true)
-	if err := <-sub.Relay.Write(b); chk.T(err) {
+	if err = <-sub.Relay.Write(b); chk.T(err) {
 		sub.cancel()
 		return errorf.E("failed to write: %w", err)
 	}

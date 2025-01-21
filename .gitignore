@@ -25,6 +25,12 @@ node_modules/**
 **/node_modules
 **/node_modules/
 **/node_modules/**
+/birb
+/birb/*
+/birb/**
+cmd/burbl/burbl
+go.work
+go.work.sum
 
 # But not these files...
 !/.gitignore
@@ -63,6 +69,13 @@ node_modules/**
 !*.service
 !*.benc
 !*.png
+!*.ttf
+!*.sfd
+!*.frag
+!*.vert
+!*.m
+!*.gz
+!*.java
 
 # ...even if they are in subdirectories
 !*/

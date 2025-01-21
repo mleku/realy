@@ -17,6 +17,11 @@ func (ev *T) MarshalCompact(dst by) (b by) {
 func (ev *T) UnmarshalCompact(b by) (rem by, err er) {
 	rem = b
 	end := len(rem) - schnorr.SignatureSize
+	if end < 0 {
+		err = errorf.E("event data is corrupted:\n%s\n", b)
+		log.I.S(b)
+		return
+	}
 	id := Hash(rem[:end])
 	if rem, err = ev.FromCanonical(b); chk.E(err) {
 		return

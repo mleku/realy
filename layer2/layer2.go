@@ -75,7 +75,8 @@ func (b *Backend) Init(path st) (err er) {
 				until := timestamp.Now()
 				var evs []*event.T
 				if evs, err = b.L2.QueryEvents(b.Ctx,
-					&filter.T{Since: timestamp.FromUnix(last), Until: until}); chk.E(err) {
+					&filter.T{Since: timestamp.FromUnix(last),
+						Until: until}); chk.E(err) {
 					continue out
 				}
 				// todo now wat
@@ -123,7 +124,8 @@ func (b *Backend) Nuke() (err er) {
 	return
 }
 
-func (b *Backend) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
+func (b *Backend) QueryEvents(c cx, f *filter.T, ours ...bo) (evs event.Ts,
+	err er) {
 	if evs, err = b.L1.QueryEvents(c, f); chk.E(err) {
 		return
 	}

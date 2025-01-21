@@ -9,7 +9,6 @@ import (
 
 	"realy.lol/kinds"
 	"realy.lol/number"
-	"realy.lol/timestamp"
 )
 
 type NIP struct {
@@ -29,27 +28,32 @@ func GetList(items ...NIP) (n number.List) {
 
 // this is the list of all nips and their titles for use in supported_nips field
 var (
-	BasicProtocol                  = NIP{"Basic protocol flow description", 1}
-	NIP1                           = BasicProtocol
-	FollowList                     = NIP{"Follow List", 2}
-	NIP2                           = FollowList
-	OpenTimestampsAttestations     = NIP{"OpenTimestamps Attestations for Events", 3}
-	NIP3                           = OpenTimestampsAttestations
-	EncryptedDirectMessage         = NIP{"Direct Message deprecated in favor of NIP-44", 4}
-	NIP4                           = EncryptedDirectMessage
-	MappingNostrKeysToDNS          = NIP{"Mapping Nostr keys to DNS-based identifiers", 5}
-	NIP5                           = MappingNostrKeysToDNS
-	HandlingMentions               = NIP{"Handling Mentions deprecated in favor of NIP-27", 8}
-	NIP8                           = HandlingMentions
-	EventDeletion                  = NIP{"Event Deletion", 9}
-	NIP9                           = EventDeletion
-	RelayInformationDocument       = NIP{"Relay Information Document", 11}
-	NIP11                          = RelayInformationDocument
-	GenericTagQueries              = NIP{"Generic Tag Queries", 12}
-	NIP12                          = GenericTagQueries
-	SubjectTag                     = NIP{"Subject tag in text events", 14}
-	NIP14                          = SubjectTag
-	NostrMarketplace               = NIP{"Nostr Marketplace (for resilient marketplaces)", 15}
+	BasicProtocol              = NIP{"Basic protocol flow description", 1}
+	NIP1                       = BasicProtocol
+	FollowList                 = NIP{"Follow List", 2}
+	NIP2                       = FollowList
+	OpenTimestampsAttestations = NIP{"OpenTimestamps Attestations for Events",
+		3}
+	NIP3                   = OpenTimestampsAttestations
+	EncryptedDirectMessage = NIP{"Direct Message deprecated in favor of NIP-44",
+		4}
+	NIP4                  = EncryptedDirectMessage
+	MappingNostrKeysToDNS = NIP{"Mapping Nostr keys to DNS-based identifiers",
+		5}
+	NIP5             = MappingNostrKeysToDNS
+	HandlingMentions = NIP{"Handling Mentions deprecated in favor of NIP-27",
+		8}
+	NIP8                     = HandlingMentions
+	EventDeletion            = NIP{"Event Deletion", 9}
+	NIP9                     = EventDeletion
+	RelayInformationDocument = NIP{"Relay Information Document", 11}
+	NIP11                    = RelayInformationDocument
+	GenericTagQueries        = NIP{"Generic Tag Queries", 12}
+	NIP12                    = GenericTagQueries
+	SubjectTag               = NIP{"Subject tag in text events", 14}
+	NIP14                    = SubjectTag
+	NostrMarketplace         = NIP{"Nostr Marketplace (for resilient marketplaces)",
+		15}
 	NIP15                          = NostrMarketplace
 	EventTreatment                 = NIP{"EVent Treatment", 16}
 	NIP16                          = EventTreatment
@@ -89,7 +93,8 @@ var (
 	NIP39                          = ExternalIdentitiesInProfiles
 	ExpirationTimestamp            = NIP{"Expiration Timestamp", 40}
 	NIP40                          = ExpirationTimestamp
-	Authentication                 = NIP{"Authentication of clients to relays", 42}
+	Authentication                 = NIP{"Authentication of clients to relays",
+		42}
 	NIP42                          = Authentication
 	VersionedEncryption            = NIP{"Versioned Encryption", 44}
 	NIP44                          = VersionedEncryption
@@ -125,6 +130,8 @@ var (
 	NIP75                          = ZapGoals
 	ApplicationSpecificData        = NIP{"Application-specific data", 78}
 	NIP78                          = ApplicationSpecificData
+	NostrRelayChat                 = NIP{"Nostr Relay Chat", 79}
+	NIP79                          = NostrRelayChat
 	Highlights                     = NIP{"Highlights", 84}
 	NIP84                          = Highlights
 	RecommendedApplicationHandlers = NIP{"Recommended Application Handlers", 89}
@@ -141,13 +148,63 @@ var (
 	NIP99                          = ClassifiedListings
 )
 
-var NIPMap = map[no]NIP{1: NIP1, 2: NIP2, 3: NIP3, 4: NIP4, 5: NIP5, 8: NIP8, 9: NIP9,
-	11: NIP11, 12: NIP12, 14: NIP14, 15: NIP15, 16: NIP16, 18: NIP18, 19: NIP19, 20: NIP20,
-	21: NIP21, 22: NIP22, 23: NIP23, 24: NIP24, 25: NIP25, 26: NIP26, 27: NIP27, 28: NIP28,
-	30: NIP30, 32: NIP32, 33: NIP33, 36: NIP36, 38: NIP38, 39: NIP39, 40: NIP40, 42: NIP42,
-	44: NIP44, 45: NIP45, 46: NIP46, 47: NIP47, 48: NIP48, 50: NIP50, 51: NIP51, 52: NIP52,
-	53: NIP53, 56: NIP56, 57: NIP57, 58: NIP58, 65: NIP65, 72: NIP72, 75: NIP75, 78: NIP78,
-	84: NIP84, 89: NIP89, 90: NIP90, 94: NIP94, 96: NIP96, 98: NIP98, 99: NIP99}
+var NIPMap = map[no]NIP{
+	1:  NIP1,
+	2:  NIP2,
+	3:  NIP3,
+	4:  NIP4,
+	5:  NIP5,
+	8:  NIP8,
+	9:  NIP9,
+	11: NIP11,
+	12: NIP12,
+	14: NIP14,
+	15: NIP15,
+	16: NIP16,
+	18: NIP18,
+	19: NIP19,
+	20: NIP20,
+	21: NIP21,
+	22: NIP22,
+	23: NIP23,
+	24: NIP24,
+	25: NIP25,
+	26: NIP26,
+	27: NIP27,
+	28: NIP28,
+	30: NIP30,
+	32: NIP32,
+	33: NIP33,
+	36: NIP36,
+	38: NIP38,
+	39: NIP39,
+	40: NIP40,
+	42: NIP42,
+	44: NIP44,
+	45: NIP45,
+	46: NIP46,
+	47: NIP47,
+	48: NIP48,
+	50: NIP50,
+	51: NIP51,
+	52: NIP52,
+	53: NIP53,
+	56: NIP56,
+	57: NIP57,
+	58: NIP58,
+	65: NIP65,
+	72: NIP72,
+	75: NIP75,
+	78: NIP78,
+	79: NIP79,
+	84: NIP84,
+	89: NIP89,
+	90: NIP90,
+	94: NIP94,
+	96: NIP96,
+	98: NIP98,
+	99: NIP99,
+}
 
 type Limits struct {
 	// MaxMessageLength is the maximum number of bytes for incoming JSON
@@ -156,42 +213,42 @@ type Limits struct {
 	// limits the maximum size of any event. Value is calculated from [ to ] and
 	// is after UTF-8 serialization (so some unicode characters will cost 2-3
 	// bytes). It is equal to the maximum size of the WebSocket message frame.
-	MaxMessageLength no `json:"max_message_length,omitempty"`
+	MaxMessageLength *no `json:"max_message_length,omitempty"`
 	// MaxSubscriptions is total number of subscriptions that may be active on a
 	// single websocket connection to this relay. It's possible that
 	// authenticated clients with a (paid) relationship to the relay may have
 	// higher limits.
-	MaxSubscriptions no `json:"max_subscriptions,omitempty"`
+	MaxSubscriptions *no `json:"max_subscriptions,omitempty"`
 	// MaxFilter is maximum number of filter values in each subscription. Must
 	// be one or higher.
-	MaxFilters no `json:"max_filters,omitempty"`
+	MaxFilters *no `json:"max_filters,omitempty"`
 	// MaxLimit is the relay server will clamp each filter's limit value to this
 	// number. This means the client won't be able to get more than this number
 	// of events from a single subscription filter. This clamping is typically
 	// done silently by the relay, but with this number, you can know that there
 	// are additional results if you narrowed your filter's time range or other
 	// parameters.
-	MaxLimit no `json:"max_limit,omitempty"`
+	MaxLimit *no `json:"max_limit,omitempty"`
 	// MaxSubidLength is the maximum length of subscription id as a string.
-	MaxSubidLength no `json:"max_subid_length,omitempty"`
+	MaxSubidLength *no `json:"max_subid_length,omitempty"`
 	// MaxEventTags in any event, this is the maximum number of elements in the
 	// tags list.
-	MaxEventTags no `json:"max_event_tags,omitempty"`
+	MaxEventTags *no `json:"max_event_tags,omitempty"`
 	// MaxContentLength maximum number of characters in the content field of any
 	// event. This is a count of Unicode characters. After serializing into JSON
 	// it may be larger (in bytes), and is still subject to the
 	// max_message_length, if defined.
-	MaxContentLength no `json:"max_content_length,omitempty"`
+	MaxContentLength *no `json:"max_content_length,omitempty"`
 	// MinPowDifficulty new events will require at least this difficulty of PoW,
 	// based on NIP-13, or they will be rejected by this server.
-	MinPowDifficulty no `json:"min_pow_difficulty,omitempty"`
+	MinPowDifficulty *no `json:"min_pow_difficulty,omitempty"`
 	// AuthRequired means the realy requires NIP-42 authentication to happen
 	// before a new connection may perform any other action. Even if set to
 	// False, authentication may be required for specific actions.
-	AuthRequired bo `json:"auth_required"`
+	AuthRequired bo `json:"auth_required,omitempty"`
 	// PaymentRequired this realy requires payment before a new connection may
 	// perform any action.
-	PaymentRequired bo `json:"payment_required"`
+	PaymentRequired bo `json:"payment_required,omitempty"`
 	// RestrictedWrites this realy requires some kind of condition to be
 	// fulfilled in order to accept events (not necessarily, but including
 	// payment_required and min_pow_difficulty). This should only be set to true
@@ -199,15 +256,14 @@ type Limits struct {
 	// to it -- like belonging to a special pubkey-based whitelist or writing
 	// only events of a specific niche kind or content. Normal anti-spam
 	// heuristics, for example, do not qualify.q
-	RestrictedWrites bo          `json:"restricted_writes"`
-	Oldest           timestamp.T `json:"created_at_lower_limit,omitempty"`
-	Newest           timestamp.T `json:"created_at_upper_limit,omitempty"`
+	RestrictedWrites bo     `json:"restricted_writes,omitempty"`
+	Oldest           *int64 `json:"created_at_lower_limit,omitempty"`
+	Newest           *int64 `json:"created_at_upper_limit,omitempty"`
 }
 type Payment struct {
 	Amount no `json:"amount"`
 	Unit   st `json:"unit"`
 }
-
 type Sub struct {
 	Payment
 	Period no `json:"period"`
@@ -245,8 +301,9 @@ func NewInfo(inf *T) (info *T) {
 	if inf != nil {
 		info = inf
 	} else {
+		v := 500
 		info = &T{Limitation: Limits{
-			MaxLimit: 500,
+			MaxLimit: &v,
 		}}
 	}
 	return

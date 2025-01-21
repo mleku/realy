@@ -27,10 +27,10 @@ import (
 
 	"realy.lol/cmd/lerproxy/buf"
 	"realy.lol/cmd/lerproxy/hsts"
-	"realy.lol/cmd/lerproxy/reverse"
 	"realy.lol/cmd/lerproxy/tcpkeepalive"
 	"realy.lol/cmd/lerproxy/util"
 	"realy.lol/context"
+	"realy.lol/cmd/lerproxy/reverse"
 )
 
 type runArgs struct {
@@ -219,42 +219,25 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 	mux := http.NewServeMux()
 	for hostname, backendAddr := range mapping {
 		hn, ba := hostname, backendAddr
-		if strings.ContainsRune(hn, os.PathSeparator) {
-			err = log.E.Err("invalid hostname: %q", hn)
-			return
+		log.I.S(hn, ba)
+		path := "/"
+		if strings.Contains(hn, "/") {
+			spl := strings.Split(hn, "/")
+			path = "/" + strings.Join(spl[1:], "/")
 		}
 		network := "tcp"
 		if ba != "" && ba[0] == '@' && runtime.GOOS == "linux" {
 			// append \0 to address so addrlen for connect(2) is calculated in a
 			// way compatible with some other implementations (i.e. uwsgi)
 			network, ba = "unix", ba+st(byte(0))
-		} else if strings.HasPrefix(ba, "git+") {
-			split := strings.Split(ba, "git+")
-			if len(split) != 2 {
-				log.E.Ln("invalid go vanity redirect: %s: %s", hn, ba)
-				continue
-			}
-			redirector := fmt.Sprintf(
-				`<html><head><meta name="go-import" content="%s git %s"/><meta http-equiv = "refresh" content = " 3 ; url = %s"/></head><body>redirecting to <a href="%s">%s</a></body></html>`,
-				hn, split[1], split[1], split[1], split[1])
-			mux.HandleFunc(hn+"/", func(writer http.ResponseWriter, request *http.Request) {
-				writer.Header().Set("Access-Control-Allow-Methods",
-					"GET,HEAD,PUT,PATCH,POST,DELETE")
-				writer.Header().Set("Access-Control-Allow-Origin", "*")
-				writer.Header().Set("Content-Type", "text/html")
-				writer.Header().Set("Content-Length", fmt.Sprint(len(redirector)))
-				writer.Header().Set("strict-transport-security", "max-age=0; includeSubDomains")
-				fmt.Fprint(writer, redirector)
-			})
-			continue
 		} else if filepath.IsAbs(ba) {
 			network = "unix"
 			switch {
-			case strings.HasSuffix(ba, st(os.PathSeparator)):
+			case strings.HasSuffix(ba, "/"):
 				// path specified as directory with explicit trailing slash; add
 				// this path as static site
 				fs := http.FileServer(http.Dir(ba))
-				mux.Handle(hn+"/", fs)
+				mux.Handle(hn+path, fs)
 				continue
 			case strings.HasSuffix(ba, "nostr.json"):
 				log.I.Ln(hn, ba)
@@ -285,21 +268,57 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 					})
 				continue
 			}
+		} else if strings.HasPrefix(ba, "git+") {
+			split := strings.Split(ba, "git+")
+			if len(split) != 2 {
+				log.E.Ln("invalid go vanity redirect: %s: %s", hn, ba)
+				continue
+			}
+			redirector := fmt.Sprintf(
+				`<html><head><meta name="go-import" content="%s git %s"/><meta http-equiv = "refresh" content = " 0 ; url = %s"/></head><body>redirecting to <a href="%s">%s</a></body></html>`,
+				hn, split[1], split[1], split[1], split[1])
+			mux.HandleFunc(hn+path, func(writer http.ResponseWriter, request *http.Request) {
+				writer.Header().Set("Access-Control-Allow-Methods",
+					"GET,HEAD,PUT,PATCH,POST,DELETE")
+				writer.Header().Set("Access-Control-Allow-Origin", "*")
+				writer.Header().Set("Content-Type", "text/html")
+				writer.Header().Set("Content-Length", fmt.Sprint(len(redirector)))
+				writer.Header().Set("strict-transport-security", "max-age=0; includeSubDomains")
+				fmt.Fprint(writer, redirector)
+			})
+			continue
 		} else if u, err := url.Parse(ba); err == nil {
 			switch u.Scheme {
 			case "http", "https":
-				rp := reverse.NewSingleHostReverseProxy(u)
-				modifyCORSResponse := func(res *http.Response) er {
-					res.Header.Set("Access-Control-Allow-Methods",
-						"GET,HEAD,PUT,PATCH,POST,DELETE")
-					// res.Header.Set("Access-Control-Allow-Credentials", "true")
-					res.Header.Set("Access-Control-Allow-Origin", "*")
-					return nil
+				if path == "/" {
+					u.Path = path
+					rp := reverse.NewSingleHostReverseProxy(u)
+					modifyCORSResponse := func(res *http.Response) er {
+						res.Header.Set("Access-Control-Allow-Methods",
+							"GET,HEAD,PUT,PATCH,POST,DELETE")
+						res.Header.Set("Access-Control-Allow-Origin", "*")
+						return nil
+					}
+					rp.ModifyResponse = modifyCORSResponse
+					rp.ErrorLog = stdLog.New(os.Stderr, "lerproxy", stdLog.Llongfile)
+					rp.BufferPool = buf.Pool{}
+					mux.Handle(hn, rp)
+					continue
 				}
-				rp.ModifyResponse = modifyCORSResponse
-				rp.ErrorLog = stdLog.New(os.Stderr, "lerproxy", stdLog.Llongfile)
-				rp.BufferPool = buf.Pool{}
-				mux.Handle(hn+"/", rp)
+
+				redirector := fmt.Sprintf(
+					`<html><head><meta http-equiv = "refresh" content = " 0 ; url = %s"/></head><body>redirecting to <a href="%s">%s</a></body></html>`,
+					u.String(), u.String(), u.String())
+				mux.HandleFunc(hn, func(writer http.ResponseWriter, request *http.Request) {
+					writer.Header().Set("Access-Control-Allow-Methods",
+						"GET,HEAD,PUT,PATCH,POST,DELETE")
+					writer.Header().Set("Access-Control-Allow-Origin", "*")
+					writer.Header().Set("Content-Type", "text/html")
+					writer.Header().Set("Content-Length", fmt.Sprint(len(redirector)))
+					writer.Header().Set("strict-transport-security", "max-age=0; includeSubDomains")
+					fmt.Fprint(writer, redirector)
+				})
+
 				continue
 			}
 		}
@@ -307,12 +326,12 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 			Director: func(req *http.Request) {
 				req.URL.Scheme = "http"
 				req.URL.Host = req.Host
+				log.I.F("%s %s", req.URL.Host, req.URL.Path)
 				req.Header.Set("X-Forwarded-Proto", "https")
 				req.Header.Set("X-Forwarded-For", req.RemoteAddr)
 				req.Header.Set("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE")
 				// req.Header.Set("Access-Control-Allow-Credentials", "true")
 				req.Header.Set("Access-Control-Allow-Origin", "*")
-				log.D.Ln(req.URL, req.RemoteAddr)
 			},
 			Transport: &http.Transport{
 				DialContext: func(c cx, n, addr st) (net.Conn, er) {
@@ -322,7 +341,7 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 			ErrorLog:   stdLog.New(io.Discard, "", 0),
 			BufferPool: buf.Pool{},
 		}
-		mux.Handle(hn+"/", rp)
+		mux.Handle(hn+path, rp)
 	}
 	return mux, nil
 }

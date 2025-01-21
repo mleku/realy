@@ -32,10 +32,11 @@ type I interface {
 	// messages, that are not on the mute list, that do not yet have a reply, should accept
 	// direct and group message events until there is three and thereafter will be restricted
 	// until the user adds them to their follow list.
-	AcceptEvent(c cx, ev *event.T, hr *http.Request, origin st, authedPubkey by) (accept bo,
+	AcceptEvent(c cx, ev *event.T, hr *http.Request, origin st,
+		authedPubkey by) (accept bo,
 		notice st, afterSave func())
 	// Storage returns the realy storage implementation.
-	Storage(cx) store.I
+	Storage() store.I
 }
 
 // ReqAcceptor is the main interface for implementing a nostr

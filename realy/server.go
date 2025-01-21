@@ -21,64 +21,65 @@ import (
 )
 
 type Server struct {
-	Ctx                  cx
-	Cancel               context.F
-	options              *options.T
-	relay                relay.I
-	clientsMu            sync.Mutex
-	clients              map[*websocket.Conn]struct{}
-	Addr                 st
-	serveMux             *http.ServeMux
-	httpServer           *http.Server
-	authRequired         bo
-	maxLimit             no
-	adminUser, adminPass st
-	listeners            *listeners.T
+	cx
+	sync.Mutex
+	relay.I
+	*http.ServeMux
+	*listeners.T
+	*options.O
+	cancel       context.F
+	clients      map[*websocket.Conn]struct{}
+	Addr         st
+	httpServer   *http.Server
+	authRequired bo
+	maxLimit     no
+	adminUser    st
+	adminPass    st
 }
 
 type ServerParams struct {
-	Ctx                  cx
-	Cancel               context.F
-	Rl                   relay.I
+	Ctx    cx
+	Cancel context.F
+	relay.I
 	DbPath               st
 	MaxLimit             no
 	AdminUser, AdminPass st
 }
 
-func NewServer(sp ServerParams, opts ...options.O) (*Server, er) {
+func NewServer(sp ServerParams, opts ...options.F) (*Server, er) {
 	op := options.Default()
 	for _, opt := range opts {
 		opt(op)
 	}
 	var authRequired bo
-	if ar, ok := sp.Rl.(relay.Authenticator); ok {
+	if ar, ok := sp.I.(relay.Authenticator); ok {
 		authRequired = ar.AuthEnabled()
 	}
 	srv := &Server{
-		Ctx:          sp.Ctx,
-		Cancel:       sp.Cancel,
-		relay:        sp.Rl,
+		cx:           sp.Ctx,
+		cancel:       sp.Cancel,
+		I:            sp.I,
 		clients:      make(map[*websocket.Conn]struct{}),
-		serveMux:     http.NewServeMux(),
-		options:      op,
+		ServeMux:     http.NewServeMux(),
+		O:            op,
 		authRequired: authRequired,
 		maxLimit:     sp.MaxLimit,
 		adminUser:    sp.AdminUser,
 		adminPass:    sp.AdminPass,
-		listeners:    listeners.New(),
+		T:            listeners.New(),
 	}
-	if storage := sp.Rl.Storage(context.Bg()); storage != nil {
+	if storage := sp.Storage(); storage != nil {
 		if err := storage.Init(sp.DbPath); chk.T(err) {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
 	}
-	if err := sp.Rl.Init(); chk.T(err) {
+	if err := sp.Init(); chk.T(err) {
 		return nil, fmt.Errorf("realy init: %w", err)
 	}
-	if inj, ok := sp.Rl.(relay.Injector); ok {
+	if inj, ok := sp.I.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
-				srv.listeners.NotifyListeners(srv.authRequired, ev)
+				srv.NotifyListeners(srv.authRequired, ev)
 			}
 		}()
 	}
@@ -104,7 +105,7 @@ func (s *Server) Start(host st, port int, started ...chan bo) er {
 	}
 	s.Addr = ln.Addr().String()
 	s.httpServer = &http.Server{Handler: cors.Default().Handler(s), Addr: addr,
-		//WriteTimeout: 7 * time.Second,
+		// WriteTimeout: 7 * time.Second,
 		ReadHeaderTimeout: 7 * time.Second,
 		IdleTimeout:       28 * time.Second}
 	for _, startedC := range started {
@@ -118,26 +119,28 @@ func (s *Server) Start(host st, port int, started ...chan bo) er {
 
 func (s *Server) Shutdown() {
 	log.I.Ln("shutting down relay")
-	s.Cancel()
-	s.clientsMu.Lock()
-	defer s.clientsMu.Unlock()
-	for conn := range s.clients {
-		log.I.Ln("disconnecting", conn.RemoteAddr())
-		chk.E(conn.WriteControl(websocket.CloseMessage, nil, time.Now().Add(time.Second)))
-		chk.E(conn.Close())
-		delete(s.clients, conn)
+	s.cancel()
+	s.Lock()
+	defer s.Unlock()
+	for c := range s.clients {
+		log.I.Ln("disconnecting", c.RemoteAddr())
+		chk.E(c.WriteControl(websocket.CloseMessage, nil,
+			time.Now().Add(time.Second)))
+		chk.E(c.Close())
+		delete(s.clients, c)
 	}
 	log.W.Ln("closing event store")
-	chk.E(s.relay.Storage(s.Ctx).Close())
+	chk.E(s.Storage().Close())
 	log.W.Ln("shutting down relay listener")
-	chk.E(s.httpServer.Shutdown(s.Ctx))
-	if f, ok := s.relay.(relay.ShutdownAware); ok {
-		f.OnShutdown(s.Ctx)
+	chk.E(s.httpServer.Shutdown(s.cx))
+	if f, ok := s.I.(relay.ShutdownAware); ok {
+		f.OnShutdown(s.cx)
 	}
 }
 
-func (s *Server) Router() *http.ServeMux {
-	return s.serveMux
-}
+func (s *Server) Router() *http.ServeMux { return s.ServeMux }
 
-func fprintf(w io.Writer, format st, a ...any) { _, _ = fmt.Fprintf(w, format, a...) }
+func fprintf(w io.Writer, format st, a ...any) {
+	_, _ = fmt.Fprintf(w, format,
+		a...)
+}

@@ -43,10 +43,6 @@ func (s *Signer) InitSec(sec by) (err er) {
 	s.SecretKey = secp256k1.SecKeyFromBytes(sec)
 	s.PublicKey = s.SecretKey.PubKey()
 	s.pkb = s.SecretKey.PubKey().SerializeCompressed()
-	if s.pkb[0] != 2 {
-		err = errorf.E("invalid odd pubkey from secret key %0x", s.pkb)
-		return
-	}
 	return
 }
 
@@ -96,7 +92,8 @@ func (s *Signer) ECDH(pubkeyBytes by) (secret by, err er) {
 	var pub *secp256k1.PublicKey
 	// Note the public key must be even, if the secret key derives an odd compressed pubkey ECDH will fail in that
 	// direction.
-	if pub, err = secp256k1.ParsePubKey(append(by{0x02}, pubkeyBytes...)); chk.E(err) {
+	if pub, err = secp256k1.ParsePubKey(append(by{0x02},
+		pubkeyBytes...)); chk.E(err) {
 		return
 	}
 	secret = ec.GenerateSharedSecret(s.SecretKey, pub)

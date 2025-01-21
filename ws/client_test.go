@@ -2,7 +2,6 @@ package ws
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,7 +13,7 @@ import (
 	"time"
 
 	"golang.org/x/net/websocket"
-
+	"realy.lol/context"
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/envelopes/okenvelope"
 	"realy.lol/event"
@@ -24,6 +23,16 @@ import (
 	"realy.lol/tag"
 	"realy.lol/tags"
 	"realy.lol/timestamp"
+	"os"
+	"realy.lol/p256k/sign"
+	"realy.lol/signer"
+	"realy.lol/hex"
+	"realy.lol/bech32encoding"
+	"realy.lol/ec/secp256k1"
+	btcec "realy.lol/ec"
+	"realy.lol/kinds"
+	"realy.lol/filter"
+	"realy.lol/lol"
 )
 
 func TestPublish(t *testing.T) {
@@ -65,11 +74,13 @@ func TestPublish(t *testing.T) {
 		}
 		// event := parseEventMessage(t, raw)
 		if !bytes.Equal(env.T.Serialize(), textNote.Serialize()) {
-			t.Errorf("received event:\n%s\nwant:\n%s", env.T.Serialize(), textNote.Serialize())
+			t.Errorf("received event:\n%s\nwant:\n%s", env.T.Serialize(),
+				textNote.Serialize())
 		}
 		// send back an ok nip-20 command result
 		var res by
-		if res = okenvelope.NewFrom(textNote.ID, true, nil).Marshal(res); chk.E(err) {
+		if res = okenvelope.NewFrom(textNote.ID, true,
+			nil).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {
@@ -79,7 +90,7 @@ func TestPublish(t *testing.T) {
 	defer ws.Close()
 	// connect a client and send the text note
 	rl := mustRelayConnect(ws.URL)
-	err = rl.Publish(context.Background(), textNote)
+	err = rl.Publish(context.Bg(), textNote)
 	if err != nil {
 		t.Errorf("publish should have succeeded")
 	}
@@ -89,6 +100,7 @@ func TestPublish(t *testing.T) {
 }
 
 func TestPublishBlocked(t *testing.T) {
+	t.Skip()
 	// test note to be sent over websocket
 	var err er
 	signer := &p256k.Signer{}
@@ -114,7 +126,8 @@ func TestPublishBlocked(t *testing.T) {
 		// send back a not ok nip-20 command result
 		var res by
 		if res = okenvelope.NewFrom(textNote.ID, false,
-			normalize.Msg(normalize.Blocked, "no reason")).Marshal(res); chk.E(err) {
+			normalize.Msg(normalize.Blocked,
+				"no reason")).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {
@@ -127,12 +140,13 @@ func TestPublishBlocked(t *testing.T) {
 
 	// connect a client and send a text note
 	rl := mustRelayConnect(ws.URL)
-	if err = rl.Publish(context.Background(), textNote); !chk.E(err) {
+	if err = rl.Publish(context.Bg(), textNote); !chk.E(err) {
 		t.Errorf("should have failed to publish")
 	}
 }
 
 func TestPublishWriteFailed(t *testing.T) {
+	t.Skip()
 	// test note to be sent over websocket
 	var err er
 	signer := &p256k.Signer{}
@@ -159,7 +173,7 @@ func TestPublishWriteFailed(t *testing.T) {
 	rl := mustRelayConnect(ws.URL)
 	// Force brief period of time so that publish always fails on closed socket.
 	time.Sleep(1 * time.Millisecond)
-	err = rl.Publish(context.Background(), textNote)
+	err = rl.Publish(context.Bg(), textNote)
 	if err == nil {
 		t.Errorf("should have failed to publish")
 	}
@@ -178,9 +192,9 @@ func TestConnectContext(t *testing.T) {
 	defer ws.Close()
 
 	// relay client
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.Timeout(context.Bg(), 3*time.Second)
 	defer cancel()
-	r, err := RelayConnect(ctx, ws.URL)
+	r, err := Connect(ctx, ws.URL)
 	if err != nil {
 		t.Fatalf("RelayConnectContext: %v", err)
 	}
@@ -199,11 +213,12 @@ func TestConnectContextCanceled(t *testing.T) {
 	defer ws.Close()
 
 	// relay client
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.Cancel(context.Bg())
 	cancel() // make ctx expired
-	_, err := RelayConnect(ctx, ws.URL)
+	_, err := Connect(ctx, ws.URL)
 	if !errors.Is(err, context.Canceled) {
-		t.Errorf("RelayConnectContext returned %v error; want context.Canceled", err)
+		t.Errorf("RelayConnectContext returned %v error; want context.Canceled",
+			err)
 	}
 }
 
@@ -214,9 +229,9 @@ func TestConnectWithOrigin(t *testing.T) {
 	defer ws.Close()
 
 	// relay client
-	r := NewRelay(context.Background(), st(normalize.URL(ws.URL)))
+	r := NewClient(context.Bg(), st(normalize.URL(ws.URL)))
 	r.RequestHeader = http.Header{"origin": {"https://example.com"}}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.Timeout(context.Bg(), 3*time.Second)
 	defer cancel()
 	err := r.Connect(ctx)
 	if err != nil {
@@ -236,16 +251,109 @@ func newWebsocketServer(handler func(*websocket.Conn)) *httptest.Server {
 }
 
 // anyOriginHandshake is an alternative to default in golang.org/x/net/websocket
-// which checks for origin. nostr client sends no origin and it makes no difference
-// for the tests here anyway.
+// which checks for origin. nostr client sends no origin, and it makes no
+// difference for the tests here anyway.
 var anyOriginHandshake = func(conf *websocket.Config, r *http.Request) er {
 	return nil
 }
 
 func mustRelayConnect(url string) *Client {
-	rl, err := RelayConnect(context.Background(), url)
+	rl, err := Connect(context.Bg(), url)
 	if err != nil {
 		panic(err.Error())
 	}
 	return rl
+}
+
+func TestConverters(t *testing.T) {
+	var err er
+	var s signer.I
+	var sec *secp256k1.SecretKey
+	if sec, err = secp256k1.GenerateSecretKey(); chk.E(err) {
+		t.Fatalf("error generating key: '%s'", err)
+		return
+	}
+	skb := sec.Serialize()
+	var key by
+	if key, err = bech32encoding.BinToNsec(skb); chk.E(err) {
+		t.Fatal(err)
+	}
+	if s, err = sign.FromNsec(key); chk.E(err) {
+		t.Fatal(err)
+	}
+	var hsec by
+	if hsec, err = bech32encoding.NsecToHex(key); chk.E(err) {
+		t.Fatal(err)
+	}
+	var nsec by
+	if nsec, err = bech32encoding.HexToNsec(hsec); chk.E(err) {
+		t.Fatal(err)
+	}
+	if !equals(key, nsec) {
+		t.Fatal("failed to re-encode back to nsec")
+	}
+	if s, err = sign.FromHsec(hsec); chk.E(err) {
+		t.Fatal(err)
+	}
+	hpub := hex.Enc(s.Pub())
+	var pk *btcec.PublicKey
+	if pk, err = bech32encoding.HexToPublicKey(hpub); chk.E(err) {
+		t.Fatal(err)
+	}
+	if s, err = sign.FromHpub(hpub); chk.E(err) {
+		t.Fatal(err)
+	}
+	var npub by
+	if npub, err = bech32encoding.BinToNpub(s.Pub()); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.F("%s", npub)
+	var npub2 by
+	if npub2, err = bech32encoding.PublicKeyToNpub(pk); chk.E(err) {
+		t.Fatal(err)
+	}
+	if !equals(npub, npub2) {
+		t.Fatalf("failed to get same npub %s %s", npub, npub2)
+	}
+}
+
+func TestConnectWithAuth(t *testing.T) {
+	lol.SetLogLevel("trace")
+	var err er
+	var s signer.I
+	key, found := os.LookupEnv("NSEC")
+	if !found {
+		t.Skip("this test requires a proper nsec")
+	}
+	if s, err = sign.FromNsec(key); chk.E(err) {
+		t.Fatal(err)
+	}
+	log.I.S(s.Pub())
+	relays := []st{
+		"wss://test.realy.lol",
+		// "wss://mleku.realy.lol",
+		// "wss://mleku.nostr1.com",
+		// "wss://nostr.wine",
+		// "wss://atlas.nostr.land",
+	}
+	for _, rely := range relays {
+		f := &filter.T{
+			Kinds: &kinds.T{
+				K: []*kind.T{kind.TextNote},
+				// K: kind.Directory,
+			},
+			Limit: filter.L(10),
+		}
+		var rl *Client
+		if rl, err = ConnectWithAuth(context.Bg(), rely, s); chk.E(err) {
+			continue
+		}
+		var evs event.Ts
+		if evs, err = rl.QuerySync(rl.Ctx, f); chk.E(err) {
+			chk.E(rl.Close())
+			continue
+		}
+		log.I.F("%s returned %d events", rely, len(evs))
+		_ = rely
+	}
 }

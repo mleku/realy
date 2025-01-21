@@ -6,25 +6,25 @@ import (
 	"realy.lol/event"
 )
 
-type T struct {
+type O struct {
 	PerConnectionLimiter *rate.Limiter
 	SkipEventFunc        func(*event.T) bo
 }
 
-type O func(*T)
+type F func(*O)
 
-func Default() *T {
-	return &T{}
+func Default() *O {
+	return &O{}
 }
 
-func WithPerConnectionLimiter(rps rate.Limit, burst no) O {
-	return func(o *T) {
+func WithPerConnectionLimiter(rps rate.Limit, burst no) F {
+	return func(o *O) {
 		o.PerConnectionLimiter = rate.NewLimiter(rps, burst)
 	}
 }
 
-func WithSkipEventFunc(skipEventFunc func(*event.T) bo) O {
-	return func(o *T) {
+func WithSkipEventFunc(skipEventFunc func(*event.T) bo) F {
+	return func(o *O) {
 		o.SkipEventFunc = skipEventFunc
 	}
 }

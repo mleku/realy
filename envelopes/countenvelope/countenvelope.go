@@ -21,13 +21,14 @@ type Request struct {
 
 var _ codec.Envelope = (*Request)(nil)
 
-func New() *Request {
-	return &Request{Subscription: subscription.NewStd(),
-		Filters: filters.New()}
-}
-func NewRequest(id *subscription.Id, filters *filters.T) *Request {
-	return &Request{Subscription: id,
-		Filters: filters}
+func NewRequest(id *subscription.Id, ff *filters.T) *Request {
+	if id == nil {
+		id = subscription.NewStd()
+	}
+	if ff == nil {
+		ff = filters.New()
+	}
+	return &Request{Subscription: id, Filters: ff}
 }
 func (en *Request) Label() string { return L }
 func (en *Request) Write(w io.Writer) (err er) {
@@ -71,7 +72,7 @@ func (en *Request) Unmarshal(b by) (r by, err er) {
 }
 
 func ParseRequest(b by) (t *Request, rem by, err er) {
-	t = New()
+	t = NewRequest(nil, nil)
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
 	}
@@ -87,7 +88,8 @@ type Response struct {
 var _ codec.Envelope = (*Response)(nil)
 
 func NewResponse() *Response { return &Response{ID: subscription.NewStd()} }
-func NewResponseFrom[V st | by](s V, cnt no, approx ...bo) (res *Response, err er) {
+func NewResponseFrom[V st | by](s V, cnt no, approx ...bo) (res *Response,
+	err er) {
 	var a bo
 	if len(approx) > 0 {
 		a = approx[0]

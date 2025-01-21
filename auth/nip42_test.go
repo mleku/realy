@@ -16,7 +16,7 @@ func TestCreateUnsigned(t *testing.T) {
 	const relayURL = "wss://example.com"
 	for _ = range 100 {
 		challenge := GenerateChallenge()
-		ev := CreateUnsigned(signer.Pub(), challenge, relayURL)
+		ev := CreateUnsigned(challenge, relayURL)
 		if err = ev.Sign(signer); chk.E(err) {
 			t.Fatal(err)
 		}

@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-
-	"realy.lol/cmd/lerproxy/util"
 )
 
 // NewSingleHostReverseProxy is a copy of httputil.NewSingleHostReverseProxy
@@ -13,10 +11,11 @@ import (
 func NewSingleHostReverseProxy(target *url.URL) (rp *httputil.ReverseProxy) {
 	targetQuery := target.RawQuery
 	director := func(req *http.Request) {
-		log.D.S(req)
+		log.I.S(target.Path, req.URL.Path)
 		req.URL.Scheme = target.Scheme
 		req.URL.Host = target.Host
-		req.URL.Path = util.SingleJoiningSlash(target.Path, req.URL.Path)
+		req.URL.Path = target.Path
+		// req.URL.Path = util.SingleJoiningSlash(target.Path, req.URL.Path)
 		if targetQuery == "" || req.URL.RawQuery == "" {
 			req.URL.RawQuery = targetQuery + req.URL.RawQuery
 		} else {

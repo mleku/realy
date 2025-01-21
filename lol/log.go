@@ -247,7 +247,10 @@ func GetNullPrinter() LevelPrinter {
 		S:   func(a ...interface{}) {},
 		C:   func(closure func() string) {},
 		Chk: func(e er) bo { return e != nil },
-		Err: func(format string, a ...interface{}) er { return fmt.Errorf(format, a...) },
+		Err: func(format string,
+			a ...interface{}) er {
+			return fmt.Errorf(format, a...)
+		},
 	}
 }
 

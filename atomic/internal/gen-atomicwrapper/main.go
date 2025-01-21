@@ -57,7 +57,6 @@ import (
 	"fmt"
 	"go/format"
 	"io"
-	"log"
 	"os"
 	"sort"
 	"strings"
@@ -66,9 +65,8 @@ import (
 )
 
 func main() {
-	log.SetFlags(0)
 	if err := run(os.Args[1:]); err != nil {
-		log.Fatalf("%+v", err)
+		log.F.F("%+v", err)
 	}
 }
 
