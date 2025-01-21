@@ -4,7 +4,7 @@ import (
 	"realy.lol/ec/schnorr"
 )
 
-// MarshalCompact encodes an event as the canonical form folowed by the raw binary
+// MarshalCompact encodes an event as the canonical form followed by the raw binary
 // signature (64 bytes) which hashes to form the ID, thus a compact form for the
 // database that is smaller and fast to decode.
 func (ev *T) MarshalCompact(dst by) (b by) {

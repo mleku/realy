@@ -58,3 +58,5 @@ require (
 	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+retract [v0.0.1,v1.5.3] // lots of mangled things, sorry
