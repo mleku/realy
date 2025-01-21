@@ -3,6 +3,7 @@ module realy.lol
 go 1.23.1
 
 require (
+	github.com/adrg/xdg v0.5.3
 	github.com/alexflint/go-arg v1.5.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/badger/v4 v4.5.0

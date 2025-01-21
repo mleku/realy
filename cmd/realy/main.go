@@ -24,7 +24,7 @@ import (
 func main() {
 	var err er
 	var cfg *config.C
-	if cfg, err = config.New(); chk.T(err) || config.HelpRequested() {
+	if cfg, err = config.New(); chk.T(err) {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
 		}
@@ -33,6 +33,10 @@ func main() {
 	}
 	if config.GetEnv() {
 		config.PrintEnv(cfg, os.Stdout)
+		os.Exit(0)
+	}
+	if config.HelpRequested() {
+		config.PrintHelp(cfg, os.Stderr)
 		os.Exit(0)
 	}
 	log.I.Ln("log level", cfg.LogLevel)
@@ -70,7 +74,7 @@ func main() {
 		Ctx:       c,
 		Cancel:    cancel,
 		Rl:        r,
-		DbPath:    cfg.Profile,
+		DbPath:    cfg.DataDir,
 		MaxLimit:  ratel.DefaultMaxLimit,
 		AdminUser: cfg.AdminUser,
 		AdminPass: cfg.AdminPass}); chk.E(err) {
