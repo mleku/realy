@@ -19,13 +19,18 @@ import (
 )
 
 func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
-	log.T.F("QueryEvents,%s", f.Serialize())
+	log.T.F("QueryEvents %s", f.Serialize())
 	evMap := make(map[st]*event.T)
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
 	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
 		return
+	}
+	// log.I.S(f, queries)
+	limit := r.MaxLimit
+	if f.Limit != nil {
+		limit = no(*f.Limit)
 	}
 	// search for the keys generated from the filter
 	eventKeys := make(map[st]struct{})
@@ -163,7 +168,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 								equals(ev.Tags.GetFirst(tag.New("d")).Value(),
 									ev.Tags.GetFirst(tag.New("d")).Value()) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
-									log.T.F("event %0x,%s\nreplaces %0x,%s",
+									log.T.F("event %0x,%s\n->replaces\n%0x,%s",
 										ev.ID,
 										ev.Serialize(),
 										evc.ID,
@@ -238,6 +243,9 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 			evs = append(evs, evMap[i])
 		}
 		sort.Sort(event.Descending(evs))
+		if len(evs) > limit {
+			evs = evs[:limit]
+		}
 		log.T.C(func() string {
 			evIds := make([]string, len(evs))
 			for i, ev := range evs {

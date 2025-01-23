@@ -3,8 +3,6 @@ package ratel
 import (
 	"encoding/binary"
 	"fmt"
-	"math"
-
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/filter"
@@ -14,6 +12,7 @@ import (
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/timestamp"
 	"realy.lol/ratel/prefixes"
+	"math"
 )
 
 type Results struct {
@@ -151,27 +150,32 @@ func PrepareQueries(f *filter.T) (
 		}
 		// log.T.S("kinds", qs)
 	default:
-		if len(qs) > 0 {
-			qs[0] = query{index: 0, queryFilter: f,
-				searchPrefix: prefixes.CreatedAt.Key()}
-			ext = nil
-		}
+		log.I.S("nothing in filter, returning latest events")
+		// if len(qs) > 0 {
+		qs = append(qs, query{index: 0, queryFilter: f,
+			searchPrefix: prefixes.CreatedAt.Key(), skipTS: true})
+		ext = nil
+		// }
 		// log.T.S("other", qs)
 	}
-	var until int64 = math.MaxInt64
-	if f.Until != nil {
-		if fu := f.Until.I64(); fu < until {
-			until = fu - 1
-		}
-	}
-	for i, q := range qs {
-		qs[i].start = binary.BigEndian.AppendUint64(q.searchPrefix, uint64(until))
-	}
+
 	// this is where we'll end the iteration
 	if f.Since != nil {
 		if fs := f.Since.U64(); fs > since {
 			since = fs
 		}
+	}
+	log.I.F("since %d", since)
+
+	var until uint64 = math.MaxInt64
+	if f.Until != nil {
+		if fu := f.Until.U64(); fu < until {
+			until = fu + 1
+		}
+	}
+	log.I.F("until %d", until)
+	for i, q := range qs {
+		qs[i].start = binary.BigEndian.AppendUint64(q.searchPrefix, uint64(until))
 	}
 	// if we got an empty filter, we still need a query for scraping the newest
 	if len(qs) == 0 {

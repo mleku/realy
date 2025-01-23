@@ -19,7 +19,7 @@ func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request, origi
 	if ev == nil {
 		return false, normalize.Invalid.F("empty event")
 	}
-	sto := rl.Storage(c)
+	sto := rl.Storage()
 	wrap := &wrapper.Relay{I: sto}
 	advancedSaver, _ := sto.(relay.AdvancedSaver)
 	accept, notice, after := rl.AcceptEvent(c, ev, hr, origin, authedPubkey)
@@ -47,6 +47,9 @@ func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request, origi
 			if listeners.NIP20prefixmatcher.MatchString(errmsg) {
 				if strings.Contains(errmsg, "tombstone") {
 					return false, normalize.Blocked.F("event was deleted, not storing it again")
+				}
+				if strings.HasPrefix(errmsg, st(normalize.Blocked)) {
+					return false, by(errmsg)
 				}
 				return false, normalize.Error.F(errmsg)
 			} else {

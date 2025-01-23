@@ -49,7 +49,7 @@ func (s *Server) handleAdmin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.I.F("export of event data requested on admin port")
-		sto := s.relay.Storage(context.Bg())
+		sto := s.relay.Storage()
 		if strings.Count(r.URL.Path, "/") > 1 {
 			split := strings.Split(r.URL.Path, "/")
 			if len(split) != 3 {
@@ -87,7 +87,7 @@ func (s *Server) handleAdmin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.I.F("import of event data requested on admin port %s", r.RequestURI)
-		sto := s.relay.Storage(context.Bg())
+		sto := s.relay.Storage()
 		read := io.LimitReader(r.Body, r.ContentLength)
 		sto.Import(read)
 		if realy, ok := s.relay.(*app.Relay); ok {

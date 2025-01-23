@@ -48,9 +48,9 @@ func New() (f *T) {
 		Kinds:   kinds.NewWithCap(10),
 		Authors: tag.NewWithCap(10),
 		Tags:    tags.New(),
-		Since:   timestamp.New(),
-		Until:   timestamp.New(),
-		Search:  nil,
+		// Since:   timestamp.New(),
+		// Until:   timestamp.New(),
+		Search: nil,
 	}
 }
 

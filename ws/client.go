@@ -185,13 +185,13 @@ func (r *Client) ConnectWithTLS(ctx cx, tlsConfig *tls.Config) er {
 					r.Close() // this should trigger a context cancelation
 					return
 				}
-			case writeRequest := <-r.writeQueue:
+			case writeReq := <-r.writeQueue:
 				// all write requests will go through this to prevent races
 				if err := r.Connection.WriteMessage(r.connectionContext,
-					writeRequest.msg); chk.T(err) {
-					writeRequest.answer <- err
+					writeReq.msg); chk.T(err) {
+					writeReq.answer <- err
 				}
-				close(writeRequest.answer)
+				close(writeReq.answer)
 			case <-r.connectionContext.Done():
 				// stop here
 				return

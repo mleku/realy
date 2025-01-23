@@ -27,7 +27,7 @@ func (s *Server) handleAuth(ws *web.Socket, req by) (msg by) {
 		}
 		var valid bo
 		if valid, err = auth.Validate(env.Event, by(ws.Challenge()), svcUrl); chk.E(err) {
-			if err := okenvelope.NewFrom(env.Event.ID, false,
+			if err = okenvelope.NewFrom(env.Event.ID, false,
 				normalize.Error.F(err.Error())).Write(ws); chk.E(err) {
 				return by(err.Error())
 			}

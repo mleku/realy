@@ -40,7 +40,7 @@ type Relay struct {
 
 func (r *Relay) Name() st { return r.C.AppName }
 
-func (r *Relay) Storage(c cx) store.I { return r.Store }
+func (r *Relay) Storage() store.I { return r.Store }
 
 func (r *Relay) Init() (err er) {
 	for _, src := range r.C.Owners {
@@ -53,13 +53,17 @@ func (r *Relay) Init() (err er) {
 		}
 		r.Owners = append(r.Owners, dst)
 	}
-	log.T.C(func() st {
-		ownerIds := make([]string, len(r.Owners))
-		for i, npub := range r.Owners {
-			ownerIds[i] = hex.Enc(npub)
-		}
-		return fmt.Sprintf("%v", ownerIds)
-	})
+	if len(r.Owners) > 0 {
+		log.T.C(func() st {
+			ownerIds := make([]string, len(r.Owners))
+			for i, npub := range r.Owners {
+				ownerIds[i] = hex.Enc(npub)
+			}
+			owners := strings.Join(ownerIds, ",")
+			return fmt.Sprintf("owners %s", owners)
+		})
+	}
+
 	r.ZeroLists()
 	r.CheckOwnerLists(context.Bg())
 	return nil

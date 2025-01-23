@@ -92,6 +92,10 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by)
 		}
 		return
 	}
+	storage := s.relay.Storage()
+	if storage == nil {
+		panic("no event store has been set to store event")
+	}
 	if env.T.Kind.K == kind.Deletion.K {
 		log.I.F("delete event\n%s", env.T.Serialize())
 		for _, t := range env.Tags.Value() {
@@ -103,7 +107,7 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by)
 					if _, err = hex.DecBytes(evId, t.Value()); chk.E(err) {
 						continue
 					}
-					res, err = s.relay.Storage(c).QueryEvents(c, &filter.T{IDs: tag.New(evId)})
+					res, err = storage.QueryEvents(c, &filter.T{IDs: tag.New(evId)})
 					if err != nil {
 						if err = okenvelope.NewFrom(env.ID, false,
 							normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {
@@ -120,7 +124,7 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by)
 						}
 						if !equals(res[i].PubKey, env.T.PubKey) {
 							if err = okenvelope.NewFrom(env.ID, false,
-								normalize.Blocked.F("cannot delete other users' events")).Write(ws); chk.E(err) {
+								normalize.Blocked.F("cannot delete other users' events (delete by e tag)")).Write(ws); chk.E(err) {
 								return
 							}
 						}
@@ -130,8 +134,20 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by)
 					if len(split) != 3 {
 						continue
 					}
+					var pk by
+					if pk, err = hex.DecAppend(nil, split[1]); chk.E(err) {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Invalid.F("delete event a tag pubkey value invalid: %s", t.Value())).Write(ws); chk.E(err) {
+							return
+						}
+						return
+					}
 					kin := ints.New(uint16(0))
 					if _, err = kin.Unmarshal(split[0]); chk.E(err) {
+						if err = okenvelope.NewFrom(env.ID, false,
+							normalize.Invalid.F("delete event a tag kind value invalid: %s", t.Value())).Write(ws); chk.E(err) {
+							return
+						}
 						return
 					}
 					kk := kind.New(kin.Uint16())
@@ -147,21 +163,22 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by)
 							return
 						}
 					}
-					if !equals(split[1], env.T.PubKey) {
+					if !equals(pk, env.T.PubKey) {
+						log.I.S(pk, env.T.PubKey, env.T)
 						if err = okenvelope.NewFrom(env.ID, false,
-							normalize.Blocked.F("cannot delete other users' events")).Write(ws); chk.E(err) {
+							normalize.Blocked.F("cannot delete other users' events (delete by a tag)")).Write(ws); chk.E(err) {
 							return
 						}
 					}
 					f := filter.New()
 					f.Kinds.K = []*kind.T{kk}
-					aut := make(by, 0, len(split[1])/2)
-					if aut, err = hex.DecAppend(aut, split[1]); chk.E(err) {
-						return
-					}
-					f.Authors.Append(aut)
+					// aut := make(by, 0, len(pk)/2)
+					// if aut, err = hex.DecAppend(aut, pk); chk.E(err) {
+					// 	return
+					// }
+					f.Authors.Append(pk)
 					f.Tags.AppendTags(tag.New(by{'#', 'd'}, split[2]))
-					res, err = s.relay.Storage(c).QueryEvents(c, f)
+					res, err = storage.QueryEvents(c, f)
 					if err != nil {
 						if err = okenvelope.NewFrom(env.ID, false,
 							normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {

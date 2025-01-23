@@ -46,7 +46,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 			s.options.PerConnectionLimiter.Burst()))
 	}
 	ctx, cancel := context.Cancel(context.Bg())
-	sto := s.relay.Storage(ctx)
+	sto := s.relay.Storage()
 	go func() {
 		defer func() {
 			cancel()
@@ -65,28 +65,34 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 			chk.E(conn.SetReadDeadline(time.Now().Add(s.listeners.PongWait)))
 			return nil
 		})
+		if s.authRequired {
+			ws.RequestAuth()
+		}
 		if ws.AuthRequested() && len(ws.Authed()) == 0 {
 			log.I.F("requesting auth from client from %s", ws.RealRemote())
 			if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 				return
 			}
-			return
+			// return
 		}
 		var message by
 		var typ no
 		for {
 			typ, message, err = conn.ReadMessage()
 			if err != nil {
-				if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure,
-					websocket.CloseGoingAway, websocket.CloseNoStatusReceived,
-					websocket.CloseAbnormalClosure) {
+				if websocket.IsUnexpectedCloseError(err,
+					websocket.CloseNormalClosure,
+					websocket.CloseGoingAway,
+					websocket.CloseNoStatusReceived,
+					websocket.CloseAbnormalClosure,
+				) {
 					log.W.F("unexpected close error from %s: %v",
 						r.Header.Get("X-Forwarded-For"), err)
 				}
 				break
 			}
 			if ws.Limiter() != nil {
-				if err := ws.Limiter().Wait(context.TODO()); chk.T(err) {
+				if err = ws.Limiter().Wait(context.TODO()); chk.T(err) {
 					log.W.F("unexpected limiter error %v", err)
 					continue
 				}
@@ -99,28 +105,30 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 			go s.handleMessage(ctx, ws, message, sto)
 		}
 	}()
-	go func() {
-		defer func() {
-			cancel()
-			ticker.Stop()
-			chk.E(conn.Close())
-		}()
-		var err er
-		for {
-			select {
-			case <-ticker.C:
-				err = conn.WriteControl(websocket.PingMessage, nil,
-					time.Now().Add(s.listeners.WriteWait))
-				if err != nil {
-					log.E.F("error writing ping: %v; closing websocket", err)
-					return
-				}
-				ws.RealRemote()
-			case <-ctx.Done():
+	go s.pinger(ctx, ws, conn, ticker, cancel)
+}
+
+func (s *Server) pinger(ctx context.T, ws *web.Socket, conn *websocket.Conn, ticker *time.Ticker, cancel context.F) {
+	defer func() {
+		cancel()
+		ticker.Stop()
+		chk.E(conn.Close())
+	}()
+	var err er
+	for {
+		select {
+		case <-ticker.C:
+			err = conn.WriteControl(websocket.PingMessage, nil,
+				time.Now().Add(s.listeners.WriteWait))
+			if err != nil {
+				log.E.F("error writing ping: %v; closing websocket", err)
 				return
 			}
+			ws.RealRemote()
+		case <-ctx.Done():
+			return
 		}
-	}()
+	}
 }
 
 func (s *Server) handleMessage(c cx, ws *web.Socket, msg by, sto store.I) {

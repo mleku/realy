@@ -35,7 +35,7 @@ type I interface {
 	AcceptEvent(c cx, ev *event.T, hr *http.Request, origin st, authedPubkey by) (accept bo,
 		notice st, afterSave func())
 	// Storage returns the realy storage implementation.
-	Storage(cx) store.I
+	Storage() store.I
 }
 
 // ReqAcceptor is the main interface for implementing a nostr

@@ -50,7 +50,7 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 					continue
 				}
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
-					return errorf.W(st(normalize.Invalid.F("not replacing newer event")))
+					return errorf.W(st(normalize.Invalid.F("not replacing newer replaceable event")))
 				}
 				// not deleting these events because some clients are retarded and the query
 				// will pull the new one but a backup can recover the data of old ones
@@ -92,7 +92,7 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 				err = nil
 				log.I.F("maybe replace %s", ev.Serialize())
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
-					return errorf.W(st(normalize.Invalid.F("not replacing newer event")))
+					return errors.New(st(normalize.Blocked.F("not replacing newer parameterized replaceable event")))
 				}
 				// not deleting these events because some clients are retarded and the query
 				// will pull the new one but a backup can recover the data of old ones

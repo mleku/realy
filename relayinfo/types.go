@@ -199,9 +199,9 @@ type Limits struct {
 	// to it -- like belonging to a special pubkey-based whitelist or writing
 	// only events of a specific niche kind or content. Normal anti-spam
 	// heuristics, for example, do not qualify.q
-	RestrictedWrites bo          `json:"restricted_writes"`
-	Oldest           timestamp.T `json:"created_at_lower_limit,omitempty"`
-	Newest           timestamp.T `json:"created_at_upper_limit,omitempty"`
+	RestrictedWrites bo           `json:"restricted_writes"`
+	Oldest           *timestamp.T `json:"created_at_lower_limit,omitempty"`
+	Newest           *timestamp.T `json:"created_at_upper_limit,omitempty"`
 }
 type Payment struct {
 	Amount no `json:"amount"`

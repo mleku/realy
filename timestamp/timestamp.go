@@ -22,17 +22,17 @@ func Now() *T {
 
 // U64 returns the current UNIX timestamp of the current second as uint64.
 func (t *T) U64() uint64 {
-	if t == nil {
-		return 0
-	}
+	// if t == nil {
+	// 	return uint64(math.MaxInt64)
+	// }
 	return uint64(t.V)
 }
 
 // I64 returns the current UNIX timestamp of the current second as int64.
 func (t *T) I64() int64 {
-	if t == nil {
-		return 0
-	}
+	// if t == nil {
+	// 	return math.MaxInt64
+	// }
 	return t.V
 }
 
@@ -94,4 +94,8 @@ func (t *T) Unmarshal(b by) (r by, err er) {
 	r, err = n.Unmarshal(b)
 	*t = T{n.Int64()}
 	return
+}
+
+func (t *T) MarshalJSON() ([]byte, error) {
+	return ints.New(t.U64()).Marshal(nil), nil
 }

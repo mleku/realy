@@ -67,7 +67,7 @@ func NewServer(sp ServerParams, opts ...options.O) (*Server, er) {
 		adminPass:    sp.AdminPass,
 		listeners:    listeners.New(),
 	}
-	if storage := sp.Rl.Storage(context.Bg()); storage != nil {
+	if storage := sp.Rl.Storage(); storage != nil {
 		if err := storage.Init(sp.DbPath); chk.T(err) {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
@@ -104,7 +104,7 @@ func (s *Server) Start(host st, port int, started ...chan bo) er {
 	}
 	s.Addr = ln.Addr().String()
 	s.httpServer = &http.Server{Handler: cors.Default().Handler(s), Addr: addr,
-		//WriteTimeout: 7 * time.Second,
+		// WriteTimeout: 7 * time.Second,
 		ReadHeaderTimeout: 7 * time.Second,
 		IdleTimeout:       28 * time.Second}
 	for _, startedC := range started {
@@ -128,7 +128,7 @@ func (s *Server) Shutdown() {
 		delete(s.clients, conn)
 	}
 	log.W.Ln("closing event store")
-	chk.E(s.relay.Storage(s.Ctx).Close())
+	chk.E(s.relay.Storage().Close())
 	log.W.Ln("shutting down relay listener")
 	chk.E(s.httpServer.Shutdown(s.Ctx))
 	if f, ok := s.relay.(relay.ShutdownAware); ok {

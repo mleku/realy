@@ -58,6 +58,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 			return
 		}
 	}
+	log.I.F("handling %s", env.Marshal(nil))
 	if allowed != env.Filters {
 		defer func() {
 			var auther relay.Authenticator
