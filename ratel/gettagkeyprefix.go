@@ -22,7 +22,7 @@ import (
 // - Tag:       [ 6 ][ address/URL ][ 8b Serial ]
 //
 // This function produces the initial bytes without the index.
-func GetTagKeyPrefix(tagValue string) (key by, err er) {
+func GetTagKeyPrefix(tagValue st) (key by, err er) {
 	if k, pkb, d := eventstore.GetAddrTagElements(tagValue); len(pkb) == 32 {
 		// store value in the new special "a" tag index
 		var pk *pubkey.T
@@ -31,7 +31,7 @@ func GetTagKeyPrefix(tagValue string) (key by, err er) {
 		}
 		els := []keys.Element{kinder.New(k), pk}
 		if len(d) > 0 {
-			els = append(els, arb.NewFromString(d))
+			els = append(els, arb.New(d))
 		}
 		key = prefixes.TagAddr.Key(els...)
 	} else if pkb, _ := hex.Dec(tagValue); len(pkb) == 32 {
@@ -45,7 +45,7 @@ func GetTagKeyPrefix(tagValue string) (key by, err er) {
 		// store whatever as utf-8
 		if len(tagValue) > 0 {
 			var a *arb.T
-			a = arb.NewFromString(tagValue)
+			a = arb.New(tagValue)
 			key = prefixes.Tag.Key(a)
 		} else {
 			key = prefixes.Tag.Key()

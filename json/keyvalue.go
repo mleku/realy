@@ -2,12 +2,16 @@ package json
 
 import (
 	"io"
+	"realy.lol/codec"
 )
+
+// An Object is an (not necessarily) ordered list of KeyValue.
+type Object struct{ V []KeyValue }
 
 // A KeyValue is a field in an Object.
 type KeyValue struct {
 	Key   by
-	Value I
+	Value codec.JSON
 }
 
 func (k *KeyValue) Marshal(dst by) (b by) {

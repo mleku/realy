@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"realy.lol/ints"
+	"golang.org/x/exp/constraints"
 )
 
 // T - which will be externally referenced as kind.T is the event type in the
@@ -13,7 +14,7 @@ type T struct {
 	K uint16
 }
 
-func New[V uint16 | uint32 | int32 | no](k V) (ki *T) { return &T{uint16(k)} }
+func New[V constraints.Integer](k V) (ki *T) { return &T{uint16(k)} }
 
 func (k *T) ToInt() no {
 	if k == nil {

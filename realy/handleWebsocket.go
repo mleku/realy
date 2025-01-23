@@ -159,7 +159,8 @@ func (s *Server) handleMessage(c cx, ws *web.Socket, msg by, sto store.I) {
 	}
 	if len(notice) > 0 {
 		log.D.F("notice->%s %s", ws.RealRemote(), notice)
-		if err = noticeenvelope.NewFrom(notice).Write(ws); chk.E(err) {
+		if err = noticeenvelope.NewFrom(notice).Write(ws); err != nil {
+			return
 		}
 	}
 }

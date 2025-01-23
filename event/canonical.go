@@ -9,6 +9,7 @@ import (
 	"realy.lol/tags"
 	"realy.lol/text"
 	"realy.lol/timestamp"
+	"realy.lol/codec"
 )
 
 // ToCanonical converts the event to the canonical encoding used to derive the
@@ -34,7 +35,7 @@ func (ev *T) GetIDBytes() by { return Hash(ev.ToCanonical(nil)) }
 
 func NewCanonical() (a *json.Array) {
 	a = &json.Array{
-		V: []json.I{
+		V: []codec.JSON{
 			&json.Unsigned{}, // 0
 			&json.Hex{},      // pubkey
 			&timestamp.T{},   // created_at

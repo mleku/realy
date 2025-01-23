@@ -2,10 +2,11 @@ package json
 
 import (
 	"io"
+	"realy.lol/codec"
 )
 
 // An Array is an ordered list of values.
-type Array struct{ V []I }
+type Array struct{ V []codec.JSON }
 
 func (a *Array) Marshal(dst by) (b by) {
 	b = dst

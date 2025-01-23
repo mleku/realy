@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -15,12 +14,12 @@ import (
 	"realy.lol/filter"
 	"realy.lol/filters"
 	"realy.lol/hex"
-	"realy.lol/ints"
 	"realy.lol/kind"
 	"realy.lol/kinds"
 	"realy.lol/realy/config"
 	"realy.lol/store"
 	"realy.lol/tag"
+	"realy.lol/tag/atag"
 )
 
 type Relay struct {
@@ -125,34 +124,25 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 				// prevent owners from deleting their own mute/follow lists in case of bad
 				// client implementation
 				if evt.Kind.Equal(kind.Deletion) {
-					// todo: disabling this to enable whitelisted users to delete new and replace to old version.
-					// // we don't accept deletes on owners' follow or mute lists because of the
-					// // potential for a malicious action causing this, first check for the list:
-					// tt := tag.New(append(r.OwnersFollowLists, r.OwnersMuteLists...)...)
-					// if evt.Tags.ContainsAny(by("e"), tt) {
-					// 	return false,
-					// 		"cannot delete owner's follow, owners' follows' follow or mute events",
-					// 		nil
-					// }
-					// next, check all a tags present are not follow/mute lists of the owners
+					// check all a tags present are not follow/mute lists of the owners
 					aTags := evt.Tags.GetAll(tag.New("a"))
 					for _, at := range aTags.F() {
-						split := bytes.Split(at.Value(), by{':'})
-						if len(split) != 3 {
+						a := &atag.T{}
+						var rem by
+						var err er
+						if rem, err = a.Unmarshal(at.Value()); chk.E(err) {
 							continue
 						}
-						kin := ints.New(uint16(0))
-						if _, err := kin.Unmarshal(split[0]); chk.E(err) {
-							return
+						if len(rem) > 0 {
+							log.I.S("remainder", evt, rem)
 						}
-						kk := kind.New(kin.Uint16())
-						if kk.Equal(kind.Deletion) {
+						if a.Kind.Equal(kind.Deletion) {
 							// we don't delete delete events, period
 							return false, "delete event kind may not be deleted", nil
 						}
 						// if the kind is not parameterised replaceable, the tag is invalid and the
 						// delete event will not be saved.
-						if !kk.IsParameterizedReplaceable() {
+						if !a.Kind.IsParameterizedReplaceable() {
 							return false, "delete tags with a tags containing " +
 								"non-parameterized-replaceable events cannot be processed", nil
 						}
@@ -160,9 +150,9 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 							// don't allow owners to delete their mute or follow lists because
 							// they should not want to, can simply replace it, and malicious
 							// clients may do this specifically to attack the owner's relay (s)
-							if equals(own, split[1]) ||
-								kk.Equal(kind.MuteList) ||
-								kk.Equal(kind.FollowList) {
+							if equals(own, a.PubKey) ||
+								a.Kind.Equal(kind.MuteList) ||
+								a.Kind.Equal(kind.FollowList) {
 								return false, "owners may not delete their own " +
 									"mute or follow lists, they can be replaced", nil
 							}
