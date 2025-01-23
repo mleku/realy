@@ -55,6 +55,10 @@ func (f *T) Marshal(dst by) (b by) {
 
 func (f *T) Unmarshal(b by) (r by, err er) {
 	r = b[:]
+	if len(r) < 1 {
+		err = errorf.E("cannot unmarshal nothing")
+		return
+	}
 	for len(r) > 0 {
 		switch r[0] {
 		case '[':
