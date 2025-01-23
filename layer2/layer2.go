@@ -206,9 +206,9 @@ func (b *Backend) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 	return
 }
 
-func (b *Backend) DeleteEvent(c cx, ev *eventid.T) (err er) {
+func (b *Backend) DeleteEvent(c cx, ev *eventid.T, noTombstone ...bo) (err er) {
 	// delete the events from both stores.
-	err = errors.Join(b.L1.DeleteEvent(c, ev), b.L2.DeleteEvent(c, ev))
+	err = errors.Join(b.L1.DeleteEvent(c, ev, noTombstone...), b.L2.DeleteEvent(c, ev, noTombstone...))
 	return
 }
 

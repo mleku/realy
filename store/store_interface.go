@@ -29,7 +29,7 @@ type I interface {
 	// the events that were found it just returns the count of events
 	CountEvents(c cx, f *filter.T) (count no, approx bo, err er)
 	// DeleteEvent is used to handle deletion events, as per NIP-09.
-	DeleteEvent(c cx, ev *eventid.T) (err er)
+	DeleteEvent(c cx, ev *eventid.T, noTombstone ...bo) (err er)
 	// SaveEvent is called once Relay.AcceptEvent reports true.
 	SaveEvent(c cx, ev *event.T) (err er)
 	// Import reads in a stream of line structured JSON of events to save into the

@@ -45,8 +45,8 @@ func (b *Backend) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 }
 
 // DeleteEvent removes an event from the event store.
-func (b *Backend) DeleteEvent(c cx, eid *eventid.T) (err er) {
-	return b.Backend.DeleteEvent(c, eid)
+func (b *Backend) DeleteEvent(c cx, eid *eventid.T, noTombstone ...bo) (err er) {
+	return b.Backend.DeleteEvent(c, eid, noTombstone...)
 }
 
 // QueryEvents searches for events that match a filter and returns them

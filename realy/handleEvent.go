@@ -238,7 +238,8 @@ func (s *Server) handleEvent(c cx, ws *web.Socket, req by, sto store.I) (msg by)
 			return
 		}
 	}
-	ok, reason := s.addEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(), by(ws.Authed()))
+	var reason by
+	ok, reason = s.addEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(), by(ws.Authed()))
 	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
 		return
 	}

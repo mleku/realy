@@ -37,9 +37,9 @@ type testRelay struct {
 	acceptEvent func(*event.T) bo
 }
 
-func (tr *testRelay) Name() st                  { return tr.name }
-func (tr *testRelay) Storage(context.T) store.I { return tr.storage }
-func (tr *testRelay) Origin() st                { return "example.com" }
+func (tr *testRelay) Name() st         { return tr.name }
+func (tr *testRelay) Storage() store.I { return tr.storage }
+func (tr *testRelay) Origin() st       { return "example.com" }
 func (tr *testRelay) Init() er {
 	tr.cx, tr.Cancel = context.Cancel(context.Bg())
 	if fn := tr.init; fn != nil {
@@ -66,7 +66,7 @@ type testStorage struct {
 	init        func() er
 	close       func()
 	queryEvents func(context.T, *filter.T) ([]*event.T, er)
-	deleteEvent func(context.T, *eventid.T) er
+	deleteEvent func(c context.T, eid *eventid.T, noTombstone ...bo) er
 	saveEvent   func(context.T, *event.T) er
 	countEvents func(context.T, *filter.T) (no, bo, er)
 }
@@ -117,7 +117,7 @@ func (st *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err 
 	return nil, nil
 }
 
-func (st *testStorage) DeleteEvent(c context.T, evt *eventid.T) er {
+func (st *testStorage) DeleteEvent(c context.T, evt *eventid.T, noTombstone ...bo) er {
 	if fn := st.deleteEvent; fn != nil {
 		return fn(c, evt)
 	}

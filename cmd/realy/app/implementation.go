@@ -125,14 +125,15 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 				// prevent owners from deleting their own mute/follow lists in case of bad
 				// client implementation
 				if evt.Kind.Equal(kind.Deletion) {
-					// we don't accept deletes on owners' follow or mute lists because of the
-					// potential for a malicious action causing this, first check for the list:
-					tt := tag.New(append(r.OwnersFollowLists, r.OwnersMuteLists...)...)
-					if evt.Tags.ContainsAny(by("e"), tt) {
-						return false,
-							"cannot delete owner's follow, owners' follows follow or mute events",
-							nil
-					}
+					// todo: disabling this to enable whitelisted users to delete new and replace to old version.
+					// // we don't accept deletes on owners' follow or mute lists because of the
+					// // potential for a malicious action causing this, first check for the list:
+					// tt := tag.New(append(r.OwnersFollowLists, r.OwnersMuteLists...)...)
+					// if evt.Tags.ContainsAny(by("e"), tt) {
+					// 	return false,
+					// 		"cannot delete owner's follow, owners' follows' follow or mute events",
+					// 		nil
+					// }
 					// next, check all a tags present are not follow/mute lists of the owners
 					aTags := evt.Tags.GetAll(tag.New("a"))
 					for _, at := range aTags.F() {

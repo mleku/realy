@@ -26,7 +26,8 @@ func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request, origi
 	if !accept {
 		return false, normalize.Blocked.F(notice)
 	}
-	if ev.Tags.ContainsProtectedMarker() {
+	// don't allow storing event with protected marker as per nip-70 with auth enabled.
+	if s.authRequired && ev.Tags.ContainsProtectedMarker() {
 		if len(authedPubkey) == 0 || !equals(ev.PubKey, authedPubkey) {
 			return false,
 				by(fmt.Sprintf("event with relay marker tag '-' (nip-70 protected event) "+

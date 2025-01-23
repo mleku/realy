@@ -15,7 +15,7 @@ import (
 	"realy.lol/ratel/prefixes"
 )
 
-func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
+func (r *T) DeleteEvent(c cx, eid *eventid.T, noTombstone ...bo) (err er) {
 	var foundSerial by
 	seri := serial.New(nil)
 	err = r.View(func(txn *badger.Txn) (err er) {
@@ -66,8 +66,9 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
 			// log.I.S(rem, ev, seri)
 			indexKeys = GetIndexKeysForEvent(ev, seri)
 			counterKey = GetCounterKey(seri)
-			// we don't make tombstones for these,
-			if !(ev.Kind.IsParameterizedReplaceable() || ev.Kind.IsReplaceable()) {
+			// we don't make tombstones for replacements, but it is better to shift that
+			// logic outside of this method.
+			if len(noTombstone) > 0 && !noTombstone[0] {
 				ts := tombstone.NewWith(ev.EventID())
 				tombstoneKey = prefixes.Tombstone.Key(ts, createdat.New(timestamp.Now()))
 			}

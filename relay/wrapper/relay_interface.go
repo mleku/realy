@@ -65,8 +65,10 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 							// the event.
 							return
 						}
-						log.T.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
-						if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
+						log.T.C(func() st { return fmt.Sprintf("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize()) })
+						// replaceable events we don't tombstone when replacing, so if deleted, old
+						// versions can be restored
+						if err = w.I.DeleteEvent(c, ev.EventID(), true); chk.E(err) {
 							return
 						}
 					}()
@@ -82,9 +84,8 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 		f.Kinds = kinds.New(evt.Kind)
 		log.I.F("filter for parameterized replaceable %v %s", f.Tags.ToStringSlice(),
 			f.Serialize())
-		evs, err = w.I.QueryEvents(c, f)
-		if err != nil {
-			return fmt.Errorf("failed to query before replacing: %w", err)
+		if evs, err = w.I.QueryEvents(c, f); err != nil {
+			return errorf.E("failed to query before replacing: %w", err)
 		}
 		if len(evs) > 0 {
 			for _, ev := range evs {
@@ -92,7 +93,7 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 				err = nil
 				log.I.F("maybe replace %s", ev.Serialize())
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
-					return errors.New(st(normalize.Blocked.F("not replacing newer parameterized replaceable event")))
+					return errorf.D(st(normalize.Blocked.F("not replacing newer parameterized replaceable event")))
 				}
 				// not deleting these events because some clients are retarded and the query
 				// will pull the new one but a backup can recover the data of old ones
@@ -112,8 +113,10 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 							// the event.
 							return
 						}
-						log.I.F("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize())
-						if err = w.I.DeleteEvent(c, ev.EventID()); chk.E(err) {
+						log.T.C(func() st { return fmt.Sprintf("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize()) })
+						// replaceable events we don't tombstone when replacing, so if deleted, old
+						// versions can be restored
+						if err = w.I.DeleteEvent(c, ev.EventID(), true); chk.E(err) {
 							return
 						}
 					}()
