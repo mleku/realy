@@ -165,7 +165,7 @@ func PrepareQueries(f *filter.T) (
 			since = fs
 		}
 	}
-	log.I.F("since %d", since)
+	// log.I.F("since %d", since)
 
 	var until uint64 = math.MaxInt64
 	if f.Until != nil {
@@ -173,7 +173,7 @@ func PrepareQueries(f *filter.T) (
 			until = fu + 1
 		}
 	}
-	log.I.F("until %d", until)
+	// log.I.F("until %d", until)
 	for i, q := range qs {
 		qs[i].start = binary.BigEndian.AppendUint64(q.searchPrefix, uint64(until))
 	}
