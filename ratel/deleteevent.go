@@ -66,8 +66,11 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
 			// log.I.S(rem, ev, seri)
 			indexKeys = GetIndexKeysForEvent(ev, seri)
 			counterKey = GetCounterKey(seri)
-			ts := tombstone.NewWith(ev.EventID())
-			tombstoneKey = prefixes.Tombstone.Key(ts, createdat.New(timestamp.Now()))
+			// we don't make tombstones for these,
+			if !(ev.Kind.IsParameterizedReplaceable() || ev.Kind.IsReplaceable()) {
+				ts := tombstone.NewWith(ev.EventID())
+				tombstoneKey = prefixes.Tombstone.Key(ts, createdat.New(timestamp.Now()))
+			}
 			return
 		}
 		return
@@ -85,10 +88,12 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T) (err er) {
 		if err = txn.Delete(counterKey); chk.E(err) {
 			return
 		}
-		// write tombstone
-		log.W.F("writing tombstone %0x for event %0x", tombstoneKey, ev.ID)
-		if err = txn.Set(tombstoneKey, nil); chk.E(err) {
-			return
+		if len(tombstoneKey) > 0 {
+			// write tombstone
+			log.W.F("writing tombstone %0x for event %0x", tombstoneKey, ev.ID)
+			if err = txn.Set(tombstoneKey, nil); chk.E(err) {
+				return
+			}
 		}
 		return
 	})
