@@ -19,6 +19,7 @@ import (
 	"realy.lol/realy"
 	"realy.lol/realy/config"
 	"realy.lol/units"
+	"realy.lol/realy/options"
 )
 
 func main() {
@@ -70,15 +71,21 @@ func main() {
 	r := &app.Relay{C: cfg, Store: storage}
 	go app.MonitorResources(c)
 	var server *realy.Server
-	if server, err = realy.NewServer(realy.ServerParams{
+	serverParams := &realy.ServerParams{
 		Ctx:       c,
 		Cancel:    cancel,
 		Rl:        r,
 		DbPath:    cfg.DataDir,
 		MaxLimit:  ratel.DefaultMaxLimit,
 		AdminUser: cfg.AdminUser,
-		AdminPass: cfg.AdminPass}); chk.E(err) {
-
+		AdminPass: cfg.AdminPass,
+	}
+	var opts []options.O
+	if cfg.AuthRequired || len(cfg.Owners) > 0 {
+		log.W.Ln("rate limiter enabled")
+		opts = append(opts, options.WithPerConnectionLimiter(1, 2))
+	}
+	if server, err = realy.NewServer(serverParams, opts...); chk.E(err) {
 		os.Exit(1)
 	}
 	if err != nil {

@@ -61,10 +61,9 @@ func (r *Relay) Init() (err er) {
 			owners := strings.Join(ownerIds, ",")
 			return fmt.Sprintf("owners %s", owners)
 		})
+		r.ZeroLists()
+		r.CheckOwnerLists(context.Bg())
 	}
-
-	r.ZeroLists()
-	r.CheckOwnerLists(context.Bg())
 	return nil
 }
 

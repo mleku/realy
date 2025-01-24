@@ -112,7 +112,7 @@ func (s *Server) pinger(ctx context.T, ws *web.Socket, conn *websocket.Conn, tic
 	defer func() {
 		cancel()
 		ticker.Stop()
-		chk.E(conn.Close())
+		conn.Close()
 	}()
 	var err er
 	for {

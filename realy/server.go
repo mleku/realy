@@ -45,7 +45,7 @@ type ServerParams struct {
 	AdminUser, AdminPass st
 }
 
-func NewServer(sp ServerParams, opts ...options.O) (*Server, er) {
+func NewServer(sp *ServerParams, opts ...options.O) (*Server, er) {
 	op := options.Default()
 	for _, opt := range opts {
 		opt(op)
