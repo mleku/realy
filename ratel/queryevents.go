@@ -210,7 +210,6 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 					// requested this will be used instead as the previous clause.
 					if len(evMap) >= r.MaxLimit {
 						log.T.F("found MaxLimit events: %d", len(evMap))
-						done = true
 						return
 					}
 				}
@@ -238,11 +237,13 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 	if len(evMap) > 0 {
 		for i := range evMap {
 			if len(evMap[i].PubKey) == 0 {
+				log.I.S(evMap[i])
 				continue
 			}
 			evs = append(evs, evMap[i])
 		}
 		sort.Sort(event.Descending(evs))
+		log.I.F("limit: %d", limit)
 		if len(evs) > limit {
 			evs = evs[:limit]
 		}
