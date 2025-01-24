@@ -22,18 +22,28 @@ import (
 	"realy.lol/tag/atag"
 )
 
+type List map[st]struct{}
+
 type Relay struct {
 	sync.Mutex
 	*config.C
 	Store store.I
 	// Owners' pubkeys
-	Owners                          []by
-	Followed, OwnersFollowed, Muted map[st]struct{}
-	// OwnersFollowLists are the event IDs of owners follow lists, which must not be deleted,
-	// only replaced.
+	Owners []by
+	// Followed are the pubkeys that are in the Owners' follow lists and have full
+	// access permission.
+	Followed List
+	// OwnersFollowed are "guests" of the Followed and have full access but with
+	// rate limiting enabled.
+	OwnersFollowed List
+	// Muted are on Owners' mute lists and do not have write access to the relay,
+	// even if they would be in the OwnersFollowed list, they can only read.
+	Muted List
+	// OwnersFollowLists are the event IDs of owners follow lists, which must not be
+	// deleted, only replaced.
 	OwnersFollowLists []by
-	// OwnersMuteLists are the event IDs of owners mute lists, which must not be deleted, only
-	// replaced.
+	// OwnersMuteLists are the event IDs of owners mute lists, which must not be
+	// deleted, only replaced.
 	OwnersMuteLists []by
 }
 
@@ -67,6 +77,13 @@ func (r *Relay) Init() (err er) {
 	return nil
 }
 
+func (r *Relay) NoLimiter(pubKey by) (ok bo) {
+	r.Lock()
+	defer r.Unlock()
+	_, ok = r.Followed[st(pubKey)]
+	return
+}
+
 func (r *Relay) ZeroLists() {
 	r.Followed = make(map[st]struct{})
 	r.OwnersFollowed = make(map[st]struct{})
@@ -86,7 +103,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 			"realy does not accept timestamps that are so obviously fake, fix your clock",
 			nil
 	}
-	if len(authedPubkey) != 32 {
+	if len(authedPubkey) != 32 && !r.PublicReadable {
 		return false, fmt.Sprintf("client not authed with auth required %s", origin), nil
 	}
 	if len(r.Owners) > 0 {
@@ -192,7 +209,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 	authedPubkey by) (allowed *filters.T, ok bo) {
 	// if the authenticator is enabled we require auth to process requests
-	if !r.AuthEnabled() {
+	if !r.AuthEnabled() || r.PublicReadable {
 		allowed = ff
 		ok = true
 		return
@@ -338,16 +355,6 @@ func (r *Relay) CheckOwnerLists(c cx) {
 			evs = evs[:0]
 		}
 		log.I.F("%d allowed npubs, %d blocked", len(r.Followed), len(r.Muted))
-		// // log this info
-		// o := "followed:\n"
-		// for pk := range r.Followed {
-		// 	o += fmt.Sprintf("%0x,", pk)
-		// }
-		// o += "\nmuted:\n"
-		// for pk := range r.Muted {
-		// 	o += fmt.Sprintf("%0x,", pk)
-		// }
-		// log.T.F("%s\n", o)
 	}
 }
 

@@ -45,6 +45,17 @@ func (s *Server) handleAuth(ws *web.Socket, req by) (msg by) {
 			}
 			log.D.F("%s authed to pubkey,%0x", ws.RealRemote(), env.Event.PubKey)
 			ws.SetAuthed(st(env.Event.PubKey))
+			if s.relay.NoLimiter(env.Event.PubKey) {
+				// if user is authed as a direct follow of the owners' follow list this means
+				// they are paying or guest users on the relay and there is no limit on their
+				// request/publish rates.
+				//
+				// todo: maybe this should be more stringent and relax the limiter but for now
+				//  there is no per user access accounting or any such thing. there may be need
+				//  of it. the reason being that publishing large numbers of document events is
+				//  a projected use case.
+				ws.SetLimiter(nil)
+			}
 		}
 	}
 	return

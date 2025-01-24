@@ -11,7 +11,7 @@ import (
 	"realy.lol/web"
 )
 
-// I is the main interface for implementing a nostr
+// I is the main interface for implementing a nostr realy.
 type I interface {
 	// Name is used as the "name" field in NIP-11 and as a prefix in default Server logging.
 	// For other NIP-11 fields, see [Informationer].
@@ -36,6 +36,8 @@ type I interface {
 		notice st, afterSave func())
 	// Storage returns the realy storage implementation.
 	Storage() store.I
+	// NoLimiter returns true if the provided npub should not be rate limited.
+	NoLimiter(pubKey by) bo
 }
 
 // ReqAcceptor is the main interface for implementing a nostr

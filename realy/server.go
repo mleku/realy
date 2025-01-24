@@ -31,6 +31,7 @@ type Server struct {
 	serveMux             *http.ServeMux
 	httpServer           *http.Server
 	authRequired         bo
+	publicReadable       bo
 	maxLimit             no
 	adminUser, adminPass st
 	listeners            *listeners.T
@@ -43,6 +44,7 @@ type ServerParams struct {
 	DbPath               st
 	MaxLimit             no
 	AdminUser, AdminPass st
+	PublicReadable       bo
 }
 
 func NewServer(sp *ServerParams, opts ...options.O) (*Server, er) {
@@ -55,17 +57,18 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, er) {
 		authRequired = ar.AuthEnabled()
 	}
 	srv := &Server{
-		Ctx:          sp.Ctx,
-		Cancel:       sp.Cancel,
-		relay:        sp.Rl,
-		clients:      make(map[*websocket.Conn]struct{}),
-		serveMux:     http.NewServeMux(),
-		options:      op,
-		authRequired: authRequired,
-		maxLimit:     sp.MaxLimit,
-		adminUser:    sp.AdminUser,
-		adminPass:    sp.AdminPass,
-		listeners:    listeners.New(),
+		Ctx:            sp.Ctx,
+		Cancel:         sp.Cancel,
+		relay:          sp.Rl,
+		clients:        make(map[*websocket.Conn]struct{}),
+		serveMux:       http.NewServeMux(),
+		options:        op,
+		authRequired:   authRequired,
+		publicReadable: sp.PublicReadable,
+		maxLimit:       sp.MaxLimit,
+		adminUser:      sp.AdminUser,
+		adminPass:      sp.AdminPass,
+		listeners:      listeners.New(),
 	}
 	if storage := sp.Rl.Storage(); storage != nil {
 		if err := storage.Init(sp.DbPath); chk.T(err) {

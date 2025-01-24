@@ -42,6 +42,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	log.T.F("connected from %s", ip)
 	ws := s.listeners.GetChallenge(conn, r, ip)
 	if s.options.PerConnectionLimiter != nil {
+		// this does not apply to users on the owners' Followed list
 		ws.SetLimiter(rate.NewLimiter(s.options.PerConnectionLimiter.Limit(),
 			s.options.PerConnectionLimiter.Burst()))
 	}

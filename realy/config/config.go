@@ -20,27 +20,28 @@ import (
 )
 
 type C struct {
-	AppName      st   `env:"REALY_APP_NAME" default:"realy"`
-	Config       st   `env:"REALY_CONFIG_DIR" usage:"location for configuration file, which has the name '.env' to make it harder to delete, and is a standard environment KEY=value<newline>... style"`
-	State        st   `env:"REALY_STATE_DATA_DIR" usage:"storage location for state data affected by dynamic interactive interfaces"`
-	DataDir      st   `env:"REALY_DATA_DIR" usage:"storage location for the ratel event store"`
-	Listen       st   `env:"REALY_LISTEN" default:"0.0.0.0" usage:"network listen address"`
-	Port         no   `env:"REALY_PORT" default:"3334" usage:"port to listen on"`
-	AdminUser    st   `env:"REALY_ADMIN_USER" default:"admin" usage:"admin user"`
-	AdminPass    st   `env:"REALY_ADMIN_PASS" usage:"admin password"`
-	LogLevel     st   `env:"REALY_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
-	DbLogLevel   st   `env:"REALY_DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
-	AuthRequired bo   `env:"REALY_AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
-	Owners       []st `env:"REALY_OWNERS" usage:"comma separated list of npubs of users in hex format whose follow and mute list dictate accepting requests and events with AUTH_REQUIRED enabled - follows and follows follows are allowed to read/write, owners mutes events are rejected"`
-	DBSizeLimit  no   `env:"REALY_DB_SIZE_LIMIT" default:"0" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding, 0 means disabled"`
-	DBLowWater   no   `env:"REALY_DB_LOW_WATER" default:"60" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
-	DBHighWater  no   `env:"REALY_DB_HIGH_WATER" default:"80" usage:"the trigger point at which a GC run should start if exceeded"`
-	GCFrequency  no   `env:"REALY_GC_FREQUENCY" default:"3600" usage:"the frequency of checks of the current utilisation in minutes"`
-	Pprof        bo   `env:"REALY_PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
-	MemLimit     no   `env:"REALY_MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
-	UseCompact   bo   `env:"REALY_USE_COMPACT" default:"false" usage:"use the compact database encoding for the ratel event store"`
-	Compression  st   `env:"REALY_COMPRESSION" default:"none" usage:"compress the database, [none|snappy|zstd]"`
-	SpiderKey    st   `env:"REALY_SPIDER_KEY" usage:"auth key to use when spidering other relays"`
+	AppName        st   `env:"REALY_APP_NAME" default:"realy"`
+	Config         st   `env:"REALY_CONFIG_DIR" usage:"location for configuration file, which has the name '.env' to make it harder to delete, and is a standard environment KEY=value<newline>... style"`
+	State          st   `env:"REALY_STATE_DATA_DIR" usage:"storage location for state data affected by dynamic interactive interfaces"`
+	DataDir        st   `env:"REALY_DATA_DIR" usage:"storage location for the ratel event store"`
+	Listen         st   `env:"REALY_LISTEN" default:"0.0.0.0" usage:"network listen address"`
+	Port           no   `env:"REALY_PORT" default:"3334" usage:"port to listen on"`
+	AdminUser      st   `env:"REALY_ADMIN_USER" default:"admin" usage:"admin user"`
+	AdminPass      st   `env:"REALY_ADMIN_PASS" usage:"admin password"`
+	LogLevel       st   `env:"REALY_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	DbLogLevel     st   `env:"REALY_DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
+	AuthRequired   bo   `env:"REALY_AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
+	PublicReadable bo   `env:"REALY_PUBLIC_READABLE" default:"true" usage:"allows all read access, overriding read access limit from REALY_AUTH_REQUIRED"`
+	Owners         []st `env:"REALY_OWNERS" usage:"comma separated list of npubs of users in hex format whose follow and mute list dictate accepting requests and events with AUTH_REQUIRED enabled - follows and follows follows are allowed to read/write, owners mutes events are rejected"`
+	DBSizeLimit    no   `env:"REALY_DB_SIZE_LIMIT" default:"0" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding, 0 means disabled"`
+	DBLowWater     no   `env:"REALY_DB_LOW_WATER" default:"60" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
+	DBHighWater    no   `env:"REALY_DB_HIGH_WATER" default:"80" usage:"the trigger point at which a GC run should start if exceeded"`
+	GCFrequency    no   `env:"REALY_GC_FREQUENCY" default:"3600" usage:"the frequency of checks of the current utilisation in minutes"`
+	Pprof          bo   `env:"REALY_PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
+	MemLimit       no   `env:"REALY_MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
+	UseCompact     bo   `env:"REALY_USE_COMPACT" default:"false" usage:"use the compact database encoding for the ratel event store"`
+	Compression    st   `env:"REALY_COMPRESSION" default:"none" usage:"compress the database, [none|snappy|zstd]"`
+	SpiderKey      st   `env:"REALY_SPIDER_KEY" usage:"auth key to use when spidering other relays"`
 	// NWC          st   `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"` // todo
 }
 

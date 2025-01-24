@@ -72,18 +72,25 @@ func main() {
 	go app.MonitorResources(c)
 	var server *realy.Server
 	serverParams := &realy.ServerParams{
-		Ctx:       c,
-		Cancel:    cancel,
-		Rl:        r,
-		DbPath:    cfg.DataDir,
-		MaxLimit:  ratel.DefaultMaxLimit,
-		AdminUser: cfg.AdminUser,
-		AdminPass: cfg.AdminPass,
+		Ctx:            c,
+		Cancel:         cancel,
+		Rl:             r,
+		DbPath:         cfg.DataDir,
+		MaxLimit:       ratel.DefaultMaxLimit,
+		AdminUser:      cfg.AdminUser,
+		AdminPass:      cfg.AdminPass,
+		PublicReadable: cfg.PublicReadable,
 	}
 	var opts []options.O
 	if cfg.AuthRequired || len(cfg.Owners) > 0 {
 		log.W.Ln("rate limiter enabled")
 		opts = append(opts, options.WithPerConnectionLimiter(1, 5))
+	}
+	if len(cfg.Owners) > 0 || cfg.AuthRequired {
+		log.I.F("relay requires auth for writing")
+	}
+	if cfg.PublicReadable {
+		log.I.F("relay is public readable")
 	}
 	if server, err = realy.NewServer(serverParams, opts...); chk.E(err) {
 		os.Exit(1)

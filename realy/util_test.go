@@ -15,7 +15,7 @@ import (
 
 func startTestRelay(c context.T, t *testing.T, tr *testRelay) *Server {
 	t.Helper()
-	srv, _ := NewServer(ServerParams{
+	srv, _ := NewServer(&ServerParams{
 		Ctx:      c,
 		Cancel:   func() {},
 		Rl:       tr,
@@ -46,6 +46,10 @@ func (tr *testRelay) Init() er {
 		return fn()
 	}
 	return nil
+}
+
+func (tr *testRelay) NoLimiter(pubKey by) bo {
+	return false
 }
 
 func (tr *testRelay) OnShutdown(c context.T) {

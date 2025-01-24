@@ -24,7 +24,7 @@ import (
 )
 
 func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
-	if ws.AuthRequested() && len(ws.Authed()) == 0 {
+	if !s.publicReadable || (ws.AuthRequested() && len(ws.Authed()) == 0) {
 		return by("awaiting auth for req")
 	}
 	var err er
