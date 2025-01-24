@@ -144,10 +144,6 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 							// pubkey and kind.
 							if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
-									// log.T.F("event %0x,%s\nreplaces %0x,%s",
-									// 	ev.ID, ev.Serialize(),
-									// 	evc.ID, evc.Serialize(),
-									// )
 									// replace the event, it is newer
 									delete(evMap, i)
 									break
@@ -166,13 +162,11 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 							// newest for a pubkey, kind and the value field of the `d` tag.
 							if ev.Kind.Equal(evc.Kind) && equals(ev.PubKey, evc.PubKey) &&
 								equals(ev.Tags.GetFirst(tag.New("d")).Value(),
-									ev.Tags.GetFirst(tag.New("d")).Value()) {
+									evc.Tags.GetFirst(tag.New("d")).Value()) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
 									log.T.F("event %0x,%s\n->replaces\n%0x,%s",
-										ev.ID,
-										ev.Serialize(),
-										evc.ID,
-										evc.Serialize(),
+										ev.ID, ev.Serialize(),
+										evc.ID, evc.Serialize(),
 									)
 									// replace the event, it is newer
 									delete(evMap, i)
@@ -243,7 +237,6 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 			evs = append(evs, evMap[i])
 		}
 		sort.Sort(event.Descending(evs))
-		log.I.F("limit: %d", limit)
 		if len(evs) > limit {
 			evs = evs[:limit]
 		}
