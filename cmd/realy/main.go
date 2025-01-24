@@ -83,7 +83,7 @@ func main() {
 	var opts []options.O
 	if cfg.AuthRequired || len(cfg.Owners) > 0 {
 		log.W.Ln("rate limiter enabled")
-		opts = append(opts, options.WithPerConnectionLimiter(1, 2))
+		opts = append(opts, options.WithPerConnectionLimiter(1, 5))
 	}
 	if server, err = realy.NewServer(serverParams, opts...); chk.E(err) {
 		os.Exit(1)
