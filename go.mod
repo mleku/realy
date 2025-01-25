@@ -20,6 +20,7 @@ require (
 	github.com/templexxx/xhex v0.0.0-20200614015412-aed53437177b
 	go-simpler.org/env v0.12.0
 	golang.org/x/crypto v0.32.0
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
 	golang.org/x/lint v0.0.0-20241112194109-818c5a804067
 	golang.org/x/net v0.34.0
 	golang.org/x/sync v0.10.0
