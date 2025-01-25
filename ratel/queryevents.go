@@ -16,6 +16,9 @@ import (
 	"realy.lol/tag"
 	"realy.lol/timestamp"
 	"realy.lol/ratel/prefixes"
+	"time"
+	"strconv"
+	"realy.lol/eventid"
 )
 
 func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
@@ -33,6 +36,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 		limit = no(*f.Limit)
 	}
 	// search for the keys generated from the filter
+	var total no
 	eventKeys := make(map[st]struct{})
 	for _, q := range queries {
 		select {
@@ -71,6 +75,12 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 				ser := serial.FromKey(k)
 				idx := prefixes.Event.Key(ser)
 				eventKeys[st(idx)] = struct{}{}
+				total++
+				// some queries just produce stupid amounts of matches, they are a resource
+				// exhaustion attack vector and only spiders make them
+				if total > 5000 {
+					return
+				}
 			}
 			return
 		})
@@ -81,7 +91,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 			}
 		}
 	}
-	log.T.F("found %d event indexes", len(eventKeys))
+	log.T.F("found %d event indexes from %d queries", len(eventKeys), len(queries))
 	select {
 	case <-r.Ctx.Done():
 		return
@@ -89,6 +99,12 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 		return
 	default:
 	}
+	var delEvs []by
+	defer func() {
+		for _, d := range delEvs {
+			chk.E(r.DeleteEvent(r.Ctx, eventid.NewWith(d)))
+		}
+	}()
 	accessed := make(map[st]struct{})
 	for ek := range eventKeys {
 		eventKey := by(ek)
@@ -136,6 +152,17 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 					}
 					if len(rem) > 0 {
 						log.T.S(rem)
+					}
+					if et := ev.Tags.GetFirst(tag.New("expiration")); et != nil {
+						var exp uint64
+						if exp, err = strconv.ParseUint(string(et.Value()), 10, 64); chk.E(err) {
+							return
+						}
+						if int64(exp) > time.Now().Unix() {
+							// this needs to be deleted
+							delEvs = append(delEvs, ev.ID)
+							return
+						}
 					}
 					// check if this event is replaced by one we already have in the result.
 					if ev.Kind.IsReplaceable() {

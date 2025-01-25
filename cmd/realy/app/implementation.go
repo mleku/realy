@@ -208,9 +208,20 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 
 func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 	authedPubkey by) (allowed *filters.T, ok bo) {
-	// if the authenticator is enabled we require auth to process requests
-	if !r.AuthEnabled() || r.PublicReadable {
-		allowed = ff
+	if !r.AuthEnabled() || r.PublicReadable && len(authedPubkey) > 0 {
+		allowed = &filters.T{}
+		// non-authed users may not make filters that have too broad criteria, resource
+		// exhaustion attack mitigation.
+		for _, f := range ff.F {
+			if f.Authors.Len() < 1 &&
+				f.IDs.Len() < 1 &&
+				f.Tags.Len() < 1 &&
+				f.Kinds.Len() < 1 {
+				// no criteria or only time criteria are not permitted
+			} else {
+				allowed.F = append(allowed.F, f)
+			}
+		}
 		ok = true
 		return
 	}

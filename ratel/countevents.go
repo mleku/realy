@@ -12,6 +12,9 @@ import (
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/ratel/prefixes"
+	"time"
+	"strconv"
+	"realy.lol/eventid"
 )
 
 func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
@@ -23,6 +26,12 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 		return
 	}
 	// search for the keys generated from the filter
+	var delEvs []by
+	defer func() {
+		for _, d := range delEvs {
+			chk.E(r.DeleteEvent(r.Ctx, eventid.NewWith(d)))
+		}
+	}()
 	for _, q := range queries {
 		select {
 		case <-c.Done():
@@ -38,6 +47,13 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 			it := txn.NewIterator(opts)
 			defer it.Close()
 			for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
+				select {
+				case <-r.Ctx.Done():
+					return
+				case <-c.Done():
+					return
+				default:
+				}
 				item := it.Item()
 				k := item.KeyCopy(nil)
 				if !q.skipTS {
@@ -90,6 +106,17 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 						}
 						if len(rem) > 0 {
 							log.T.S(rem)
+						}
+						if et := ev.Tags.GetFirst(tag.New("expiration")); et != nil {
+							var exp uint64
+							if exp, err = strconv.ParseUint(string(et.Value()), 10, 64); chk.E(err) {
+								return
+							}
+							if int64(exp) > time.Now().Unix() {
+								// this needs to be deleted
+								delEvs = append(delEvs, ev.ID)
+								return
+							}
 						}
 						if ev.Kind.IsReplaceable() ||
 							(ev.Kind.IsParameterizedReplaceable() &&
