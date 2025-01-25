@@ -150,10 +150,14 @@ func PrepareQueries(f *filter.T) (
 		}
 		// log.T.S("kinds", qs)
 	default:
-		// log.I.S("nothing in filter, returning latest events")
-		// // if len(qs) > 0 {
-		// qs = append(qs, query{index: 0, queryFilter: f,
-		// 	searchPrefix: prefixes.CreatedAt.Key(), skipTS: true})
+		log.I.S("nothing in filter, returning latest events")
+		// if len(qs) > 0 {
+		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: by{1},
+			start: by{1, 255, 255, 255, 255, 255, 255, 255, 255},
+			// })
+			// qs = append(qs, query{index: 0, queryFilter: f,
+			// 	searchPrefix: prefixes.CreatedAt.Key(),
+			skipTS: true})
 		ext = nil
 		// }
 		// log.T.S("other", qs)
@@ -177,10 +181,10 @@ func PrepareQueries(f *filter.T) (
 	for i, q := range qs {
 		qs[i].start = binary.BigEndian.AppendUint64(q.searchPrefix, uint64(until))
 	}
-	// // if we got an empty filter, we still need a query for scraping the newest
-	// if len(qs) == 0 {
-	// 	qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: by{1},
-	// 		start: by{1, 255, 255, 255, 255, 255, 255, 255, 255}})
-	// }
+	// if we got an empty filter, we still need a query for scraping the newest
+	if len(qs) == 0 {
+		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: by{1},
+			start: by{1, 255, 255, 255, 255, 255, 255, 255, 255}})
+	}
 	return
 }

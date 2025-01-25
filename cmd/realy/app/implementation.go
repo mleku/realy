@@ -213,14 +213,14 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 		// non-authed users may not make filters that have too broad criteria, resource
 		// exhaustion attack mitigation.
 		for _, f := range ff.F {
-			if f.Authors.Len() < 1 &&
-				f.IDs.Len() < 1 &&
-				f.Tags.Len() < 1 &&
-				f.Kinds.Len() < 1 {
-				// no criteria or only time criteria are not permitted
-			} else {
-				allowed.F = append(allowed.F, f)
-			}
+			// if f.Authors.Len() < 1 &&
+			// 	f.IDs.Len() < 1 &&
+			// 	f.Tags.Len() < 1 &&
+			// 	f.Kinds.Len() < 1 {
+			// 	// no criteria or only time criteria are not permitted
+			// } else {
+			allowed.F = append(allowed.F, f)
+			// }
 		}
 		ok = true
 		return
