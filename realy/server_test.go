@@ -33,7 +33,7 @@ func TestServerStartShutdown(t *testing.T) {
 			init: func() er { storeInited = true; return nil },
 		},
 	}
-	srv, _ := NewServer(ServerParams{
+	srv, _ := NewServer(&ServerParams{
 		Ctx:      c,
 		Cancel:   cancel,
 		Rl:       rl,
