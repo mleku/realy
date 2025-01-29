@@ -26,8 +26,7 @@ type C struct {
 	DataDir        st   `env:"REALY_DATA_DIR" usage:"storage location for the ratel event store"`
 	Listen         st   `env:"REALY_LISTEN" default:"0.0.0.0" usage:"network listen address"`
 	Port           no   `env:"REALY_PORT" default:"3334" usage:"port to listen on"`
-	AdminUser      st   `env:"REALY_ADMIN_USER" default:"admin" usage:"admin user"`
-	AdminPass      st   `env:"REALY_ADMIN_PASS" usage:"admin password"`
+	AdminNpubs     st   `env:"REALY_ADMIN_NPUBS" usage:"comma separated lists of bech32 format pubkeys of authorised administrators for the http admin endpoints"`
 	LogLevel       st   `env:"REALY_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
 	DbLogLevel     st   `env:"REALY_DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
 	AuthRequired   bo   `env:"REALY_AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`

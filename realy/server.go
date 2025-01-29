@@ -18,33 +18,34 @@ import (
 	"realy.lol/realy/listeners"
 	"realy.lol/realy/options"
 	"realy.lol/relay"
+	"realy.lol/signer"
 )
 
 type Server struct {
-	Ctx                  cx
-	Cancel               context.F
-	options              *options.T
-	relay                relay.I
-	clientsMu            sync.Mutex
-	clients              map[*websocket.Conn]struct{}
-	Addr                 st
-	serveMux             *http.ServeMux
-	httpServer           *http.Server
-	authRequired         bo
-	publicReadable       bo
-	maxLimit             no
-	adminUser, adminPass st
-	listeners            *listeners.T
+	Ctx            cx
+	Cancel         context.F
+	options        *options.T
+	relay          relay.I
+	clientsMu      sync.Mutex
+	clients        map[*websocket.Conn]struct{}
+	Addr           st
+	serveMux       *http.ServeMux
+	httpServer     *http.Server
+	authRequired   bo
+	publicReadable bo
+	maxLimit       no
+	admins         []signer.I
+	listeners      *listeners.T
 }
 
 type ServerParams struct {
-	Ctx                  cx
-	Cancel               context.F
-	Rl                   relay.I
-	DbPath               st
-	MaxLimit             no
-	AdminUser, AdminPass st
-	PublicReadable       bo
+	Ctx            cx
+	Cancel         context.F
+	Rl             relay.I
+	DbPath         st
+	MaxLimit       no
+	Admins         []signer.I
+	PublicReadable bo
 }
 
 func NewServer(sp *ServerParams, opts ...options.O) (*Server, er) {
@@ -66,8 +67,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, er) {
 		authRequired:   authRequired,
 		publicReadable: sp.PublicReadable,
 		maxLimit:       sp.MaxLimit,
-		adminUser:      sp.AdminUser,
-		adminPass:      sp.AdminPass,
+		admins:         sp.Admins,
 		listeners:      listeners.New(),
 	}
 	if storage := sp.Rl.Storage(); storage != nil {
@@ -94,7 +94,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else if r.Header.Get("Accept") == "application/nostr+json" {
 		s.handleRelayInfo(w, r)
 	} else {
-		s.handleAdmin(w, r)
+		s.handleHTTP(w, r)
 	}
 }
 

@@ -20,6 +20,10 @@ import (
 	"realy.lol/realy/config"
 	"realy.lol/units"
 	"realy.lol/realy/options"
+	"strings"
+	"realy.lol/bech32encoding"
+	"realy.lol/p256k"
+	"realy.lol/signer"
 )
 
 func main() {
@@ -71,14 +75,31 @@ func main() {
 	r := &app.Relay{C: cfg, Store: storage}
 	go app.MonitorResources(c)
 	var server *realy.Server
+	admins := strings.Split(cfg.AdminNpubs, ",")
+	var administrators []signer.I
+	for _, admin := range admins {
+		if len(admin) < 1 {
+			continue
+		}
+		var pk by
+		if pk, err = bech32encoding.NpubToBytes(by(admin)); chk.E(err) {
+			return
+		}
+		log.I.S(pk)
+		sign := &p256k.Signer{}
+		if err = sign.InitPub(pk); chk.E(err) {
+			return
+		}
+		administrators = append(administrators, sign)
+		log.I.F("administrator pubkey: %0x", sign.Pub())
+	}
 	serverParams := &realy.ServerParams{
 		Ctx:            c,
 		Cancel:         cancel,
 		Rl:             r,
 		DbPath:         cfg.DataDir,
 		MaxLimit:       ratel.DefaultMaxLimit,
-		AdminUser:      cfg.AdminUser,
-		AdminPass:      cfg.AdminPass,
+		Admins:         administrators,
 		PublicReadable: cfg.PublicReadable,
 	}
 	var opts []options.O

@@ -49,7 +49,16 @@ func PublicKeyToNpub(pk *secp256k1.PublicKey) (encoded by, err er) {
 // NsecToSecretKey decodes a nostr secret key (nsec) and returns the secp256k1
 // secret key.
 func NsecToSecretKey(encoded by) (sk *secp256k1.SecretKey, err er) {
-	var b5, b8, hrp by
+	var b8 by
+	if b8, err = NsecToBytes(encoded); chk.E(err) {
+		return
+	}
+	sk = secp256k1.SecKeyFromBytes(b8)
+	return
+}
+
+func NsecToBytes(encoded by) (sk by, err er) {
+	var b5, hrp by
 	if hrp, b5, err = bech32.Decode(encoded); chk.E(err) {
 		return
 	}
@@ -58,10 +67,26 @@ func NsecToSecretKey(encoded by) (sk *secp256k1.SecretKey, err er) {
 			hrp, SecHRP)
 		return
 	}
-	if b8, err = ConvertFromBech32(b5); chk.E(err) {
+	if sk, err = ConvertFromBech32(b5); chk.E(err) {
 		return
 	}
-	sk = secp256k1.SecKeyFromBytes(b8)
+	return
+}
+
+func NpubToBytes(encoded by) (pk by, err er) {
+	var b5, hrp by
+	if hrp, b5, err = bech32.Decode(encoded); chk.E(err) {
+		return
+	}
+	if !equals(hrp, PubHRP) {
+		err = log.E.Err("wrong human readable part, got '%s' want '%s'",
+			hrp, SecHRP)
+		return
+	}
+	if pk, err = ConvertFromBech32(b5); chk.E(err) {
+		return
+	}
+	pk = pk[:schnorr.PubKeyBytesLen]
 	return
 }
 
@@ -82,7 +107,7 @@ func NpubToPublicKey(encoded by) (pk *secp256k1.PublicKey, err er) {
 		return
 	}
 
-	return schnorr.ParsePubKey(b8[:32])
+	return schnorr.ParsePubKey(b8[:schnorr.PubKeyBytesLen])
 }
 
 // HexToPublicKey decodes a string that should be a 64 character long hex

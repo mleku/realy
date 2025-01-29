@@ -1,7 +1,6 @@
 package realy
 
 import (
-	"crypto/subtle"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,38 +9,42 @@ import (
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
 	"realy.lol/hex"
-	"realy.lol/sha256"
 )
 
+// func (s *Server) auth(r *http.Request) (authed bo) {
+// 	if s.adminUser == "" || s.adminPass == "" {
+// 		// disallow this if it hasn't been configured, the default values are empty.
+// 		return
+// 	}
+// 	username, password, ok := r.BasicAuth()
+// 	if ok {
+// 		usernameHash := sha256.Sum256(by(username))
+// 		passwordHash := sha256.Sum256(by(password))
+// 		expectedUsernameHash := sha256.Sum256(by(s.adminUser))
+// 		expectedPasswordHash := sha256.Sum256(by(s.adminPass))
+// 		usernameMatch := subtle.ConstantTimeCompare(usernameHash[:],
+// 			expectedUsernameHash[:]) == 1
+// 		passwordMatch := subtle.ConstantTimeCompare(passwordHash[:],
+// 			expectedPasswordHash[:]) == 1
+// 		if usernameMatch && passwordMatch {
+// 			return true
+// 		}
+// 	}
+// 	return
+// }
+
 func (s *Server) auth(r *http.Request) (authed bo) {
-	if s.adminUser == "" || s.adminPass == "" {
-		// disallow this if it hasn't been configured, the default values are empty.
-		return
-	}
-	username, password, ok := r.BasicAuth()
-	if ok {
-		usernameHash := sha256.Sum256(by(username))
-		passwordHash := sha256.Sum256(by(password))
-		expectedUsernameHash := sha256.Sum256(by(s.adminUser))
-		expectedPasswordHash := sha256.Sum256(by(s.adminPass))
-		usernameMatch := subtle.ConstantTimeCompare(usernameHash[:],
-			expectedUsernameHash[:]) == 1
-		passwordMatch := subtle.ConstantTimeCompare(passwordHash[:],
-			expectedPasswordHash[:]) == 1
-		if usernameMatch && passwordMatch {
-			return true
-		}
-	}
+
 	return
 }
 
 func (s *Server) unauthorized(w http.ResponseWriter) {
 	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
-	fmt.Fprintf(w, "you may have not configured your admin username/password")
+	fmt.Fprintf(w, "your npub is not welcome here")
 }
 
-func (s *Server) handleAdmin(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.HasPrefix(r.URL.Path, "/export"):
 		if ok := s.auth(r); !ok {

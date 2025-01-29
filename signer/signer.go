@@ -7,25 +7,23 @@ type I interface {
 	// InitSec initialises the secret (signing) key from the raw bytes, and also
 	// derives the public key because it can.
 	InitSec(sec by) (err er)
-	// InitPub initializes the public (verification) key from raw bytes.
+	// InitPub initializes the public (verification) key from raw bytes, this is
+	// expected to be an x-only 32 byte pubkey.
 	InitPub(pub by) (err er)
 	// Sec returns the secret key bytes.
 	Sec() by
 	// Pub returns the public key bytes (x-only schnorr pubkey).
 	Pub() by
-	// ECPub returns the public key bytes (33 byte ecdsa pubkey). The first byte is always 2 due
-	// to ECDH and X-only keys.
-	ECPub() by
 	// Sign creates a signature using the stored secret key.
 	Sign(msg by) (sig by, err er)
 	// Verify checks a message hash and signature match the stored public key.
 	Verify(msg, sig by) (valid bo, err er)
 	// Zero wipes the secret key to prevent memory leaks.
 	Zero()
-	// ECDH returns a shared secret derived using Elliptic Curve Diffie Hellman on the I
-	// secret and provided pubkey.
+	// ECDH returns a shared secret derived using Elliptic Curve Diffie-Hellman on
+	// the I secret and provided pubkey.
 	ECDH(pub by) (secret by, err er)
-	// Negate flips the the secret key to change between odd and even compressed public key.
+	// Negate flips the secret key to change between odd and even compressed public key.
 	Negate()
 }
 
