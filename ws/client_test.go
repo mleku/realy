@@ -28,14 +28,14 @@ import (
 
 func TestPublish(t *testing.T) {
 	// test note to be sent over websocket
-	var err er
+	var err error
 	signer := &p256k.Signer{}
 	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
 	textNote := &event.T{
 		Kind:      kind.TextNote,
-		Content:   by("hello"),
+		Content:   []byte("hello"),
 		CreatedAt: timestamp.FromUnix(1672068534), // random fixed timestamp
 		Tags:      tags.New(tag.New("foo", "bar")),
 		PubKey:    signer.Pub(),
@@ -45,7 +45,7 @@ func TestPublish(t *testing.T) {
 	}
 	// fake relay server
 	var mu sync.Mutex // guards published to satisfy go test -race
-	var published bo
+	var published bool
 	ws := newWebsocketServer(func(conn *websocket.Conn) {
 		mu.Lock()
 		published = true
@@ -56,7 +56,7 @@ func TestPublish(t *testing.T) {
 			t.Errorf("websocket.JSON.Receive: %v", err)
 		}
 
-		if st(raw[0]) != fmt.Sprintf(`"%s"`, eventenvelope.L) {
+		if string(raw[0]) != fmt.Sprintf(`"%s"`, eventenvelope.L) {
 			t.Errorf("got type %s, want %s", raw[0], eventenvelope.L)
 		}
 		env := eventenvelope.NewSubmission()
@@ -68,7 +68,7 @@ func TestPublish(t *testing.T) {
 			t.Errorf("received event:\n%s\nwant:\n%s", env.T.Serialize(), textNote.Serialize())
 		}
 		// send back an ok nip-20 command result
-		var res by
+		var res []byte
 		if res = okenvelope.NewFrom(textNote.ID, true, nil).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
@@ -90,14 +90,14 @@ func TestPublish(t *testing.T) {
 
 func TestPublishBlocked(t *testing.T) {
 	// test note to be sent over websocket
-	var err er
+	var err error
 	signer := &p256k.Signer{}
 	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
 	textNote := &event.T{
 		Kind:      kind.TextNote,
-		Content:   by("hello"),
+		Content:   []byte("hello"),
 		CreatedAt: timestamp.FromUnix(1672068534), // random fixed timestamp
 		PubKey:    signer.Pub(),
 	}
@@ -112,7 +112,7 @@ func TestPublishBlocked(t *testing.T) {
 			t.Errorf("websocket.JSON.Receive: %v", err)
 		}
 		// send back a not ok nip-20 command result
-		var res by
+		var res []byte
 		if res = okenvelope.NewFrom(textNote.ID, false,
 			normalize.Msg(normalize.Blocked, "no reason")).Marshal(res); chk.E(err) {
 			t.Fatal(err)
@@ -134,14 +134,14 @@ func TestPublishBlocked(t *testing.T) {
 
 func TestPublishWriteFailed(t *testing.T) {
 	// test note to be sent over websocket
-	var err er
+	var err error
 	signer := &p256k.Signer{}
 	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
 	textNote := &event.T{
 		Kind:      kind.TextNote,
-		Content:   by("hello"),
+		Content:   []byte("hello"),
 		CreatedAt: timestamp.FromUnix(1672068534), // random fixed timestamp
 		PubKey:    signer.Pub(),
 	}
@@ -168,7 +168,7 @@ func TestPublishWriteFailed(t *testing.T) {
 func TestConnectContext(t *testing.T) {
 	// fake relay server
 	var mu sync.Mutex // guards connected to satisfy go test -race
-	var connected bo
+	var connected bool
 	ws := newWebsocketServer(func(conn *websocket.Conn) {
 		mu.Lock()
 		connected = true
@@ -214,7 +214,7 @@ func TestConnectWithOrigin(t *testing.T) {
 	defer ws.Close()
 
 	// relay client
-	r := NewRelay(context.Background(), st(normalize.URL(ws.URL)))
+	r := NewRelay(context.Background(), string(normalize.URL(ws.URL)))
 	r.RequestHeader = http.Header{"origin": {"https://example.com"}}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -238,7 +238,7 @@ func newWebsocketServer(handler func(*websocket.Conn)) *httptest.Server {
 // anyOriginHandshake is an alternative to default in golang.org/x/net/websocket
 // which checks for origin. nostr client sends no origin and it makes no difference
 // for the tests here anyway.
-var anyOriginHandshake = func(conf *websocket.Config, r *http.Request) er {
+var anyOriginHandshake = func(conf *websocket.Config, r *http.Request) error {
 	return nil
 }
 

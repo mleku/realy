@@ -15,14 +15,14 @@ import (
 )
 
 type Subscription struct {
-	label   st
-	counter no
+	label   string
+	counter int
 
 	Relay   *Client
 	Filters *filters.T
 
 	// for this to be treated as a COUNT and not a REQ this must be set
-	countResult chan no
+	countResult chan int
 
 	// The Events channel emits all EVENTs that come in a Subscription will be closed when the
 	// subscription ends
@@ -33,10 +33,10 @@ type Subscription struct {
 	EndOfStoredEvents chan struct{}
 
 	// The ClosedReason channel emits the reason when a CLOSED message is received
-	ClosedReason chan st
+	ClosedReason chan string
 
 	// Context will be .Done() when the subscription ends
-	Context cx
+	Context context.T
 
 	live   atomic.Bool
 	eosed  atomic.Bool
@@ -50,7 +50,7 @@ type Subscription struct {
 
 type EventMessage struct {
 	Event event.T
-	Relay st
+	Relay string
 }
 
 // SubscriptionOption is the type of the argument passed for that.
@@ -61,7 +61,7 @@ type SubscriptionOption interface {
 
 // WithLabel puts a label on the subscription (it is prepended to the automatic id) that is sent
 // to relays.
-type WithLabel st
+type WithLabel string
 
 func (_ WithLabel) IsSubscriptionOption() {}
 
@@ -70,7 +70,7 @@ var _ SubscriptionOption = (WithLabel)("")
 // GetID return the Nostr subscription ID as given to the Client
 // it is a concatenation of the label and a serial number.
 func (sub *Subscription) GetID() (id *subscription.Id) {
-	var err er
+	var err error
 	if id, err = subscription.NewId(sub.label + ":" + strconv.Itoa(sub.counter)); chk.E(err) {
 		return
 	}
@@ -122,7 +122,7 @@ func (sub *Subscription) dispatchEose() {
 	}
 }
 
-func (sub *Subscription) dispatchClosed(reason st) {
+func (sub *Subscription) dispatchClosed(reason string) {
 	if sub.closed.CompareAndSwap(false, true) {
 		go func() {
 			sub.ClosedReason <- reason
@@ -149,7 +149,7 @@ func (sub *Subscription) Close() {
 	if sub.Relay.IsConnected() {
 		id := sub.GetID()
 		closeMsg := closeenvelope.NewFrom(id)
-		var b by
+		var b []byte
 		b = closeMsg.Marshal(nil)
 		log.D.F("{%s} sending %v", sub.Relay.URL, b)
 		<-sub.Relay.Write(b)
@@ -158,16 +158,16 @@ func (sub *Subscription) Close() {
 
 // Sub sets sub.Filters and then calls sub.Fire(ctx). The subscription will be closed if the
 // context expires.
-func (sub *Subscription) Sub(_ cx, ff *filters.T) {
+func (sub *Subscription) Sub(_ context.T, ff *filters.T) {
 	sub.Filters = ff
 	sub.Fire()
 }
 
 // Fire sends the "REQ" command to the realy.
-func (sub *Subscription) Fire() (err er) {
+func (sub *Subscription) Fire() (err error) {
 	id := sub.GetID()
 
-	var b by
+	var b []byte
 	if sub.countResult == nil {
 		b = reqenvelope.NewFrom(id, sub.Filters).Marshal(b)
 	} else {

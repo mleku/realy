@@ -13,11 +13,13 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsflate"
 	"github.com/gobwas/ws/wsutil"
+
+	"realy.lol/context"
 )
 
 type Connection struct {
 	conn              net.Conn
-	enableCompression bo
+	enableCompression bool
 	controlHandler    wsutil.FrameHandlerFunc
 	flateReader       *wsflate.Reader
 	reader            *wsutil.Reader
@@ -27,8 +29,8 @@ type Connection struct {
 	msgStateW         *wsflate.MessageState
 }
 
-func NewConnection(c cx, url string, requestHeader http.Header,
-	tlsConfig *tls.Config) (*Connection, er) {
+func NewConnection(c context.T, url string, requestHeader http.Header,
+	tlsConfig *tls.Config) (*Connection, error) {
 	dialer := ws.Dialer{
 		Header: ws.HandshakeHeaderHTTP(requestHeader),
 		Extensions: []httphead.Option{
@@ -104,7 +106,7 @@ func NewConnection(c cx, url string, requestHeader http.Header,
 	}, nil
 }
 
-func (cn *Connection) WriteMessage(c cx, data by) er {
+func (cn *Connection) WriteMessage(c context.T, data []byte) error {
 	select {
 	case <-c.Done():
 		return errors.New("context canceled")
@@ -133,7 +135,7 @@ func (cn *Connection) WriteMessage(c cx, data by) er {
 	return nil
 }
 
-func (cn *Connection) ReadMessage(c cx, buf io.Writer) er {
+func (cn *Connection) ReadMessage(c context.T, buf io.Writer) error {
 	for {
 		select {
 		case <-c.Done():
@@ -175,6 +177,6 @@ func (cn *Connection) ReadMessage(c cx, buf io.Writer) er {
 	return nil
 }
 
-func (cn *Connection) Close() er {
+func (cn *Connection) Close() error {
 	return cn.conn.Close()
 }

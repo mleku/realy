@@ -41,15 +41,15 @@ func (t *T) I64() int64 {
 func (t *T) Time() time.Time { return time.Unix(t.V, 0) }
 
 // Int returns the timestamp as an int.
-func (t *T) Int() no {
+func (t *T) Int() int {
 	if t == nil {
 		return 0
 	}
-	return no(t.V)
+	return int(t.V)
 }
 
-func (t *T) Bytes() (b by) {
-	b = make(by, 8)
+func (t *T) Bytes() (b []byte) {
+	b = make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(t.V))
 	return
 }
@@ -60,12 +60,12 @@ func FromTime(t time.Time) *T { return &T{t.Unix()} }
 // FromUnix converts from a standard int64 unix timestamp.
 func FromUnix(t int64) *T { return &T{t} }
 
-func (t *T) FromInt(i no) { *t = T{int64(i)} }
+func (t *T) FromInt(i int) { *t = T{int64(i)} }
 
 // FromBytes converts from a string of raw bytes.
-func FromBytes(b by) *T { return &T{int64(binary.BigEndian.Uint64(b))} }
+func FromBytes(b []byte) *T { return &T{int64(binary.BigEndian.Uint64(b))} }
 
-func FromVarint(b by) (t *T, rem by, err er) {
+func FromVarint(b []byte) (t *T, rem []byte, err error) {
 	n, read := binary.Varint(b)
 	if read < 1 {
 		err = errorf.E("failed to decode varint timestamp %v", b)
@@ -76,20 +76,20 @@ func FromVarint(b by) (t *T, rem by, err er) {
 	return
 }
 
-func ToVarint(dst by, t *T) by { return binary.AppendVarint(dst, t.V) }
+func ToVarint(dst []byte, t *T) []byte { return binary.AppendVarint(dst, t.V) }
 
-func (t *T) FromVarint(dst by) (b by) { return ToVarint(dst, t) }
+func (t *T) FromVarint(dst []byte) (b []byte) { return ToVarint(dst, t) }
 
-func (t *T) String() (s st) {
-	b := make(by, 0, 20)
+func (t *T) String() (s string) {
+	b := make([]byte, 0, 20)
 	tt := ints.New(t.U64())
 	b = tt.Marshal(b)
 	return unsafe.String(&b[0], len(b))
 }
 
-func (t *T) Marshal(dst by) (b by) { return ints.New(t.U64()).Marshal(dst) }
+func (t *T) Marshal(dst []byte) (b []byte) { return ints.New(t.U64()).Marshal(dst) }
 
-func (t *T) Unmarshal(b by) (r by, err er) {
+func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 	n := ints.New(0)
 	r, err = n.Unmarshal(b)
 	*t = T{n.Int64()}

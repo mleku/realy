@@ -17,12 +17,12 @@ import (
 	"realy.lol/qu"
 )
 
-type MessageType no
+type MessageType int
 
 // Serv is a wrapper around a fasthttp/websocket with mutex locking and NIP-42 IsAuthed support
 // for handling inbound connections from clients.
 type Serv struct {
-	Ctx       cx
+	Ctx       context.T
 	Cancel    context.F
 	Conn      *websocket.Conn
 	remote    atomic.String
@@ -34,11 +34,11 @@ type Serv struct {
 	Authed    qu.C
 }
 
-func New(c cx, conn *websocket.Conn, r *http.Request, maxMsg no) (ws *Serv) {
+func New(c context.T, conn *websocket.Conn, r *http.Request, maxMsg int) (ws *Serv) {
 	// authPubKey must be initialized with a zero length slice so it can be detected when it
 	// hasn't been loaded.
 	var authPubKey atomic.Value
-	authPubKey.Store(by{})
+	authPubKey.Store([]byte{})
 	ws = &Serv{Ctx: c, Conn: conn, Request: r, Authed: qu.T(), authPub: authPubKey}
 	ws.generateChallenge()
 	ws.setRemoteFromReq(r)
@@ -48,39 +48,39 @@ func New(c cx, conn *websocket.Conn, r *http.Request, maxMsg no) (ws *Serv) {
 }
 
 // Ping sends a ping to see if the other side is still responsive.
-func (ws *Serv) Ping() (err er) { return ws.write(websocket.PingMessage, nil) }
+func (ws *Serv) Ping() (err error) { return ws.write(websocket.PingMessage, nil) }
 
 // Pong sends a Pong message, should be the response to receiving  Ping.
-func (ws *Serv) Pong() (err er) { return ws.write(websocket.PongMessage, nil) }
+func (ws *Serv) Pong() (err error) { return ws.write(websocket.PongMessage, nil) }
 
 // Close signals the other side to close the connection.
-func (ws *Serv) Close() (err er) { return ws.write(websocket.CloseMessage, nil) }
+func (ws *Serv) Close() (err error) { return ws.write(websocket.CloseMessage, nil) }
 
 // Challenge returns the current challenge on a websocket.
-func (ws *Serv) Challenge() (challenge by) { return by(ws.challenge.Load()) }
+func (ws *Serv) Challenge() (challenge []byte) { return []byte(ws.challenge.Load()) }
 
 // Remote returns the current real remote.
-func (ws *Serv) Remote() (remote st) { return ws.remote.Load() }
+func (ws *Serv) Remote() (remote string) { return ws.remote.Load() }
 
 // setRemote sets the current remote URL that is returned by Remote.
-func (ws *Serv) setRemote(remote st) { ws.remote.Store(remote) }
+func (ws *Serv) setRemote(remote string) { ws.remote.Store(remote) }
 
 // write writes a message with a given websocket type specifier
-func (ws *Serv) write(t MessageType, b by) (err er) {
+func (ws *Serv) write(t MessageType, b []byte) (err error) {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
 	if len(b) != 0 {
 		log.D.F("sending message to %s %0x\n%s", ws.Remote(), ws.AuthPub(), string(b))
 	}
 	chk.E(ws.Conn.SetWriteDeadline(time.Now().Add(time.Second * 5)))
-	return ws.Conn.WriteMessage(no(t), b)
+	return ws.Conn.WriteMessage(int(t), b)
 }
 
 // WriteTextMessage writes a text (binary?) message
-func (ws *Serv) WriteTextMessage(b by) (err er) { return ws.write(websocket.TextMessage, b) }
+func (ws *Serv) WriteTextMessage(b []byte) (err error) { return ws.write(websocket.TextMessage, b) }
 
 // Write implements the standard io.Writer interface.
-func (ws *Serv) Write(b by) (n no, err er) {
+func (ws *Serv) Write(b []byte) (n int, err error) {
 	if err = ws.WriteTextMessage(b); chk.E(err) {
 		return
 	}
@@ -94,45 +94,45 @@ const ChallengeLength = 16
 const ChallengeHRP = "nchal"
 
 // generateChallenge gathers new entropy to generate a new challenge, stores it and returns it.
-func (ws *Serv) generateChallenge() (challenge st) {
-	var err er
+func (ws *Serv) generateChallenge() (challenge string) {
+	var err error
 	// create a new challenge for this connection
-	cb := make(by, ChallengeLength)
+	cb := make([]byte, ChallengeLength)
 	if _, err = rand.Read(cb); chk.E(err) {
 		// i never know what to do for this case, panic? usually just ignore, it should never happen
 		panic(err)
 	}
-	var b5 by
+	var b5 []byte
 	if b5, err = bech32encoding.ConvertForBech32(cb); chk.E(err) {
 		return
 	}
-	var encoded by
-	if encoded, err = bech32.Encode(by(ChallengeHRP), b5); chk.E(err) {
+	var encoded []byte
+	if encoded, err = bech32.Encode([]byte(ChallengeHRP), b5); chk.E(err) {
 		return
 	}
-	challenge = st(encoded)
+	challenge = string(encoded)
 	ws.challenge.Store(challenge)
 	return
 }
 
 // setAuthPub loads the authPubKey atomic of the websocket.
-func (ws *Serv) setAuthPub(a by) {
-	aa := make(by, 0, len(a))
+func (ws *Serv) setAuthPub(a []byte) {
+	aa := make([]byte, 0, len(a))
 	copy(aa, a)
 	ws.authPub.Store(aa)
 }
 
 // AuthPub returns the current authed Pubkey.
-func (ws *Serv) AuthPub() (a by) {
-	b := ws.authPub.Load().(by)
-	a = make(by, 0, len(b))
+func (ws *Serv) AuthPub() (a []byte) {
+	b := ws.authPub.Load().([]byte)
+	a = make([]byte, 0, len(b))
 	// make a copy because bytes are references
 	a = append(a, b...)
 	return
 }
 
-func (ws *Serv) HasAuth() bo {
-	b := ws.authPub.Load().(by)
+func (ws *Serv) HasAuth() bool {
+	b := ws.authPub.Load().([]byte)
 	return len(b) > 0
 }
 
