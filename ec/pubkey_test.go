@@ -5,6 +5,7 @@
 package btcec
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -237,7 +238,7 @@ func TestPubKeys(t *testing.T) {
 		case pubkeyHybrid:
 			pkStr = test.key
 		}
-		if !equals(test.key, pkStr) {
+		if !bytes.Equal(test.key, pkStr) {
 			t.Errorf("%s pubkey: serialized keys do not match.",
 				test.name)
 			spew.Dump(test.key)
