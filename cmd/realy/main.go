@@ -6,28 +6,28 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/pkg/profile"
 
+	"realy.lol/bech32encoding"
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
 	"realy.lol/interrupt"
 	"realy.lol/lol"
+	"realy.lol/p256k"
 	"realy.lol/ratel"
 	"realy.lol/realy"
 	"realy.lol/realy/config"
-	"realy.lol/units"
 	"realy.lol/realy/options"
-	"strings"
-	"realy.lol/bech32encoding"
-	"realy.lol/p256k"
 	"realy.lol/signer"
+	"realy.lol/units"
 )
 
 func main() {
-	var err er
+	var err error
 	var cfg *config.C
 	if cfg, err = config.New(); chk.T(err) {
 		if err != nil {
@@ -64,11 +64,11 @@ func main() {
 			MaxLimit:       ratel.DefaultMaxLimit,
 			UseCompact:     cfg.UseCompact,
 			Compression:    cfg.Compression,
-			Extra: []no{
+			Extra: []int{
 				cfg.DBSizeLimit,
 				cfg.DBLowWater,
 				cfg.DBHighWater,
-				cfg.GCFrequency * no(time.Second),
+				cfg.GCFrequency * int(time.Second),
 			},
 		},
 	)
@@ -81,8 +81,8 @@ func main() {
 		if len(admin) < 1 {
 			continue
 		}
-		var pk by
-		if pk, err = bech32encoding.NpubToBytes(by(admin)); chk.E(err) {
+		var pk []byte
+		if pk, err = bech32encoding.NpubToBytes([]byte(admin)); chk.E(err) {
 			return
 		}
 		log.I.S(pk)

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -22,14 +23,14 @@ import (
 	"realy.lol/tag/atag"
 )
 
-type List map[st]struct{}
+type List map[string]struct{}
 
 type Relay struct {
 	sync.Mutex
 	*config.C
 	Store store.I
 	// Owners' pubkeys
-	Owners []by
+	Owners [][]byte
 	// Followed are the pubkeys that are in the Owners' follow lists and have full
 	// access permission.
 	Followed List
@@ -41,29 +42,29 @@ type Relay struct {
 	Muted List
 	// OwnersFollowLists are the event IDs of owners follow lists, which must not be
 	// deleted, only replaced.
-	OwnersFollowLists []by
+	OwnersFollowLists [][]byte
 	// OwnersMuteLists are the event IDs of owners mute lists, which must not be
 	// deleted, only replaced.
-	OwnersMuteLists []by
+	OwnersMuteLists [][]byte
 }
 
-func (r *Relay) Name() st { return r.C.AppName }
+func (r *Relay) Name() string { return r.C.AppName }
 
 func (r *Relay) Storage() store.I { return r.Store }
 
-func (r *Relay) Init() (err er) {
+func (r *Relay) Init() (err error) {
 	for _, src := range r.C.Owners {
 		if len(src) < 1 {
 			continue
 		}
-		dst := make(by, len(src)/2)
-		if _, err = hex.DecBytes(dst, by(src)); chk.E(err) {
+		dst := make([]byte, len(src)/2)
+		if _, err = hex.DecBytes(dst, []byte(src)); chk.E(err) {
 			continue
 		}
 		r.Owners = append(r.Owners, dst)
 	}
 	if len(r.Owners) > 0 {
-		log.T.C(func() st {
+		log.T.C(func() string {
 			ownerIds := make([]string, len(r.Owners))
 			for i, npub := range r.Owners {
 				ownerIds[i] = hex.Enc(npub)
@@ -77,23 +78,23 @@ func (r *Relay) Init() (err er) {
 	return nil
 }
 
-func (r *Relay) NoLimiter(pubKey by) (ok bo) {
+func (r *Relay) NoLimiter(pubKey []byte) (ok bool) {
 	r.Lock()
 	defer r.Unlock()
-	_, ok = r.Followed[st(pubKey)]
+	_, ok = r.Followed[string(pubKey)]
 	return
 }
 
 func (r *Relay) ZeroLists() {
-	r.Followed = make(map[st]struct{})
-	r.OwnersFollowed = make(map[st]struct{})
+	r.Followed = make(map[string]struct{})
+	r.OwnersFollowed = make(map[string]struct{})
 	r.OwnersFollowLists = r.OwnersFollowLists[:0]
-	r.Muted = make(map[st]struct{})
+	r.Muted = make(map[string]struct{})
 	r.OwnersMuteLists = r.OwnersMuteLists[:0]
 }
 
-func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
-	authedPubkey by) (accept bo, notice st, afterSave func()) {
+func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin string,
+	authedPubkey []byte) (accept bool, notice string, afterSave func()) {
 	// if the authenticator is enabled we require auth to accept events
 	if !r.AuthEnabled() {
 		return true, "", nil
@@ -115,7 +116,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 			// followed can access the relay and upload DM events and such for owner
 			// followed users.
 			for o := range r.OwnersFollowed {
-				if equals(by(o), evt.PubKey) {
+				if bytes.Equal([]byte(o), evt.PubKey) {
 					return true, "", func() {
 						r.ZeroLists()
 						r.CheckOwnerLists(context.Bg())
@@ -126,7 +127,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 		if evt.Kind.Equal(kind.MuteList) {
 			// only owners control the mute list
 			for _, o := range r.Owners {
-				if equals(o, evt.PubKey) {
+				if bytes.Equal(o, evt.PubKey) {
 					return true, "", func() {
 						r.ZeroLists()
 						r.CheckOwnerLists(context.Bg())
@@ -136,7 +137,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 		}
 		for _, o := range r.Owners {
 			log.T.F("%0x,%0x", o, evt.PubKey)
-			if equals(o, evt.PubKey) {
+			if bytes.Equal(o, evt.PubKey) {
 				// prevent owners from deleting their own mute/follow lists in case of bad
 				// client implementation
 				if evt.Kind.Equal(kind.Deletion) {
@@ -144,8 +145,8 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 					aTags := evt.Tags.GetAll(tag.New("a"))
 					for _, at := range aTags.F() {
 						a := &atag.T{}
-						var rem by
-						var err er
+						var rem []byte
+						var err error
 						if rem, err = a.Unmarshal(at.Value()); chk.E(err) {
 							continue
 						}
@@ -166,7 +167,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 							// don't allow owners to delete their mute or follow lists because
 							// they should not want to, can simply replace it, and malicious
 							// clients may do this specifically to attack the owner's relay (s)
-							if equals(own, a.PubKey) ||
+							if bytes.Equal(own, a.PubKey) ||
 								a.Kind.Equal(kind.MuteList) ||
 								a.Kind.Equal(kind.FollowList) {
 								return false, "owners may not delete their own " +
@@ -181,7 +182,7 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 			// check the mute list, and reject events authored by muted pubkeys, even if
 			// they come from a pubkey that is on the follow list.
 			for pk := range r.Muted {
-				if equals(evt.PubKey, by(pk)) {
+				if bytes.Equal(evt.PubKey, []byte(pk)) {
 					return false, "rejecting event with pubkey " + hex.Enc(evt.PubKey) +
 						" because on owner mute list", nil
 				}
@@ -189,9 +190,9 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 			// for all else, check the authed pubkey is in the follow list
 			for pk := range r.Followed {
 				// allow all events from follows of owners
-				if equals(authedPubkey, by(pk)) {
+				if bytes.Equal(authedPubkey, []byte(pk)) {
 					log.I.F("accepting event %0x because %0x on owner follow list",
-						evt.ID, by(pk))
+						evt.ID, []byte(pk))
 					return true, "", nil
 				}
 			}
@@ -206,8 +207,8 @@ func (r *Relay) AcceptEvent(c cx, evt *event.T, hr *http.Request, origin st,
 	return
 }
 
-func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
-	authedPubkey by) (allowed *filters.T, ok bo) {
+func (r *Relay) AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.T,
+	authedPubkey []byte) (allowed *filters.T, ok bool) {
 	if !r.AuthEnabled() || r.PublicReadable && len(authedPubkey) > 0 {
 		allowed = &filters.T{}
 		// non-authed users may not make filters that have too broad criteria, resource
@@ -270,7 +271,7 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 	defer r.Unlock()
 	if len(r.Owners) > 0 {
 		for pk := range r.Followed {
-			if equals(authedPubkey, by(pk)) {
+			if bytes.Equal(authedPubkey, []byte(pk)) {
 				ok = true
 				return
 			}
@@ -287,17 +288,17 @@ func (r *Relay) AcceptReq(c cx, hr *http.Request, id by, ff *filters.T,
 // CheckOwnerLists regenerates the owner follow and mute lists if they are empty.
 //
 // It also adds the followed npubs of the follows.
-func (r *Relay) CheckOwnerLists(c cx) {
+func (r *Relay) CheckOwnerLists(c context.T) {
 	if len(r.Owners) > 0 {
 		r.Lock()
 		defer r.Unlock()
-		var err er
+		var err error
 		var evs []*event.T
 		// need to search DB for moderator npub follow lists, followed npubs are allowed access.
 		if len(r.Followed) < 1 {
 			// add the owners themselves of course
 			for i := range r.Owners {
-				r.Followed[st(r.Owners[i])] = struct{}{}
+				r.Followed[string(r.Owners[i])] = struct{}{}
 			}
 			log.D.Ln("regenerating owners follow lists")
 			if evs, err = r.Store.QueryEvents(c,
@@ -307,20 +308,20 @@ func (r *Relay) CheckOwnerLists(c cx) {
 			for _, ev := range evs {
 				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.ID)
 				for _, t := range ev.Tags.F() {
-					if equals(t.Key(), by("p")) {
-						var p by
-						if p, err = hex.Dec(st(t.Value())); chk.E(err) {
+					if bytes.Equal(t.Key(), []byte("p")) {
+						var p []byte
+						if p, err = hex.Dec(string(t.Value())); chk.E(err) {
 							continue
 						}
-						r.Followed[st(p)] = struct{}{}
-						r.OwnersFollowed[st(p)] = struct{}{}
+						r.Followed[string(p)] = struct{}{}
+						r.OwnersFollowed[string(p)] = struct{}{}
 					}
 				}
 			}
 			evs = evs[:0]
 			// next, search for the follow lists of all on the follow list
 			log.D.Ln("searching for owners follows follow lists")
-			var followed []st
+			var followed []string
 			for f := range r.Followed {
 				followed = append(followed, f)
 			}
@@ -333,12 +334,12 @@ func (r *Relay) CheckOwnerLists(c cx) {
 				// deleted, only replaced.
 				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.ID)
 				for _, t := range ev.Tags.F() {
-					if equals(t.Key(), by("p")) {
-						var p by
-						if p, err = hex.Dec(st(t.Value())); err != nil {
+					if bytes.Equal(t.Key(), []byte("p")) {
+						var p []byte
+						if p, err = hex.Dec(string(t.Value())); err != nil {
 							continue
 						}
-						r.Followed[st(p)] = struct{}{}
+						r.Followed[string(p)] = struct{}{}
 					}
 				}
 			}
@@ -346,7 +347,7 @@ func (r *Relay) CheckOwnerLists(c cx) {
 		}
 		if len(r.Muted) < 1 {
 			log.D.Ln("regenerating owners mute lists")
-			r.Muted = make(map[st]struct{})
+			r.Muted = make(map[string]struct{})
 			if evs, err = r.Store.QueryEvents(c,
 				&filter.T{Authors: tag.New(r.Owners...),
 					Kinds: kinds.New(kind.MuteList)}); chk.E(err) {
@@ -354,12 +355,12 @@ func (r *Relay) CheckOwnerLists(c cx) {
 			for _, ev := range evs {
 				r.OwnersMuteLists = append(r.OwnersMuteLists, ev.ID)
 				for _, t := range ev.Tags.F() {
-					if equals(t.Key(), by("p")) {
-						var p by
-						if p, err = hex.Dec(st(t.Value())); chk.E(err) {
+					if bytes.Equal(t.Key(), []byte("p")) {
+						var p []byte
+						if p, err = hex.Dec(string(t.Value())); chk.E(err) {
 							continue
 						}
-						r.Muted[st(p)] = struct{}{}
+						r.Muted[string(p)] = struct{}{}
 					}
 				}
 			}
@@ -369,11 +370,11 @@ func (r *Relay) CheckOwnerLists(c cx) {
 	}
 }
 
-func (r *Relay) AuthEnabled() bo { return r.AuthRequired || len(r.Owners) > 0 }
+func (r *Relay) AuthEnabled() bool { return r.AuthRequired || len(r.Owners) > 0 }
 
 // ServiceUrl returns the address of the relay to send back in auth responses.
 // If auth is disabled this returns an empty string.
-func (r *Relay) ServiceUrl(req *http.Request) (s st) {
+func (r *Relay) ServiceUrl(req *http.Request) (s string) {
 	if !r.AuthEnabled() {
 		return
 	}

@@ -4,9 +4,11 @@ import (
 	"os"
 	"runtime"
 	"time"
+
+	"realy.lol/context"
 )
 
-func MonitorResources(c cx) {
+func MonitorResources(c context.T) {
 	tick := time.NewTicker(time.Minute)
 	log.I.Ln("running process", os.Args[0], os.Getpid())
 	// memStats := &runtime.MemStats{}

@@ -31,14 +31,14 @@ const (
 
 type Result struct {
 	sec  *secp256k1.SecretKey
-	npub by
+	npub []byte
 	pub  *secp256k1.PublicKey
 }
 
 var args struct {
-	String   st `arg:"positional" help:"the string you want to appear in the npub"`
-	Position st `arg:"positional" default:"end" help:"[begin|contain|end] default: end"`
-	Threads  no `help:"number of threads to mine with - defaults to using all CPU threads available"`
+	String   string `arg:"positional" help:"the string you want to appear in the npub"`
+	Position string `arg:"positional" default:"end" help:"[begin|contain|end] default: end"`
+	Threads  int    `help:"number of threads to mine with - defaults to using all CPU threads available"`
 }
 
 func main() {
@@ -56,7 +56,7 @@ Options:
   --help, -h             display this help and exit`)
 		os.Exit(0)
 	}
-	var where no
+	var where int
 	canonical := strings.ToLower(args.Position)
 	switch {
 	case strings.HasPrefix(canonical, "begin"):
@@ -74,7 +74,7 @@ Options:
 	}
 }
 
-func Vanity(str string, where no, threads no) (e er) {
+func Vanity(str string, where int, threads int) (e error) {
 
 	// check the string has valid bech32 ciphers
 	for i := range str {
@@ -146,12 +146,12 @@ out:
 	return
 }
 
-func mine(str st, where no, quit qu.C, resC chan Result, wg *sync.WaitGroup,
+func mine(str string, where int, quit qu.C, resC chan Result, wg *sync.WaitGroup,
 	counter *atomic.Int64) {
 
 	wg.Add(1)
 	var r Result
-	var e er
+	var e error
 	found := false
 out:
 	for {
@@ -182,17 +182,17 @@ out:
 		}
 		switch where {
 		case PositionBeginning:
-			if bytes.HasPrefix(r.npub, append(prefix, by(str)...)) {
+			if bytes.HasPrefix(r.npub, append(prefix, []byte(str)...)) {
 				found = true
 				quit.Q()
 			}
 		case PositionEnding:
-			if bytes.HasSuffix(r.npub, by(str)) {
+			if bytes.HasSuffix(r.npub, []byte(str)) {
 				found = true
 				quit.Q()
 			}
 		case PositionContains:
-			if bytes.Contains(r.npub, by(str)) {
+			if bytes.Contains(r.npub, []byte(str)) {
 				found = true
 				quit.Q()
 			}
@@ -203,7 +203,7 @@ out:
 // GenKeyPair creates a fresh new key pair using the entropy source used by
 // crypto/rand (ie, /dev/random on posix systems).
 func GenKeyPair() (sec *secp256k1.SecretKey,
-	pub *secp256k1.PublicKey, err er) {
+	pub *secp256k1.PublicKey, err error) {
 
 	sec, err = secp256k1.GenerateSecretKey()
 	if err != nil {

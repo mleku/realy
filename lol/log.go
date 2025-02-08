@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -40,7 +39,7 @@ type (
 
 	// Ln prints lists of interfaces with spaces in between
 	Ln func(a ...interface{})
-	// F prints like fmt.Println surrounded by log details
+	// F prints like fmt.Println surrounded []byte log details
 	F func(format string, a ...interface{})
 	// S prints a spew.Sdump for an enveloper slice
 	S func(a ...interface{})
@@ -48,10 +47,10 @@ type (
 	// not being viewed
 	C func(closure func() string)
 	// Chk is a shortcut for printing if there is an error, or returning true
-	Chk func(e er) bo
+	Chk func(e error) bool
 	// Err is a pass-through function that uses fmt.Errorf to construct an error
 	// and returns the error after printing it to the log
-	Err          func(format string, a ...interface{}) er
+	Err          func(format string, a ...any) error
 	LevelPrinter struct {
 		Ln
 		F
@@ -61,9 +60,9 @@ type (
 		Err
 	}
 	LevelSpec struct {
-		ID        no
+		ID        int
 		Name      string
-		Colorizer func(a ...interface{}) string
+		Colorizer func(a ...any) string
 	}
 
 	// Entry is a log entry to be printed as json to the log file
@@ -124,12 +123,12 @@ func init() {
 	SetLoggers(Info)
 }
 
-func SetLoggers(level no) {
+func SetLoggers(level int) {
 	Main.Log.T.F("log level %s", LevelSpecs[level].Colorizer(LevelNames[level]))
 	Level.Store(int32(level))
 }
 
-func GetLogLevel(level string) (i no) {
+func GetLogLevel(level string) (i int) {
 	for i = range LevelNames {
 		if level == LevelNames[i] {
 			return i
@@ -209,7 +208,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				msgCol(GetLoc(2)),
 			)
 		},
-		Chk: func(e er) bo {
+		Chk: func(e error) bool {
 			if Level.Load() < l {
 				return e != nil
 			}
@@ -225,7 +224,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			return false
 		},
-		Err: func(format string, a ...interface{}) er {
+		Err: func(format string, a ...interface{}) error {
 			if Level.Load() < l {
 				fmt.Fprintf(writer,
 					"%s%s %s %s\n",
@@ -246,8 +245,8 @@ func GetNullPrinter() LevelPrinter {
 		F:   func(format string, a ...interface{}) {},
 		S:   func(a ...interface{}) {},
 		C:   func(closure func() string) {},
-		Chk: func(e er) bo { return e != nil },
-		Err: func(format string, a ...interface{}) er { return fmt.Errorf(format, a...) },
+		Chk: func(e error) bool { return e != nil },
+		Err: func(format string, a ...interface{}) error { return fmt.Errorf(format, a...) },
 	}
 }
 
@@ -287,7 +286,7 @@ func Timestamper() (s string) {
 	timeText := fmt.Sprint(time.Now().UnixNano())
 	lt := len(timeText)
 	lb := lt + 1
-	var timeBytes = make(by, lb)
+	var timeBytes = make([]byte, lb)
 	copy(timeBytes[lb-9:lb], timeText[lt-9:lt])
 	timeBytes[lb-10] = '.'
 	lb -= 10
@@ -296,22 +295,22 @@ func Timestamper() (s string) {
 	return fmt.Sprint(string(timeBytes), " ")
 }
 
-var wd, _ = os.Getwd()
+// var wd, _ = os.Getwd()
 
-func GetNLoc(n no) (output string) {
+func GetNLoc(n int) (output string) {
 	for ; n > 1; n-- {
 		output += fmt.Sprintf("%s\n", GetLoc(n))
 	}
 	return
 }
 
-func GetLoc(skip no) (output string) {
+func GetLoc(skip int) (output string) {
 	_, file, line, _ := runtime.Caller(skip)
-	split := strings.Split(file, wd+string(os.PathSeparator))
-	if len(split) < 2 {
-		output = fmt.Sprintf("%s:%d", file, line)
-	} else {
-		output = fmt.Sprintf("%s:%d", split[1], line)
-	}
+	// split := strings.Split(file, wd+string(os.PathSeparator))
+	// if len(split) < 2 {
+	output = fmt.Sprintf("%s:%d", file, line)
+	// } else {
+	// 	output = fmt.Sprintf("%s:%d", split[1], line)
+	// }
 	return
 }
