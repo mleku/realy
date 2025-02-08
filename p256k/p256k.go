@@ -23,12 +23,12 @@ type Signer struct {
 	PublicKey   *PubKey
 	ECPublicKey *ECPubKey // not sure what this is useful for yet.
 	BTCECSec    *btcec.SecretKey
-	skb, pkb    by
+	skb, pkb    []byte
 }
 
 var _ realy.I = &Signer{}
 
-func (s *Signer) Generate() (err er) {
+func (s *Signer) Generate() (err error) {
 	var cs *Sec
 	var cx *XPublicKey
 	var cp *PublicKey
@@ -42,7 +42,7 @@ func (s *Signer) Generate() (err er) {
 	return
 }
 
-func (s *Signer) InitSec(skb by) (err er) {
+func (s *Signer) InitSec(skb []byte) (err error) {
 	var cs *Sec
 	var cx *XPublicKey
 	var cp *PublicKey
@@ -60,7 +60,7 @@ func (s *Signer) InitSec(skb by) (err er) {
 	return
 }
 
-func (s *Signer) InitPub(pub by) (err er) {
+func (s *Signer) InitPub(pub []byte) (err error) {
 	var up *Pub
 	if up, err = PubFromBytes(pub); chk.E(err) {
 		return
@@ -70,11 +70,11 @@ func (s *Signer) InitPub(pub by) (err er) {
 	return
 }
 
-func (s *Signer) Sec() (b by)   { return s.skb }
-func (s *Signer) Pub() (b by)   { return s.pkb[1:] }
-func (s *Signer) ECPub() (b by) { return s.pkb }
+func (s *Signer) Sec() (b []byte)   { return s.skb }
+func (s *Signer) Pub() (b []byte)   { return s.pkb[1:] }
+func (s *Signer) ECPub() (b []byte) { return s.pkb }
 
-func (s *Signer) Sign(msg by) (sig by, err er) {
+func (s *Signer) Sign(msg []byte) (sig []byte, err error) {
 	if s.SecretKey == nil {
 		err = errorf.E("p256k: I secret not initialized")
 		return
@@ -86,7 +86,7 @@ func (s *Signer) Sign(msg by) (sig by, err er) {
 	return
 }
 
-func (s *Signer) Verify(msg, sig by) (valid bo, err er) {
+func (s *Signer) Verify(msg, sig []byte) (valid bool, err error) {
 	if s.PublicKey == nil {
 		err = errorf.E("p256k: PubKey not initialized")
 		return
@@ -106,9 +106,9 @@ func (s *Signer) Verify(msg, sig by) (valid bo, err er) {
 }
 
 func (s *Signer) Zero() { Zero(s.SecretKey) }
-func (s *Signer) ECDH(xkb by) (secret by, err er) {
+func (s *Signer) ECDH(xkb []byte) (secret []byte, err error) {
 	var pubKey *btcec.PublicKey
-	k2 := append(by{2}, xkb...)
+	k2 := append([]byte{2}, xkb...)
 	if pubKey, err = btcec.ParsePubKey(k2); chk.E(err) {
 		err = errorf.E("error parsing receiver public key '%0x': %w", k2, err)
 		return

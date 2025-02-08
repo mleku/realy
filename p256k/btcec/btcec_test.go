@@ -15,9 +15,9 @@ import (
 
 func TestSigner_Generate(t *testing.T) {
 	for _ = range 100 {
-		var err er
+		var err error
 		signer := &btcec.Signer{}
-		var skb by
+		var skb []byte
 		if err = signer.Generate(); chk.E(err) {
 			t.Fatal(err)
 		}
@@ -31,12 +31,12 @@ func TestSigner_Generate(t *testing.T) {
 func TestBTCECSignerVerify(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(by, 1_000_000)
+	buf := make([]byte, 1_000_000)
 	scanner.Buffer(buf, len(buf))
-	var err er
+	var err error
 	signer := &btcec.Signer{}
 	for scanner.Scan() {
-		var valid bo
+		var valid bool
 		b := scanner.Bytes()
 		ev := event.New()
 		if _, err = ev.Unmarshal(b); chk.E(err) {
@@ -69,11 +69,11 @@ func TestBTCECSignerVerify(t *testing.T) {
 func TestBTCECSignerSign(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(by, 1_000_000)
+	buf := make([]byte, 1_000_000)
 	scanner.Buffer(buf, len(buf))
-	var err er
+	var err error
 	signer := &btcec.Signer{}
-	var skb by
+	var skb []byte
 	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
@@ -94,8 +94,8 @@ func TestBTCECSignerSign(t *testing.T) {
 		}
 		evs = append(evs, ev)
 	}
-	var valid bo
-	sig := make(by, schnorr.SignatureSize)
+	var valid bool
+	sig := make([]byte, schnorr.SignatureSize)
 	for _, ev := range evs {
 		ev.PubKey = pkb
 		id := ev.GetIDBytes()
@@ -114,8 +114,8 @@ func TestBTCECSignerSign(t *testing.T) {
 
 func TestBTCECECDH(t *testing.T) {
 	n := time.Now()
-	var err er
-	var counter no
+	var err error
+	var counter int
 	const total = 100
 	for _ = range total {
 		s1 := new(btcec.Signer)
@@ -127,14 +127,14 @@ func TestBTCECECDH(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _ = range total {
-			var secret1, secret2 by
+			var secret1, secret2 []byte
 			if secret1, err = s1.ECDH(s2.Pub()); chk.E(err) {
 				t.Fatal(err)
 			}
 			if secret2, err = s2.ECDH(s1.Pub()); chk.E(err) {
 				t.Fatal(err)
 			}
-			if !equals(secret1, secret2) {
+			if !bytes.Equal(secret1, secret2) {
 				counter++
 				t.Errorf("ECDH generation failed to work in both directions, %x %x", secret1,
 					secret2)
@@ -144,6 +144,6 @@ func TestBTCECECDH(t *testing.T) {
 	a := time.Now()
 	duration := a.Sub(n)
 	log.I.Ln("errors", counter, "total", total, "time", duration, "time/op",
-		no(duration/total),
-		"ops/sec", no(time.Second)/no(duration/total))
+		int(duration/total),
+		"ops/sec", int(time.Second)/int(duration/total))
 }

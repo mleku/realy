@@ -10,12 +10,12 @@ import (
 type Signer struct {
 	SecretKey *secp256k1.SecretKey
 	PublicKey *secp256k1.PublicKey
-	pkb, skb  by
+	pkb, skb  []byte
 }
 
 var _ signer.I = &Signer{}
 
-func (s *Signer) Generate() (err er) {
+func (s *Signer) Generate() (err error) {
 	for {
 		if s.SecretKey, err = ec.NewSecretKey(); chk.E(err) {
 			return
@@ -35,7 +35,7 @@ func (s *Signer) Generate() (err er) {
 	return
 }
 
-func (s *Signer) InitSec(sec by) (err er) {
+func (s *Signer) InitSec(sec []byte) (err error) {
 	if len(sec) != secp256k1.SecKeyBytesLen {
 		err = errorf.E("sec key must be %d bytes", secp256k1.SecKeyBytesLen)
 		return
@@ -50,7 +50,7 @@ func (s *Signer) InitSec(sec by) (err er) {
 	return
 }
 
-func (s *Signer) InitPub(pub by) (err er) {
+func (s *Signer) InitPub(pub []byte) (err error) {
 	if s.PublicKey, err = schnorr.ParsePubKey(pub); chk.E(err) {
 		return
 	}
@@ -58,11 +58,11 @@ func (s *Signer) InitPub(pub by) (err er) {
 	return
 }
 
-func (s *Signer) Sec() (b by)   { return s.skb }
-func (s *Signer) Pub() (b by)   { return s.pkb[1:] }
-func (s *Signer) ECPub() (b by) { return s.pkb }
+func (s *Signer) Sec() (b []byte)   { return s.skb }
+func (s *Signer) Pub() (b []byte)   { return s.pkb[1:] }
+func (s *Signer) ECPub() (b []byte) { return s.pkb }
 
-func (s *Signer) Sign(msg by) (sig by, err er) {
+func (s *Signer) Sign(msg []byte) (sig []byte, err error) {
 	if s.SecretKey == nil {
 		err = errorf.E("btcec: Signer not initialized")
 		return
@@ -75,7 +75,7 @@ func (s *Signer) Sign(msg by) (sig by, err er) {
 	return
 }
 
-func (s *Signer) Verify(msg, sig by) (valid bo, err er) {
+func (s *Signer) Verify(msg, sig []byte) (valid bool, err error) {
 	if s.PublicKey == nil {
 		err = errorf.E("btcec: PubKey not initialized")
 		return
@@ -92,11 +92,11 @@ func (s *Signer) Verify(msg, sig by) (valid bo, err er) {
 
 func (s *Signer) Zero() { s.SecretKey.Key.Zero() }
 
-func (s *Signer) ECDH(pubkeyBytes by) (secret by, err er) {
+func (s *Signer) ECDH(pubkeyBytes []byte) (secret []byte, err error) {
 	var pub *secp256k1.PublicKey
 	// Note the public key must be even, if the secret key derives an odd compressed pubkey ECDH will fail in that
 	// direction.
-	if pub, err = secp256k1.ParsePubKey(append(by{0x02}, pubkeyBytes...)); chk.E(err) {
+	if pub, err = secp256k1.ParsePubKey(append([]byte{0x02}, pubkeyBytes...)); chk.E(err) {
 		return
 	}
 	secret = ec.GenerateSharedSecret(s.SecretKey, pub)
@@ -114,7 +114,7 @@ type Keygen struct {
 	Signer
 }
 
-func (k *Keygen) Generate() (pubBytes by, err er) {
+func (k *Keygen) Generate() (pubBytes []byte, err error) {
 	if k.Signer.SecretKey, err = ec.NewSecretKey(); chk.E(err) {
 		return
 	}
@@ -129,6 +129,6 @@ func (k *Keygen) Negate() {
 	return
 }
 
-func (k *Keygen) KeyPairBytes() (secBytes, cmprPubBytes by) {
+func (k *Keygen) KeyPairBytes() (secBytes, cmprPubBytes []byte) {
 	return k.Signer.SecretKey.Serialize(), k.Signer.PublicKey.SerializeCompressed()
 }
