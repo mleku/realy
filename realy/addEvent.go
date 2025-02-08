@@ -1,11 +1,13 @@
 package realy
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/normalize"
 	"realy.lol/realy/listeners"
@@ -14,8 +16,8 @@ import (
 	"realy.lol/store"
 )
 
-func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request, origin st,
-	authedPubkey by) (accepted bo, message by) {
+func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T, hr *http.Request, origin string,
+	authedPubkey []byte) (accepted bool, message []byte) {
 	if ev == nil {
 		return false, normalize.Invalid.F("empty event")
 	}
@@ -28,9 +30,9 @@ func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request, origi
 	}
 	// don't allow storing event with protected marker as per nip-70 with auth enabled.
 	if s.authRequired && ev.Tags.ContainsProtectedMarker() {
-		if len(authedPubkey) == 0 || !equals(ev.PubKey, authedPubkey) {
+		if len(authedPubkey) == 0 || !bytes.Equal(ev.PubKey, authedPubkey) {
 			return false,
-				by(fmt.Sprintf("event with relay marker tag '-' (nip-70 protected event) "+
+				[]byte(fmt.Sprintf("event with relay marker tag '-' (nip-70 protected event) "+
 					"may only be published by matching npub: %0x is not %0x",
 					authedPubkey, ev.PubKey))
 		}
@@ -49,8 +51,8 @@ func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request, origi
 				if strings.Contains(errmsg, "tombstone") {
 					return false, normalize.Blocked.F("event was deleted, not storing it again")
 				}
-				if strings.HasPrefix(errmsg, st(normalize.Blocked)) {
-					return false, by(errmsg)
+				if strings.HasPrefix(errmsg, string(normalize.Blocked)) {
+					return false, []byte(errmsg)
 				}
 				return false, normalize.Error.F(errmsg)
 			} else {
@@ -61,7 +63,7 @@ func (s *Server) addEvent(c cx, rl relay.I, ev *event.T, hr *http.Request, origi
 			advancedSaver.AfterSave(ev)
 		}
 	}
-	var authRequired bo
+	var authRequired bool
 	if ar, ok := rl.(relay.Authenticator); ok {
 		authRequired = ar.AuthEnabled()
 	}

@@ -1,11 +1,13 @@
 package realy
 
 import (
+	"bytes"
 	"errors"
 	"sort"
 
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.lol/context"
 	"realy.lol/envelopes/authenvelope"
 	"realy.lol/envelopes/closedenvelope"
 	"realy.lol/envelopes/eoseenvelope"
@@ -23,12 +25,12 @@ import (
 	"realy.lol/web"
 )
 
-func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
+func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I) (r []byte) {
 	if !s.publicReadable && (ws.AuthRequested() && len(ws.Authed()) == 0) {
-		return by("awaiting auth for req")
+		return []byte("awaiting auth for req")
 	}
-	var err er
-	var rem by
+	var err error
+	var rem []byte
 	env := reqenvelope.New()
 	if rem, err = env.Unmarshal(req); chk.E(err) {
 		return normalize.Error.F(err.Error())
@@ -38,9 +40,9 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 	}
 	allowed := env.Filters
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
-		var accepted bo
+		var accepted bool
 		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
-			by(ws.Authed()))
+			[]byte(ws.Authed()))
 		if !accepted || allowed == nil {
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
@@ -62,7 +64,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 	if allowed != env.Filters {
 		defer func() {
 			var auther relay.Authenticator
-			var ok bo
+			var ok bool
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
 				ws.RequestAuth()
 				if err = closedenvelope.NewFrom(env.Subscription,
@@ -102,7 +104,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 					}
 					notice := normalize.Restricted.F("this realy does not serve kind-4 to unauthenticated users," + " does your client implement NIP-42?")
 					return notice
-				case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny(by("#p"),
+				case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny([]byte("#p"),
 					tag.New(ws.AuthedBytes())):
 					log.T.F("user %0x from %s allowed to query for privileged event",
 						ws.AuthedBytes(), ws.RealRemote())
@@ -125,12 +127,12 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 			var mutes event.Ts
 			if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),
 				Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
-				var mutePubs []by
+				var mutePubs [][]byte
 				for _, ev := range mutes {
 					for _, t := range ev.Tags.F() {
-						if equals(t.Key(), by("p")) {
-							var p by
-							if p, err = hex.Dec(st(t.Value())); chk.E(err) {
+						if bytes.Equal(t.Key(), []byte("p")) {
+							var p []byte
+							if p, err = hex.Dec(string(t.Value())); chk.E(err) {
 								continue
 							}
 							mutePubs = append(mutePubs, p)
@@ -140,7 +142,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 				var tmp event.Ts
 				for _, ev := range events {
 					for _, pk := range mutePubs {
-						if equals(ev.PubKey, pk) {
+						if bytes.Equal(ev.PubKey, pk) {
 							continue
 						}
 						tmp = append(tmp, ev)
@@ -149,7 +151,7 @@ func (s *Server) handleReq(c cx, ws *web.Socket, req by, sto store.I) (r by) {
 				events = tmp
 			}
 		}
-		sort.Slice(events, func(i, j int) bo {
+		sort.Slice(events, func(i, j int) bool {
 			return events[i].CreatedAt.Int() > events[j].CreatedAt.Int()
 		})
 		for _, ev := range events {

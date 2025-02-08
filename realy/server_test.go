@@ -15,22 +15,22 @@ import (
 
 func TestServerStartShutdown(t *testing.T) {
 	var (
-		inited      bo
-		storeInited bo
-		shutdown    bo
+		inited      bool
+		storeInited bool
+		shutdown    bool
 	)
 	c, cancel := context.Cancel(context.Bg())
 	rl := &testRelay{
-		cx:     c,
+		c:      c,
 		Cancel: cancel,
 		name:   "test server start",
-		init: func() er {
+		init: func() error {
 			inited = true
 			return nil
 		},
 		onShutdown: func(context.T) { shutdown = true },
 		storage: &testStorage{
-			init: func() er { storeInited = true; return nil },
+			init: func() error { storeInited = true; return nil },
 		},
 	}
 	srv, _ := NewServer(&ServerParams{
@@ -39,8 +39,8 @@ func TestServerStartShutdown(t *testing.T) {
 		Rl:       rl,
 		MaxLimit: ratel.DefaultMaxLimit,
 	})
-	ready := make(chan bo)
-	done := make(chan er)
+	ready := make(chan bool)
+	done := make(chan error)
 	go func() {
 		done <- srv.Start("127.0.0.1", 0, ready)
 		close(done)

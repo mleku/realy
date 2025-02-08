@@ -33,7 +33,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	s.clients[conn] = struct{}{}
 	ticker := time.NewTicker(s.listeners.PingPeriod)
 	ip := conn.RemoteAddr().String()
-	var realIP st
+	var realIP string
 	if realIP = r.Header.Get("X-Forwarded-For"); realIP != "" {
 		ip = realIP
 	} else if realIP = r.Header.Get("X-Real-Ip"); realIP != "" {
@@ -62,7 +62,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 		}()
 		conn.SetReadLimit(s.listeners.MaxMessageSize)
 		chk.E(conn.SetReadDeadline(time.Now().Add(s.listeners.PongWait)))
-		conn.SetPongHandler(func(st) er {
+		conn.SetPongHandler(func(string) error {
 			chk.E(conn.SetReadDeadline(time.Now().Add(s.listeners.PongWait)))
 			return nil
 		})
@@ -76,8 +76,8 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 			}
 			// return
 		}
-		var message by
-		var typ no
+		var message []byte
+		var typ int
 		for {
 			typ, message, err = conn.ReadMessage()
 			if err != nil {
@@ -115,7 +115,7 @@ func (s *Server) pinger(ctx context.T, ws *web.Socket, conn *websocket.Conn, tic
 		ticker.Stop()
 		conn.Close()
 	}()
-	var err er
+	var err error
 	for {
 		select {
 		case <-ticker.C:
@@ -132,13 +132,13 @@ func (s *Server) pinger(ctx context.T, ws *web.Socket, conn *websocket.Conn, tic
 	}
 }
 
-func (s *Server) handleMessage(c cx, ws *web.Socket, msg by, sto store.I) {
-	var notice by
-	var err er
-	var t st
-	var rem by
+func (s *Server) handleMessage(c context.T, ws *web.Socket, msg []byte, sto store.I) {
+	var notice []byte
+	var err error
+	var t string
+	var rem []byte
 	if t, rem, err = envelopes.Identify(msg); chk.E(err) {
-		notice = by(err.Error())
+		notice = []byte(err.Error())
 	}
 	switch t {
 	case eventenvelope.L:
@@ -155,7 +155,7 @@ func (s *Server) handleMessage(c cx, ws *web.Socket, msg by, sto store.I) {
 		if cwh, ok := s.relay.(relay.WebSocketHandler); ok {
 			cwh.HandleUnknownType(ws, t, rem)
 		} else {
-			notice = by(fmt.Sprintf("unknown envelope type %s\n%s", t, rem))
+			notice = []byte(fmt.Sprintf("unknown envelope type %s\n%s", t, rem))
 		}
 	}
 	if len(notice) > 0 {

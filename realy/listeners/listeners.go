@@ -2,6 +2,7 @@
 package listeners
 
 import (
+	"bytes"
 	"crypto/rand"
 	"net/http"
 	"regexp"
@@ -22,16 +23,16 @@ import (
 
 type (
 	L   struct{ filters *filters.T }
-	Map map[*web.Socket]map[st]*L
+	Map map[*web.Socket]map[string]*L
 	T   struct {
 		sync.Mutex
 		Map
-		ChallengeHRP st
+		ChallengeHRP string
 		WriteWait,
 		PongWait,
 		PingPeriod time.Duration
 		MaxMessageSize  int64
-		ChallengeLength no
+		ChallengeLength int
 	}
 )
 
@@ -47,7 +48,7 @@ const (
 var (
 	NIP20prefixmatcher = regexp.MustCompile(`^\w+: `)
 	Upgrader           = websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024,
-		CheckOrigin: func(r *http.Request) bo {
+		CheckOrigin: func(r *http.Request) bool {
 			return true
 		}}
 )
@@ -66,35 +67,35 @@ func New() (l *T) {
 
 func (l *T) GetChallenge(conn *websocket.Conn, req *http.Request,
 	addr string) (ws *web.Socket) {
-	var err er
-	cb := make(by, l.ChallengeLength)
+	var err error
+	cb := make([]byte, l.ChallengeLength)
 	if _, err = rand.Read(cb); chk.E(err) {
 		panic(err)
 	}
-	var b5 by
+	var b5 []byte
 	if b5, err = bech32encoding.ConvertForBech32(cb); chk.E(err) {
 		return
 	}
-	var encoded by
-	if encoded, err = bech32.Encode(by(l.ChallengeHRP), b5); chk.E(err) {
+	var encoded []byte
+	if encoded, err = bech32.Encode([]byte(l.ChallengeHRP), b5); chk.E(err) {
 		return
 	}
 	ws = web.NewSocket(conn, req, encoded)
 	return
 }
 
-func (l *T) SetListener(id st, ws *web.Socket, ff *filters.T) {
+func (l *T) SetListener(id string, ws *web.Socket, ff *filters.T) {
 	l.Mutex.Lock()
 	subs, ok := l.Map[ws]
 	if !ok {
-		subs = make(map[st]*L)
+		subs = make(map[string]*L)
 		l.Map[ws] = subs
 	}
 	subs[id] = &L{filters: ff}
 	l.Mutex.Unlock()
 }
 
-func (l *T) RemoveListenerId(ws *web.Socket, id st) {
+func (l *T) RemoveListenerId(ws *web.Socket, id string) {
 	l.Mutex.Lock()
 	if subs, ok := l.Map[ws]; ok {
 		delete(l.Map[ws], id)
@@ -112,11 +113,11 @@ func (l *T) RemoveListener(ws *web.Socket) {
 	l.Mutex.Unlock()
 }
 
-func (l *T) NotifyListeners(authRequired bo, ev *event.T) {
+func (l *T) NotifyListeners(authRequired bool, ev *event.T) {
 	if ev == nil {
 		return
 	}
-	var err er
+	var err error
 	l.Mutex.Lock()
 	defer l.Mutex.Unlock()
 	for ws, subs := range l.Map {
@@ -129,11 +130,11 @@ func (l *T) NotifyListeners(authRequired bo, ev *event.T) {
 			}
 			if ev.Kind.IsPrivileged() {
 				ab := ws.AuthedBytes()
-				var containsPubkey bo
+				var containsPubkey bool
 				if ev.Tags != nil {
-					containsPubkey = ev.Tags.ContainsAny(by{'p'}, tag.New(ab))
+					containsPubkey = ev.Tags.ContainsAny([]byte{'p'}, tag.New(ab))
 				}
-				if !equals(ev.PubKey, ab) || containsPubkey {
+				if !bytes.Equal(ev.PubKey, ab) || containsPubkey {
 					log.I.F("authed user %0x not privileged to receive event\n%s",
 						ws.AuthedBytes(), ev.Serialize())
 					continue

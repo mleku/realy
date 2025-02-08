@@ -33,7 +33,7 @@ import (
 // 	return
 // }
 
-func (s *Server) auth(r *http.Request) (authed bo) {
+func (s *Server) auth(r *http.Request) (authed bool) {
 
 	return
 }
@@ -62,14 +62,14 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) {
 			switch split[2] {
 			case "users":
 				if rl, ok := s.relay.(*app.Relay); ok {
-					follows := make([]by, 0, len(rl.Followed))
+					follows := make([][]byte, 0, len(rl.Followed))
 					for f := range rl.Followed {
-						follows = append(follows, by(f))
+						follows = append(follows, []byte(f))
 					}
 					sto.Export(s.Ctx, w, follows...)
 				}
 			default:
-				var exportPubkeys []by
+				var exportPubkeys [][]byte
 				pubkeys := strings.Split(split[2], "-")
 				for _, pubkey := range pubkeys {
 					pk, err := hex.Dec(pubkey)

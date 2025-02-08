@@ -21,34 +21,34 @@ func startTestRelay(c context.T, t *testing.T, tr *testRelay) *Server {
 		Rl:       tr,
 		MaxLimit: 500 * units.Kb,
 	})
-	started := make(chan bo)
+	started := make(chan bool)
 	go srv.Start("127.0.0.1", 0, started)
 	<-started
 	return srv
 }
 
 type testRelay struct {
-	cx
+	c           context.T
 	Cancel      context.F
-	name        st
+	name        string
 	storage     store.I
-	init        func() er
+	init        func() error
 	onShutdown  func(context.T)
-	acceptEvent func(*event.T) bo
+	acceptEvent func(*event.T) bool
 }
 
-func (tr *testRelay) Name() st         { return tr.name }
+func (tr *testRelay) Name() string     { return tr.name }
 func (tr *testRelay) Storage() store.I { return tr.storage }
-func (tr *testRelay) Origin() st       { return "example.com" }
-func (tr *testRelay) Init() er {
-	tr.cx, tr.Cancel = context.Cancel(context.Bg())
+func (tr *testRelay) Origin() string   { return "example.com" }
+func (tr *testRelay) Init() error {
+	tr.c, tr.Cancel = context.Cancel(context.Bg())
 	if fn := tr.init; fn != nil {
 		return fn()
 	}
 	return nil
 }
 
-func (tr *testRelay) NoLimiter(pubKey by) bo {
+func (tr *testRelay) NoLimiter(pubKey []byte) bool {
 	return false
 }
 
@@ -58,8 +58,8 @@ func (tr *testRelay) OnShutdown(c context.T) {
 	}
 }
 
-func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin st,
-	authedPubkey by) (ok bo, notice st, after func()) {
+func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin string,
+	authedPubkey []byte) (ok bool, notice string, after func()) {
 	if fn := tr.acceptEvent; fn != nil {
 		return fn(evt), "", nil
 	}
@@ -67,76 +67,76 @@ func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, or
 }
 
 type testStorage struct {
-	init        func() er
+	init        func() error
 	close       func()
-	queryEvents func(context.T, *filter.T) ([]*event.T, er)
-	deleteEvent func(c context.T, eid *eventid.T, noTombstone ...bo) er
-	saveEvent   func(context.T, *event.T) er
-	countEvents func(context.T, *filter.T) (no, bo, er)
+	queryEvents func(context.T, *filter.T) ([]*event.T, error)
+	deleteEvent func(c context.T, eid *eventid.T, noTombstone ...bool) error
+	saveEvent   func(context.T, *event.T) error
+	countEvents func(context.T, *filter.T) (int, bool, error)
 }
 
-func (st *testStorage) Import(r io.Reader) {
+func (string *testStorage) Import(r io.Reader) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (st *testStorage) Export(c cx, w io.Writer, pubkeys ...by) {
+func (string *testStorage) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (st *testStorage) Sync() (err er) {
+func (string *testStorage) Sync() (err error) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (st *testStorage) Nuke() (err er) {
+func (string *testStorage) Nuke() (err error) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (st *testStorage) Path() st {
+func (string *testStorage) Path() string {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (st *testStorage) Init(path st) er {
-	if fn := st.init; fn != nil {
+func (string *testStorage) Init(path string) error {
+	if fn := string.init; fn != nil {
 		return fn()
 	}
 	return nil
 }
 
-func (st *testStorage) Close() (err er) {
-	if fn := st.close; fn != nil {
+func (string *testStorage) Close() (err error) {
+	if fn := string.close; fn != nil {
 		fn()
 	}
 	return
 }
 
-func (st *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err er) {
-	if fn := st.queryEvents; fn != nil {
+func (string *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
+	if fn := string.queryEvents; fn != nil {
 		return fn(c, f)
 	}
 	return nil, nil
 }
 
-func (st *testStorage) DeleteEvent(c context.T, evt *eventid.T, noTombstone ...bo) er {
-	if fn := st.deleteEvent; fn != nil {
+func (string *testStorage) DeleteEvent(c context.T, evt *eventid.T, noTombstone ...bool) error {
+	if fn := string.deleteEvent; fn != nil {
 		return fn(c, evt)
 	}
 	return nil
 }
 
-func (st *testStorage) SaveEvent(c context.T, e *event.T) er {
-	if fn := st.saveEvent; fn != nil {
+func (string *testStorage) SaveEvent(c context.T, e *event.T) error {
+	if fn := string.saveEvent; fn != nil {
 		return fn(c, e)
 	}
 	return nil
 }
 
-func (st *testStorage) CountEvents(c context.T, f *filter.T) (no, bo, er) {
-	if fn := st.countEvents; fn != nil {
+func (string *testStorage) CountEvents(c context.T, f *filter.T) (int, bool, error) {
+	if fn := string.countEvents; fn != nil {
 		return fn(c, f)
 	}
 	return 0, false, nil

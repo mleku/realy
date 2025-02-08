@@ -22,38 +22,38 @@ import (
 )
 
 type Server struct {
-	Ctx            cx
+	Ctx            context.T
 	Cancel         context.F
 	options        *options.T
 	relay          relay.I
 	clientsMu      sync.Mutex
 	clients        map[*websocket.Conn]struct{}
-	Addr           st
+	Addr           string
 	serveMux       *http.ServeMux
 	httpServer     *http.Server
-	authRequired   bo
-	publicReadable bo
-	maxLimit       no
+	authRequired   bool
+	publicReadable bool
+	maxLimit       int
 	admins         []signer.I
 	listeners      *listeners.T
 }
 
 type ServerParams struct {
-	Ctx            cx
+	Ctx            context.T
 	Cancel         context.F
 	Rl             relay.I
-	DbPath         st
-	MaxLimit       no
+	DbPath         string
+	MaxLimit       int
 	Admins         []signer.I
-	PublicReadable bo
+	PublicReadable bool
 }
 
-func NewServer(sp *ServerParams, opts ...options.O) (*Server, er) {
+func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 	op := options.Default()
 	for _, opt := range opts {
 		opt(op)
 	}
-	var authRequired bo
+	var authRequired bool
 	if ar, ok := sp.Rl.(relay.Authenticator); ok {
 		authRequired = ar.AuthEnabled()
 	}
@@ -98,7 +98,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) Start(host st, port int, started ...chan bo) er {
+func (s *Server) Start(host string, port int, started ...chan bool) error {
 	addr := net.JoinHostPort(host, strconv.Itoa(port))
 	log.I.F("starting relay listener at %s", addr)
 	ln, err := net.Listen("tcp", addr)
@@ -143,4 +143,4 @@ func (s *Server) Router() *http.ServeMux {
 	return s.serveMux
 }
 
-func fprintf(w io.Writer, format st, a ...any) { _, _ = fmt.Fprintf(w, format, a...) }
+func fprintf(w io.Writer, format string, a ...any) { _, _ = fmt.Fprintf(w, format, a...) }
