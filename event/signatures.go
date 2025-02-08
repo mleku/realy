@@ -1,6 +1,8 @@
 package event
 
 import (
+	"bytes"
+
 	sch "realy.lol/ec/schnorr"
 	k1 "realy.lol/ec/secp256k1"
 	"realy.lol/p256k"
@@ -10,7 +12,7 @@ import (
 
 // Sign the event using the signer.I. Uses github.com/bitcoin-core/secp256k1 if
 // available for much faster signatures.
-func (ev *T) Sign(keys signer.I) (err er) {
+func (ev *T) Sign(keys signer.I) (err error) {
 	ev.PubKey = keys.Pub()
 	ev.CreatedAt = timestamp.Now()
 	ev.ID = ev.GetIDBytes()
@@ -22,7 +24,7 @@ func (ev *T) Sign(keys signer.I) (err er) {
 
 // Verify an event is signed by the pubkey it contains. Uses
 // github.com/bitcoin-core/secp256k1 if available for faster verification.
-func (ev *T) Verify() (valid bo, err er) {
+func (ev *T) Verify() (valid bool, err error) {
 	keys := p256k.Signer{}
 	if err = keys.InitPub(ev.PubKey); chk.E(err) {
 		return
@@ -30,7 +32,7 @@ func (ev *T) Verify() (valid bo, err er) {
 	if valid, err = keys.Verify(ev.ID, ev.Sig); chk.T(err) {
 		// check that this isn't because of a bogus ID
 		id := ev.GetIDBytes()
-		if !equals(id, ev.ID) {
+		if !bytes.Equal(id, ev.ID) {
 			log.E.Ln("event ID incorrect")
 			ev.ID = id
 			err = nil
@@ -49,7 +51,7 @@ func (ev *T) Verify() (valid bo, err er) {
 // Deprecated: use Sign and nostr.I and p256k.Signer / p256k.BTCECSigner
 // implementations.
 func (ev *T) SignWithSecKey(sk *k1.SecretKey,
-	so ...sch.SignOption) (err er) {
+	so ...sch.SignOption) (err error) {
 
 	// sign the event.
 	var sig *sch.Signature
@@ -67,7 +69,7 @@ func (ev *T) SignWithSecKey(sk *k1.SecretKey,
 // the event ID and Pubkey.
 //
 // Deprecated: use Verify
-func (ev *T) CheckSignature() (valid bo, err er) {
+func (ev *T) CheckSignature() (valid bool, err error) {
 	// parse pubkey bytes.
 	var pk *k1.PublicKey
 	if pk, err = sch.ParsePubKey(ev.PubKey); chk.D(err) {

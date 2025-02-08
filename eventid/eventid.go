@@ -18,14 +18,14 @@ func New() (ei *T) { return &T{} }
 // NewWith creates an eventid.T out of bytes or string but assumes it is binary
 // and that it is the right length. The result is either truncated or padded automatically by
 // the use of the "copy" operation.
-func NewWith[V st | by](s V) (ei *T) {
+func NewWith[V string | []byte](s V) (ei *T) {
 	id := T{}
 	copy(id[:], s)
 	return &id
 }
 
 // Set the value of an eventid.T with checking of the length before copying it.
-func (ei *T) Set(b by) (err er) {
+func (ei *T) Set(b []byte) (err error) {
 	if ei == nil {
 		err = errorf.E("event id is nil")
 		return
@@ -38,7 +38,7 @@ func (ei *T) Set(b by) (err er) {
 	return
 }
 
-func NewFromBytes(b by) (ei *T, err er) {
+func NewFromBytes(b []byte) (ei *T, err error) {
 	ei = New()
 	if err = ei.Set(b); chk.E(err) {
 		return
@@ -46,20 +46,20 @@ func NewFromBytes(b by) (ei *T, err er) {
 	return
 }
 
-func (ei *T) String() st {
+func (ei *T) String() string {
 	if ei == nil {
 		return ""
 	}
 	return hex.Enc(ei[:])
 }
 
-func (ei *T) ByteString(src by) (b by) {
+func (ei *T) ByteString(src []byte) (b []byte) {
 	return hex.EncAppend(src, ei[:])
 }
 
-func (ei *T) Bytes() (b by) { return ei[:] }
+func (ei *T) Bytes() (b []byte) { return ei[:] }
 
-func (ei *T) Len() no {
+func (ei *T) Len() int {
 	if ei == nil {
 		log.W.Ln("nil event id")
 		return 0
@@ -67,7 +67,7 @@ func (ei *T) Len() no {
 	return len(ei)
 }
 
-func (ei *T) Equal(ei2 *T) (eq bo) {
+func (ei *T) Equal(ei2 *T) (eq bool) {
 	if ei == nil || ei2 == nil {
 		log.W.Ln("can't compare to nil event id")
 		return
@@ -75,16 +75,16 @@ func (ei *T) Equal(ei2 *T) (eq bo) {
 	return *ei == *ei2
 }
 
-func (ei *T) Marshal(dst by) (b by) {
+func (ei *T) Marshal(dst []byte) (b []byte) {
 	b = dst
-	b = make(by, 0, 2*sha256.Size+2)
+	b = make([]byte, 0, 2*sha256.Size+2)
 	b = append(b, '"')
 	hex.EncAppend(b, ei[:])
 	b = append(b, '"')
 	return
 }
 
-func (ei *T) Unmarshal(b by) (rem by, err er) {
+func (ei *T) Unmarshal(b []byte) (rem []byte, err error) {
 	// trim off the quotes.
 	b = b[1 : 2*sha256.Size+1]
 	if len(b) != 2*sha256.Size {
@@ -93,8 +93,8 @@ func (ei *T) Unmarshal(b by) (rem by, err er) {
 		log.E.Ln(string(b))
 		return
 	}
-	var bb by
-	if bb, err = hex.Dec(st(b)); chk.E(err) {
+	var bb []byte
+	if bb, err = hex.Dec(string(b)); chk.E(err) {
 		return
 	}
 	copy(ei[:], bb)
@@ -103,14 +103,14 @@ func (ei *T) Unmarshal(b by) (rem by, err er) {
 
 // NewFromString inspects a string and ensures it is a valid, 64 character long
 // hexadecimal string, returns the string coerced to the type.
-func NewFromString(s st) (ei *T, err er) {
+func NewFromString(s string) (ei *T, err error) {
 	if len(s) != 2*sha256.Size {
 		return nil, errorf.E("event ID hex wrong size, got %d require %d",
 			len(s), 2*sha256.Size)
 	}
 	ei = &T{}
-	b := make(by, 0, sha256.Size)
-	b, err = hex.DecAppend(b, by(s))
+	b := make([]byte, 0, sha256.Size)
+	b, err = hex.DecAppend(b, []byte(s))
 	copy(ei[:], b)
 	return
 }

@@ -3,18 +3,18 @@ package event
 import (
 	"reflect"
 
+	"realy.lol/codec"
 	"realy.lol/hex"
 	"realy.lol/json"
 	"realy.lol/kind"
 	"realy.lol/tags"
 	"realy.lol/text"
 	"realy.lol/timestamp"
-	"realy.lol/codec"
 )
 
 // ToCanonical converts the event to the canonical encoding used to derive the
 // event ID.
-func (ev *T) ToCanonical(dst by) (b by) {
+func (ev *T) ToCanonical(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, "[0,\""...)
 	b = hex.EncAppend(b, ev.PubKey)
@@ -31,7 +31,7 @@ func (ev *T) ToCanonical(dst by) (b by) {
 }
 
 // GetIDBytes returns the raw SHA256 hash of the canonical form of an T.
-func (ev *T) GetIDBytes() by { return Hash(ev.ToCanonical(nil)) }
+func (ev *T) GetIDBytes() []byte { return Hash(ev.ToCanonical(nil)) }
 
 func NewCanonical() (a *json.Array) {
 	a = &json.Array{
@@ -52,7 +52,7 @@ var minimal = len(`[0,"0123456789abcdef0123456789abcdef",1733739427,0,[],""]`)
 
 // FromCanonical reverses the process of creating the canonical encoding, note that the signature is missing in this
 // form. Allocate an event.T before calling this.
-func (ev *T) FromCanonical(b by) (rem by, err er) {
+func (ev *T) FromCanonical(b []byte) (rem []byte, err error) {
 	rem = b
 	id := Hash(rem)
 	c := NewCanonical()

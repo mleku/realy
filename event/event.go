@@ -17,9 +17,9 @@ import (
 // defines its JSON string based format.
 type T struct {
 	// ID is the SHA256 hash of the canonical encoding of the event in binary format
-	ID by
+	ID []byte
 	// PubKey is the public key of the event creator in binary format
-	PubKey by
+	PubKey []byte
 	// CreatedAt is the UNIX timestamp of the event according to the event
 	// creator (never trust a timestamp!)
 	CreatedAt *timestamp.T
@@ -30,41 +30,41 @@ type T struct {
 	Tags *tags.T
 	// Content is an arbitrary string that can contain anything, but usually
 	// conforming to a specification relating to the Kind and the Tags.
-	Content by
+	Content []byte
 	// Sig is the signature on the ID hash that validates as coming from the
 	// Pubkey in binary format.
-	Sig by
+	Sig []byte
 }
 
 // Ts is an array of T that sorts in reverse chronological order.
 type Ts []*T
 
-func (ev Ts) Len() no         { return len(ev) }
-func (ev Ts) Less(i, j no) bo { return ev[i].CreatedAt.I64() > ev[j].CreatedAt.I64() }
-func (ev Ts) Swap(i, j no)    { ev[i], ev[j] = ev[j], ev[i] }
+func (ev Ts) Len() int           { return len(ev) }
+func (ev Ts) Less(i, j int) bool { return ev[i].CreatedAt.I64() > ev[j].CreatedAt.I64() }
+func (ev Ts) Swap(i, j int)      { ev[i], ev[j] = ev[j], ev[i] }
 
 type C chan *T
 
 func New() (ev *T) { return &T{} }
 
-func (ev *T) Serialize() (b by) { return ev.Marshal(nil) }
+func (ev *T) Serialize() (b []byte) { return ev.Marshal(nil) }
 
 // stringy functions for retarded other libraries
 
-func (ev *T) IDString() (s st)          { return hex.Enc(ev.ID) }
-func (ev *T) EventID() (eid *eventid.T) { return eventid.NewWith(ev.ID) }
-func (ev *T) PubKeyString() (s st)      { return hex.Enc(ev.PubKey) }
-func (ev *T) SigString() (s st)         { return hex.Enc(ev.Sig) }
-func (ev *T) TagStrings() (s [][]st)    { return ev.Tags.ToStringSlice() }
-func (ev *T) ContentString() (s st)     { return st(ev.Content) }
+func (ev *T) IDString() (s string)       { return hex.Enc(ev.ID) }
+func (ev *T) EventID() (eid *eventid.T)  { return eventid.NewWith(ev.ID) }
+func (ev *T) PubKeyString() (s string)   { return hex.Enc(ev.PubKey) }
+func (ev *T) SigString() (s string)      { return hex.Enc(ev.Sig) }
+func (ev *T) TagStrings() (s [][]string) { return ev.Tags.ToStringSlice() }
+func (ev *T) ContentString() (s string)  { return string(ev.Content) }
 
-func Hash(in by) (out by) {
+func Hash(in []byte) (out []byte) {
 	h := sha256.Sum256(in)
 	return h[:]
 }
 
-func GenerateRandomTextNoteEvent(sign signer.I, maxSize no) (ev *T,
-	err er) {
+func GenerateRandomTextNoteEvent(sign signer.I, maxSize int) (ev *T,
+	err error) {
 
 	l := frand.Intn(maxSize * 6 / 8) // account for base64 expansion
 	ev = &T{

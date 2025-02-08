@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -17,7 +18,7 @@ func main() {
 		os.Exit(1)
 	}
 	var fh *os.File
-	var err er
+	var err error
 	if fh, err = os.Open(os.Args[1]); chk.E(err) {
 		os.Exit(1)
 	}
@@ -61,12 +62,12 @@ func main() {
 		reser.Sync()
 		os.Exit(0)
 	})
-	var progress, total no
+	var progress, total int
 	scanner := bufio.NewScanner(fh)
 	scanner.Split(bufio.ScanLines)
-	scanner.Buffer(make(by, units.Megabyte*8), units.Megabyte*8)
-	bin := make(by, 0, units.Mb)
-	cp := make(by, units.Mb)
+	scanner.Buffer(make([]byte, units.Megabyte*8), units.Megabyte*8)
+	bin := make([]byte, 0, units.Mb)
+	cp := make([]byte, units.Mb)
 	for scanner.Scan() {
 		cp = cp[:0]
 		bin = bin[:0]
@@ -78,7 +79,7 @@ func main() {
 		total += len(line) + 1
 		cp = append(cp, line...)
 		ev := event.T{}
-		var rem by
+		var rem []byte
 		if rem, err = ev.Unmarshal(line); err != nil {
 			// these two error types are fatal... json cannot have linebreak characters in
 			// strings nor can events have keys that are other than the set defined in NIP-01.
@@ -95,7 +96,7 @@ func main() {
 		}
 		can := ev.ToCanonical(nil)
 		eh := event.Hash(can)
-		eq := equals(ev.ID, eh)
+		eq := bytes.Equal(ev.ID, eh)
 		if !eq {
 			_, err = fmt.Fprintf(ids, "%s\n", ev.Serialize())
 			if chk.E(err) {

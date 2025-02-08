@@ -10,11 +10,11 @@ import (
 
 func TestFromCanonical(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	var rem, out, can by
-	var err er
+	var rem, out, can []byte
+	var err error
 	for scanner.Scan() {
 		b := scanner.Bytes()
-		c := make(by, 0, len(b))
+		c := make([]byte, 0, len(b))
 		c = append(c, b...)
 		ea := New()
 		if rem, err = ea.Unmarshal(b); chk.E(err) {

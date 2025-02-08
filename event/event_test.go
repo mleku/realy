@@ -12,11 +12,11 @@ import (
 
 func TestTMarshal_Unmarshal(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	var rem, out by
-	var err er
+	var rem, out []byte
+	var err error
 	for scanner.Scan() {
 		b := scanner.Bytes()
-		c := make(by, 0, len(b))
+		c := make([]byte, 0, len(b))
 		c = append(c, b...)
 		ea := New()
 		if rem, err = ea.Unmarshal(b); chk.E(err) {
@@ -29,7 +29,7 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 		if out = ea.Marshal(out); chk.E(err) {
 			t.Fatal(err)
 		}
-		if !equals(out, c) {
+		if !bytes.Equal(out, c) {
 			t.Fatalf("mismatched output\n%s\n\n%s\n", c, out)
 		}
 		out = out[:0]
@@ -38,11 +38,11 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 
 func TestT_CheckSignature(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	var rem, out by
-	var err er
+	var rem, out []byte
+	var err error
 	for scanner.Scan() {
 		b := scanner.Bytes()
-		c := make(by, 0, len(b))
+		c := make([]byte, 0, len(b))
 		c = append(c, b...)
 		ea := New()
 		if _, err = ea.Unmarshal(b); chk.E(err) {
@@ -52,7 +52,7 @@ func TestT_CheckSignature(t *testing.T) {
 			t.Fatalf("some of input remaining after marshal/unmarshal: '%s'",
 				rem)
 		}
-		var valid bo
+		var valid bool
 		if valid, err = ea.Verify(); chk.E(err) {
 			t.Fatal(err)
 		}
@@ -64,7 +64,7 @@ func TestT_CheckSignature(t *testing.T) {
 }
 
 func TestT_SignWithSecKey(t *testing.T) {
-	var err er
+	var err error
 	signer := new(p256k.Signer)
 	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
@@ -74,7 +74,7 @@ func TestT_SignWithSecKey(t *testing.T) {
 		if ev, err = GenerateRandomTextNoteEvent(signer, 1000); chk.E(err) {
 			t.Fatal(err)
 		}
-		var valid bo
+		var valid bool
 		if valid, err = ev.Verify(); chk.E(err) {
 			t.Fatal(err)
 		}
@@ -87,12 +87,12 @@ func TestT_SignWithSecKey(t *testing.T) {
 
 func BenchmarkMarshal(bb *testing.B) {
 	bb.StopTimer()
-	var i no
-	var out by
-	var err er
+	var i int
+	var out []byte
+	var err error
 	evts := make([]*T, 0, 9999)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(by, 1_000_000)
+	buf := make([]byte, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	for scanner.Scan() {
 		b := scanner.Bytes()
@@ -103,7 +103,7 @@ func BenchmarkMarshal(bb *testing.B) {
 		evts = append(evts, ea)
 	}
 	bb.ReportAllocs()
-	var counter no
+	var counter int
 	out = out[:0]
 	bb.StartTimer()
 	for i = 0; i < bb.N; i++ {
@@ -117,14 +117,14 @@ func BenchmarkMarshal(bb *testing.B) {
 }
 
 func BenchmarkUnmarshal(bb *testing.B) {
-	var i no
-	var err er
+	var i int
+	var err error
 	evts := make([]*T, 9999)
 	bb.ReportAllocs()
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	buf := make(by, 1_000_000)
+	buf := make([]byte, 1_000_000)
 	scanner.Buffer(buf, len(buf))
-	var counter no
+	var counter int
 	for i = 0; i < bb.N; i++ {
 		if !scanner.Scan() {
 			scanner = bufio.NewScanner(bytes.NewBuffer(examples.Cache))

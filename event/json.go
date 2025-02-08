@@ -1,6 +1,7 @@
 package event
 
 import (
+	"bytes"
 	"io"
 
 	"realy.lol/ec/schnorr"
@@ -13,16 +14,16 @@ import (
 )
 
 var (
-	jId        = by("id")
-	jPubkey    = by("pubkey")
-	jCreatedAt = by("created_at")
-	jKind      = by("kind")
-	jTags      = by("tags")
-	jContent   = by("content")
-	jSig       = by("sig")
+	jId        = []byte("id")
+	jPubkey    = []byte("pubkey")
+	jCreatedAt = []byte("created_at")
+	jKind      = []byte("kind")
+	jTags      = []byte("tags")
+	jContent   = []byte("content")
+	jSig       = []byte("sig")
 )
 
-func (ev *T) Marshal(dst by) (b by) {
+func (ev *T) Marshal(dst []byte) (b []byte) {
 	// open parentheses
 	dst = append(dst, '{')
 	// ID
@@ -58,10 +59,10 @@ func (ev *T) Marshal(dst by) (b by) {
 	return
 }
 
-func Marshal(ev *T, dst by) (b by) { return ev.Marshal(dst) }
+func Marshal(ev *T, dst []byte) (b []byte) { return ev.Marshal(dst) }
 
-func (ev *T) Unmarshal(b by) (r by, err er) {
-	key := make(by, 0, 9)
+func (ev *T) Unmarshal(b []byte) (r []byte, err error) {
+	key := make([]byte, 0, 9)
 	r = b
 	for ; len(r) > 0; r = r[1:] {
 		if r[0] == '{' {
@@ -98,10 +99,10 @@ InKV:
 InVal:
 	switch key[0] {
 	case jId[0]:
-		if !equals(jId, key) {
+		if !bytes.Equal(jId, key) {
 			goto invalid
 		}
-		var id by
+		var id []byte
 		if id, r, err = text.UnmarshalHex(r); chk.E(err) {
 			return
 		}
@@ -113,10 +114,10 @@ InVal:
 		ev.ID = id
 		goto BetweenKV
 	case jPubkey[0]:
-		if !equals(jPubkey, key) {
+		if !bytes.Equal(jPubkey, key) {
 			goto invalid
 		}
-		var pk by
+		var pk []byte
 		if pk, r, err = text.UnmarshalHex(r); chk.E(err) {
 			return
 		}
@@ -128,7 +129,7 @@ InVal:
 		ev.PubKey = pk
 		goto BetweenKV
 	case jKind[0]:
-		if !equals(jKind, key) {
+		if !bytes.Equal(jKind, key) {
 			goto invalid
 		}
 		ev.Kind = kind.New(0)
@@ -137,7 +138,7 @@ InVal:
 		}
 		goto BetweenKV
 	case jTags[0]:
-		if !equals(jTags, key) {
+		if !bytes.Equal(jTags, key) {
 			goto invalid
 		}
 		ev.Tags = tags.New()
@@ -146,10 +147,10 @@ InVal:
 		}
 		goto BetweenKV
 	case jSig[0]:
-		if !equals(jSig, key) {
+		if !bytes.Equal(jSig, key) {
 			goto invalid
 		}
-		var sig by
+		var sig []byte
 		if sig, r, err = text.UnmarshalHex(r); chk.E(err) {
 			return
 		}
@@ -162,7 +163,7 @@ InVal:
 		goto BetweenKV
 	case jContent[0]:
 		if key[1] == jContent[1] {
-			if !equals(jContent, key) {
+			if !bytes.Equal(jContent, key) {
 				goto invalid
 			}
 			if ev.Content, r, err = text.UnmarshalQuoted(r); chk.T(err) {
@@ -170,7 +171,7 @@ InVal:
 			}
 			goto BetweenKV
 		} else if key[1] == jCreatedAt[1] {
-			if !equals(jCreatedAt, key) {
+			if !bytes.Equal(jCreatedAt, key) {
 				goto invalid
 			}
 			ev.CreatedAt = timestamp.New()
@@ -205,12 +206,12 @@ BetweenKV:
 AfterClose:
 	return
 invalid:
-	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", st(b), st(b[:len(r)]),
-		st(r))
+	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", string(b), string(b[:len(r)]),
+		string(r))
 	return
 eof:
 	err = io.EOF
 	return
 }
 
-func Unmarshal(ev *T, b by) (r by, err er) { return ev.Unmarshal(b) }
+func Unmarshal(ev *T, b []byte) (r []byte, err error) { return ev.Unmarshal(b) }
