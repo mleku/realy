@@ -1,6 +1,8 @@
 package bech32encoding
 
 import (
+	"bytes"
+
 	btcec "realy.lol/ec"
 	"realy.lol/ec/bech32"
 	"realy.lol/ec/schnorr"
@@ -17,19 +19,19 @@ const (
 )
 
 var (
-	SecHRP = by("nsec")
-	PubHRP = by("npub")
+	SecHRP = []byte("nsec")
+	PubHRP = []byte("npub")
 )
 
 // ConvertForBech32 performs the bit expansion required for encoding into Bech32.
-func ConvertForBech32(b8 by) (b5 by, err er) { return bech32.ConvertBits(b8, 8, 5, true) }
+func ConvertForBech32(b8 []byte) (b5 []byte, err error) { return bech32.ConvertBits(b8, 8, 5, true) }
 
 // ConvertFromBech32 collapses together the bit expanded 5 bit numbers encoded in bech32.
-func ConvertFromBech32(b5 by) (b8 by, err er) { return bech32.ConvertBits(b5, 5, 8, true) }
+func ConvertFromBech32(b5 []byte) (b8 []byte, err error) { return bech32.ConvertBits(b5, 5, 8, true) }
 
 // SecretKeyToNsec encodes an secp256k1 secret key as a Bech32 string (nsec).
-func SecretKeyToNsec(sk *secp256k1.SecretKey) (encoded by, err er) {
-	var b5 by
+func SecretKeyToNsec(sk *secp256k1.SecretKey) (encoded []byte, err error) {
+	var b5 []byte
 	if b5, err = ConvertForBech32(sk.Serialize()); chk.E(err) {
 		return
 	}
@@ -37,8 +39,8 @@ func SecretKeyToNsec(sk *secp256k1.SecretKey) (encoded by, err er) {
 }
 
 // PublicKeyToNpub encodes a public key as a bech32 string (npub).
-func PublicKeyToNpub(pk *secp256k1.PublicKey) (encoded by, err er) {
-	var bits5 by
+func PublicKeyToNpub(pk *secp256k1.PublicKey) (encoded []byte, err error) {
+	var bits5 []byte
 	pubKeyBytes := schnorr.SerializePubKey(pk)
 	if bits5, err = ConvertForBech32(pubKeyBytes); chk.E(err) {
 		return
@@ -48,8 +50,8 @@ func PublicKeyToNpub(pk *secp256k1.PublicKey) (encoded by, err er) {
 
 // NsecToSecretKey decodes a nostr secret key (nsec) and returns the secp256k1
 // secret key.
-func NsecToSecretKey(encoded by) (sk *secp256k1.SecretKey, err er) {
-	var b8 by
+func NsecToSecretKey(encoded []byte) (sk *secp256k1.SecretKey, err error) {
+	var b8 []byte
 	if b8, err = NsecToBytes(encoded); chk.E(err) {
 		return
 	}
@@ -57,12 +59,12 @@ func NsecToSecretKey(encoded by) (sk *secp256k1.SecretKey, err er) {
 	return
 }
 
-func NsecToBytes(encoded by) (sk by, err er) {
-	var b5, hrp by
+func NsecToBytes(encoded []byte) (sk []byte, err error) {
+	var b5, hrp []byte
 	if hrp, b5, err = bech32.Decode(encoded); chk.E(err) {
 		return
 	}
-	if !equals(hrp, SecHRP) {
+	if !bytes.Equal(hrp, SecHRP) {
 		err = log.E.Err("wrong human readable part, got '%s' want '%s'",
 			hrp, SecHRP)
 		return
@@ -73,12 +75,12 @@ func NsecToBytes(encoded by) (sk by, err er) {
 	return
 }
 
-func NpubToBytes(encoded by) (pk by, err er) {
-	var b5, hrp by
+func NpubToBytes(encoded []byte) (pk []byte, err error) {
+	var b5, hrp []byte
 	if hrp, b5, err = bech32.Decode(encoded); chk.E(err) {
 		return
 	}
-	if !equals(hrp, PubHRP) {
+	if !bytes.Equal(hrp, PubHRP) {
 		err = log.E.Err("wrong human readable part, got '%s' want '%s'",
 			hrp, SecHRP)
 		return
@@ -92,13 +94,13 @@ func NpubToBytes(encoded by) (pk by, err er) {
 
 // NpubToPublicKey decodes an nostr public key (npub) and returns an secp256k1
 // public key.
-func NpubToPublicKey(encoded by) (pk *secp256k1.PublicKey, err er) {
-	var b5, b8, hrp by
+func NpubToPublicKey(encoded []byte) (pk *secp256k1.PublicKey, err error) {
+	var b5, b8, hrp []byte
 	if hrp, b5, err = bech32.Decode(encoded); chk.E(err) {
 		err = log.E.Err("ERROR: '%s'", err)
 		return
 	}
-	if !equals(hrp, PubHRP) {
+	if !bytes.Equal(hrp, PubHRP) {
 		err = log.E.Err("wrong human readable part, got '%s' want '%s'",
 			hrp, PubHRP)
 		return
@@ -113,13 +115,13 @@ func NpubToPublicKey(encoded by) (pk *secp256k1.PublicKey, err er) {
 // HexToPublicKey decodes a string that should be a 64 character long hex
 // encoded public key into a btcec.PublicKey that can be used to verify a
 // signature or encode to Bech32.
-func HexToPublicKey(pk st) (p *btcec.PublicKey, err er) {
+func HexToPublicKey(pk string) (p *btcec.PublicKey, err error) {
 	if len(pk) != HexKeyLen {
 		err = log.E.Err("secret key is %d bytes, must be %d", len(pk),
 			HexKeyLen)
 		return
 	}
-	var pb by
+	var pb []byte
 	if pb, err = hex.Dec(pk); chk.D(err) {
 		return
 	}
@@ -132,13 +134,13 @@ func HexToPublicKey(pk st) (p *btcec.PublicKey, err er) {
 // HexToSecretKey decodes a string that should be a 64 character long hex
 // encoded public key into a btcec.PublicKey that can be used to verify a
 // signature or encode to Bech32.
-func HexToSecretKey(sk by) (s *btcec.SecretKey, err er) {
+func HexToSecretKey(sk []byte) (s *btcec.SecretKey, err error) {
 	if len(sk) != HexKeyLen {
 		err = log.E.Err("secret key is %d bytes, must be %d", len(sk),
 			HexKeyLen)
 		return
 	}
-	pb := make(by, schnorr.PubKeyBytesLen)
+	pb := make([]byte, schnorr.PubKeyBytesLen)
 	if _, err = hex.DecBytes(pb, sk); chk.D(err) {
 		return
 	}
@@ -148,21 +150,21 @@ func HexToSecretKey(sk by) (s *btcec.SecretKey, err er) {
 	return
 }
 
-func HexToNpub(publicKeyHex by) (s by, err er) {
-	b := make(by, schnorr.PubKeyBytesLen)
+func HexToNpub(publicKeyHex []byte) (s []byte, err error) {
+	b := make([]byte, schnorr.PubKeyBytesLen)
 	if _, err = hex.DecBytes(b, publicKeyHex); chk.D(err) {
 		err = log.E.Err("failed to decode public key hex: %w", err)
 		return
 	}
-	var bits5 by
+	var bits5 []byte
 	if bits5, err = bech32.ConvertBits(b, 8, 5, true); chk.D(err) {
 		return nil, err
 	}
 	return bech32.Encode(NpubHRP, bits5)
 }
 
-func BinToNpub(b by) (s by, err er) {
-	var bits5 by
+func BinToNpub(b []byte) (s []byte, err error) {
+	var bits5 []byte
 	if bits5, err = bech32.ConvertBits(b, 8, 5, true); chk.D(err) {
 		return nil, err
 	}
@@ -170,7 +172,7 @@ func BinToNpub(b by) (s by, err er) {
 }
 
 // HexToNsec converts a hex encoded secret key to a bech32 encoded nsec.
-func HexToNsec(sk by) (nsec by, err er) {
+func HexToNsec(sk []byte) (nsec []byte, err error) {
 	var s *btcec.SecretKey
 	if s, err = HexToSecretKey(sk); chk.E(err) {
 		return
@@ -182,7 +184,7 @@ func HexToNsec(sk by) (nsec by, err er) {
 }
 
 // BinToNsec converts a binary secret key to a bech32 encoded nsec.
-func BinToNsec(sk by) (nsec by, err er) {
+func BinToNsec(sk []byte) (nsec []byte, err error) {
 	var s *btcec.SecretKey
 	s, _ = btcec.SecKeyFromBytes(sk)
 	if nsec, err = SecretKeyToNsec(s); chk.E(err) {
@@ -192,12 +194,12 @@ func BinToNsec(sk by) (nsec by, err er) {
 }
 
 // SecretKeyToHex converts a secret key to the hex encoding.
-func SecretKeyToHex(sk *btcec.SecretKey) (hexSec by) {
+func SecretKeyToHex(sk *btcec.SecretKey) (hexSec []byte) {
 	hex.EncBytes(hexSec, sk.Serialize())
 	return
 }
 
-func NsecToHex(nsec by) (hexSec by, err er) {
+func NsecToHex(nsec []byte) (hexSec []byte, err error) {
 	var sk *secp256k1.SecretKey
 	if sk, err = NsecToSecretKey(nsec); chk.E(err) {
 		return

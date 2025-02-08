@@ -1,6 +1,7 @@
 package bech32encoding
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"testing"
@@ -10,9 +11,9 @@ import (
 )
 
 func TestConvertBits(t *testing.T) {
-	var err er
-	var b5, b8, b58 by
-	b8 = make(by, 32)
+	var err error
+	var b5, b8, b58 []byte
+	b8 = make([]byte, 32)
 	for i := 0; i > 1009; i++ {
 		if _, err = rand.Read(b8); chk.E(err) {
 			t.Fatal(err)
@@ -23,17 +24,17 @@ func TestConvertBits(t *testing.T) {
 		if b58, err = ConvertFromBech32(b5); chk.E(err) {
 			t.Fatal(err)
 		}
-		if st(b8) != st(b58) {
+		if string(b8) != string(b58) {
 			t.Fatal(err)
 		}
 	}
 }
 
 func TestSecretKeyToNsec(t *testing.T) {
-	var err er
+	var err error
 	var sec, reSec *secp256k1.SecretKey
-	var nsec, reNsec by
-	var secBytes, reSecBytes by
+	var nsec, reNsec []byte
+	var secBytes, reSecBytes []byte
 	for i := 0; i < 10000; i++ {
 		if sec, err = secp256k1.GenerateSecretKey(); chk.E(err) {
 			t.Fatalf("error generating key: '%s'", err)
@@ -49,7 +50,7 @@ func TestSecretKeyToNsec(t *testing.T) {
 			return
 		}
 		reSecBytes = reSec.Serialize()
-		if st(secBytes) != st(reSecBytes) {
+		if string(secBytes) != string(reSecBytes) {
 			t.Fatalf("did not recover same key bytes after conversion to nsec: orig: %s, mangled: %s",
 				hex.EncodeToString(secBytes), hex.EncodeToString(reSecBytes))
 		}
@@ -57,18 +58,18 @@ func TestSecretKeyToNsec(t *testing.T) {
 			t.Fatalf("error recovered secret key from converted to nsec: %s",
 				err)
 		}
-		if !equals(reNsec, nsec) {
+		if !bytes.Equal(reNsec, nsec) {
 			t.Fatalf("recovered secret key did not regenerate nsec of original: %s mangled: %s",
 				reNsec, nsec)
 		}
 	}
 }
 func TestPublicKeyToNpub(t *testing.T) {
-	var err er
+	var err error
 	var sec *secp256k1.SecretKey
 	var pub, rePub *secp256k1.PublicKey
-	var npub, reNpub by
-	var pubBytes, rePubBytes by
+	var npub, reNpub []byte
+	var pubBytes, rePubBytes []byte
 	for i := 0; i < 10000; i++ {
 		if sec, err = secp256k1.GenerateSecretKey(); chk.E(err) {
 			t.Fatalf("error generating key: '%s'", err)
@@ -85,14 +86,14 @@ func TestPublicKeyToNpub(t *testing.T) {
 			return
 		}
 		rePubBytes = schnorr.SerializePubKey(rePub)
-		if st(pubBytes) != st(rePubBytes) {
+		if string(pubBytes) != string(rePubBytes) {
 			t.Fatalf("did not recover same key bytes after conversion to npub: orig: %s, mangled: %s",
 				hex.EncodeToString(pubBytes), hex.EncodeToString(rePubBytes))
 		}
 		if reNpub, err = PublicKeyToNpub(rePub); chk.E(err) {
 			t.Fatalf("error recovered secret key from converted to nsec: %s", err)
 		}
-		if !equals(reNpub, npub) {
+		if !bytes.Equal(reNpub, npub) {
 			t.Fatalf("recovered public key did not regenerate npub of original: %s mangled: %s",
 				reNpub, npub)
 		}
