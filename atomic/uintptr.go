@@ -68,12 +68,12 @@ func (i *Uintptr) Dec() uintptr {
 // CAS is an atomic compare-and-swap.
 //
 // Deprecated: Use CompareAndSwap.
-func (i *Uintptr) CAS(old, new uintptr) (swapped bo) {
+func (i *Uintptr) CAS(old, new uintptr) (swapped bool) {
 	return i.CompareAndSwap(old, new)
 }
 
 // CompareAndSwap is an atomic compare-and-swap.
-func (i *Uintptr) CompareAndSwap(old, new uintptr) (swapped bo) {
+func (i *Uintptr) CompareAndSwap(old, new uintptr) (swapped bool) {
 	return atomic.CompareAndSwapUintptr(&i.v, old, new)
 }
 
@@ -88,12 +88,12 @@ func (i *Uintptr) Swap(val uintptr) (old uintptr) {
 }
 
 // MarshalJSON encodes the wrapped uintptr into JSON.
-func (i *Uintptr) MarshalJSON() (by, er) {
+func (i *Uintptr) MarshalJSON() ([]byte, error) {
 	return json.Marshal(i.Load())
 }
 
 // UnmarshalJSON decodes JSON into the wrapped uintptr.
-func (i *Uintptr) UnmarshalJSON(b by) er {
+func (i *Uintptr) UnmarshalJSON(b []byte) error {
 	var v uintptr
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err

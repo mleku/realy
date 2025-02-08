@@ -47,17 +47,17 @@ func TestString(t *testing.T) {
 	t.Run("JSON/Marshal", func(t *testing.T) {
 		bytes, err := json.Marshal(atom)
 		require.NoError(t, err, "json.Marshal errored unexpectedly.")
-		require.Equal(t, by(`"bcd"`), bytes, "json.Marshal encoded the wrong bytes.")
+		require.Equal(t, []byte(`"bcd"`), bytes, "json.Marshal encoded the wrong bytes.")
 	})
 
 	t.Run("JSON/Unmarshal", func(t *testing.T) {
-		err := json.Unmarshal(by(`"abc"`), &atom)
+		err := json.Unmarshal([]byte(`"abc"`), &atom)
 		require.NoError(t, err, "json.Unmarshal errored unexpectedly.")
 		require.Equal(t, "abc", atom.Load(), "json.Unmarshal didn't set the correct value.")
 	})
 
 	t.Run("JSON/Unmarshal/Error", func(t *testing.T) {
-		err := json.Unmarshal(by("42"), &atom)
+		err := json.Unmarshal([]byte("42"), &atom)
 		require.Error(t, err, "json.Unmarshal didn't error as expected.")
 		assertErrorJSONUnmarshalType(t, err,
 			"json.Unmarshal failed with unexpected error %v, want UnmarshalTypeError.", err)
@@ -68,12 +68,12 @@ func TestString(t *testing.T) {
 	t.Run("XML/Marshal", func(t *testing.T) {
 		bytes, err := xml.Marshal(atom)
 		require.NoError(t, err, "xml.Marshal errored unexpectedly.")
-		require.Equal(t, by("<String>foo</String>"), bytes,
+		require.Equal(t, []byte("<String>foo</String>"), bytes,
 			"xml.Marshal encoded the wrong bytes.")
 	})
 
 	t.Run("XML/Unmarshal", func(t *testing.T) {
-		err := xml.Unmarshal(by("<String>bar</String>"), &atom)
+		err := xml.Unmarshal([]byte("<String>bar</String>"), &atom)
 		require.NoError(t, err, "xml.Unmarshal errored unexpectedly.")
 		require.Equal(t, "bar", atom.Load(), "xml.Unmarshal didn't set the correct value.")
 	})

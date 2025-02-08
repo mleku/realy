@@ -50,17 +50,17 @@ func TestInt32(t *testing.T) {
 	t.Run("JSON/Marshal", func(t *testing.T) {
 		bytes, err := json.Marshal(atom)
 		require.NoError(t, err, "json.Marshal errored unexpectedly.")
-		require.Equal(t, by("42"), bytes, "json.Marshal encoded the wrong bytes.")
+		require.Equal(t, []byte("42"), bytes, "json.Marshal encoded the wrong bytes.")
 	})
 
 	t.Run("JSON/Unmarshal", func(t *testing.T) {
-		err := json.Unmarshal(by("40"), &atom)
+		err := json.Unmarshal([]byte("40"), &atom)
 		require.NoError(t, err, "json.Unmarshal errored unexpectedly.")
 		require.Equal(t, int32(40), atom.Load(), "json.Unmarshal didn't set the correct value.")
 	})
 
 	t.Run("JSON/Unmarshal/Error", func(t *testing.T) {
-		err := json.Unmarshal(by(`"40"`), &atom)
+		err := json.Unmarshal([]byte(`"40"`), &atom)
 		require.Error(t, err, "json.Unmarshal didn't error as expected.")
 		assertErrorJSONUnmarshalType(t, err,
 			"json.Unmarshal failed with unexpected error %v, want UnmarshalTypeError.", err)

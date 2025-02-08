@@ -72,71 +72,71 @@ func main() {
 	}
 }
 
-type stringList []st
+type stringList []string
 
-func (sl *stringList) String() st {
+func (sl *stringList) String() string {
 	return strings.Join(*sl, ",")
 }
 
-func (sl *stringList) Set(s st) er {
+func (sl *stringList) Set(s string) error {
 	for _, i := range strings.Split(s, ",") {
 		*sl = append(*sl, strings.TrimSpace(i))
 	}
 	return nil
 }
 
-func run(args []st) er {
+func run(args []string) error {
 	var opts struct {
-		Name    st
-		Wrapped st
-		Type    st
+		Name    string
+		Wrapped string
+		Type    string
 
 		Imports      stringList
-		Pack, Unpack st
+		Pack, Unpack string
 
-		CAS            bo
-		CompareAndSwap bo
-		Swap           bo
-		JSON           bo
+		CAS            bool
+		CompareAndSwap bool
+		Swap           bool
+		JSON           bool
 
-		File   st
-		ToYear no
+		File   string
+		ToYear int
 	}
 
 	opts.ToYear = time.Now().Year()
 
-	flag := flag.NewFlagSet("gen-atomicwrapper", flag.ContinueOnError)
+	fl := flag.NewFlagSet("gen-atomicwrapper", flag.ContinueOnError)
 
 	// Required flags
-	flag.StringVar(&opts.Name, "name", "",
+	fl.StringVar(&opts.Name, "name", "",
 		"name of the generated type (e.g. Duration)")
-	flag.StringVar(&opts.Wrapped, "wrapped", "",
+	fl.StringVar(&opts.Wrapped, "wrapped", "",
 		"name of the wrapped atomic (e.g. Int64)")
-	flag.StringVar(&opts.Type, "type", "",
+	fl.StringVar(&opts.Type, "type", "",
 		"name of the type exposed by the atomic (e.g. time.Duration)")
 
 	// Optional flags
-	flag.Var(&opts.Imports, "imports",
+	fl.Var(&opts.Imports, "imports",
 		"comma separated list of imports to add")
-	flag.StringVar(&opts.Pack, "pack", "",
+	fl.StringVar(&opts.Pack, "pack", "",
 		"function to transform values with before storage")
-	flag.StringVar(&opts.Unpack, "unpack", "",
+	fl.StringVar(&opts.Unpack, "unpack", "",
 		"function to reverse packing on loading")
-	flag.StringVar(&opts.File, "file", "",
+	fl.StringVar(&opts.File, "file", "",
 		"output file path (default: stdout)")
 
 	// Switches for individual methods. Underlying atomics must support
 	// these.
-	flag.BoolVar(&opts.CAS, "cas", false,
+	fl.BoolVar(&opts.CAS, "cas", false,
 		"generate a deprecated `CAS(old, new) bool` method; requires -pack")
-	flag.BoolVar(&opts.CompareAndSwap, "compareandswap", false,
+	fl.BoolVar(&opts.CompareAndSwap, "compareandswap", false,
 		"generate a `CompareAndSwap(old, new) bool` method; requires -pack")
-	flag.BoolVar(&opts.Swap, "swap", false,
+	fl.BoolVar(&opts.Swap, "swap", false,
 		"generate a `Swap(new) old` method; requires -pack and -unpack")
-	flag.BoolVar(&opts.JSON, "json", false,
+	fl.BoolVar(&opts.JSON, "json", false,
 		"generate `Marshal/UnmarshJSON` methods")
 
-	if err := flag.Parse(args); err != nil {
+	if err := fl.Parse(args); err != nil {
 		return err
 	}
 

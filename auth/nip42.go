@@ -15,9 +15,9 @@ import (
 )
 
 // GenerateChallenge creates a reasonable, 96 byte base64 challenge string
-func GenerateChallenge() (b by) {
-	bb := make(by, 12)
-	b = make(by, 16)
+func GenerateChallenge() (b []byte) {
+	bb := make([]byte, 12)
+	b = make([]byte, 16)
 	_, _ = rand.Read(bb)
 	base64.StdEncoding.Encode(b, bb)
 	return
@@ -25,7 +25,7 @@ func GenerateChallenge() (b by) {
 
 // CreateUnsigned creates an event which should be sent via an "AUTH" command.
 // If the authentication succeeds, the user will be authenticated as pubkey.
-func CreateUnsigned(pubkey, challenge by, relayURL string) (ev *event.T) {
+func CreateUnsigned(pubkey, challenge []byte, relayURL string) (ev *event.T) {
 	return &event.T{
 		PubKey:    pubkey,
 		CreatedAt: timestamp.Now(),
@@ -36,7 +36,7 @@ func CreateUnsigned(pubkey, challenge by, relayURL string) (ev *event.T) {
 }
 
 // helper function for ValidateAuthEvent.
-func parseURL(input string) (*url.URL, er) {
+func parseURL(input string) (*url.URL, error) {
 	return url.Parse(
 		strings.ToLower(
 			strings.TrimSuffix(input, "/"),
@@ -44,12 +44,12 @@ func parseURL(input string) (*url.URL, er) {
 	)
 }
 
-var ChallengeTag = by("challenge")
-var RelayTag = by("relay")
+var ChallengeTag = []byte("challenge")
+var RelayTag = []byte("relay")
 
 // Validate checks whether event is a valid NIP-42 event for given challenge and relayURL.
 // The result of the validation is encoded in the ok bool.
-func Validate(evt *event.T, challenge by, relayURL st) (ok bo, err er) {
+func Validate(evt *event.T, challenge []byte, relayURL string) (ok bool, err error) {
 	// log.T.F("relayURL '%s'", relayURL)
 	if evt.Kind.K != kind.ClientAuthentication.K {
 		err = log.E.Err("event incorrect kind for auth: %d %s",
@@ -107,6 +107,6 @@ func Validate(evt *event.T, challenge by, relayURL st) (ok bo, err er) {
 		log.D.Ln(err)
 		return
 	}
-	// save for last, as it is most expensive operation
+	// save for last, as it is the most expensive operation
 	return evt.Verify()
 }

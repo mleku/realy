@@ -33,10 +33,10 @@ type Bool struct {
 	v Uint32
 }
 
-var _zeroBool bo
+var _zeroBool bool
 
 // NewBool creates a new Bool.
-func NewBool(val bo) *Bool {
+func NewBool(val bool) *Bool {
 	x := &Bool{}
 	if val != _zeroBool {
 		x.Store(val)
@@ -45,41 +45,41 @@ func NewBool(val bo) *Bool {
 }
 
 // Load atomically loads the wrapped bool.
-func (x *Bool) Load() bo {
+func (x *Bool) Load() bool {
 	return truthy(x.v.Load())
 }
 
 // Store atomically stores the passed bool.
-func (x *Bool) Store(val bo) {
+func (x *Bool) Store(val bool) {
 	x.v.Store(boolToInt(val))
 }
 
 // CAS is an atomic compare-and-swap for bool values.
 //
 // Deprecated: Use CompareAndSwap.
-func (x *Bool) CAS(old, new bo) (swapped bo) {
+func (x *Bool) CAS(old, new bool) (swapped bool) {
 	return x.CompareAndSwap(old, new)
 }
 
 // CompareAndSwap is an atomic compare-and-swap for bool values.
-func (x *Bool) CompareAndSwap(old, new bo) (swapped bo) {
+func (x *Bool) CompareAndSwap(old, new bool) (swapped bool) {
 	return x.v.CompareAndSwap(boolToInt(old), boolToInt(new))
 }
 
 // Swap atomically stores the given bool and returns the old
 // value.
-func (x *Bool) Swap(val bo) (old bo) {
+func (x *Bool) Swap(val bool) (old bool) {
 	return truthy(x.v.Swap(boolToInt(val)))
 }
 
 // MarshalJSON encodes the wrapped bool into JSON.
-func (x *Bool) MarshalJSON() (by, er) {
+func (x *Bool) MarshalJSON() ([]byte, error) {
 	return json.Marshal(x.Load())
 }
 
 // UnmarshalJSON decodes a bool from JSON.
-func (x *Bool) UnmarshalJSON(b by) er {
-	var v bo
+func (x *Bool) UnmarshalJSON(b []byte) error {
+	var v bool
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}

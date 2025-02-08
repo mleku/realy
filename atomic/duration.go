@@ -58,12 +58,12 @@ func (x *Duration) Store(val time.Duration) {
 // CAS is an atomic compare-and-swap for time.Duration values.
 //
 // Deprecated: Use CompareAndSwap.
-func (x *Duration) CAS(old, new time.Duration) (swapped bo) {
+func (x *Duration) CAS(old, new time.Duration) (swapped bool) {
 	return x.CompareAndSwap(old, new)
 }
 
 // CompareAndSwap is an atomic compare-and-swap for time.Duration values.
-func (x *Duration) CompareAndSwap(old, new time.Duration) (swapped bo) {
+func (x *Duration) CompareAndSwap(old, new time.Duration) (swapped bool) {
 	return x.v.CompareAndSwap(int64(old), int64(new))
 }
 
@@ -74,12 +74,12 @@ func (x *Duration) Swap(val time.Duration) (old time.Duration) {
 }
 
 // MarshalJSON encodes the wrapped time.Duration into JSON.
-func (x *Duration) MarshalJSON() (by, er) {
+func (x *Duration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(x.Load())
 }
 
 // UnmarshalJSON decodes a time.Duration from JSON.
-func (x *Duration) UnmarshalJSON(b by) er {
+func (x *Duration) UnmarshalJSON(b []byte) error {
 	var v time.Duration
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err

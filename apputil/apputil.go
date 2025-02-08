@@ -6,7 +6,7 @@ import (
 )
 
 // EnsureDir checks a file could be written to a path, creates the directories as needed
-func EnsureDir(fileName st) {
+func EnsureDir(fileName string) {
 	dirName := filepath.Dir(fileName)
 	if _, serr := os.Stat(dirName); serr != nil {
 		merr := os.MkdirAll(dirName, os.ModePerm)
@@ -17,7 +17,7 @@ func EnsureDir(fileName st) {
 }
 
 // FileExists reports whether the named file or directory exists.
-func FileExists(filePath st) bo {
+func FileExists(filePath string) bool {
 	_, e := os.Stat(filePath)
 	return e == nil
 }

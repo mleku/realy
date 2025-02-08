@@ -51,7 +51,7 @@ func (x *String) Store(val string) {
 }
 
 // CompareAndSwap is an atomic compare-and-swap for string values.
-func (x *String) CompareAndSwap(old, new string) (swapped bo) {
+func (x *String) CompareAndSwap(old, new string) (swapped bool) {
 	if x.v.CompareAndSwap(packString(old), packString(new)) {
 		return true
 	}
