@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+
 	"realy.lol/ratel/keys/count"
 	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
 	"realy.lol/sha256"
 	"realy.lol/timestamp"
 	"realy.lol/units"
-	"realy.lol/ratel/prefixes"
 )
 
 const KeyLen = serial.Len + 1
@@ -29,7 +30,7 @@ const CounterLen = KeyLen + createdat.Len
 // Both operations are more efficient combined together rather than separated,
 // thus this is a fairly long function.
 func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
-	prunedTotal no, err er) {
+	prunedTotal int, err error) {
 
 	// log.D.Ln("running GC count", r.Path())
 	overallStart := time.Now()
@@ -37,12 +38,12 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	evStream := r.DB.NewStream()
 	evStream.Prefix = prf
 	var countMx sync.Mutex
-	var totalCounter no
-	evStream.ChooseKey = func(item *badger.Item) (b bo) {
+	var totalCounter int
+	evStream.ChooseKey = func(item *badger.Item) (b bool) {
 		if item.IsDeletedOrExpired() {
 			return
 		}
-		key := make(by, index.Len+serial.Len)
+		key := make([]byte, index.Len+serial.Len)
 		item.KeyCopy(key)
 		ser := serial.FromKey(key)
 		size := uint32(item.ValueSize())
@@ -75,11 +76,11 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	var countFresh count.Freshes
 	// pruneStarted := time.Now()
 	counterStream := r.DB.NewStream()
-	counterStream.Prefix = by{prefixes.Counter.B()}
-	v := make(by, createdat.Len)
+	counterStream.Prefix = []byte{prefixes.Counter.B()}
+	v := make([]byte, createdat.Len)
 	countFresh = make(count.Freshes, 0, totalCounter)
-	counterStream.ChooseKey = func(item *badger.Item) (b bo) {
-		key := make(by, index.Len+serial.Len)
+	counterStream.ChooseKey = func(item *badger.Item) (b bool) {
+		key := make([]byte, index.Len+serial.Len)
 		item.KeyCopy(key)
 		s64 := serial.FromKey(key).Uint64()
 		countMx.Lock()
@@ -109,12 +110,12 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	//
 	// this provides the least amount of iteration and computation to essentially
 	// zip two tables together
-	var unprunedCursor, prunedCursor no
+	var unprunedCursor, prunedCursor int
 	// we also need to create a map of serials to their respective array index, and
 	// we know how big it has to be so we can avoid allocations during the iteration.
 	//
 	// if there is no L2 this will be an empty map and have nothing added to it.
-	prunedMap := make(map[uint64]no, len(prunedBySerial))
+	prunedMap := make(map[uint64]int, len(prunedBySerial))
 	for i := range countFresh {
 		// populate freshness of unpruned item
 		if len(unprunedBySerial) > i && countFresh[i].Serial ==
@@ -142,10 +143,10 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 		// pruned set
 		for _, fp := range prefixes.FilterPrefixes {
 			// this can all be done concurrently
-			go func(fp by) {
+			go func(fp []byte) {
 				evStream = r.DB.NewStream()
 				evStream.Prefix = fp
-				evStream.ChooseKey = func(item *badger.Item) (b bo) {
+				evStream.ChooseKey = func(item *badger.Item) (b bool) {
 					k := item.KeyCopy(nil)
 					ser := serial.FromKey(k)
 					uSer := ser.Uint64()
@@ -162,7 +163,7 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	hw, _ := r.GetEventHeadroom()
 	unprunedTotal = unpruned.Total()
 	up := float64(unprunedTotal)
-	var o st
+	var o string
 	o += fmt.Sprintf("%8d complete,"+
 		"total %0.6f Gb,"+
 		"HW %0.6f Gb",
@@ -190,13 +191,13 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	return
 }
 
-func (r *T) GetIndexHeadroom() (hw, lw no) {
+func (r *T) GetIndexHeadroom() (hw, lw int) {
 	limit := r.DBSizeLimit - r.DBSizeLimit*r.DBHighWater/100
 	return limit * r.DBHighWater / 100,
 		limit * r.DBLowWater / 100
 }
 
-func (r *T) GetEventHeadroom() (hw, lw no) {
+func (r *T) GetEventHeadroom() (hw, lw int) {
 	return r.DBSizeLimit * r.DBHighWater / 100,
 		r.DBSizeLimit * r.DBLowWater / 100
 }

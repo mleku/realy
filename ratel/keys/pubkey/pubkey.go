@@ -11,7 +11,7 @@ import (
 const Len = 8
 
 type T struct {
-	Val by
+	Val []byte
 }
 
 var _ keys.Element = &T{}
@@ -19,10 +19,10 @@ var _ keys.Element = &T{}
 // New creates a new pubkey prefix, if parameter is omitted, new one is
 // allocated (for read) if more than one is given, only the first is used, and
 // if the first one is not the correct hexadecimal length of 64, return error.
-func New(pk ...by) (p *T, err er) {
+func New(pk ...[]byte) (p *T, err error) {
 	if len(pk) < 1 {
 		// allows init with no parameter
-		return &T{make(by, Len)}, nil
+		return &T{make([]byte, Len)}, nil
 	}
 	// // only the first pubkey will be used
 	// if len(pk[0]) != schnorr.PubKeyBytesLen*2 {
@@ -36,14 +36,14 @@ func New(pk ...by) (p *T, err er) {
 	return &T{Val: pk[0][:Len]}, nil
 }
 
-func NewFromBytes(pkb by) (p *T, err er) {
+func NewFromBytes(pkb []byte) (p *T, err error) {
 	if len(pkb) != schnorr.PubKeyBytesLen {
 		err = log.E.Err("provided key not correct length, got %d expected %d",
 			len(pkb), schnorr.PubKeyBytesLen)
 		log.T.S(pkb)
 		return
 	}
-	b := make(by, Len)
+	b := make([]byte, Len)
 	copy(b, pkb[:Len])
 	p = &T{Val: b}
 	return
@@ -62,7 +62,7 @@ func (p *T) Write(buf *bytes.Buffer) {
 func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	// allow uninitialized struct
 	if len(p.Val) != Len {
-		p.Val = make(by, Len)
+		p.Val = make([]byte, Len)
 	}
 	if n, err := buf.Read(p.Val); chk.E(err) || n != Len {
 		return nil
@@ -70,4 +70,4 @@ func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	return p
 }
 
-func (p *T) Len() no { return Len }
+func (p *T) Len() int { return Len }

@@ -10,24 +10,24 @@ import (
 const Len = 1
 
 type T struct {
-	Val by
+	Val []byte
 }
 
 var _ keys.Element = &T{}
 
-func New[V byte | P | no](code ...V) (p *T) {
-	var cod by
+func New[V byte | P | int](code ...V) (p *T) {
+	var cod []byte
 	switch len(code) {
 	case 0:
-		cod = by{0}
+		cod = []byte{0}
 	default:
-		cod = by{byte(code[0])}
+		cod = []byte{byte(code[0])}
 	}
 	return &T{Val: cod}
 }
 
 func Empty() (p *T) {
-	return &T{Val: by{0}}
+	return &T{Val: []byte{0}}
 }
 
 func (p *T) Write(buf *bytes.Buffer) {
@@ -38,11 +38,11 @@ func (p *T) Write(buf *bytes.Buffer) {
 }
 
 func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
-	p.Val = make(by, Len)
+	p.Val = make([]byte, Len)
 	if n, err := buf.Read(p.Val); chk.E(err) || n != Len {
 		return nil
 	}
 	return p
 }
 
-func (p *T) Len() no { return Len }
+func (p *T) Len() int { return Len }

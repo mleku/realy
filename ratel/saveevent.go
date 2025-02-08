@@ -3,6 +3,7 @@ package ratel
 import (
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/ratel/keys"
@@ -10,13 +11,13 @@ import (
 	"realy.lol/ratel/keys/id"
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
 	"realy.lol/sha256"
 	eventstore "realy.lol/store"
 	"realy.lol/timestamp"
-	"realy.lol/ratel/prefixes"
 )
 
-func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
+func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 	if ev.Kind.IsEphemeral() {
 		// log.T.F("not saving ephemeral event\n%s", ev.Serialize())
 		return
@@ -25,18 +26,18 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 	r.WG.Add(1)
 	defer r.WG.Done()
 	// first, search to see if the event ID already exists.
-	var foundSerial by
-	var deleted bo
+	var foundSerial []byte
+	var deleted bool
 	seri := serial.New(nil)
-	var ts by
-	err = r.View(func(txn *badger.Txn) (err er) {
+	var ts []byte
+	err = r.View(func(txn *badger.Txn) (err error) {
 		// query event by id to ensure we don't try to save duplicates
 		prf := prefixes.Id.Key(id.New(eventid.NewWith(ev.ID)))
 		it := txn.NewIterator(badger.IteratorOptions{})
 		defer it.Close()
 		it.Seek(prf)
 		if it.ValidForPrefix(prf) {
-			var k by
+			var k []byte
 			// get the serial
 			k = it.Item().Key()
 			// copy serial out
@@ -60,7 +61,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 	}
 	if foundSerial != nil {
 		// log.D.F("found possible duplicate or stub for %s", ev.Serialize())
-		err = r.Update(func(txn *badger.Txn) (err er) {
+		err = r.Update(func(txn *badger.Txn) (err error) {
 			// retrieve the event record
 			evKey := keys.Write(index.New(prefixes.Event), seri)
 			it := txn.NewIterator(badger.IteratorOptions{})
@@ -74,7 +75,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 				}
 				// we only need to restore the event binary and write the access counter key
 				// encode to binary
-				var bin by
+				var bin []byte
 				bin = r.Marshal(ev, bin)
 				if err = txn.Set(it.Item().Key(), bin); chk.E(err) {
 					return
@@ -95,11 +96,11 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 		}
 		return
 	}
-	var bin by
+	var bin []byte
 	bin = r.Marshal(ev, bin)
 	// otherwise, save new event record.
-	if err = r.Update(func(txn *badger.Txn) (err er) {
-		var idx by
+	if err = r.Update(func(txn *badger.Txn) (err error) {
+		var idx []byte
 		var ser *serial.T
 		idx, ser = r.SerialKey()
 		// encode to binary
@@ -108,7 +109,7 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 			return
 		}
 		// 	add the indexes
-		var indexKeys []by
+		var indexKeys [][]byte
 		indexKeys = GetIndexKeysForEvent(ev, ser)
 		// log.I.S(indexKeys)
 		for _, k := range indexKeys {
@@ -131,4 +132,4 @@ func (r *T) SaveEvent(c cx, ev *event.T) (err er) {
 	return
 }
 
-func (r *T) Sync() (err er) { return r.DB.Sync() }
+func (r *T) Sync() (err error) { return r.DB.Sync() }

@@ -7,65 +7,66 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.lol/context"
 	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
 	"realy.lol/store"
 	"realy.lol/units"
-	"realy.lol/ratel/prefixes"
 )
 
 const DefaultMaxLimit = 512
 
 type T struct {
-	Ctx     cx
+	Ctx     context.T
 	WG      *sync.WaitGroup
-	dataDir st
+	dataDir string
 	// DBSizeLimit is the number of bytes we want to keep the data store from exceeding.
-	DBSizeLimit no
+	DBSizeLimit int
 	// DBLowWater is the percentage of DBSizeLimit a GC run will reduce the used storage down
 	// to.
-	DBLowWater no
+	DBLowWater int
 	// DBHighWater is the trigger point at which a GC run should start if exceeded.
-	DBHighWater no
+	DBHighWater int
 	// GCFrequency is the frequency of checks of the current utilisation.
 	GCFrequency    time.Duration
-	HasL2          bo
-	BlockCacheSize no
-	InitLogLevel   no
+	HasL2          bool
+	BlockCacheSize int
+	InitLogLevel   int
 	Logger         *logger
 	// DB is the badger db
 	*badger.DB
 	// seq is the monotonic collision free index for raw event storage.
 	seq *badger.Sequence
 	// Threads is how many CPU threads we dedicate to concurrent actions, flatten and GC mark
-	Threads no
+	Threads int
 	// MaxLimit is a default limit that applies to a query without a limit, to avoid sending out
 	// too many events to a client from a malformed or excessively broad filter.
-	MaxLimit no
+	MaxLimit int
 	// ActuallyDelete sets whether we actually delete or rewrite deleted entries with a modified
 	// deleted prefix value (8th bit set)
-	ActuallyDelete bo
+	ActuallyDelete bool
 	// Flatten should be set to true to trigger a flatten at close... this is mainly
 	// triggered by running an import
-	Flatten bo
+	Flatten bool
 	// UseCompact uses a compact encoding based on the canonical format (generate
 	// hash of it to get ID field with the signature in raw binary after.
-	UseCompact bo
+	UseCompact bool
 	// Compression sets the compression to use, none/snappy/zstd
-	Compression st
+	Compression string
 }
 
 var _ store.I = (*T)(nil)
 
 type BackendParams struct {
-	Ctx                                cx
+	Ctx                                context.T
 	WG                                 *sync.WaitGroup
-	HasL2, UseCompact                  bo
-	BlockCacheSize, LogLevel, MaxLimit no
-	Compression                        st // none,snappy,zstd
-	Extra                              []no
+	HasL2, UseCompact                  bool
+	BlockCacheSize, LogLevel, MaxLimit int
+	Compression                        string // none,snappy,zstd
+	Extra                              []int
 }
 
-func New(p BackendParams, params ...no) *T {
+func New(p BackendParams, params ...int) *T {
 	return GetBackend(p.Ctx, p.WG, p.HasL2, p.UseCompact, p.BlockCacheSize, p.LogLevel, p.MaxLimit,
 		p.Compression, params...)
 }
@@ -79,8 +80,8 @@ func New(p BackendParams, params ...no) *T {
 // caller.
 //
 // Deprecated: use New instead.
-func GetBackend(Ctx cx, WG *sync.WaitGroup, hasL2, useCompact bo,
-	blockCacheSize, logLevel, maxLimit no, compression st, params ...no) (b *T) {
+func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2, useCompact bool,
+	blockCacheSize, logLevel, maxLimit int, compression string, params ...int) (b *T) {
 	var sizeLimit, lw, hw, freq = 0, 50, 66, 3600
 	switch len(params) {
 	case 4:
@@ -116,13 +117,13 @@ func GetBackend(Ctx cx, WG *sync.WaitGroup, hasL2, useCompact bo,
 	return
 }
 
-func (r *T) Path() st { return r.dataDir }
+func (r *T) Path() string { return r.dataDir }
 
 // SerialKey returns a key used for storing events, and the raw serial counter
 // bytes to copy into index keys.
-func (r *T) SerialKey() (idx by, ser *serial.T) {
-	var err er
-	var s by
+func (r *T) SerialKey() (idx []byte, ser *serial.T) {
+	var err error
+	var s []byte
 	if s, err = r.SerialBytes(); chk.E(err) {
 		panic(err)
 	}
@@ -131,7 +132,7 @@ func (r *T) SerialKey() (idx by, ser *serial.T) {
 }
 
 // Serial returns the next monotonic conflict free unique serial on the database.
-func (r *T) Serial() (ser uint64, err er) {
+func (r *T) Serial() (ser uint64, err error) {
 	if ser, err = r.seq.Next(); chk.E(err) {
 	}
 	// log.T.F("serial %x", ser)
@@ -140,12 +141,12 @@ func (r *T) Serial() (ser uint64, err er) {
 
 // SerialBytes returns a new serial value, used to store an event record with a
 // conflict-free unique code (it is a monotonic, atomic, ascending counter).
-func (r *T) SerialBytes() (ser by, err er) {
+func (r *T) SerialBytes() (ser []byte, err error) {
 	var serU64 uint64
 	if serU64, err = r.Serial(); chk.E(err) {
 		panic(err)
 	}
-	ser = make(by, serial.Len)
+	ser = make([]byte, serial.Len)
 	binary.BigEndian.PutUint64(ser, serU64)
 	return
 }

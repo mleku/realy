@@ -9,7 +9,7 @@ import (
 // T is an arbitrary length byte string. In any construction there can only be one with arbitrary length. Custom lengths
 // can be created by calling New with the custom length in it, both for Read and Write operations.
 type T struct {
-	Val by
+	Val []byte
 }
 
 var _ keys.Element = &T{}
@@ -17,8 +17,8 @@ var _ keys.Element = &T{}
 // New creates a new arb.T. This must have the expected length for the provided byte slice as this is what the Read
 // method will aim to copy. In general this will be a bounded field, either the final or only arbitrary length field in
 // a key.
-func New[V by | st](s V) (p *T) {
-	b := by(s)
+func New[V []byte | string](s V) (p *T) {
+	b := []byte(s)
 	if len(b) == 0 {
 		log.T.Ln("empty or nil slice is the same as zero value, " +
 			"use keys.ReadWithArbElem")
@@ -27,7 +27,7 @@ func New[V by | st](s V) (p *T) {
 	return &T{Val: b}
 }
 
-func NewWithLen(l no) (p *T) { return &T{Val: make(by, l)} }
+func NewWithLen(l int) (p *T) { return &T{Val: make([]byte, l)} }
 
 func (p *T) Write(buf *bytes.Buffer) {
 	if len(p.Val) == 0 {
@@ -48,7 +48,7 @@ func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	return p
 }
 
-func (p *T) Len() no {
+func (p *T) Len() int {
 	if p == nil {
 		panic("uninitialized pointer to arb.T")
 	}
@@ -60,9 +60,9 @@ func (p *T) Len() no {
 //
 // For reasons of space efficiency, it is not practical to use TLVs for badger database key fields, so this will panic
 // if there is more than one arbitrary length element.
-func ReadWithArbElem(b by, elems ...keys.Element) {
-	var arbEl no
-	var arbSet bo
+func ReadWithArbElem(b []byte, elems ...keys.Element) {
+	var arbEl int
+	var arbSet bool
 	l := len(b)
 	for i, el := range elems {
 		elLen := el.Len()
@@ -76,7 +76,7 @@ func ReadWithArbElem(b by, elems ...keys.Element) {
 		}
 	}
 	// now we can say that the remainder is the correct length for the arb element
-	elems[arbEl] = New(make(by, l))
+	elems[arbEl] = New(make([]byte, l))
 	buf := bytes.NewBuffer(b)
 	for _, el := range elems {
 		el.Read(buf)

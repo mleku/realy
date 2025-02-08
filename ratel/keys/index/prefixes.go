@@ -8,7 +8,7 @@ type P byte
 
 // Key writes a key with the P prefix byte and an arbitrary list of
 // keys.Element.
-func (p P) Key(element ...keys.Element) (b by) {
+func (p P) Key(element ...keys.Element) (b []byte) {
 	b = keys.Write(
 		append([]keys.Element{New(byte(p))}, element...)...)
 	// log.T.F("key %x", b)
@@ -19,13 +19,13 @@ func (p P) Key(element ...keys.Element) (b by) {
 func (p P) B() byte { return byte(p) }
 
 // I returns the index.P as an int (for use with the KeySizes.
-func (p P) I() no { return no(p) }
+func (p P) I() int { return int(p) }
 
 // GetAsBytes todo wat is dis?
-func GetAsBytes(prf ...P) (b []by) {
-	b = make([]by, len(prf))
+func GetAsBytes(prf ...P) (b [][]byte) {
+	b = make([][]byte, len(prf))
 	for i := range prf {
-		b[i] = by{byte(prf[i])}
+		b[i] = []byte{byte(prf[i])}
 	}
 	return
 }

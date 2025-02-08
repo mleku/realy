@@ -7,11 +7,11 @@ import (
 
 	"realy.lol/event"
 	"realy.lol/ratel/keys/serial"
-	"realy.lol/sha256"
 	"realy.lol/ratel/prefixes"
+	"realy.lol/sha256"
 )
 
-func (r *T) GCSweep(evs, idxs DelItems) (err er) {
+func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 	// first we must gather all the indexes of the relevant events
 	started := time.Now()
 	batch := r.DB.NewWriteBatch()
@@ -34,7 +34,7 @@ func (r *T) GCSweep(evs, idxs DelItems) (err er) {
 	stream := r.DB.NewStream()
 	// get all the event indexes to delete/prune
 	stream.Prefix = prefixes.Event.Key()
-	stream.ChooseKey = func(item *badger.Item) (boo bo) {
+	stream.ChooseKey = func(item *badger.Item) (boo bool) {
 		if item.KeySize() != 1+serial.Len {
 			return
 		}
@@ -43,7 +43,7 @@ func (r *T) GCSweep(evs, idxs DelItems) (err er) {
 		}
 		key := item.KeyCopy(nil)
 		ser := serial.FromKey(key).Uint64()
-		var found bo
+		var found bool
 		for i := range evs {
 			if evs[i] == ser {
 				found = true
@@ -59,12 +59,12 @@ func (r *T) GCSweep(evs, idxs DelItems) (err er) {
 				return
 			}
 			// if there is L2 we are only pruning (replacing event with the ID hash)
-			var evb by
+			var evb []byte
 			if evb, err = item.ValueCopy(nil); chk.E(err) {
 				return
 			}
 			ev := &event.T{}
-			var rem by
+			var rem []byte
 			if rem, err = r.Unmarshal(ev, evb); chk.E(err) {
 				return
 			}
@@ -96,19 +96,19 @@ func (r *T) GCSweep(evs, idxs DelItems) (err er) {
 	if len(idxs) > 0 && r.HasL2 {
 		log.I.Ln("pruning indexes")
 		// we have to remove everything
-		prfs := []by{prefixes.Event.Key()}
+		prfs := [][]byte{prefixes.Event.Key()}
 		prfs = append(prfs, prefixes.FilterPrefixes...)
-		prfs = append(prfs, by{prefixes.Counter.B()})
+		prfs = append(prfs, []byte{prefixes.Counter.B()})
 		for _, prf := range prfs {
 			stream = r.DB.NewStream()
 			stream.Prefix = prf
-			stream.ChooseKey = func(item *badger.Item) (boo bo) {
+			stream.ChooseKey = func(item *badger.Item) (boo bool) {
 				if item.IsDeletedOrExpired() || item.KeySize() < serial.Len+1 {
 					return
 				}
 				key := item.KeyCopy(nil)
 				ser := serial.FromKey(key).Uint64()
-				var found bo
+				var found bool
 				for _, idx := range idxs {
 					if idx == ser {
 						found = true

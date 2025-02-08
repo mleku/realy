@@ -12,11 +12,11 @@ const maxLen = 500000000
 // Import accepts an event
 func (r *T) Import(rr io.Reader) {
 	r.Flatten = true
-	var err er
+	var err error
 	scan := bufio.NewScanner(rr)
-	buf := make(by, maxLen)
+	buf := make([]byte, maxLen)
 	scan.Buffer(buf, maxLen)
-	var count, total no
+	var count, total int
 	for scan.Scan() {
 		b := scan.Bytes()
 		total += len(b) + 1

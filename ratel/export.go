@@ -7,22 +7,23 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/hex"
 	"realy.lol/qu"
 	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/tags"
-	"realy.lol/ratel/prefixes"
 )
 
-func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
-	var counter no
-	var err er
+func (r *T) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
+	var counter int
+	var err error
 	if len(pubkeys) > 0 {
-		var pks []st
+		var pks []string
 		for i := range pubkeys {
 			pks = append(pks, hex.Enc(pubkeys[i]))
 		}
@@ -32,14 +33,14 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 		}
 		o += "]"
 		log.I.F("exporting selected pubkeys:\n%s", o)
-		keyChan := make(chan by, 256)
+		keyChan := make(chan []byte, 256)
 		// specific set of public keys, so we need to run a search
 		fa := &filter.T{Authors: tag.New(pubkeys...)}
 		var queries []query
 		if queries, _, _, err = PrepareQueries(fa); chk.E(err) {
 			return
 		}
-		pTag := []by{by("#b")}
+		pTag := [][]byte{[]byte("#b")}
 		pTag = append(pTag, pubkeys...)
 		fp := &filter.T{Tags: tags.New(tag.New(pTag...))}
 		var queries2 []query
@@ -59,7 +60,7 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 				case <-quit:
 					return
 				case eventKey := <-keyChan:
-					err = r.View(func(txn *badger.Txn) (err er) {
+					err = r.View(func(txn *badger.Txn) (err error) {
 						select {
 						case <-r.Ctx.Done():
 							return
@@ -72,7 +73,7 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 						opts := badger.IteratorOptions{Reverse: false}
 						it := txn.NewIterator(opts)
 						defer it.Close()
-						var count no
+						var count int
 						for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 							count++
 							item := it.Item()
@@ -80,7 +81,7 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 								// we aren't fetching from L2 for export, so don't send this back.
 								return
 							}
-							if err = item.Value(func(eventValue by) (err er) {
+							if err = item.Value(func(eventValue []byte) (err error) {
 								// send the event to client (no need to re-encode it)
 								if _, err = fmt.Fprintf(w, "%s\n", eventValue); chk.E(err) {
 									return
@@ -108,7 +109,7 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 			default:
 			}
 			// search for the keys generated from the filter
-			err = r.View(func(txn *badger.Txn) (err er) {
+			err = r.View(func(txn *badger.Txn) (err error) {
 				select {
 				case <-r.Ctx.Done():
 					return
@@ -139,7 +140,7 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 		}
 	} else {
 		// blanket download requested
-		err = r.View(func(txn *badger.Txn) (err er) {
+		err = r.View(func(txn *badger.Txn) (err error) {
 			it := txn.NewIterator(badger.IteratorOptions{Prefix: prefixes.Event.Key()})
 			defer it.Close()
 			for it.Rewind(); it.Valid(); it.Next() {
@@ -159,7 +160,7 @@ func (r *T) Export(c cx, w io.Writer, pubkeys ...by) {
 				// send the event to client
 				if r.UseCompact {
 					ev := &event.T{}
-					var rem by
+					var rem []byte
 					rem, err = ev.UnmarshalCompact(b)
 					if chk.E(err) {
 						err = nil

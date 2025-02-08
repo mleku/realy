@@ -13,17 +13,17 @@ type Element interface {
 	// Read accepts a bytes.Buffer and decodes a field from it.
 	Read(buf *bytes.Buffer) Element
 	// Len gives the length of the bytes output by the type.
-	Len() no
+	Len() int
 }
 
 // Write the contents of each Element to a byte slice.
-func Write(elems ...Element) by {
+func Write(elems ...Element) []byte {
 	// get the length of the buffer required
-	var length no
+	var length int
 	for _, el := range elems {
 		length += el.Len()
 	}
-	buf := bytes.NewBuffer(make(by, 0, length))
+	buf := bytes.NewBuffer(make([]byte, 0, length))
 	// write out the data from each element
 	for _, el := range elems {
 		el.Write(buf)
@@ -32,7 +32,7 @@ func Write(elems ...Element) by {
 }
 
 // Read the contents of a byte slice into the provided list of Element types.
-func Read(b by, elems ...Element) {
+func Read(b []byte, elems ...Element) {
 	buf := bytes.NewBuffer(b)
 	for _, el := range elems {
 		el.Read(buf)

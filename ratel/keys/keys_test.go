@@ -19,13 +19,13 @@ import (
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
-	"realy.lol/timestamp"
 	"realy.lol/ratel/prefixes"
+	"realy.lol/timestamp"
 )
 
 func TestElement(t *testing.T) {
 	for _ = range 100000 {
-		var failed bo
+		var failed bool
 		{ // construct a typical key type of structure
 			// a prefix
 			np := prefixes.Version
@@ -40,7 +40,7 @@ func TestElement(t *testing.T) {
 			// a pubkey
 			fakePubkeyBytes := frand.Bytes(schnorr.PubKeyBytesLen)
 			var vpk *pubkey.T
-			var err er
+			var err error
 			vpk, err = pubkey.NewFromBytes(fakePubkeyBytes)
 			if err != nil {
 				t.Fatal(err)

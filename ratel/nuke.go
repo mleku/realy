@@ -4,9 +4,9 @@ import (
 	"realy.lol/ratel/prefixes"
 )
 
-func (r *T) Nuke() (err er) {
+func (r *T) Nuke() (err error) {
 	log.W.F("nuking database at %s", r.dataDir)
-	if err = r.DB.DropPrefix([]by{
+	if err = r.DB.DropPrefix([][]byte{
 		{prefixes.Event.B()},
 		{prefixes.CreatedAt.B()},
 		{prefixes.Id.B()},

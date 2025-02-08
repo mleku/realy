@@ -3,6 +3,7 @@ package ratel
 import (
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/ratel/keys"
@@ -11,21 +12,21 @@ import (
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/keys/tombstone"
-	"realy.lol/timestamp"
 	"realy.lol/ratel/prefixes"
+	"realy.lol/timestamp"
 )
 
-func (r *T) DeleteEvent(c cx, eid *eventid.T, noTombstone ...bo) (err er) {
-	var foundSerial by
+func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err error) {
+	var foundSerial []byte
 	seri := serial.New(nil)
-	err = r.View(func(txn *badger.Txn) (err er) {
+	err = r.View(func(txn *badger.Txn) (err error) {
 		// query event by id to ensure we don't try to save duplicates
 		prf := prefixes.Id.Key(id.New(eid))
 		it := txn.NewIterator(badger.IteratorOptions{})
 		defer it.Close()
 		it.Seek(prf)
 		if it.ValidForPrefix(prf) {
-			var k by
+			var k []byte
 			// get the serial
 			k = it.Item().Key()
 			// copy serial out
@@ -41,11 +42,11 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T, noTombstone ...bo) (err er) {
 	if foundSerial == nil {
 		return
 	}
-	var indexKeys []by
+	var indexKeys [][]byte
 	ev := event.New()
-	var evKey, evb, counterKey, tombstoneKey by
+	var evKey, evb, counterKey, tombstoneKey []byte
 	// fetch the event to get its index keys
-	err = r.View(func(txn *badger.Txn) (err er) {
+	err = r.View(func(txn *badger.Txn) (err error) {
 		// retrieve the event record
 		evKey = keys.Write(index.New(prefixes.Event), seri)
 		it := txn.NewIterator(badger.IteratorOptions{})
@@ -56,7 +57,7 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T, noTombstone ...bo) (err er) {
 				return
 			}
 			// log.I.S(evb)
-			var rem by
+			var rem []byte
 			if rem, err = r.Unmarshal(ev, evb); chk.E(err) {
 				return
 			}
@@ -79,7 +80,7 @@ func (r *T) DeleteEvent(c cx, eid *eventid.T, noTombstone ...bo) (err er) {
 	if chk.E(err) {
 		return
 	}
-	err = r.Update(func(txn *badger.Txn) (err er) {
+	err = r.Update(func(txn *badger.Txn) (err error) {
 		if err = txn.Delete(evKey); chk.E(err) {
 		}
 		for _, key := range indexKeys {

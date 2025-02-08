@@ -14,14 +14,14 @@ import (
 const Len = 8
 
 type T struct {
-	Val by
+	Val []byte
 }
 
 var _ keys.Element = &T{}
 
 func New(evID ...*eventid.T) (p *T) {
 	if len(evID) < 1 || len(evID[0].String()) < 1 {
-		return &T{make(by, Len)}
+		return &T{make([]byte, Len)}
 	}
 	evid := evID[0].String()
 	if len(evid) < 64 {
@@ -47,7 +47,7 @@ func (p *T) Write(buf *bytes.Buffer) {
 func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	// allow uninitialized struct
 	if len(p.Val) != Len {
-		p.Val = make(by, Len)
+		p.Val = make([]byte, Len)
 	}
 	if n, err := buf.Read(p.Val); chk.E(err) || n != Len {
 		return nil
@@ -55,4 +55,4 @@ func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	return p
 }
 
-func (p *T) Len() no { return Len }
+func (p *T) Len() int { return Len }

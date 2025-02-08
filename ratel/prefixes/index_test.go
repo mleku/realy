@@ -3,6 +3,7 @@ package prefixes
 import (
 	"bytes"
 	"testing"
+
 	"realy.lol/ratel/keys/index"
 )
 

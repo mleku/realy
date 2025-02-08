@@ -1,29 +1,31 @@
 package ratel
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
+	"time"
 
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.lol/context"
 	"realy.lol/event"
+	"realy.lol/eventid"
 	"realy.lol/filter"
 	"realy.lol/hex"
 	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/timestamp"
-	"realy.lol/ratel/prefixes"
-	"time"
-	"strconv"
-	"realy.lol/eventid"
 )
 
-func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
+func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 	log.T.F("QueryEvents %s", f.Serialize())
-	evMap := make(map[st]*event.T)
+	evMap := make(map[string]*event.T)
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
@@ -33,11 +35,11 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 	// log.I.S(f, queries)
 	limit := r.MaxLimit
 	if f.Limit != nil {
-		limit = no(*f.Limit)
+		limit = int(*f.Limit)
 	}
 	// search for the keys generated from the filter
-	var total no
-	eventKeys := make(map[st]struct{})
+	var total int
+	eventKeys := make(map[string]struct{})
 	for _, q := range queries {
 		select {
 		case <-r.Ctx.Done():
@@ -46,7 +48,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 			return
 		default:
 		}
-		err = r.View(func(txn *badger.Txn) (err er) {
+		err = r.View(func(txn *badger.Txn) (err error) {
 			// iterate only through keys and in reverse order
 			opts := badger.IteratorOptions{
 				Reverse: true,
@@ -74,7 +76,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 				}
 				ser := serial.FromKey(k)
 				idx := prefixes.Event.Key(ser)
-				eventKeys[st(idx)] = struct{}{}
+				eventKeys[string(idx)] = struct{}{}
 				total++
 				// some queries just produce stupid amounts of matches, they are a resource
 				// exhaustion attack vector and only spiders make them
@@ -99,17 +101,17 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 		return
 	default:
 	}
-	var delEvs []by
+	var delEvs [][]byte
 	defer func() {
 		for _, d := range delEvs {
 			chk.E(r.DeleteEvent(r.Ctx, eventid.NewWith(d)))
 		}
 	}()
-	accessed := make(map[st]struct{})
+	accessed := make(map[string]struct{})
 	for ek := range eventKeys {
-		eventKey := by(ek)
-		var done bo
-		err = r.View(func(txn *badger.Txn) (err er) {
+		eventKey := []byte(ek)
+		var done bool
+		err = r.View(func(txn *badger.Txn) (err error) {
 			select {
 			case <-r.Ctx.Done():
 				return
@@ -126,7 +128,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 					// this is a stub entry that indicates an L2 needs to be accessed for
 					// it, so we populate only the event.T.ID and return the result, the
 					// caller will expect this as a signal to query the L2 event store.
-					var eventValue by
+					var eventValue []byte
 					ev := &event.T{}
 					if eventValue, err = item.ValueCopy(nil); chk.E(err) {
 						continue
@@ -145,8 +147,8 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 					return
 				}
 				ev := &event.T{}
-				if err = item.Value(func(eventValue by) (err er) {
-					var rem by
+				if err = item.Value(func(eventValue []byte) (err error) {
+					var rem []byte
 					if rem, err = r.Unmarshal(ev, eventValue); chk.E(err) {
 						return
 					}
@@ -169,7 +171,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 						for i, evc := range evMap {
 							// replaceable means there should be only the newest for the
 							// pubkey and kind.
-							if equals(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
+							if bytes.Equal(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
 									// replace the event, it is newer
 									delete(evMap, i)
@@ -187,8 +189,8 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 						for i, evc := range evMap {
 							// parameterized replaceable means there should only be the
 							// newest for a pubkey, kind and the value field of the `d` tag.
-							if ev.Kind.Equal(evc.Kind) && equals(ev.PubKey, evc.PubKey) &&
-								equals(ev.Tags.GetFirst(tag.New("d")).Value(),
+							if ev.Kind.Equal(evc.Kind) && bytes.Equal(ev.PubKey, evc.PubKey) &&
+								bytes.Equal(ev.Tags.GetFirst(tag.New("d")).Value(),
 									evc.Tags.GetFirst(tag.New("d")).Value()) {
 								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
 									log.T.F("event %0x,%s\n->replaces\n%0x,%s",
@@ -218,7 +220,7 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 					evMap[hex.Enc(ev.ID)] = ev
 					// add event counter key to accessed
 					ser := serial.FromKey(eventKey)
-					accessed[st(ser.Val)] = struct{}{}
+					accessed[string(ser.Val)] = struct{}{}
 					if filter.Present(f.Limit) {
 						*f.Limit--
 						if *f.Limit <= 0 {
@@ -280,9 +282,9 @@ func (r *T) QueryEvents(c cx, f *filter.T) (evs event.Ts, err er) {
 		// user's events are delivered immediately
 		go func() {
 			for ser := range accessed {
-				seri := serial.New(by(ser))
+				seri := serial.New([]byte(ser))
 				now := timestamp.Now()
-				err = r.Update(func(txn *badger.Txn) (err er) {
+				err = r.Update(func(txn *badger.Txn) (err error) {
 					key := GetCounterKey(seri)
 					it := txn.NewIterator(badger.IteratorOptions{})
 					defer it.Close()

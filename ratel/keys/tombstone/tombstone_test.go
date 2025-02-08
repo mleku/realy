@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
+
 	"realy.lol/eventid"
 )
 
@@ -16,7 +17,7 @@ func TestT(t *testing.T) {
 	buf2 := bytes.NewBuffer(buf.Bytes())
 	ts2 := New()
 	ts2.Read(buf2)
-	if !equals(ts.val, ts2.val) {
+	if !bytes.Equal(ts.val, ts2.val) {
 		t.Errorf("expected %0x got %0x", ts.val, ts2.val)
 	}
 }

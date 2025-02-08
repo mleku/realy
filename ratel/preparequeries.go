@@ -3,6 +3,8 @@ package ratel
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
+
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/filter"
@@ -10,9 +12,8 @@ import (
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
-	"realy.lol/timestamp"
 	"realy.lol/ratel/prefixes"
-	"math"
+	"realy.lol/timestamp"
 )
 
 type Results struct {
@@ -22,11 +23,11 @@ type Results struct {
 }
 
 type query struct {
-	index        no
+	index        int
 	queryFilter  *filter.T
-	searchPrefix by
-	start        by
-	skipTS       bo
+	searchPrefix []byte
+	start        []byte
+	skipTS       bool
 }
 
 // PrepareQueries analyses a filter and generates a set of query specs that produce
@@ -35,7 +36,7 @@ func PrepareQueries(f *filter.T) (
 	qs []query,
 	ext *filter.T,
 	since uint64,
-	err er,
+	err error,
 ) {
 	if f == nil {
 		err = errorf.E("filter cannot be nil")
@@ -45,7 +46,7 @@ func PrepareQueries(f *filter.T) (
 	case f.IDs.Len() > 0:
 		qs = make([]query, f.IDs.Len())
 		for i, idHex := range f.IDs.F() {
-			ih := id.New(eventid.NewWith(by(idHex)))
+			ih := id.New(eventid.NewWith([]byte(idHex)))
 			if ih == nil {
 				log.E.F("failed to decode event ID: %s", idHex)
 				// just ignore it, clients will be clients
@@ -125,8 +126,8 @@ func PrepareQueries(f *filter.T) (
 			// log.T.S(values.F())
 			for _, value := range values.F()[1:] {
 				// get key prefix (with full length) and offset where to write the last parts
-				var prf by
-				if prf, err = GetTagKeyPrefix(st(value)); chk.E(err) {
+				var prf []byte
+				if prf, err = GetTagKeyPrefix(string(value)); chk.E(err) {
 					continue
 				}
 				// remove the last part to get just the prefix we want here
@@ -152,8 +153,8 @@ func PrepareQueries(f *filter.T) (
 	default:
 		log.I.S("nothing in filter, returning latest events")
 		// if len(qs) > 0 {
-		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: by{1},
-			start: by{1, 255, 255, 255, 255, 255, 255, 255, 255},
+		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: []byte{1},
+			start: []byte{1, 255, 255, 255, 255, 255, 255, 255, 255},
 			// })
 			// qs = append(qs, query{index: 0, queryFilter: f,
 			// 	searchPrefix: prefixes.CreatedAt.Key(),
@@ -183,8 +184,8 @@ func PrepareQueries(f *filter.T) (
 	}
 	// if we got an empty filter, we still need a query for scraping the newest
 	if len(qs) == 0 {
-		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: by{1},
-			start: by{1, 255, 255, 255, 255, 255, 255, 255, 255}})
+		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: []byte{1},
+			start: []byte{1, 255, 255, 255, 255, 255, 255, 255, 255}})
 	}
 	return
 }

@@ -1,13 +1,13 @@
 package prefixes
 
 import (
-	"realy.lol/ratel/keys/index"
-	"realy.lol/ratel/keys/serial"
+	"realy.lol/ec/schnorr"
 	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/id"
+	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
-	"realy.lol/ec/schnorr"
+	"realy.lol/ratel/keys/serial"
 	"realy.lol/sha256"
 )
 
@@ -93,7 +93,7 @@ const (
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop
 // for pulling events matching a serial
-var FilterPrefixes = []by{
+var FilterPrefixes = [][]byte{
 	{CreatedAt.B()},
 	{Id.B()},
 	{Kind.B()},
@@ -107,7 +107,7 @@ var FilterPrefixes = []by{
 // KeySizes are the byte size of keys of each type of key prefix. int(P) or call the P.I() method
 // corresponds to the index 1:1. For future index additions be sure to add the
 // relevant KeySizes sum as it describes the data for a programmer.
-var KeySizes = []no{
+var KeySizes = []int{
 	// Event
 	1 + serial.Len,
 	// CreatedAt

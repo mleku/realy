@@ -8,11 +8,11 @@ import (
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
 
-	"realy.lol/units"
 	"realy.lol/ratel/prefixes"
+	"realy.lol/units"
 )
 
-func (r *T) Init(path st) (err er) {
+func (r *T) Init(path string) (err error) {
 	r.dataDir = path
 	log.I.Ln("opening ratel event store at", r.Path())
 	opts := badger.DefaultOptions(r.dataDir)
@@ -34,7 +34,7 @@ func (r *T) Init(path st) (err er) {
 		return err
 	}
 	log.T.Ln("getting event store sequence index", r.dataDir)
-	if r.seq, err = r.DB.GetSequence(by("events"), 1000); chk.E(err) {
+	if r.seq, err = r.DB.GetSequence([]byte("events"), 1000); chk.E(err) {
 		return err
 	}
 	log.T.Ln("running migrations", r.dataDir)
@@ -52,8 +52,8 @@ func (r *T) Init(path st) (err er) {
 
 const Version = 1
 
-func (r *T) runMigrations() (err er) {
-	return r.Update(func(txn *badger.Txn) (err er) {
+func (r *T) runMigrations() (err error) {
+	return r.Update(func(txn *badger.Txn) (err error) {
 		var version uint16
 		var item *badger.Item
 		item, err = txn.Get(prefixes.Version.Key())
@@ -62,7 +62,7 @@ func (r *T) runMigrations() (err er) {
 		} else if chk.E(err) {
 			return err
 		} else {
-			chk.E(item.Value(func(val by) (err er) {
+			chk.E(item.Value(func(val []byte) (err error) {
 				version = binary.BigEndian.Uint16(val)
 				return
 			}))
@@ -96,8 +96,8 @@ func (r *T) runMigrations() (err er) {
 	})
 }
 
-func (r *T) bumpVersion(txn *badger.Txn, version uint16) er {
-	buf := make(by, 2)
+func (r *T) bumpVersion(txn *badger.Txn, version uint16) error {
+	buf := make([]byte, 2)
 	binary.BigEndian.PutUint16(buf, version)
 	return txn.Set(prefixes.Version.Key(), buf)
 }

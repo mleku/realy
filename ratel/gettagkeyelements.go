@@ -18,10 +18,10 @@ import (
 
 // GetTagKeyElements generates tag indexes from a tag key, tag value, created_at
 // timestamp and the event serial.
-func GetTagKeyElements(tagKey, tagValue st, CA *createdat.T,
-	ser *serial.T) (prf index.P, elems []keys.Element, err er) {
+func GetTagKeyElements(tagKey, tagValue string, CA *createdat.T,
+	ser *serial.T) (prf index.P, elems []keys.Element, err error) {
 
-	var pkb by
+	var pkb []byte
 	// first check if it might be a public key, fastest test
 	if len(tagValue) == 2*schnorr.PubKeyBytesLen {
 		// this could be a pubkey
@@ -41,8 +41,8 @@ func GetTagKeyElements(tagKey, tagValue st, CA *createdat.T,
 	// check for a tag
 	if tagKey == "a" && strings.Count(tagValue, ":") == 2 {
 		a := &atag.T{}
-		var rem by
-		if rem, err = a.Unmarshal(by(tagValue)); chk.E(err) {
+		var rem []byte
+		if rem, err = a.Unmarshal([]byte(tagValue)); chk.E(err) {
 			return
 		}
 		if len(rem) > 0 {

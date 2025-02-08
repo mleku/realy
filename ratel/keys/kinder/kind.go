@@ -17,10 +17,10 @@ type T struct {
 var _ keys.Element = &T{}
 
 // New creates a new kinder.T for reading/writing kind.T values.
-func New[V uint16 | no](c V) (p *T) { return &T{Val: kind.New(c)} }
+func New[V uint16 | int](c V) (p *T) { return &T{Val: kind.New(c)} }
 
-func Make(c *kind.T) (v by) {
-	v = make(by, Len)
+func Make(c *kind.T) (v []byte) {
+	v = make([]byte, Len)
 	binary.BigEndian.PutUint16(v, c.K)
 	return
 }
@@ -30,7 +30,7 @@ func (c *T) Write(buf *bytes.Buffer) {
 }
 
 func (c *T) Read(buf *bytes.Buffer) (el keys.Element) {
-	b := make(by, Len)
+	b := make([]byte, Len)
 	if n, err := buf.Read(b); chk.E(err) || n != Len {
 		return nil
 	}
@@ -39,4 +39,4 @@ func (c *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	return c
 }
 
-func (c *T) Len() no { return Len }
+func (c *T) Len() int { return Len }

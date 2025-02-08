@@ -6,8 +6,8 @@ import (
 	"realy.lol/ratel/keys/arb"
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
-	eventstore "realy.lol/store"
 	"realy.lol/ratel/prefixes"
+	eventstore "realy.lol/store"
 )
 
 // GetTagKeyPrefix returns tag index prefixes based on the initial field of a
@@ -22,7 +22,7 @@ import (
 // - Tag:       [ 6 ][ address/URL ][ 8b Serial ]
 //
 // This function produces the initial bytes without the index.
-func GetTagKeyPrefix(tagValue st) (key by, err er) {
+func GetTagKeyPrefix(tagValue string) (key []byte, err error) {
 	if k, pkb, d := eventstore.GetAddrTagElements(tagValue); len(pkb) == 32 {
 		// store value in the new special "a" tag index
 		var pk *pubkey.T

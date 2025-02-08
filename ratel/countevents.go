@@ -2,22 +2,23 @@ package ratel
 
 import (
 	"errors"
+	"strconv"
+	"time"
 
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.lol/context"
 	"realy.lol/event"
+	"realy.lol/eventid"
 	"realy.lol/filter"
 	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
 	"realy.lol/sha256"
 	"realy.lol/tag"
-	"realy.lol/ratel/prefixes"
-	"time"
-	"strconv"
-	"realy.lol/eventid"
 )
 
-func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
+func (r *T) CountEvents(c context.T, f *filter.T) (count int, approx bool, err error) {
 	log.T.F("QueryEvents,%s", f.Serialize())
 	var queries []query
 	var extraFilter *filter.T
@@ -26,7 +27,7 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 		return
 	}
 	// search for the keys generated from the filter
-	var delEvs []by
+	var delEvs [][]byte
 	defer func() {
 		for _, d := range delEvs {
 			chk.E(r.DeleteEvent(r.Ctx, eventid.NewWith(d)))
@@ -38,8 +39,8 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 			return
 		default:
 		}
-		var eventKey by
-		err = r.View(func(txn *badger.Txn) (err er) {
+		var eventKey []byte
+		err = r.View(func(txn *badger.Txn) (err error) {
 			// iterate only through keys and in reverse order
 			opts := badger.IteratorOptions{
 				Reverse: true,
@@ -84,7 +85,7 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 		if extraFilter != nil {
 			// if there is an extra filter we need to fetch and decode the event to determine a
 			// match.
-			err = r.View(func(txn *badger.Txn) (err er) {
+			err = r.View(func(txn *badger.Txn) (err error) {
 				opts := badger.IteratorOptions{Reverse: true}
 				it := txn.NewIterator(opts)
 				defer it.Close()
@@ -98,9 +99,9 @@ func (r *T) CountEvents(c cx, f *filter.T) (count no, approx bo, err er) {
 						return
 					}
 					ev := &event.T{}
-					var appr bo
-					if err = item.Value(func(eventValue by) (err er) {
-						var rem by
+					var appr bool
+					if err = item.Value(func(eventValue []byte) (err error) {
+						var rem []byte
 						if rem, err = r.Unmarshal(ev, eventValue); chk.E(err) {
 							return
 						}

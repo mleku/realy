@@ -4,7 +4,7 @@ import (
 	"realy.lol/event"
 )
 
-func (r *T) Unmarshal(ev *event.T, evb by) (rem by, err er) {
+func (r *T) Unmarshal(ev *event.T, evb []byte) (rem []byte, err error) {
 	if r.UseCompact {
 		if rem, err = ev.UnmarshalCompact(evb); chk.E(err) {
 			ev = nil
@@ -21,7 +21,7 @@ func (r *T) Unmarshal(ev *event.T, evb by) (rem by, err er) {
 	return
 }
 
-func (r *T) Marshal(ev *event.T, dst by) (b by) {
+func (r *T) Marshal(ev *event.T, dst []byte) (b []byte) {
 	if r.UseCompact {
 		b = ev.MarshalCompact(dst)
 	} else {
