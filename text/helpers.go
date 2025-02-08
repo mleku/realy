@@ -1,6 +1,7 @@
 package text
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/templexxx/xhex"
@@ -13,7 +14,7 @@ import (
 
 // JSONKey generates the JSON format for an object key and terminates with the
 // semicolon.
-func JSONKey(dst, k by) (b by) {
+func JSONKey(dst, k []byte) (b []byte) {
 	dst = append(dst, '"')
 	dst = append(dst, k...)
 	dst = append(dst, '"', ':')
@@ -25,10 +26,10 @@ func JSONKey(dst, k by) (b by) {
 // encoded value, decodes it in-place using a SIMD hex codec and returns the
 // decoded truncated bytes (the other half will be as it was but no allocation
 // is required).
-func UnmarshalHex(b by) (h by, rem by, err er) {
+func UnmarshalHex(b []byte) (h []byte, rem []byte, err error) {
 	rem = b[:]
-	var inQuote bo
-	var start no
+	var inQuote bool
+	var start int
 	for i := 0; i < len(b); i++ {
 		if !inQuote {
 			if b[i] == '"' {
@@ -58,7 +59,7 @@ func UnmarshalHex(b by) (h by, rem by, err er) {
 }
 
 // UnmarshalQuoted performs an in-place unquoting of NIP-01 quoted byte string.
-func UnmarshalQuoted(b by) (content, rem by, err er) {
+func UnmarshalQuoted(b []byte) (content, rem []byte, err error) {
 	if len(b) == 0 {
 		err = io.EOF
 		return
@@ -76,8 +77,8 @@ func UnmarshalQuoted(b by) (content, rem by, err er) {
 		err = io.EOF
 		return
 	}
-	var escaping bo
-	var contentLen no
+	var escaping bool
+	var contentLen int
 	for len(rem) > 0 {
 		if rem[0] == '\\' {
 			if !escaping {
@@ -117,7 +118,7 @@ func UnmarshalQuoted(b by) (content, rem by, err er) {
 	return
 }
 
-func MarshalHexArray(dst by, ha []by) (b by) {
+func MarshalHexArray(dst []byte, ha [][]byte) (b []byte) {
 	dst = append(dst, '[')
 	for i := range ha {
 		dst = AppendQuote(dst, ha[i], hex.EncAppend)
@@ -132,9 +133,9 @@ func MarshalHexArray(dst by, ha []by) (b by) {
 
 // UnmarshalHexArray unpacks a JSON array containing strings with hexadecimal,
 // and checks all values have the specified byte size..
-func UnmarshalHexArray(b by, size no) (t []by, rem by, err er) {
+func UnmarshalHexArray(b []byte, size int) (t [][]byte, rem []byte, err error) {
 	rem = b
-	var openBracket bo
+	var openBracket bool
 	for ; len(rem) > 0; rem = rem[1:] {
 		if rem[0] == '[' {
 			openBracket = true
@@ -145,7 +146,7 @@ func UnmarshalHexArray(b by, size no) (t []by, rem by, err er) {
 				rem = rem[1:]
 				return
 			} else if rem[0] == '"' {
-				var h by
+				var h []byte
 				if h, rem, err = UnmarshalHex(rem); chk.E(err) {
 					return
 				}
@@ -167,9 +168,9 @@ func UnmarshalHexArray(b by, size no) (t []by, rem by, err er) {
 }
 
 // UnmarshalStringArray unpacks a JSON array containing strings.
-func UnmarshalStringArray(b by) (t []by, rem by, err er) {
+func UnmarshalStringArray(b []byte) (t [][]byte, rem []byte, err error) {
 	rem = b
-	var openBracket bo
+	var openBracket bool
 	for ; len(rem) > 0; rem = rem[1:] {
 		if rem[0] == '[' {
 			openBracket = true
@@ -180,7 +181,7 @@ func UnmarshalStringArray(b by) (t []by, rem by, err er) {
 				rem = rem[1:]
 				return
 			} else if rem[0] == '"' {
-				var h by
+				var h []byte
 				if h, rem, err = UnmarshalQuoted(rem); chk.E(err) {
 					return
 				}
@@ -196,7 +197,7 @@ func UnmarshalStringArray(b by) (t []by, rem by, err er) {
 	return
 }
 
-func MarshalKindsArray(dst by, ka *kinds.T) (b by) {
+func MarshalKindsArray(dst []byte, ka *kinds.T) (b []byte) {
 	dst = append(dst, '[')
 	for i := range ka.K {
 		dst = ka.K[i].Marshal(dst)
@@ -209,10 +210,10 @@ func MarshalKindsArray(dst by, ka *kinds.T) (b by) {
 	return
 }
 
-func UnmarshalKindsArray(b by) (k *kinds.T, rem by, err er) {
+func UnmarshalKindsArray(b []byte) (k *kinds.T, rem []byte, err error) {
 	rem = b
 	k = &kinds.T{}
-	var openedBracket bo
+	var openedBracket bool
 	for ; len(rem) > 0; rem = rem[1:] {
 		if !openedBracket && rem[0] == '[' {
 			openedBracket = true
@@ -243,17 +244,17 @@ func UnmarshalKindsArray(b by) (k *kinds.T, rem by, err er) {
 	return
 }
 
-func True() by  { return by("true") }
-func False() by { return by("false") }
+func True() []byte  { return []byte("true") }
+func False() []byte { return []byte("false") }
 
-func MarshalBool(src by, truth bo) by {
+func MarshalBool(src []byte, truth bool) []byte {
 	if truth {
 		return append(src, True()...)
 	}
 	return append(src, False()...)
 }
 
-func UnmarshalBool(src by) (rem by, truth bo, err er) {
+func UnmarshalBool(src []byte) (rem []byte, truth bool, err error) {
 	rem = src
 	t, f := True(), False()
 	for i := range rem {
@@ -262,7 +263,7 @@ func UnmarshalBool(src by) (rem by, truth bo, err er) {
 				err = io.EOF
 				return
 			}
-			if equals(t, rem[i:i+len(t)]) {
+			if bytes.Equal(t, rem[i:i+len(t)]) {
 				truth = true
 				rem = rem[i+len(t):]
 				return
@@ -273,7 +274,7 @@ func UnmarshalBool(src by) (rem by, truth bo, err er) {
 				err = io.EOF
 				return
 			}
-			if equals(f, rem[i:i+len(f)]) {
+			if bytes.Equal(f, rem[i:i+len(f)]) {
 				rem = rem[i+len(f):]
 				return
 			}
@@ -284,7 +285,7 @@ func UnmarshalBool(src by) (rem by, truth bo, err er) {
 	return
 }
 
-func Comma(b by) (rem by, err er) {
+func Comma(b []byte) (rem []byte, err error) {
 	rem = b
 	for i := range rem {
 		if rem[i] == ',' {

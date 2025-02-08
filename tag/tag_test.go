@@ -1,25 +1,26 @@
 package tag
 
 import (
+	"bytes"
 	"testing"
 
 	"lukechampine.com/frand"
 )
 
 func TestMarshalUnmarshal(t *testing.T) {
-	var b, bo, bc by
+	var b, bool, bc []byte
 	for _ = range 100 {
 		n := frand.Intn(8)
 		tg := NewWithCap(n)
 		for _ = range n {
-			b1 := make(by, frand.Intn(8))
+			b1 := make([]byte, frand.Intn(8))
 			_, _ = frand.Read(b1)
 			tg.field = append(tg.field, b1)
 		}
 		// log.I.S(tg)
 		b = tg.Marshal(b)
-		bo = make(by, len(b))
-		copy(bo, b)
+		bool = make([]byte, len(b))
+		copy(bool, b)
 		tg2 := NewWithCap(n)
 		rem, err := tg2.Unmarshal(b)
 		// log.I.S(tg2)
@@ -28,8 +29,8 @@ func TestMarshalUnmarshal(t *testing.T) {
 		}
 		bc = tg2.Marshal(bc)
 		// log.I.F("\n\norig\n%s\n\ncopy\n%s\n", bo, bc)
-		if !equals(bo, bc) {
-			t.Fatalf("got\n%s\nwant\n%s", bo, bc)
+		if !bytes.Equal(bool, bc) {
+			t.Fatalf("got\n%s\nwant\n%s", bool, bc)
 		}
 		if len(rem) != 0 {
 			t.Fatalf("len(rem)!=0:\n%s", rem)
@@ -37,34 +38,34 @@ func TestMarshalUnmarshal(t *testing.T) {
 		if !tg.Equal(tg2) {
 			t.Fatalf("got\n%s\nwant\n%s", tg2, tg)
 		}
-		b, bo, bc = b[:0], bo[:0], bc[:0]
+		b, bool, bc = b[:0], bool[:0], bc[:0]
 	}
 }
 
 func TestMarshalUnmarshalZeroLengthTag(t *testing.T) {
-	empty := by("[\"a\"]")
-	var b by
+	empty := []byte("[\"a\"]")
+	var b []byte
 	tg := &T{}
 	b, _ = tg.Unmarshal(empty)
 	b = tg.Marshal(b)
-	if !equals(empty, b) {
+	if !bytes.Equal(empty, b) {
 		t.Fatalf("got\n%s\nwant\n%s", b, empty)
 	}
-	empty = by("[]")
+	empty = []byte("[]")
 	tg = &T{}
 	b, _ = tg.Unmarshal(empty)
 	b = tg.Marshal(b)
-	if !equals(empty, b) {
+	if !bytes.Equal(empty, b) {
 		t.Fatalf("got\n%s\nwant\n%s", b, empty)
 	}
 }
 
 func BenchmarkMarshalUnmarshal(bb *testing.B) {
-	b := make(by, 0, 40000000)
+	b := make([]byte, 0, 40000000)
 	n := 4096
 	tg := NewWithCap(n)
 	for _ = range n {
-		b1 := make(by, 128)
+		b1 := make([]byte, 128)
 		_, _ = frand.Read(b1)
 		tg.field = append(tg.field, b1)
 	}
@@ -93,7 +94,7 @@ func TestT_Clone_Equal(t *testing.T) {
 		n := frand.Intn(64) + 2
 		t1 := NewWithCap(n)
 		for _ = range n {
-			f := make(by, frand.Intn(128)+2)
+			f := make([]byte, frand.Intn(128)+2)
 			_, _ = frand.Read(f)
 			t1.field = append(t1.field, f)
 		}

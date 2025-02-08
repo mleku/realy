@@ -1,59 +1,59 @@
 package text
 
-type AppendBytesClosure func(dst, src by) by
+type AppendBytesClosure func(dst, src []byte) []byte
 
-type AppendClosure func(dst by) by
+type AppendClosure func(dst []byte) []byte
 
-func Unquote(b by) by { return b[1 : len(b)-1] }
+func Unquote(b []byte) []byte { return b[1 : len(b)-1] }
 
-func Noop(dst, src by) by { return append(dst, src...) }
+func Noop(dst, src []byte) []byte { return append(dst, src...) }
 
-func AppendQuote(dst, src by, ac AppendBytesClosure) by {
+func AppendQuote(dst, src []byte, ac AppendBytesClosure) []byte {
 	dst = append(dst, '"')
 	dst = ac(dst, src)
 	dst = append(dst, '"')
 	return dst
 }
 
-func Quote(dst, src by) by { return AppendQuote(dst, src, Noop) }
+func Quote(dst, src []byte) []byte { return AppendQuote(dst, src, Noop) }
 
-func AppendSingleQuote(dst, src by, ac AppendBytesClosure) by {
+func AppendSingleQuote(dst, src []byte, ac AppendBytesClosure) []byte {
 	dst = append(dst, '\'')
 	dst = ac(dst, src)
 	dst = append(dst, '\'')
 	return dst
 }
 
-func AppendBackticks(dst, src by, ac AppendBytesClosure) by {
+func AppendBackticks(dst, src []byte, ac AppendBytesClosure) []byte {
 	dst = append(dst, '`')
 	dst = ac(dst, src)
 	dst = append(dst, '`')
 	return dst
 }
 
-func AppendBrace(dst, src by, ac AppendBytesClosure) by {
+func AppendBrace(dst, src []byte, ac AppendBytesClosure) []byte {
 	dst = append(dst, '(')
 	dst = ac(dst, src)
 	dst = append(dst, ')')
 	return dst
 }
 
-func AppendParenthesis(dst, src by, ac AppendBytesClosure) by {
+func AppendParenthesis(dst, src []byte, ac AppendBytesClosure) []byte {
 	dst = append(dst, '{')
 	dst = ac(dst, src)
 	dst = append(dst, '}')
 	return dst
 }
 
-func AppendBracket(dst, src by, ac AppendBytesClosure) by {
+func AppendBracket(dst, src []byte, ac AppendBytesClosure) []byte {
 	dst = append(dst, '[')
 	dst = ac(dst, src)
 	dst = append(dst, ']')
 	return dst
 }
 
-func AppendList(dst by, src []by, separator byte,
-	ac AppendBytesClosure) by {
+func AppendList(dst []byte, src [][]byte, separator byte,
+	ac AppendBytesClosure) []byte {
 	last := len(src) - 1
 	for i := range src {
 		dst = append(dst, ac(dst, src[i])...)

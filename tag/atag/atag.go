@@ -1,19 +1,20 @@
 package atag
 
 import (
-	"realy.lol/kind"
 	"bytes"
-	"realy.lol/ints"
+
 	"realy.lol/hex"
+	"realy.lol/ints"
+	"realy.lol/kind"
 )
 
 type T struct {
 	Kind   *kind.T
-	PubKey by
-	DTag   by
+	PubKey []byte
+	DTag   []byte
 }
 
-func (t T) Marshal(dst by) (b by) {
+func (t T) Marshal(dst []byte) (b []byte) {
 	b = t.Kind.Marshal(dst)
 	b = append(b, ':')
 	b = hex.EncAppend(b, t.PubKey)
@@ -22,8 +23,8 @@ func (t T) Marshal(dst by) (b by) {
 	return
 }
 
-func (t *T) Unmarshal(b by) (r by, err er) {
-	split := bytes.Split(b, by{':'})
+func (t *T) Unmarshal(b []byte) (r []byte, err error) {
+	split := bytes.Split(b, []byte{':'})
 	if len(split) != 3 {
 		return
 	}

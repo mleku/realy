@@ -21,66 +21,66 @@ const (
 	MarkerMention = "mention"
 )
 
-type BS[Z by | st] by
+type BS[Z []byte | string] []byte
 
 // T is a list of strings with a literal ordering.
 //
 // Not a set, there can be repeating elements.
 type T struct {
-	field []BS[by]
+	field []BS[[]byte]
 }
 
-func (t *T) S(i no) (s st) {
+func (t *T) S(i int) (s string) {
 	if t == nil {
 		return
 	}
 	if t.Len() <= i {
 		return
 	}
-	return st(t.field[i])
+	return string(t.field[i])
 }
 
-func (t *T) B(i no) (b by) {
+func (t *T) B(i int) (b []byte) {
 	if t == nil {
 		return
 	}
 	if t.Len() <= i {
 		return
 	}
-	return by(t.field[i])
+	return []byte(t.field[i])
 }
 
-func (t *T) BS() (bs []by) {
+func (t *T) BS() (bs [][]byte) {
 	if t == nil {
 		return
 	}
-	bs = make([]by, 0, t.Len())
+	bs = make([][]byte, 0, t.Len())
 	for _, b := range t.field {
 		bs = append(bs, b)
 	}
 	return
 }
 
-func (t *T) F() (b []by) {
+func (t *T) F() (b [][]byte) {
 	if t == nil {
-		return []by{}
+		return [][]byte{}
 	}
-	b = make([]by, t.Len())
+	b = make([][]byte, t.Len())
 	for i := range t.field {
 		b[i] = t.B(i)
 	}
 	return
 }
 
-func (t *T) Len() no {
+func (t *T) Len() int {
 	if t == nil {
 		return 0
 	}
 	return len(t.field)
 }
 
-func (t *T) Less(i, j no) bo {
-	var cursor no
+func (t *T) Less(i, j int) bool {
+	var cursor int
 	for len(t.field[i]) < cursor-1 && len(t.field[j]) < cursor-1 {
 		if bytes.Compare(t.field[i], t.field[j]) < 0 {
 			return true
@@ -90,20 +90,20 @@ func (t *T) Less(i, j no) bo {
 	return false
 }
 
-func (t *T) Swap(i, j no) { t.field[i], t.field[j] = t.field[j], t.field[i] }
+func (t *T) Swap(i, j int) { t.field[i], t.field[j] = t.field[j], t.field[i] }
 
-func NewWithCap(c no) *T { return &T{make([]BS[by], 0, c)} }
+func NewWithCap(c int) *T { return &T{make([]BS[[]byte], 0, c)} }
 
-func New[V st | by](fields ...V) (t *T) {
-	t = &T{field: make([]BS[by], len(fields))}
+func New[V string | []byte](fields ...V) (t *T) {
+	t = &T{field: make([]BS[[]byte], len(fields))}
 	for i, field := range fields {
-		t.field[i] = by(field)
+		t.field[i] = []byte(field)
 	}
 	return
 }
 
-func FromBytesSlice(fields ...by) (t *T) {
-	t = &T{field: make([]BS[by], len(fields))}
+func FromBytesSlice(fields ...[]byte) (t *T) {
+	t = &T{field: make([]BS[[]byte], len(fields))}
 	for i, field := range fields {
 		t.field[i] = field
 	}
@@ -112,17 +112,17 @@ func FromBytesSlice(fields ...by) (t *T) {
 
 // Clone makes a new tag.T with the same members.
 func (t *T) Clone() (c *T) {
-	c = &T{field: make([]BS[by], 0, len(t.field))}
+	c = &T{field: make([]BS[[]byte], 0, len(t.field))}
 	for _, f := range t.field {
 		l := len(f)
-		b := make(by, l)
+		b := make([]byte, l)
 		copy(b, f)
 		c.field = append(c.field, b)
 	}
 	return
 }
 
-func (t *T) Append(b ...by) (tt *T) {
+func (t *T) Append(b ...[]byte) (tt *T) {
 	if t == nil {
 		// we are propagating back this to tt if t was nil, else it appends
 		// t = &T{make([]BS[B], 0, len(t.field))}
@@ -134,21 +134,21 @@ func (t *T) Append(b ...by) (tt *T) {
 	return t
 }
 
-func (t *T) Cap() no                { return cap(t.field) }
-func (t *T) Clear()                 { t.field = t.field[:0] }
-func (t *T) Slice(start, end no) *T { return &T{t.field[start:end]} }
+func (t *T) Cap() int                { return cap(t.field) }
+func (t *T) Clear()                  { t.field = t.field[:0] }
+func (t *T) Slice(start, end int) *T { return &T{t.field[start:end]} }
 
-func (t *T) ToByteSlice() (b []by) {
+func (t *T) ToByteSlice() (b [][]byte) {
 	for i := range t.field {
 		b = append(b, t.field[i])
 	}
 	return
 }
 
-func (t *T) ToStringSlice() (b []st) {
-	b = make([]st, 0, len(t.field))
+func (t *T) ToStringSlice() (b []string) {
+	b = make([]string, 0, len(t.field))
 	for i := range t.field {
-		b = append(b, st(t.field[i]))
+		b = append(b, string(t.field[i]))
 	}
 	return
 }
@@ -157,7 +157,7 @@ func (t *T) ToStringSlice() (b []st) {
 //
 // The last element is treated specially in that it is considered to match if
 // the candidate has the same initial substring as its corresponding element.
-func (t *T) StartsWith(prefix *T) bo {
+func (t *T) StartsWith(prefix *T) bool {
 	// log.I.S("StartsWith", prefix)
 	prefixLen := len(prefix.field)
 
@@ -166,7 +166,7 @@ func (t *T) StartsWith(prefix *T) bo {
 	}
 	// check initial elements for equality
 	for i := 0; i < prefixLen-1; i++ {
-		if !equals(prefix.field[i], t.field[i]) {
+		if !bytes.Equal(prefix.field[i], t.field[i]) {
 			return false
 		}
 	}
@@ -175,7 +175,7 @@ func (t *T) StartsWith(prefix *T) bo {
 }
 
 // Key returns the first element of the tags.
-func (t *T) Key() by {
+func (t *T) Key() []byte {
 	if t == nil {
 		return nil
 	}
@@ -186,7 +186,7 @@ func (t *T) Key() by {
 }
 
 // FilterKey returns the first element of a filter tag (the key) with the # removed
-func (t *T) FilterKey() by {
+func (t *T) FilterKey() []byte {
 	if t == nil {
 		return nil
 	}
@@ -197,7 +197,7 @@ func (t *T) FilterKey() by {
 }
 
 // Value returns the second element of the tag.
-func (t *T) Value() by {
+func (t *T) Value() []byte {
 	if t == nil {
 		return nil
 	}
@@ -207,23 +207,23 @@ func (t *T) Value() by {
 	return nil
 }
 
-var etag, ptag = by("e"), by("p")
+var etag, ptag = []byte("e"), []byte("p")
 
 // Relay returns the third element of the tag.
-func (t *T) Relay() (s by) {
+func (t *T) Relay() (s []byte) {
 	if t == nil {
 		return nil
 	}
-	if (equals(t.Key(), etag) ||
-		equals(t.Key(), ptag)) &&
+	if (bytes.Equal(t.Key(), etag) ||
+		bytes.Equal(t.Key(), ptag)) &&
 		len(t.field) >= Relay {
 
-		return normalize.URL(by(t.field[Relay]))
+		return normalize.URL([]byte(t.field[Relay]))
 	}
 	return
 }
 
-func (t *T) Marshal(dst by) (b by) {
+func (t *T) Marshal(dst []byte) (b []byte) {
 	dst = append(dst, '[')
 	for i, s := range t.field {
 		if i > 0 {
@@ -235,9 +235,9 @@ func (t *T) Marshal(dst by) (b by) {
 	return dst
 }
 
-func (t *T) Unmarshal(b by) (r by, err er) {
-	var inQuotes, openedBracket bo
-	var quoteStart no
+func (t *T) Unmarshal(b []byte) (r []byte, err error) {
+	var inQuotes, openedBracket bool
+	var quoteStart int
 	// t.Field = []BS[B]{}
 	for i := 0; i < len(b); i++ {
 		if !openedBracket && b[i] == '[' {
@@ -264,9 +264,9 @@ func (t *T) Unmarshal(b by) (r by, err er) {
 }
 
 // Contains returns true if the provided element is found in the tag slice.
-func (t *T) Contains(s by) (b bo) {
+func (t *T) Contains(s []byte) (b bool) {
 	for i := range t.field {
-		if equals(t.field[i], s) {
+		if bytes.Equal(t.field[i], s) {
 			return true
 		}
 	}
@@ -274,12 +274,12 @@ func (t *T) Contains(s by) (b bo) {
 }
 
 // Equal checks that the provided tag list matches.
-func (t *T) Equal(ta *T) bo {
+func (t *T) Equal(ta *T) bool {
 	if len(t.field) != len(ta.field) {
 		return false
 	}
 	for i := range t.field {
-		if !equals(t.field[i], ta.field[i]) {
+		if !bytes.Equal(t.field[i], ta.field[i]) {
 			return false
 		}
 	}

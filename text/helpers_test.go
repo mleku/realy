@@ -1,6 +1,7 @@
 package text
 
 import (
+	"bytes"
 	"testing"
 
 	"lukechampine.com/frand"
@@ -10,10 +11,10 @@ import (
 )
 
 func TestUnmarshalHexArray(t *testing.T) {
-	var ha []by
-	h := make(by, sha256.Size)
+	var ha [][]byte
+	h := make([]byte, sha256.Size)
 	frand.Read(h)
-	var dst by
+	var dst []byte
 	for _ = range 20 {
 		hh := sha256.Sum256(h)
 		h = hh[:]
@@ -27,9 +28,9 @@ func TestUnmarshalHexArray(t *testing.T) {
 		}
 	}
 	dst = append(dst, ']')
-	var ha2 []by
-	var rem by
-	var err er
+	var ha2 [][]byte
+	var rem []byte
+	var err error
 	if ha2, rem, err = UnmarshalHexArray(dst, 32); chk.E(err) {
 		t.Fatal(err)
 	}
@@ -41,7 +42,7 @@ func TestUnmarshalHexArray(t *testing.T) {
 		t.Fatalf("failed to unmarshal, remnant afterwards '%s'", rem)
 	}
 	for i := range ha2 {
-		if !equals(ha[i], ha2[i]) {
+		if !bytes.Equal(ha[i], ha2[i]) {
 			t.Fatalf("failed to unmarshal at element %d; got %x, expected %x",
 				i, ha[i], ha2[i])
 		}

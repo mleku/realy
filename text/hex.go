@@ -4,7 +4,7 @@ import (
 	"realy.lol/hex"
 )
 
-func AppendHexFromBinary(dst, src by, quote bo) (b by) {
+func AppendHexFromBinary(dst, src []byte, quote bool) (b []byte) {
 	if quote {
 		dst = AppendQuote(dst, src, hex.EncAppend)
 	} else {
@@ -14,8 +14,8 @@ func AppendHexFromBinary(dst, src by, quote bo) (b by) {
 	return
 }
 
-func AppendBinaryFromHex(dst, src by, unquote bo) (b by,
-	err er) {
+func AppendBinaryFromHex(dst, src []byte, unquote bool) (b []byte,
+	err error) {
 	if unquote {
 		if dst, err = hex.DecAppend(dst,
 			Unquote(src)); chk.E(err) {

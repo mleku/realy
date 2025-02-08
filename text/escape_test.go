@@ -9,7 +9,7 @@ import (
 )
 
 func TestUnescapeByteString(t *testing.T) {
-	b := make(by, 256)
+	b := make([]byte, 256)
 	for i := range b {
 		b[i] = byte(i)
 	}
@@ -22,11 +22,11 @@ func TestUnescapeByteString(t *testing.T) {
 	}
 }
 
-func GenRandString(l no, src *frand.RNG) (str by) {
+func GenRandString(l int, src *frand.RNG) (str []byte) {
 	return src.Bytes(l)
 }
 
-var seed = sha256.Sum256(by(`
+var seed = sha256.Sum256([]byte(`
 The tao that can be told
 is not the eternal Tao
 The name that can be named
@@ -55,13 +55,13 @@ func TestRandomEscapeByteString(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		l := src.Intn(1<<8) + 32
 		s1 := GenRandString(l, src)
-		s2 := make(by, l)
-		orig := make(by, l)
+		s2 := make([]byte, l)
+		orig := make([]byte, l)
 		copy(s2, s1)
 		copy(orig, s1)
 
 		// first we are checking our implementation comports to the one from go-nostr.
-		escapeStringVersion := NostrEscape(by{}, s1)
+		escapeStringVersion := NostrEscape([]byte{}, s1)
 		escapeJSONStringAndWrapVersion := NostrEscape(nil, s2)
 		if len(escapeJSONStringAndWrapVersion) != len(escapeStringVersion) {
 			t.Logf("escapeString\nlength: %d\n%s\n%v\n",
@@ -117,8 +117,8 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	const size = 65536
 	b.Run("frand64k", func(b *testing.B) {
 		b.ReportAllocs()
-		in := make(by, size)
-		var err er
+		in := make([]byte, size)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -127,9 +127,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	})
 	b.Run("NostrEscape64k", func(b *testing.B) {
 		b.ReportAllocs()
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -140,9 +140,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	})
 	b.Run("NostrEscapeNostrUnescape64k", func(b *testing.B) {
 		b.ReportAllocs()
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -156,8 +156,8 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("frand32k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 2
-		in := make(by, size)
-		var err er
+		in := make([]byte, size)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -167,9 +167,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscape32k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 2
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -181,9 +181,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscapeNostrUnescape32k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 2
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -197,8 +197,8 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("frand16k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 4
-		in := make(by, size)
-		var err er
+		in := make([]byte, size)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -208,9 +208,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscape16k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 4
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -222,9 +222,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscapeNostrUnescape16k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 4
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -238,8 +238,8 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("frand8k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 8
-		in := make(by, size)
-		var err er
+		in := make([]byte, size)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -249,9 +249,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscape8k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 8
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -263,9 +263,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscapeNostrUnescape8k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 8
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -279,8 +279,8 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("frand4k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 16
-		in := make(by, size)
-		var err er
+		in := make([]byte, size)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -290,9 +290,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscape4k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 16
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -304,9 +304,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscapeNostrUnescape4k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 16
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -320,8 +320,8 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("frand2k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 32
-		in := make(by, size)
-		var err er
+		in := make([]byte, size)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -331,9 +331,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscape2k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 32
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -345,9 +345,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscapeNostrUnescape2k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 32
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -361,8 +361,8 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("frand1k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 64
-		in := make(by, size)
-		var err er
+		in := make([]byte, size)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -372,9 +372,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscape1k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 64
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
@@ -386,9 +386,9 @@ func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
 	b.Run("NostrEscapeNostrUnescape1k", func(b *testing.B) {
 		b.ReportAllocs()
 		size := size / 64
-		in := make(by, size)
-		out := make(by, size*2)
-		var err er
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
 		for i := 0; i < b.N; i++ {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
