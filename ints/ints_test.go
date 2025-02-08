@@ -9,10 +9,10 @@ import (
 )
 
 func TestMarshalUnmarshal(t *testing.T) {
-	b := make(by, 0, 8)
-	var rem by
+	b := make([]byte, 0, 8)
+	var rem []byte
 	var n *T
-	var err er
+	var err error
 	for _ = range 10000000 {
 		n = New(uint64(frand.Intn(math.MaxInt64)))
 		b = n.Marshal(b)
@@ -31,8 +31,8 @@ func TestMarshalUnmarshal(t *testing.T) {
 }
 
 func BenchmarkByteStringToInt64(bb *testing.B) {
-	b := make(by, 0, 19)
-	var i no
+	b := make([]byte, 0, 19)
+	var i int
 	const nTests = 10000000
 	testInts := make([]*T, nTests)
 	for i = range nTests {
@@ -51,7 +51,7 @@ func BenchmarkByteStringToInt64(bb *testing.B) {
 		var s string
 		for i = 0; i < bb.N; i++ {
 			n := testInts[i%10000]
-			s = strconv.Itoa(no(n.N))
+			s = strconv.Itoa(int(n.N))
 			_ = s
 		}
 	})
@@ -70,7 +70,7 @@ func BenchmarkByteStringToInt64(bb *testing.B) {
 		var s string
 		for i = 0; i < bb.N; i++ {
 			n := testInts[i%10000]
-			s = strconv.Itoa(no(n.N))
+			s = strconv.Itoa(int(n.N))
 			_, _ = strconv.Atoi(s)
 		}
 	})
