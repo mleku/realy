@@ -1,19 +1,20 @@
 package httpauth
 
 import (
-	"realy.lol/event"
-	"realy.lol/tags"
-	"realy.lol/tag"
-	"realy.lol/kind"
-	"strings"
-	"net/http"
-	"realy.lol/signer"
-	"net/url"
 	"encoding/base64"
 	"io"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"realy.lol/event"
+	"realy.lol/kind"
+	"realy.lol/signer"
+	"realy.lol/tag"
+	"realy.lol/tags"
 )
 
-func MakeEvent(u, method st) (ev *event.T) {
+func MakeEvent(u, method string) (ev *event.T) {
 	ev = &event.T{
 		Kind: kind.HTTPAuth,
 		Tags: tags.New(tag.New("u", u), tag.New("method", strings.ToUpper(method))),
@@ -21,8 +22,8 @@ func MakeEvent(u, method st) (ev *event.T) {
 	return
 }
 
-func MakeRequest(ur, meth st,
-	sign signer.I, payload io.ReadCloser) (r *http.Request, err er) {
+func MakeRequest(ur, meth string,
+	sign signer.I, payload io.ReadCloser) (r *http.Request, err error) {
 
 	if _, err = url.Parse(ur); chk.E(err) {
 		return
