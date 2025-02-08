@@ -1,6 +1,7 @@
 package subscription
 
 import (
+	"bytes"
 	"testing"
 
 	"lukechampine.com/frand"
@@ -8,27 +9,27 @@ import (
 
 func TestMarshalUnmarshal(t *testing.T) {
 	for _ = range 100 {
-		b := make(by, frand.Intn(48)+1)
-		bc := make(by, len(b))
+		b := make([]byte, frand.Intn(48)+1)
+		bc := make([]byte, len(b))
 		_, _ = frand.Read(b)
 		copy(bc, b)
-		var err er
+		var err error
 		var si *Id
 		if si, err = NewId(b); chk.E(err) {
 			t.Fatal(err)
 		}
-		var m by
+		var m []byte
 		m = si.Marshal(nil)
 		var ui *Id
 		ui, _ = NewId("")
-		var rem by
+		var rem []byte
 		if rem, err = ui.Unmarshal(m); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) > 0 {
 			t.Errorf("len(rem): %d, '%s'", len(rem), rem)
 		}
-		if !equals(ui.T, bc) {
+		if !bytes.Equal(ui.T, bc) {
 			t.Fatalf("bc: %0x, uu: %0x", bc, ui)
 		}
 	}

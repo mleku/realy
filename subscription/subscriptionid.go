@@ -8,19 +8,19 @@ import (
 )
 
 type Id struct {
-	T by
+	T []byte
 }
 
-func (si *Id) String() st { return st(si.T) }
+func (si *Id) String() string { return string(si.T) }
 
 // IsValid returns true if the subscription id is between 1 and 64 characters.
 // Invalid means too long or not present.
-func (si *Id) IsValid() bo { return len(si.T) <= 64 && len(si.T) > 0 }
+func (si *Id) IsValid() bool { return len(si.T) <= 64 && len(si.T) > 0 }
 
 // NewId inspects a string and converts to Id if it is
 // valid. Invalid means length == 0 or length > 64.
-func NewId[V st | by](s V) (*Id, er) {
-	si := &Id{T: by(s)}
+func NewId[V string | []byte](s V) (*Id, error) {
+	si := &Id{T: []byte(s)}
 	if si.IsValid() {
 		return si, nil
 	} else {
@@ -34,17 +34,17 @@ func NewId[V st | by](s V) (*Id, er) {
 // MustNew is the same as NewId except it doesn't check if you feed it rubbish.
 //
 // DO NOT USE WITHOUT CHECKING THE ID IS NOT NIL AND > 0 AND <= 64
-func MustNew[V st | by](s V) *Id {
-	return &Id{T: by(s)}
+func MustNew[V string | []byte](s V) *Id {
+	return &Id{T: []byte(s)}
 }
 
 const StdLen = 14
 const StdHRP = "su"
 
 func NewStd() (t *Id) {
-	var n no
-	var err er
-	src := make(by, StdLen)
+	var n int
+	var err error
+	src := make([]byte, StdLen)
 	if n, err = rand.Read(src); chk.E(err) {
 		return
 	}
@@ -52,19 +52,19 @@ func NewStd() (t *Id) {
 		err = errorf.E("only read %d of %d bytes from crypto/rand", n, StdLen)
 		return
 	}
-	var bits5 by
+	var bits5 []byte
 	if bits5, err = bech32.ConvertBits(src, 8, 5, true); chk.D(err) {
 		return nil
 	}
-	var dst by
-	if dst, err = bech32.Encode(by(StdHRP), bits5); chk.E(err) {
+	var dst []byte
+	if dst, err = bech32.Encode([]byte(StdHRP), bits5); chk.E(err) {
 		return
 	}
 	t = &Id{T: dst}
 	return
 }
 
-func (si *Id) Marshal(dst by) (b by) {
+func (si *Id) Marshal(dst []byte) (b []byte) {
 	ue := text.NostrEscape(nil, si.T)
 	if len(ue) < 1 || len(ue) > 64 {
 		log.E.F("invalid subscription ID, must be between 1 and 64 "+
@@ -78,9 +78,9 @@ func (si *Id) Marshal(dst by) (b by) {
 	return
 }
 
-func (si *Id) Unmarshal(b by) (r by, err er) {
-	var openQuotes, escaping bo
-	var start no
+func (si *Id) Unmarshal(b []byte) (r []byte, err error) {
+	var openQuotes, escaping bool
+	var start int
 	r = b
 	for i := range r {
 		if !openQuotes && r[i] == '"' {

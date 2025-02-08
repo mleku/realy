@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func sha256hash(m by) (r [32]byte) {
+func sha256hash(m []byte) (r [32]byte) {
 	var h [8]uint32
 
 	h[0] = 0x6a09e667
@@ -56,8 +56,8 @@ func sha256hash(m by) (r [32]byte) {
 	return
 }
 
-func runTestSha(hashfunc func(by) [32]byte) bo {
-	var m = by("This is a message. This is a message. This is a message. This is a message.")
+func runTestSha(hashfunc func([]byte) [32]byte) bool {
+	var m = []byte("This is a message. This is a message. This is a message. This is a message.")
 
 	ar := hashfunc(m)
 	br := sha256.Sum256(m)

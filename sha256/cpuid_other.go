@@ -30,7 +30,7 @@ var (
 		cpuid.AVX512VL)
 )
 
-func hasArmSha2() bo {
+func hasArmSha2() bool {
 	if cpuid.CPU.Has(cpuid.SHA2) {
 		return true
 	}
@@ -48,5 +48,5 @@ func hasArmSha2() bo {
 	if err != nil {
 		return false
 	}
-	return bytes.Contains(cpuInfo, by(sha256Feature))
+	return bytes.Contains(cpuInfo, []byte(sha256Feature))
 }

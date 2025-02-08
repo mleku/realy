@@ -3,6 +3,7 @@ package store
 import (
 	"io"
 
+	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/filter"
@@ -29,39 +30,39 @@ type Initer interface {
 	// allowing a storage to initialize its internal resources. The parameters can be
 	// used by the database implementations to set custom parameters such as cache
 	// management and other relevant parameters to the specific implementation.
-	Init(path st) (err er)
+	Init(path string) (err error)
 }
 
 type Pather interface {
 	// Path returns the directory of the database.
-	Path() (s st)
+	Path() (s string)
 }
 
 type Nuker interface {
 	// Nuke deletes everything in the database.
-	Nuke() (err er)
+	Nuke() (err error)
 }
 
 type Querent interface {
 	// QueryEvents is invoked upon a client's REQ as described in NIP-01. It returns
 	// the matching events in reverse chronological order in a slice.
-	QueryEvents(c cx, f *filter.T) (evs event.Ts, err er)
+	QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error)
 }
 
 type Counter interface {
 	// CountEvents performs the same work as QueryEvents but instead of delivering
 	// the events that were found it just returns the count of events
-	CountEvents(c cx, f *filter.T) (count no, approx bo, err er)
+	CountEvents(c context.T, f *filter.T) (count int, approx bool, err error)
 }
 
 type Deleter interface {
 	// DeleteEvent is used to handle deletion events, as per NIP-09.
-	DeleteEvent(c cx, ev *eventid.T, noTombstone ...bo) (err er)
+	DeleteEvent(c context.T, ev *eventid.T, noTombstone ...bool) (err error)
 }
 
 type Saver interface {
 	// SaveEvent is called once Relay.AcceptEvent reports true.
-	SaveEvent(c cx, ev *event.T) (err er)
+	SaveEvent(c context.T, ev *event.T) (err error)
 }
 
 type Importer interface {
@@ -74,10 +75,10 @@ type Exporter interface {
 	// Export writes a stream of line structured JSON of all events in the store. If
 	// pubkeys are present, only those with these pubkeys in the `pubkey` field and
 	// in `p` tags will be included.
-	Export(c cx, w io.Writer, pubkeys ...by)
+	Export(c context.T, w io.Writer, pubkeys ...[]byte)
 }
 
 type Syncer interface {
 	// Sync signals the event store to flush its buffers.
-	Sync() (err er)
+	Sync() (err error)
 }

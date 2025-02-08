@@ -45,7 +45,7 @@ const (
 type digest struct {
 	h   [8]uint32
 	x   [chunk]byte
-	nx  no
+	nx  int
 	len uint64
 }
 
@@ -63,7 +63,7 @@ func (d *digest) Reset() {
 	d.len = 0
 }
 
-type blockfuncType no
+type blockfuncType int
 
 const (
 	blockfuncStdlib blockfuncType = iota
@@ -97,7 +97,7 @@ func New() hash.Hash {
 }
 
 // Sum256 - single caller sha256 helper
-func Sum256(data by) (result [Size]byte) {
+func Sum256(data []byte) (result [Size]byte) {
 	var d digest
 	d.Reset()
 	d.Write(data)
@@ -106,13 +106,13 @@ func Sum256(data by) (result [Size]byte) {
 }
 
 // Return size of checksum
-func (d *digest) Size() no { return Size }
+func (d *digest) Size() int { return Size }
 
 // Return blocksize of checksum
-func (d *digest) BlockSize() no { return BlockSize }
+func (d *digest) BlockSize() int { return BlockSize }
 
 // Write to digest
-func (d *digest) Write(p by) (nn no, err er) {
+func (d *digest) Write(p []byte) (nn int, err error) {
 	nn = len(p)
 	d.len += uint64(nn)
 	if d.nx > 0 {
@@ -136,7 +136,7 @@ func (d *digest) Write(p by) (nn no, err er) {
 }
 
 // Return sha256 sum in bytes
-func (d *digest) Sum(in by) by {
+func (d *digest) Sum(in []byte) []byte {
 	// Make a copy of d0 so that caller can keep writing and summing.
 	d0 := *d
 	hash := d0.checkSum()
@@ -261,7 +261,7 @@ func (d *digest) checkSum() (digest [Size]byte) {
 	return
 }
 
-func block(dig *digest, p by) {
+func block(dig *digest, p []byte) {
 	if blockfunc == blockfuncIntelSha {
 		blockIntelShaGo(dig, p)
 	} else if blockfunc == blockfuncArmSha2 {
@@ -271,7 +271,7 @@ func block(dig *digest, p by) {
 	}
 }
 
-func blockGeneric(dig *digest, p by) {
+func blockGeneric(dig *digest, p []byte) {
 	var w [64]uint32
 	h0, h1, h2, h3, h4, h5, h6, h7 := dig.h[0], dig.h[1], dig.h[2], dig.h[3], dig.h[4], dig.h[5], dig.h[6], dig.h[7]
 	for len(p) >= chunk {
@@ -393,8 +393,8 @@ const (
 	marshaledSize = len(magic256) + 8*4 + chunk + 8
 )
 
-func (d *digest) MarshalBinary() (by, er) {
-	b := make(by, 0, marshaledSize)
+func (d *digest) MarshalBinary() ([]byte, error) {
+	b := make([]byte, 0, marshaledSize)
 	b = append(b, magic256...)
 	b = appendUint32(b, d.h[0])
 	b = appendUint32(b, d.h[1])
@@ -410,7 +410,7 @@ func (d *digest) MarshalBinary() (by, er) {
 	return b, nil
 }
 
-func (d *digest) UnmarshalBinary(b by) er {
+func (d *digest) UnmarshalBinary(b []byte) error {
 	if len(b) < len(magic256) || string(b[:len(magic256)]) != magic256 {
 		return errors.New("crypto/sha256: invalid hash state identifier")
 	}
@@ -428,11 +428,11 @@ func (d *digest) UnmarshalBinary(b by) er {
 	b, d.h[7] = consumeUint32(b)
 	b = b[copy(d.x[:], b):]
 	b, d.len = consumeUint64(b)
-	d.nx = no(d.len % chunk)
+	d.nx = int(d.len % chunk)
 	return nil
 }
 
-func appendUint32(b by, v uint32) by {
+func appendUint32(b []byte, v uint32) []byte {
 	return append(b,
 		byte(v>>24),
 		byte(v>>16),
@@ -441,7 +441,7 @@ func appendUint32(b by, v uint32) by {
 	)
 }
 
-func appendUint64(b by, v uint64) by {
+func appendUint64(b []byte, v uint64) []byte {
 	return append(b,
 		byte(v>>56),
 		byte(v>>48),
@@ -454,14 +454,14 @@ func appendUint64(b by, v uint64) by {
 	)
 }
 
-func consumeUint64(b by) (by, uint64) {
+func consumeUint64(b []byte) ([]byte, uint64) {
 	_ = b[7]
 	x := uint64(b[7]) | uint64(b[6])<<8 | uint64(b[5])<<16 | uint64(b[4])<<24 |
 		uint64(b[3])<<32 | uint64(b[2])<<40 | uint64(b[1])<<48 | uint64(b[0])<<56
 	return b[8:], x
 }
 
-func consumeUint32(b by) (by, uint32) {
+func consumeUint32(b []byte) ([]byte, uint32) {
 	_ = b[3]
 	x := uint32(b[3]) | uint32(b[2])<<8 | uint32(b[1])<<16 | uint32(b[0])<<24
 	return b[4:], x
