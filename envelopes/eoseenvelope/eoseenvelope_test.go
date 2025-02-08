@@ -1,6 +1,7 @@
 package eoseenvelope
 
 import (
+	"bytes"
 	"testing"
 
 	"realy.lol/envelopes"
@@ -8,8 +9,8 @@ import (
 )
 
 func TestMarshalUnmarshal(t *testing.T) {
-	var err er
-	rb, rb1, rb2 := make(by, 0, 65535), make(by, 0, 65535), make(by, 0, 65535)
+	var err error
+	rb, rb1, rb2 := make([]byte, 0, 65535), make([]byte, 0, 65535), make([]byte, 0, 65535)
 	for _ = range 1000 {
 		var s *subscription.Id
 		if s = subscription.NewStd(); chk.E(err) {
@@ -20,7 +21,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 		// log.I.Ln(req.ID)
 		rb1 = rb1[:len(rb)]
 		copy(rb1, rb)
-		var rem by
+		var rem []byte
 		var l string
 		if l, rb, err = envelopes.Identify(rb); chk.E(err) {
 			t.Fatal(err)
@@ -38,7 +39,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 				len(rem), rem)
 		}
 		rb2 = req2.Marshal(rb2)
-		if !equals(rb1, rb2) {
+		if !bytes.Equal(rb1, rb2) {
 			if len(rb1) != len(rb2) {
 				t.Fatalf("unmarshal failed, different lengths\n%d %s\n%d %s\n",
 					len(rb1), rb1, len(rb2), rb2)

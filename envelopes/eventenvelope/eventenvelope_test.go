@@ -13,8 +13,8 @@ import (
 
 func TestSubmission(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	var c, rem, out by
-	var err er
+	var c, rem, out []byte
+	var err error
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		ev := event.New()
@@ -44,7 +44,7 @@ func TestSubmission(t *testing.T) {
 				rem)
 		}
 		out = ea.Marshal(out)
-		if !equals(out, c) {
+		if !bytes.Equal(out, c) {
 			t.Fatalf("mismatched output\n%s\n\n%s\n", c, out)
 		}
 		c, out = c[:0], out[:0]
@@ -53,8 +53,8 @@ func TestSubmission(t *testing.T) {
 
 func TestResult(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
-	var c, rem, out by
-	var err er
+	var c, rem, out []byte
+	var err error
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		ev := event.New()
@@ -86,7 +86,7 @@ func TestResult(t *testing.T) {
 				rem)
 		}
 		out = ea.Marshal(out)
-		if !equals(out, c) {
+		if !bytes.Equal(out, c) {
 			t.Fatalf("mismatched output\n%s\n\n%s\n", c, out)
 		}
 		rem, c, out = rem[:0], c[:0], out[:0]

@@ -29,17 +29,17 @@ func NewFrom(id *subscription.Id, filters *filters.T) *T {
 }
 func (en *T) Label() string { return L }
 
-func (en *T) Write(w io.Writer) (err er) {
+func (en *T) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-func (en *T) Marshal(dst by) (b by) {
-	var err er
+func (en *T) Marshal(dst []byte) (b []byte) {
+	var err error
 	_ = err
 	b = dst
 	b = envelopes.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = en.Subscription.Marshal(o)
 			for _, f := range en.Filters.F {
@@ -51,9 +51,9 @@ func (en *T) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *T) Unmarshal(b by) (r by, err er) {
+func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
-	if en.Subscription, err = subscription.NewId(by{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId([]byte{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.Subscription.Unmarshal(r); chk.E(err) {
@@ -72,7 +72,7 @@ func (en *T) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func (en *T) Parse(b by) (t *T, rem by, err er) {
+func (en *T) Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return

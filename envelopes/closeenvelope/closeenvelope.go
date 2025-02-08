@@ -19,15 +19,15 @@ var _ codec.Envelope = (*T)(nil)
 func New() *T                        { return &T{ID: subscription.NewStd()} }
 func NewFrom(id *subscription.Id) *T { return &T{ID: id} }
 func (en *T) Label() string          { return L }
-func (en *T) Write(w io.Writer) (err er) {
+func (en *T) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-func (en *T) Marshal(dst by) (b by) {
+func (en *T) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = envelopes.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = en.ID.Marshal(o)
 			return
@@ -35,9 +35,9 @@ func (en *T) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *T) Unmarshal(b by) (r by, err er) {
+func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
-	if en.ID, err = subscription.NewId(by{0}); chk.E(err) {
+	if en.ID, err = subscription.NewId([]byte{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.ID.Unmarshal(r); chk.E(err) {
@@ -49,7 +49,7 @@ func (en *T) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func Parse(b by) (t *T, rem by, err er) {
+func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return

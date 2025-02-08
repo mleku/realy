@@ -30,18 +30,18 @@ func NewRequest(id *subscription.Id, filters *filters.T) *Request {
 		Filters: filters}
 }
 func (en *Request) Label() string { return L }
-func (en *Request) Write(w io.Writer) (err er) {
-	var b by
+func (en *Request) Write(w io.Writer) (err error) {
+	var b []byte
 	b = en.Marshal(b)
 	_, err = w.Write(b)
 	return
 }
 
-func (en *Request) Marshal(dst by) (b by) {
-	var err er
+func (en *Request) Marshal(dst []byte) (b []byte) {
+	var err error
 	b = dst
 	b = envelopes.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = en.Subscription.Marshal(o)
 			o = append(o, ',')
@@ -52,9 +52,9 @@ func (en *Request) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *Request) Unmarshal(b by) (r by, err er) {
+func (en *Request) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
-	if en.Subscription, err = subscription.NewId(by{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId([]byte{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.Subscription.Unmarshal(r); chk.E(err) {
@@ -70,7 +70,7 @@ func (en *Request) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func ParseRequest(b by) (t *Request, rem by, err er) {
+func ParseRequest(b []byte) (t *Request, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
@@ -80,15 +80,15 @@ func ParseRequest(b by) (t *Request, rem by, err er) {
 
 type Response struct {
 	ID          *subscription.Id
-	Count       no
-	Approximate bo
+	Count       int
+	Approximate bool
 }
 
 var _ codec.Envelope = (*Response)(nil)
 
 func NewResponse() *Response { return &Response{ID: subscription.NewStd()} }
-func NewResponseFrom[V st | by](s V, cnt no, approx ...bo) (res *Response, err er) {
-	var a bo
+func NewResponseFrom[V string | []byte](s V, cnt int, approx ...bool) (res *Response, err error) {
+	var a bool
 	if len(approx) > 0 {
 		a = approx[0]
 	}
@@ -99,16 +99,16 @@ func NewResponseFrom[V st | by](s V, cnt no, approx ...bo) (res *Response, err e
 	return &Response{subscription.MustNew(s), cnt, a}, nil
 }
 func (en *Response) Label() string { return L }
-func (en *Response) Write(w io.Writer) (err er) {
+func (en *Response) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-func (en *Response) Marshal(dst by) (b by) {
-	var err er
+func (en *Response) Marshal(dst []byte) (b []byte) {
+	var err error
 	b = dst
 	b = envelopes.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = en.ID.Marshal(o)
 			o = append(o, ',')
@@ -124,9 +124,9 @@ func (en *Response) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *Response) Unmarshal(b by) (r by, err er) {
+func (en *Response) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
-	var inID, inCount bo
+	var inID, inCount bool
 	for ; len(r) > 0; r = r[1:] {
 		// first we should be finding a subscription ID
 		if !inID && r[0] == '"' {
@@ -162,7 +162,7 @@ func (en *Response) Unmarshal(b by) (r by, err er) {
 				if r, err = n.Unmarshal(r); chk.E(err) {
 					return
 				}
-				en.Count = no(n.Uint64())
+				en.Count = int(n.Uint64())
 			} else {
 				// can only be either the end or optional approx
 				if r[0] == ']' {
@@ -170,7 +170,7 @@ func (en *Response) Unmarshal(b by) (r by, err er) {
 				} else {
 					for i := range r {
 						if r[i] == ']' {
-							if bytes.Contains(r[:i], by("true")) {
+							if bytes.Contains(r[:i], []byte("true")) {
 								en.Approximate = true
 							}
 							return
@@ -183,7 +183,7 @@ func (en *Response) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func Parse(b by) (t *Response, rem by, err er) {
+func Parse(b []byte) (t *Response, rem []byte, err error) {
 	t = NewResponse()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return

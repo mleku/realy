@@ -13,27 +13,27 @@ const L = "CLOSED"
 
 type T struct {
 	Subscription *subscription.Id
-	Reason       by
+	Reason       []byte
 }
 
 var _ codec.Envelope = (*T)(nil)
 
-func New() *T                                { return &T{Subscription: subscription.NewStd()} }
-func NewFrom(id *subscription.Id, msg by) *T { return &T{Subscription: id, Reason: msg} }
-func (en *T) Label() string                  { return L }
-func (en *T) ReasonString() string           { return st(en.Reason) }
+func New() *T                                    { return &T{Subscription: subscription.NewStd()} }
+func NewFrom(id *subscription.Id, msg []byte) *T { return &T{Subscription: id, Reason: msg} }
+func (en *T) Label() string                      { return L }
+func (en *T) ReasonString() string               { return string(en.Reason) }
 
-func (en *T) Write(w io.Writer) (err er) {
-	var b by
+func (en *T) Write(w io.Writer) (err error) {
+	var b []byte
 	b = en.Marshal(b)
 	_, err = w.Write(b)
 	return
 }
 
-func (en *T) Marshal(dst by) (b by) {
+func (en *T) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = envelopes.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = en.Subscription.Marshal(o)
 			o = append(o, ',')
@@ -45,9 +45,9 @@ func (en *T) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *T) Unmarshal(b by) (r by, err er) {
+func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
-	if en.Subscription, err = subscription.NewId(by{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId([]byte{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.Subscription.Unmarshal(r); chk.E(err) {
@@ -62,7 +62,7 @@ func (en *T) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func Parse(b by) (t *T, rem by, err er) {
+func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return

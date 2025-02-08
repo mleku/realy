@@ -11,26 +11,26 @@ import (
 const L = "NOTICE"
 
 type T struct {
-	Message by
+	Message []byte
 }
 
 var _ codec.Envelope = (*T)(nil)
 
-func New() *T                     { return &T{} }
-func NewFrom[V st | by](msg V) *T { return &T{Message: by(msg)} }
-func (en *T) Label() string       { return L }
+func New() *T                             { return &T{} }
+func NewFrom[V string | []byte](msg V) *T { return &T{Message: []byte(msg)} }
+func (en *T) Label() string               { return L }
 
-func (en *T) Write(w io.Writer) (err er) {
+func (en *T) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-func (en *T) Marshal(dst by) (b by) {
-	var err er
+func (en *T) Marshal(dst []byte) (b []byte) {
+	var err error
 	_ = err
 	b = dst
 	b = envelopes.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = append(o, '"')
 			o = text.NostrEscape(o, en.Message)
@@ -40,7 +40,7 @@ func (en *T) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *T) Unmarshal(b by) (r by, err er) {
+func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	if en.Message, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
@@ -51,7 +51,7 @@ func (en *T) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func Parse(b by) (t *T, rem by, err er) {
+func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return

@@ -12,26 +12,28 @@ import (
 const L = "AUTH"
 
 type Challenge struct {
-	Challenge by
+	Challenge []byte
 }
 
-func NewChallenge() *Challenge                           { return &Challenge{} }
-func NewChallengeWith[V st | by](challenge V) *Challenge { return &Challenge{by(challenge)} }
-func (en *Challenge) Label() string                      { return L }
+func NewChallenge() *Challenge { return &Challenge{} }
+func NewChallengeWith[V string | []byte](challenge V) *Challenge {
+	return &Challenge{[]byte(challenge)}
+}
+func (en *Challenge) Label() string { return L }
 
-func (en *Challenge) Write(w io.Writer) (err er) {
-	var b by
+func (en *Challenge) Write(w io.Writer) (err error) {
+	var b []byte
 	b = en.Marshal(b)
 	log.T.F("writing out challenge envelope: '%s'", b)
 	_, err = w.Write(b)
 	return
 }
 
-func (en *Challenge) Marshal(dst by) (b by) {
+func (en *Challenge) Marshal(dst []byte) (b []byte) {
 	b = dst
-	var err er
+	var err error
 	b = envs.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = append(o, '"')
 			o = text.NostrEscape(o, en.Challenge)
@@ -42,7 +44,7 @@ func (en *Challenge) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *Challenge) Unmarshal(b by) (r by, err er) {
+func (en *Challenge) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	if en.Challenge, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
@@ -56,7 +58,7 @@ func (en *Challenge) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func ParseChallenge(b by) (t *Challenge, rem by, err er) {
+func ParseChallenge(b []byte) (t *Challenge, rem []byte, err error) {
 	t = NewChallenge()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
@@ -74,15 +76,15 @@ func NewResponse() *Response                   { return &Response{} }
 func NewResponseWith(event *event.T) *Response { return &Response{Event: event} }
 func (en *Response) Label() string             { return L }
 
-func (en *Response) Write(w io.Writer) (err er) {
-	var b by
+func (en *Response) Write(w io.Writer) (err error) {
+	var b []byte
 	b = en.Marshal(b)
 	_, err = w.Write(b)
 	return
 }
 
-func (en *Response) Marshal(dst by) (b by) {
-	var err er
+func (en *Response) Marshal(dst []byte) (b []byte) {
+	var err error
 	if en == nil {
 		err = errorf.E("nil response")
 		return
@@ -97,7 +99,7 @@ func (en *Response) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *Response) Unmarshal(b by) (r by, err er) {
+func (en *Response) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	// literally just unmarshal the event
 	en.Event = event.New()
@@ -110,7 +112,7 @@ func (en *Response) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func ParseResponse(b by) (t *Response, rem by, err er) {
+func ParseResponse(b []byte) (t *Response, rem []byte, err error) {
 	t = NewResponse()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return

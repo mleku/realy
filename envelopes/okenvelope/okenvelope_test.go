@@ -1,6 +1,7 @@
 package okenvelope
 
 import (
+	"bytes"
 	"testing"
 
 	"realy.lol/envelopes"
@@ -9,15 +10,15 @@ import (
 )
 
 func TestMarshalUnmarshal(t *testing.T) {
-	var err er
-	rb, rb1, rb2 := make(by, 0, 65535), make(by, 0, 65535), make(by, 0, 65535)
+	var err error
+	rb, rb1, rb2 := make([]byte, 0, 65535), make([]byte, 0, 65535), make([]byte, 0, 65535)
 	for i := range 1000 {
 		randMsg := messages.RandomMessage()
 		req := NewFrom(eventid.Gen().Bytes(), i%2 == 1, randMsg)
 		rb = req.Marshal(rb)
 		rb1 = rb1[:len(rb)]
 		copy(rb1, rb)
-		var rem by
+		var rem []byte
 		var l string
 		if l, rb, err = envelopes.Identify(rb); chk.E(err) {
 			t.Fatal(err)
@@ -34,7 +35,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 				len(rem), rem)
 		}
 		rb2 = req2.Marshal(rb2)
-		if !equals(rb1, rb2) {
+		if !bytes.Equal(rb1, rb2) {
 			if len(rb1) != len(rb2) {
 				t.Fatalf("unmarshal failed, different lengths\n%d %s\n%d %s\n",
 					len(rb1), rb1, len(rb2), rb2)

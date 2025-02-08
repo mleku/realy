@@ -4,9 +4,9 @@ import (
 	"io"
 )
 
-type Marshaler func(dst by) (b by)
+type Marshaler func(dst []byte) (b []byte)
 
-func Marshal(dst by, label string, m Marshaler) (b by) {
+func Marshal(dst []byte, label string, m Marshaler) (b []byte) {
 	b = dst
 	b = append(b, '[', '"')
 	b = append(b, label...)
@@ -16,7 +16,7 @@ func Marshal(dst by, label string, m Marshaler) (b by) {
 	return
 }
 
-func SkipToTheEnd(dst by) (rem by, err er) {
+func SkipToTheEnd(dst []byte) (rem []byte, err error) {
 	if len(dst) == 0 {
 		return
 	}

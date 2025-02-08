@@ -1,8 +1,8 @@
 package envelopes
 
-func Identify(b by) (t st, rem by, err er) {
-	var openBrackets, openQuotes, afterQuotes bo
-	var label by
+func Identify(b []byte) (t string, rem []byte, err error) {
+	var openBrackets, openQuotes, afterQuotes bool
+	var label []byte
 	rem = b
 	for ; len(rem) > 0; rem = rem[1:] {
 		if !openBrackets && rem[0] == '[' {
@@ -21,7 +21,7 @@ func Identify(b by) (t st, rem by, err er) {
 					if rem[i] == '"' {
 						label = rem[:i]
 						rem = rem[i:]
-						t = st(label)
+						t = string(label)
 						afterQuotes = true
 						break
 					}

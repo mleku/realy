@@ -16,15 +16,15 @@ const (
 
 type T struct {
 	EventID *eventid.T
-	OK      bo
-	Reason  by
+	OK      bool
+	Reason  []byte
 }
 
 var _ codec.Envelope = (*T)(nil)
 
 func New() *T { return &T{} }
-func NewFrom[V st | by](eid V, ok bo, msg ...by) *T {
-	var m by
+func NewFrom[V string | []byte](eid V, ok bool, msg ...[]byte) *T {
+	var m []byte
 	if len(msg) > 0 {
 		m = msg[0]
 	}
@@ -35,19 +35,19 @@ func NewFrom[V st | by](eid V, ok bo, msg ...by) *T {
 	return &T{EventID: eventid.NewWith(eid), OK: ok, Reason: m}
 }
 func (en *T) Label() string        { return L }
-func (en *T) ReasonString() string { return st(en.Reason) }
+func (en *T) ReasonString() string { return string(en.Reason) }
 
-func (en *T) Write(w io.Writer) (err er) {
+func (en *T) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-func (en *T) Marshal(dst by) (b by) {
-	var err er
+func (en *T) Marshal(dst []byte) (b []byte) {
+	var err error
 	_ = err
 	b = dst
 	b = envelopes.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = append(o, '"')
 			o = en.EventID.ByteString(o)
@@ -63,9 +63,9 @@ func (en *T) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *T) Unmarshal(b by) (r by, err er) {
+func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
-	var idHex by
+	var idHex []byte
 	if idHex, r, err = text.UnmarshalHex(r); chk.E(err) {
 		return
 	}
@@ -92,7 +92,7 @@ func (en *T) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func Parse(b by) (t *T, rem by, err er) {
+func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return

@@ -22,16 +22,16 @@ func NewSubmission() *Submission                { return &Submission{T: &event.T
 func NewSubmissionWith(ev *event.T) *Submission { return &Submission{T: ev} }
 func (en *Submission) Label() string            { return L }
 
-func (en *Submission) Write(w io.Writer) (err er) {
+func (en *Submission) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-func (en *Submission) Marshal(dst by) (b by) {
-	var err er
+func (en *Submission) Marshal(dst []byte) (b []byte) {
+	var err error
 	b = dst
 	b = envelopes.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = en.T.Marshal(o)
 			return
@@ -40,7 +40,7 @@ func (en *Submission) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *Submission) Unmarshal(b by) (r by, err er) {
+func (en *Submission) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	en.T = event.New()
 	if r, err = en.T.Unmarshal(r); chk.T(err) {
@@ -53,7 +53,7 @@ func (en *Submission) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func ParseSubmission(b by) (t *Submission, rem by, err er) {
+func ParseSubmission(b []byte) (t *Submission, rem []byte, err error) {
 	t = NewSubmission()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
@@ -70,25 +70,25 @@ type Result struct {
 var _ codec.Envelope = (*Result)(nil)
 
 func NewResult() *Result { return &Result{} }
-func NewResultWith[V st | by](s V, ev *event.T) (res *Result, err er) {
+func NewResultWith[V string | []byte](s V, ev *event.T) (res *Result, err error) {
 	if len(s) < 0 || len(s) > 64 {
 		err = errorf.E("subscription id must be length > 0 and <= 64")
 		return
 	}
 	return &Result{subscription.MustNew(s), ev}, nil
 }
-func (en *Result) Label() st { return L }
+func (en *Result) Label() string { return L }
 
-func (en *Result) Write(w io.Writer) (err er) {
+func (en *Result) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-func (en *Result) Marshal(dst by) (b by) {
-	var err er
+func (en *Result) Marshal(dst []byte) (b []byte) {
+	var err error
 	b = dst
 	b = envelopes.Marshal(b, L,
-		func(bst by) (o by) {
+		func(bst []byte) (o []byte) {
 			o = bst
 			o = en.Subscription.Marshal(o)
 			o = append(o, ',')
@@ -99,9 +99,9 @@ func (en *Result) Marshal(dst by) (b by) {
 	return
 }
 
-func (en *Result) Unmarshal(b by) (r by, err er) {
+func (en *Result) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
-	if en.Subscription, err = subscription.NewId(by{0}); chk.E(err) {
+	if en.Subscription, err = subscription.NewId([]byte{0}); chk.E(err) {
 		return
 	}
 	if r, err = en.Subscription.Unmarshal(r); chk.E(err) {
@@ -117,7 +117,7 @@ func (en *Result) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func ParseResult(b by) (t *Result, rem by, err er) {
+func ParseResult(b []byte) (t *Result, rem []byte, err error) {
 	t = NewResult()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return
