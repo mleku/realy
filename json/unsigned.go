@@ -22,9 +22,9 @@ func NewUnsigned[V int64 | int32 | int16 | int8 | uint64 | uint32 | uint16 |
 	return &Signed{int64(i)}
 }
 
-func (u *Unsigned) Marshal(dst by) (b by) { return ints.New(u.V).Marshal(dst) }
+func (u *Unsigned) Marshal(dst []byte) (b []byte) { return ints.New(u.V).Marshal(dst) }
 
-func (u *Unsigned) Unmarshal(dst by) (rem by, err er) {
+func (u *Unsigned) Unmarshal(dst []byte) (rem []byte, err error) {
 	rem = dst
 	n := ints.New(u.V)
 	if rem, err = n.Unmarshal(rem); chk.E(err) {

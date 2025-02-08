@@ -10,9 +10,9 @@ type T struct {
 }
 
 func New(k ...*kind.T) *T { return &T{k} }
-func NewWithCap(c no) *T  { return &T{make([]*kind.T, 0, c)} }
+func NewWithCap(c int) *T { return &T{make([]*kind.T, 0, c)} }
 
-func FromIntSlice(is []no) (k *T) {
+func FromIntSlice(is []int) (k *T) {
 	k = &T{}
 	for i := range is {
 		k.K = append(k.K, kind.New(uint16(is[i])))
@@ -20,16 +20,16 @@ func FromIntSlice(is []no) (k *T) {
 	return
 }
 
-func (k *T) Len() (l no) {
+func (k *T) Len() (l int) {
 	if k == nil {
 		return
 	}
 	return len(k.K)
 }
 
-func (k *T) Less(i, j no) bo { return k.K[i].K < k.K[j].K }
+func (k *T) Less(i, j int) bool { return k.K[i].K < k.K[j].K }
 
-func (k *T) Swap(i, j no) {
+func (k *T) Swap(i, j int) {
 	k.K[i].K, k.K[j].K = k.K[j].K, k.K[i].K
 }
 
@@ -55,7 +55,7 @@ func (k *T) Clone() (c *T) {
 // Even if a custom number is found, this codebase does not have the logic to
 // deal with the kind so such a search is pointless and for which reason static
 // typing always wins. No mistakes possible with known quantities.
-func (k *T) Contains(s *kind.T) bo {
+func (k *T) Contains(s *kind.T) bool {
 	for i := range k.K {
 		if k.K[i].Equal(s) {
 			return true
@@ -65,7 +65,7 @@ func (k *T) Contains(s *kind.T) bo {
 }
 
 // Equals checks that the provided kind.T matches.
-func (k *T) Equals(t1 *T) bo {
+func (k *T) Equals(t1 *T) bool {
 	if len(k.K) != len(t1.K) {
 		return false
 	}
@@ -77,7 +77,7 @@ func (k *T) Equals(t1 *T) bo {
 	return true
 }
 
-func (k *T) Marshal(dst by) (b by) {
+func (k *T) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, '[')
 	for i := range k.K {
@@ -90,9 +90,9 @@ func (k *T) Marshal(dst by) (b by) {
 	return
 }
 
-func (k *T) Unmarshal(b by) (r by, err er) {
+func (k *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
-	var openedBracket bo
+	var openedBracket bool
 	for ; len(r) > 0; r = r[1:] {
 		if !openedBracket && r[0] == '[' {
 			openedBracket = true
@@ -123,7 +123,7 @@ func (k *T) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func (k *T) IsPrivileged() (priv bo) {
+func (k *T) IsPrivileged() (priv bool) {
 	for i := range k.K {
 		if k.K[i].IsPrivileged() {
 			return true

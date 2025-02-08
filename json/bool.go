@@ -1,6 +1,7 @@
 package json
 
 import (
+	"bytes"
 	"io"
 )
 
@@ -9,23 +10,23 @@ import (
 //	truthValue := &json.Bool{}
 //
 // to get a default value which is false.
-type Bool struct{ V bo }
+type Bool struct{ V bool }
 
 const T = "true"
 const F = "false"
 
-var Bools = map[bo]by{
-	true:  by(T),
-	false: by(F),
+var Bools = map[bool][]byte{
+	true:  []byte(T),
+	false: []byte(F),
 }
 
-func (b2 *Bool) Marshal(dst by) (b by) {
+func (b2 *Bool) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, Bools[b2.V]...)
 	return
 }
 
-func (b2 *Bool) Unmarshal(dst by) (rem by, err er) {
+func (b2 *Bool) Unmarshal(dst []byte) (rem []byte, err error) {
 	rem = dst
 	// this is a shortcut evaluation because any text not in quotes in JSON is invalid so if
 	// it is something other than the exact correct, the next value will not match and the
@@ -35,7 +36,7 @@ func (b2 *Bool) Unmarshal(dst by) (rem by, err er) {
 			err = io.EOF
 			return
 		}
-		if equals(Bools[true], rem[:len(T)]) {
+		if bytes.Equal(Bools[true], rem[:len(T)]) {
 			b2.V = true
 			rem = rem[len(T):]
 			return
@@ -46,7 +47,7 @@ func (b2 *Bool) Unmarshal(dst by) (rem by, err er) {
 			err = io.EOF
 			return
 		}
-		if equals(Bools[false], rem[:len(F)]) {
+		if bytes.Equal(Bools[false], rem[:len(F)]) {
 			b2.V = false
 			rem = rem[len(F):]
 			return

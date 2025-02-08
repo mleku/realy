@@ -1,6 +1,8 @@
 package json
 
 import (
+	"bytes"
+
 	"realy.lol/bech32encoding"
 	"realy.lol/ec/bech32"
 	"realy.lol/text"
@@ -13,15 +15,15 @@ import (
 //
 // When decoding, point this variable at the expected HRP, if it doesn't match in what is
 // encoded, it returns an error.
-type Bech32 struct{ HRP, V by }
+type Bech32 struct{ HRP, V []byte }
 
-func (b2 *Bech32) Marshal(dst by) (b by) {
-	var err er
-	var b5 by
+func (b2 *Bech32) Marshal(dst []byte) (b []byte) {
+	var err error
+	var b5 []byte
 	if b5, err = bech32encoding.ConvertForBech32(b2.V); chk.E(err) {
 		return
 	}
-	var bb by
+	var bb []byte
 	if bb, err = bech32.Encode(b2.HRP, b5); chk.E(err) {
 		return
 	}
@@ -31,16 +33,16 @@ func (b2 *Bech32) Marshal(dst by) (b by) {
 	return
 }
 
-func (b2 *Bech32) Unmarshal(dst by) (rem by, err er) {
-	var c by
+func (b2 *Bech32) Unmarshal(dst []byte) (rem []byte, err error) {
+	var c []byte
 	if c, rem, err = text.UnmarshalQuoted(dst); chk.E(err) {
 		return
 	}
-	var b5, hrp by
+	var b5, hrp []byte
 	if hrp, b5, err = bech32.Decode(c); chk.E(err) {
 		return
 	}
-	if !equals(hrp, b2.HRP) {
+	if !bytes.Equal(hrp, b2.HRP) {
 		err = errorf.E("invalid HRP, got '%s' expected '%s'", hrp, b2.HRP)
 		return
 	}

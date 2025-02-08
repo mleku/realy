@@ -2,13 +2,14 @@ package json
 
 import (
 	"io"
+
 	"realy.lol/codec"
 )
 
 // An Array is an ordered list of values.
 type Array struct{ V []codec.JSON }
 
-func (a *Array) Marshal(dst by) (b by) {
+func (a *Array) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, '[')
 	last := len(a.V) - 1
@@ -22,10 +23,10 @@ func (a *Array) Marshal(dst by) (b by) {
 	return
 }
 
-func (a *Array) Unmarshal(dst by) (rem by, err er) {
+func (a *Array) Unmarshal(dst []byte) (rem []byte, err error) {
 	rem = dst
-	var openBracket bo
-	var element no
+	var openBracket bool
+	var element int
 	for ; len(rem) > 0; rem = rem[1:] {
 		if !openBracket && rem[0] == '[' {
 			openBracket = true

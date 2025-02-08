@@ -1,13 +1,14 @@
 package json
 
 import (
+	"bytes"
 	"fmt"
 
 	"realy.lol/hex"
 )
 
 func ExampleBool_Marshal() {
-	var b by
+	var b []byte
 	bt := &Bool{true}
 	b = bt.Marshal(b)
 	fmt.Printf("%s\n", b)
@@ -30,7 +31,7 @@ func ExampleBool_Marshal() {
 }
 
 func ExampleUnsigned_Marshal() {
-	var b by
+	var b []byte
 	u := &Unsigned{}
 	b = u.Marshal(b)
 	fmt.Printf("%s\n", b)
@@ -57,7 +58,7 @@ func ExampleUnsigned_Marshal() {
 }
 
 func ExampleSigned_Marshal() {
-	var b by
+	var b []byte
 	s := &Signed{}
 	b = s.Marshal(b)
 	fmt.Printf("%s\n", b)
@@ -95,7 +96,7 @@ func ExampleSigned_Marshal() {
 }
 
 func ExampleString_Marshal() {
-	var b by
+	var b []byte
 	const ex = `test with
 	
 newlines and hidden tab and spaces at the end    `
@@ -107,7 +108,7 @@ newlines and hidden tab and spaces at the end    `
 	if err != nil || len(rem) != 0 {
 		return
 	}
-	fmt.Printf("%v\n", equals(s2.V, by(ex)))
+	fmt.Printf("%v\n", bytes.Equal(s2.V, []byte(ex)))
 	// Output:
 	// "test with\n\t\nnewlines and hidden tab and spaces at the end    "
 	// true
@@ -122,17 +123,17 @@ func ExampleBech32_Marshal() {
 	if err != nil {
 		return
 	}
-	b32 := &Bech32{by(hrp), bin}
+	b32 := &Bech32{[]byte(hrp), bin}
 	b := b32.Marshal(nil)
 	fmt.Printf("%s\n", b)
-	b33 := &Bech32{HRP: by(hrp)}
-	var rem by
+	b33 := &Bech32{HRP: []byte(hrp)}
+	var rem []byte
 	rem, err = b33.Unmarshal(b)
 	if chk.E(err) || len(rem) != 0 {
 		return
 	}
 	fmt.Printf("hrp: %s\ndata: %0x\n", b33.HRP, b33.V)
-	fmt.Printf("%v\n", equals(bin, b33.V))
+	fmt.Printf("%v\n", bytes.Equal(bin, b33.V))
 	// Output:
 	// "herp1qr02m0h0etlqzg69v7y6hn00qr02m0h0etlqzg69v7y6hn00jujvlj"
 	// hrp: herp
@@ -152,14 +153,14 @@ func ExampleHex_Marshal() {
 	b := h.Marshal(nil)
 	fmt.Printf("%s\n", b)
 	h2 := &Hex{}
-	var rem by
+	var rem []byte
 	rem, err = h2.Unmarshal(b)
 	if chk.E(err) || len(rem) != 0 {
 		fmt.Printf("%s\n%s", err.Error(), rem)
 		return
 	}
 	fmt.Printf("data: %0x\n", h2.V)
-	fmt.Printf("%v\n", equals(bin, h2.V))
+	fmt.Printf("%v\n", bytes.Equal(bin, h2.V))
 	// Output:
 	// "deadbeefcafe0123456789abcdef00deadbeefcafe0123456789abcdef"
 	// data: deadbeefcafe0123456789abcdef00deadbeefcafe0123456789abcdef
@@ -174,18 +175,18 @@ func ExampleBase64_Marshal() {
 		return
 	}
 	b1 := &Base64{bin}
-	var b by
+	var b []byte
 	b = b1.Marshal(nil)
 	fmt.Printf("%s\n", b)
 	b2 := &Base64{}
-	var rem by
+	var rem []byte
 	rem, err = b2.Unmarshal(b)
 	if chk.E(err) || len(rem) != 0 {
 		fmt.Printf("%s\n%s", err.Error(), rem)
 		return
 	}
 	fmt.Printf("data: %0x\n", b2.V)
-	fmt.Printf("%v\n", equals(bin, b2.V))
+	fmt.Printf("%v\n", bytes.Equal(bin, b2.V))
 	// Output:
 	// "3q2+78r+ASNFZ4mrze8A3q2+78r+ASNFZ4mrze8A"
 	// data: deadbeefcafe0123456789abcdef00deadbeefcafe0123456789abcdef00
@@ -199,16 +200,16 @@ func ExampleKeyValue_Marshal() {
 "value"`
 	)
 	kv := &KeyValue{Value: &String{}}
-	rem, err := kv.Unmarshal(by(keyVal))
+	rem, err := kv.Unmarshal([]byte(keyVal))
 	if chk.E(err) || len(rem) != 0 {
 		fmt.Printf("%s\n'%s'", err.Error(), rem)
 		return
 	}
-	kv2 := &KeyValue{by("key"), &String{by("value")}}
-	var b, b2 by
+	kv2 := &KeyValue{[]byte("key"), &String{[]byte("value")}}
+	var b, b2 []byte
 	b = kv.Marshal(b)
 	b2 = kv2.Marshal(b2)
-	fmt.Printf("%s\n%s\n%v\n", b, b2, equals(b, b2))
+	fmt.Printf("%s\n%s\n%v\n", b, b2, bytes.Equal(b, b2))
 	// Output:
 	// "key":"value"
 	// "key":"value"

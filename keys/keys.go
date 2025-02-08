@@ -9,9 +9,9 @@ import (
 )
 
 // GeneratePrivateKey - deprecated, use GenerateSecretKeyHex
-var GeneratePrivateKey = func() st { return GenerateSecretKeyHex() }
+var GeneratePrivateKey = func() string { return GenerateSecretKeyHex() }
 
-func GenerateSecretKey() (skb by, err er) {
+func GenerateSecretKey() (skb []byte, err error) {
 	signer := &p256k.Signer{}
 	if err = signer.Generate(); chk.E(err) {
 		return
@@ -20,7 +20,7 @@ func GenerateSecretKey() (skb by, err er) {
 	return
 }
 
-func GenerateSecretKeyHex() (sks st) {
+func GenerateSecretKeyHex() (sks string) {
 	skb, err := GenerateSecretKey()
 	if chk.E(err) {
 		return
@@ -28,8 +28,8 @@ func GenerateSecretKeyHex() (sks st) {
 	return hex.Enc(skb)
 }
 
-func GetPublicKeyHex(sk st) (pk st, err er) {
-	var b by
+func GetPublicKeyHex(sk string) (pk string, err error) {
+	var b []byte
 	if b, err = hex.Dec(sk); chk.E(err) {
 		return
 	}
@@ -41,7 +41,7 @@ func GetPublicKeyHex(sk st) (pk st, err er) {
 	return hex.Enc(signer.Pub()), nil
 }
 
-func SecretBytesToPubKeyHex(skb by) (pk st, err er) {
+func SecretBytesToPubKeyHex(skb []byte) (pk string, err error) {
 	signer := &p256k.Signer{}
 	if err = signer.InitSec(skb); chk.E(err) {
 		return
@@ -49,7 +49,7 @@ func SecretBytesToPubKeyHex(skb by) (pk st, err er) {
 	return hex.Enc(signer.Pub()), nil
 }
 
-func IsValid32ByteHex(pk st) bo {
+func IsValid32ByteHex(pk string) bool {
 	if strings.ToLower(pk) != pk {
 		return false
 	}
@@ -57,12 +57,12 @@ func IsValid32ByteHex(pk st) bo {
 	return len(dec) == 32
 }
 
-func IsValidPublicKey(pk st) bo {
+func IsValidPublicKey(pk string) bool {
 	v, _ := hex.Dec(pk)
 	_, err := schnorr.ParsePubKey(v)
 	return err == nil
 }
 
-func HexPubkeyToBytes[V by | st](hpk V) (pkb by, err er) {
-	return hex.DecAppend(nil, by(hpk))
+func HexPubkeyToBytes[V []byte | string](hpk V) (pkb []byte, err error) {
+	return hex.DecAppend(nil, []byte(hpk))
 }

@@ -2,6 +2,7 @@ package json
 
 import (
 	"io"
+
 	"realy.lol/codec"
 )
 
@@ -10,18 +11,18 @@ type Object struct{ V []KeyValue }
 
 // A KeyValue is a field in an Object.
 type KeyValue struct {
-	Key   by
+	Key   []byte
 	Value codec.JSON
 }
 
-func (k *KeyValue) Marshal(dst by) (b by) {
+func (k *KeyValue) Marshal(dst []byte) (b []byte) {
 	b = (&String{k.Key}).Marshal(dst)
 	b = append(b, ':')
 	b = k.Value.Marshal(b)
 	return
 }
 
-func (k *KeyValue) Unmarshal(dst by) (rem by, err er) {
+func (k *KeyValue) Unmarshal(dst []byte) (rem []byte, err error) {
 	rem = dst
 	s := &String{}
 	if rem, err = s.Unmarshal(rem); chk.E(err) {

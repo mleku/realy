@@ -3,8 +3,9 @@ package kind
 import (
 	"sync"
 
-	"realy.lol/ints"
 	"golang.org/x/exp/constraints"
+
+	"realy.lol/ints"
 )
 
 // T - which will be externally referenced as kind.T is the event type in the
@@ -16,11 +17,11 @@ type T struct {
 
 func New[V constraints.Integer](k V) (ki *T) { return &T{uint16(k)} }
 
-func (k *T) ToInt() no {
+func (k *T) ToInt() int {
 	if k == nil {
 		return 0
 	}
-	return no(k.K)
+	return int(k.K)
 }
 func (k *T) ToU16() uint16 {
 	if k == nil {
@@ -40,8 +41,8 @@ func (k *T) ToU64() uint64 {
 	}
 	return uint64(k.K)
 }
-func (k *T) Name() st       { return GetString(k) }
-func (k *T) Equal(k2 *T) bo { return *k == *k2 }
+func (k *T) Name() string     { return GetString(k) }
+func (k *T) Equal(k2 *T) bool { return *k == *k2 }
 
 var Privileged = []*T{
 	EncryptedDirectMessage,
@@ -50,7 +51,7 @@ var Privileged = []*T{
 	ApplicationSpecificData,
 }
 
-func (k *T) IsPrivileged() (is bo) {
+func (k *T) IsPrivileged() (is bool) {
 	for i := range Privileged {
 		if k.Equal(Privileged[i]) {
 			return true
@@ -59,7 +60,7 @@ func (k *T) IsPrivileged() (is bo) {
 	return
 }
 
-func IsPrivileged(k ...*T) (is bo) {
+func IsPrivileged(k ...*T) (is bool) {
 	for _, kk := range k {
 		for _, priv := range Privileged {
 			if kk.Equal(priv) {
@@ -70,9 +71,9 @@ func IsPrivileged(k ...*T) (is bo) {
 	return
 }
 
-func (k *T) Marshal(dst by) (b by) { return ints.New(k.ToU64()).Marshal(dst) }
+func (k *T) Marshal(dst []byte) (b []byte) { return ints.New(k.ToU64()).Marshal(dst) }
 
-func (k *T) Unmarshal(b by) (r by, err er) {
+func (k *T) Unmarshal(b []byte) (r []byte, err error) {
 	n := ints.New(0)
 	if r, err = n.Unmarshal(b); chk.T(err) {
 		return
@@ -93,21 +94,21 @@ func GetString(t *T) string {
 
 // IsEphemeral returns true if the event kind is an ephemeral event. (not to be
 // stored)
-func (k *T) IsEphemeral() bo {
+func (k *T) IsEphemeral() bool {
 	return k.K >= EphemeralStart.K && k.K < EphemeralEnd.K
 }
 
 // IsReplaceable returns true if the event kind is a replaceable kind - that is,
 // if the newest version is the one that is in force (eg follow lists, relay
 // lists, etc.
-func (k *T) IsReplaceable() bo {
+func (k *T) IsReplaceable() bool {
 	return k.K == ProfileMetadata.K || k.K == FollowList.K ||
 		(k.K >= ReplaceableStart.K && k.K < ReplaceableEnd.K)
 }
 
 // IsParameterizedReplaceable is a kind of event that is one of a group of
 // events that replaces based on matching criteria.
-func (k *T) IsParameterizedReplaceable() bo {
+func (k *T) IsParameterizedReplaceable() bool {
 	return k.K >= ParameterizedReplaceableStart.K &&
 		k.K < ParameterizedReplaceableEnd.K
 }
@@ -128,7 +129,7 @@ var Directory = []*T{
 
 // IsDirectoryEvent returns whether an event kind is a Directory event, which
 // should grant permission to read such events without requiring authentication.
-func (k *T) IsDirectoryEvent() bo {
+func (k *T) IsDirectoryEvent() bool {
 	for i := range Directory {
 		if k.Equal(Directory[i]) {
 			return true

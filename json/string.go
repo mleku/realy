@@ -13,17 +13,17 @@ import (
 //
 // There is also a convenience NewString function that generically automatically converts actual
 // golang strings to save the caller from doing so.
-type String struct{ V by }
+type String struct{ V []byte }
 
-func NewString[V st | by](s V) *String { return &String{by(s)} }
+func NewString[V string | []byte](s V) *String { return &String{[]byte(s)} }
 
-func (s *String) Marshal(dst by) (b by) {
+func (s *String) Marshal(dst []byte) (b []byte) {
 	b = text.AppendQuote(dst, s.V, text.NostrEscape)
 	return
 }
 
-func (s *String) Unmarshal(dst by) (rem by, err er) {
-	var c by
+func (s *String) Unmarshal(dst []byte) (rem []byte, err error) {
+	var c []byte
 	if c, rem, err = text.UnmarshalQuoted(dst); chk.E(err) {
 		return
 	}

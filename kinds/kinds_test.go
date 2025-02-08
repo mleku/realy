@@ -13,13 +13,13 @@ func TestUnmarshalKindsArray(t *testing.T) {
 	for i := range k.K {
 		k.K[i] = kind.New(uint16(frand.Intn(65535)))
 	}
-	var dst by
-	var err er
+	var dst []byte
+	var err error
 	if dst = k.Marshal(dst); chk.E(err) {
 		t.Fatal(err)
 	}
 	k2 := &T{}
-	var rem by
+	var rem []byte
 	if rem, err = k2.Unmarshal(dst); chk.E(err) {
 		return
 	}
