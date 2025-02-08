@@ -6,6 +6,7 @@
 package secp256k1
 
 import (
+	"bytes"
 	"testing"
 
 	"realy.lol/hex"
@@ -16,7 +17,7 @@ import (
 // is an error.  This is only provided for the hard-coded constants so errors in
 // the source code can be detected. It will only (and must only) be called with
 // hard-coded values.
-func hexToBytes(s string) by {
+func hexToBytes(s string) []byte {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -151,7 +152,7 @@ func TestNonceRFC6979(t *testing.T) {
 		gotNonce := NonceRFC6979(secKey, hash[:], extraData, version,
 			test.iterations)
 		gotNonceBytes := gotNonce.Bytes()
-		if !equals(gotNonceBytes[:], wantNonce) {
+		if !bytes.Equal(gotNonceBytes[:], wantNonce) {
 			t.Errorf("%s: unexpected nonce -- got %x, want %x", test.name,
 				gotNonceBytes, wantNonce)
 			continue
@@ -199,12 +200,12 @@ func TestRFC6979Compat(t *testing.T) {
 	}}
 	for i, test := range tests {
 		secKey := hexToBytes(test.key)
-		hash := sha256.Sum256(by(test.msg))
+		hash := sha256.Sum256([]byte(test.msg))
 		// Ensure deterministically generated nonce is the expected value.
 		gotNonce := NonceRFC6979(secKey, hash[:], nil, nil, 0)
 		wantNonce := hexToBytes(test.nonce)
 		gotNonceBytes := gotNonce.Bytes()
-		if !equals(gotNonceBytes[:], wantNonce) {
+		if !bytes.Equal(gotNonceBytes[:], wantNonce) {
 			t.Errorf("NonceRFC6979 #%d (%s): Nonce is incorrect: "+
 				"%x (expected %x)", i, test.msg, gotNonce,
 				wantNonce)

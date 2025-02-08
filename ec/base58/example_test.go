@@ -17,7 +17,7 @@ func ExampleDecode() {
 	decoded := base58.Decode(encoded)
 
 	// Show the decoded data.
-	fmt.Println("Decoded Data:", st(decoded))
+	fmt.Println("Decoded Data:", string(decoded))
 
 	// Output:
 	// Decoded Data: Test data
@@ -27,7 +27,7 @@ func ExampleDecode() {
 // encoding scheme.
 func ExampleEncode() {
 	// Encode example data with the modified base58 encoding scheme.
-	data := by("Test data")
+	data := []byte("Test data")
 	encoded := base58.Encode(data)
 
 	// Show the encoded data.
@@ -60,7 +60,7 @@ func ExampleCheckDecode() {
 // scheme.
 func ExampleCheckEncode() {
 	// Encode example data with the Base58Check encoding scheme.
-	data := by("Test data")
+	data := []byte("Test data")
 	encoded := base58.CheckEncode(data, 0)
 
 	// Show the encoded data.

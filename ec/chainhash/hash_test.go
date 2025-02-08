@@ -5,6 +5,7 @@
 package chainhash
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -26,7 +27,7 @@ func TestHash(t *testing.T) {
 		t.Errorf("NewHashFromStr: %v", err)
 	}
 	// Hash of block 234440 as byte slice.
-	buf := by{
+	buf := []byte{
 		0x79, 0xa6, 0x1a, 0xdb, 0xc6, 0xe5, 0xa2, 0xe1,
 		0x39, 0xd2, 0x71, 0x3a, 0x54, 0x6e, 0xc7, 0xc8,
 		0x75, 0x63, 0x2e, 0x75, 0xf1, 0xdf, 0x9c, 0x3f,
@@ -42,7 +43,7 @@ func TestHash(t *testing.T) {
 			len(hash), HashSize)
 	}
 	// Ensure contents match.
-	if !equals(hash[:], buf) {
+	if !bytes.Equal(hash[:], buf) {
 		t.Errorf("NewHash: hash contents mismatch - got: %v, want: %v",
 			hash[:], buf)
 	}
@@ -68,12 +69,12 @@ func TestHash(t *testing.T) {
 		t.Error("IsEqual: non-nil hash matches nil hash")
 	}
 	// Invalid size for SetBytes.
-	err = hash.SetBytes(by{0x00})
+	err = hash.SetBytes([]byte{0x00})
 	if err == nil {
 		t.Errorf("SetBytes: failed to received expected err - got: nil")
 	}
 	// Invalid size for NewHash.
-	invalidHash := make(by, HashSize+1)
+	invalidHash := make([]byte, HashSize+1)
 	_, err = NewHash(invalidHash)
 	if err == nil {
 		t.Errorf("NewHash: failed to received expected err - got: nil")

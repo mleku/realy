@@ -3,6 +3,7 @@
 package musig2
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,17 +11,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"realy.lol/hex"
 )
 
 type nonceGenTestCase struct {
-	Rand     st  `json:"rand_"`
-	Sk       st  `json:"sk"`
-	AggPk    st  `json:"aggpk"`
-	Msg      *st `json:"msg"`
-	ExtraIn  st  `json:"extra_in"`
-	Pk       st  `json:"pk"`
-	Expected st  `json:"expected"`
+	Rand     string  `json:"rand_"`
+	Sk       string  `json:"sk"`
+	AggPk    string  `json:"aggpk"`
+	Msg      *string `json:"msg"`
+	ExtraIn  string  `json:"extra_in"`
+	Pk       string  `json:"pk"`
+	Expected string  `json:"expected"`
 }
 
 type nonceGenTestCases struct {
@@ -61,7 +63,7 @@ func TestMusig2NonceGenTestVectors(t *testing.T) {
 				t.Fatalf("err gen nonce aux bytes %v", err)
 			}
 			expectedBytes, _ := hex.Dec(testCase.Expected)
-			if !equals(nonce.SecNonce[:], expectedBytes) {
+			if !bytes.Equal(nonce.SecNonce[:], expectedBytes) {
 				t.Fatalf("nonces don't match: expected %x, got %x",
 					expectedBytes, nonce.SecNonce[:])
 			}
@@ -70,26 +72,26 @@ func TestMusig2NonceGenTestVectors(t *testing.T) {
 }
 
 type nonceAggError struct {
-	Type    st `json:"type"`
-	Signer  no `json:"signer"`
-	Contrib st `json:"contrib"`
+	Type    string `json:"type"`
+	Signer  int    `json:"signer"`
+	Contrib string `json:"contrib"`
 }
 
 type nonceAggValidCase struct {
-	Indices  []no `json:"pnonce_indices"`
-	Expected st   `json:"expected"`
-	Comment  st   `json:"comment"`
+	Indices  []int  `json:"pnonce_indices"`
+	Expected string `json:"expected"`
+	Comment  string `json:"comment"`
 }
 
 type nonceAggInvalidCase struct {
-	Indices     []no          `json:"pnonce_indices"`
+	Indices     []int         `json:"pnonce_indices"`
 	Error       nonceAggError `json:"error"`
-	Comment     st            `json:"comment"`
-	ExpectedErr st            `json:"btcec_err"`
+	Comment     string        `json:"comment"`
+	ExpectedErr string        `json:"btcec_err"`
 }
 
 type nonceAggTestCases struct {
-	Nonces       []st                  `json:"pnonces"`
+	Nonces       []string              `json:"pnonces"`
 	ValidCases   []nonceAggValidCase   `json:"valid_test_cases"`
 	InvalidCases []nonceAggInvalidCase `json:"error_test_cases"`
 }

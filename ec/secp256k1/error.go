@@ -40,7 +40,7 @@ func (err ErrorKind) Error() string { return string(err) }
 // caller can  ascertain the specific reason for the error by checking
 // the underlying error.
 type Error struct {
-	Err         er
+	Err         error
 	Description string
 }
 
@@ -48,9 +48,9 @@ type Error struct {
 func (err Error) Error() string { return err.Description }
 
 // Unwrap returns the underlying wrapped error.
-func (err Error) Unwrap() (ee er) { return err.Err }
+func (err Error) Unwrap() (ee error) { return err.Err }
 
 // makeError creates an Error given a set of arguments.
-func makeError(kind ErrorKind, desc string) (err er) {
+func makeError(kind ErrorKind, desc string) (err error) {
 	return Error{Err: kind, Description: desc}
 }

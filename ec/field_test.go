@@ -34,8 +34,8 @@ func TestIsZero(t *testing.T) {
 // TestStringer ensures the stringer returns the appropriate hex string.
 func TestStringer(t *testing.T) {
 	tests := []struct {
-		in       st
-		expected st
+		in       string
+		expected string
 	}{
 		{"0",
 			"0000000000000000000000000000000000000000000000000000000000000000"},
@@ -350,8 +350,8 @@ func TestNormalize(t *testing.T) {
 // TestIsOdd ensures that checking if a field value IsOdd works as expected.
 func TestIsOdd(t *testing.T) {
 	tests := []struct {
-		in       st // hex encoded value
-		expected bo // expected oddness
+		in       string // hex encoded value
+		expected bool   // expected oddness
 	}{
 		{"0", false},
 		{"1", true},
@@ -381,9 +381,9 @@ func TestIsOdd(t *testing.T) {
 // works as expected.
 func TestEquals(t *testing.T) {
 	tests := []struct {
-		in1      st // hex encoded value
-		in2      st // hex encoded value
-		expected bo // expected equality
+		in1      string // hex encoded value
+		in2      string // hex encoded value
+		expected bool   // expected equality
 	}{
 		{"0", "0", true},
 		{"0", "1", false},
@@ -418,8 +418,8 @@ func TestEquals(t *testing.T) {
 // TestNegate ensures that negating field values via Negate works as expected.
 func TestNegate(t *testing.T) {
 	tests := []struct {
-		in       st // hex encoded value
-		expected st // expected hex encoded value
+		in       string // hex encoded value
+		expected string // expected hex encoded value
 	}{
 		// secp256k1 prime (aka 0)
 		{"0", "0"},
@@ -472,10 +472,10 @@ func TestNegate(t *testing.T) {
 // works as expected.
 func TestFieldAddInt(t *testing.T) {
 	tests := []struct {
-		name     st     // test description
-		in1      st     // hex encoded value
+		name     string // test description
+		in1      string // hex encoded value
 		in2      uint16 // unsigned integer to add to the value above
-		expected st     // expected hex encoded value
+		expected string // expected hex encoded value
 	}{{
 		name:     "zero + one",
 		in1:      "0",
@@ -538,10 +538,10 @@ func TestFieldAddInt(t *testing.T) {
 // works as expected.
 func TestFieldAdd(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		in1      st // first hex encoded value
-		in2      st // second hex encoded value to add
-		expected st // expected hex encoded value
+		name     string // test description
+		in1      string // first hex encoded value
+		in2      string // second hex encoded value to add
+		expected string // expected hex encoded value
 	}{{
 		name:     "zero + one",
 		in1:      "0",
@@ -631,10 +631,10 @@ func TestFieldAdd(t *testing.T) {
 // MulInt works as expected.
 func TestFieldMulInt(t *testing.T) {
 	tests := []struct {
-		name     st    // test description
-		in1      st    // hex encoded value
-		in2      uint8 // unsigned integer to multiply with value above
-		expected st    // expected hex encoded value
+		name     string // test description
+		in1      string // hex encoded value
+		in2      uint8  // unsigned integer to multiply with value above
+		expected string // expected hex encoded value
 	}{{
 		name:     "zero * zero",
 		in1:      "0",
@@ -710,10 +710,10 @@ func TestFieldMulInt(t *testing.T) {
 // as expected.
 func TestFieldMul(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		in1      st // first hex encoded value
-		in2      st // second hex encoded value to multiply with
-		expected st // expected hex encoded value
+		name     string // test description
+		in1      string // first hex encoded value
+		in2      string // second hex encoded value to multiply with
+		expected string // expected hex encoded value
 	}{{
 		name:     "zero * zero",
 		in1:      "0",
@@ -802,9 +802,9 @@ func TestFieldMul(t *testing.T) {
 // works as expected.
 func TestFieldSquare(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		in       st // hex encoded value
-		expected st // expected hex encoded value
+		name     string // test description
+		in       string // hex encoded value
+		expected string // expected hex encoded value
 	}{{
 		name:     "zero",
 		in:       "0",
@@ -868,8 +868,8 @@ func TestFieldSquare(t *testing.T) {
 // as expected.
 func TestInverse(t *testing.T) {
 	tests := []struct {
-		in       st // hex encoded value
-		expected st // expected hex encoded value
+		in       string // hex encoded value
+		expected string // expected hex encoded value
 	}{
 		// secp256k1 prime (aka 0)
 		{"0", "0"},
@@ -936,10 +936,10 @@ func randFieldVal(t *testing.T, rng *rand.Rand) *FieldVal {
 // via SquareRootVal works as expected for edge cases.
 func TestFieldSquareRoot(t *testing.T) {
 	tests := []struct {
-		name  st // test description
-		in    st // hex encoded value
-		valid bo // whether or not the value has a square root
-		want  st // expected hex encoded value
+		name  string // test description
+		in    string // hex encoded value
+		valid bool   // whether or not the value has a square root
+		want  string // expected hex encoded value
 	}{{
 		name:  "secp256k1 prime (as 0 in and out)",
 		in:    "0",
@@ -1032,7 +1032,7 @@ func TestFieldSquareRoot(t *testing.T) {
 // is an error.  This is only provided for the hard-coded constants so errors in
 // the source code can be detected. It will only (and must only) be called with
 // hard-coded values.
-func hexToBytes(s st) by {
+func hexToBytes(s string) []byte {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)

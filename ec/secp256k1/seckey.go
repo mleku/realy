@@ -46,7 +46,7 @@ var NewPrivateKey = NewSecretKey
 // Typically, callers should make use of GenerateSecretKey or
 // GenerateSecretKeyFromRand when creating secret keys since they properly
 // handle generation of appropriate values.
-func SecKeyFromBytes(secKeyBytes by) *SecretKey {
+func SecKeyFromBytes(secKeyBytes []byte) *SecretKey {
 	var secKey SecretKey
 	secKey.Key.SetByteSlice(secKeyBytes)
 	return &secKey
@@ -58,7 +58,7 @@ var PrivKeyFromBytes = SecKeyFromBytes
 // for use with secp256k1 using the provided reader as a source of entropy.  The
 // provided reader must be a source of cryptographically secure randomness to
 // avoid weak secret keys.
-func generateSecretKey(rand io.Reader) (*SecretKey, er) {
+func generateSecretKey(rand io.Reader) (*SecretKey, error) {
 	// The group order is close enough to 2^256 that there is only roughly a 1
 	// in 2^128 chance of generating an invalid secret key, so this loop will
 	// virtually never run more than a single iteration in practice.
@@ -79,7 +79,7 @@ func generateSecretKey(rand io.Reader) (*SecretKey, er) {
 
 // GenerateSecretKey generates and returns a new cryptographically secure secret key that is suitable for use with
 // secp256k1.
-func GenerateSecretKey() (*SecretKey, er) {
+func GenerateSecretKey() (*SecretKey, error) {
 	return generateSecretKey(rand.Reader)
 }
 
@@ -92,7 +92,7 @@ var GeneratePrivateKey = GenerateSecretKey
 // GenerateSecretKeyFromRand generates a secret key that is suitable for use with secp256k1 using the provided reader as
 // a source of entropy. The provided reader must be a source of cryptographically secure randomness, such as
 // [crypto/rand.Reader], to avoid weak secret keys.
-func GenerateSecretKeyFromRand(rand io.Reader) (*SecretKey, er) {
+func GenerateSecretKeyFromRand(rand io.Reader) (*SecretKey, error) {
 	return generateSecretKey(rand)
 }
 
@@ -121,7 +121,7 @@ const SecKeyBytesLen = 32
 
 // Serialize returns the secret key as a 256-bit big-endian binary-encoded
 // number, padded to a length of 32 bytes.
-func (p *SecretKey) Serialize() by {
+func (p *SecretKey) Serialize() []byte {
 	var secKeyBytes [SecKeyBytesLen]byte
 	p.Key.PutBytes(&secKeyBytes)
 	return secKeyBytes[:]

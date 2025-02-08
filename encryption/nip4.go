@@ -8,14 +8,15 @@ import (
 	"strings"
 
 	"lukechampine.com/frand"
+
 	"realy.lol/hex"
 	"realy.lol/p256k"
 )
 
 // ComputeSharedSecret returns a shared secret key used to encrypt messages. The private and public keys should be hex
 // encoded. Uses the Diffie-Hellman key exchange (ECDH) (RFC 4753).
-func ComputeSharedSecret(pkh, skh st) (sharedSecret by, err er) {
-	var skb, pkb by
+func ComputeSharedSecret(pkh, skh string) (sharedSecret []byte, err error) {
+	var skb, pkb []byte
 	if skb, err = hex.Dec(skh); chk.E(err) {
 		return
 	}
@@ -38,9 +39,9 @@ func ComputeSharedSecret(pkh, skh st) (sharedSecret by, err er) {
 // Returns: base64(encrypted_bytes) + "?iv=" + base64(initialization_vector).
 //
 // Deprecated: upgrade to using Decrypt with the NIP-44 algorithm.
-func EncryptNip4(msg st, key by) (ct by, err er) {
+func EncryptNip4(msg string, key []byte) (ct []byte, err error) {
 	// block size is 16 bytes
-	iv := make(by, 16)
+	iv := make([]byte, 16)
 	if _, err = frand.Read(iv); chk.E(err) {
 		err = errorf.E("error creating initialization vector: %w", err)
 		return
@@ -52,18 +53,18 @@ func EncryptNip4(msg st, key by) (ct by, err er) {
 		return
 	}
 	mode := cipher.NewCBCEncrypter(block, iv)
-	plaintext := by(msg)
+	plaintext := []byte(msg)
 	// add padding
 	base := len(plaintext)
 	// this will be a number between 1 and 16 (inclusive), never 0
 	bs := block.BlockSize()
 	padding := bs - base%bs
 	// encode the padding in all the padding bytes themselves
-	padText := bytes.Repeat(by{byte(padding)}, padding)
+	padText := bytes.Repeat([]byte{byte(padding)}, padding)
 	paddedMsgBytes := append(plaintext, padText...)
-	ciphertext := make(by, len(paddedMsgBytes))
+	ciphertext := make([]byte, len(paddedMsgBytes))
 	mode.CryptBlocks(ciphertext, paddedMsgBytes)
-	return by(base64.StdEncoding.EncodeToString(ciphertext) + "?iv=" +
+	return []byte(base64.StdEncoding.EncodeToString(ciphertext) + "?iv=" +
 		base64.StdEncoding.EncodeToString(iv)), nil
 }
 
@@ -71,18 +72,18 @@ func EncryptNip4(msg st, key by) (ct by, err er) {
 // EncryptNip4(message, key).
 //
 // Deprecated: upgrade to using Decrypt with the NIP-44 algorithm.
-func DecryptNip4(content st, key by) (msg by, err er) {
+func DecryptNip4(content string, key []byte) (msg []byte, err error) {
 	parts := strings.Split(content, "?iv=")
 	if len(parts) < 2 {
 		return nil, errorf.E(
 			"error parsing encrypted message: no initialization vector")
 	}
-	var ciphertext by
+	var ciphertext []byte
 	if ciphertext, err = base64.StdEncoding.DecodeString(parts[0]); chk.E(err) {
 		err = errorf.E("error decoding ciphertext from base64: %w", err)
 		return
 	}
-	var iv by
+	var iv []byte
 	if iv, err = base64.StdEncoding.DecodeString(parts[1]); chk.E(err) {
 		err = errorf.E("error decoding iv from base64: %w", err)
 		return
@@ -93,7 +94,7 @@ func DecryptNip4(content st, key by) (msg by, err er) {
 		return
 	}
 	mode := cipher.NewCBCDecrypter(block, iv)
-	msg = make(by, len(ciphertext))
+	msg = make([]byte, len(ciphertext))
 	mode.CryptBlocks(msg, ciphertext)
 	// remove padding
 	var (
@@ -101,7 +102,7 @@ func DecryptNip4(content st, key by) (msg by, err er) {
 	)
 	if plaintextLen > 0 {
 		// the padding amount is encoded in the padding bytes themselves
-		padding := no(msg[plaintextLen-1])
+		padding := int(msg[plaintextLen-1])
 		if padding > plaintextLen {
 			err = errorf.E("invalid padding amount: %d", padding)
 			return

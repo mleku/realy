@@ -13,8 +13,8 @@ import (
 )
 
 var stringTests = []struct {
-	in  st
-	out st
+	in  string
+	out string
 }{
 	{"", ""},
 	{" ", "Z"},
@@ -31,8 +31,8 @@ var stringTests = []struct {
 }
 
 var invalidStringTests = []struct {
-	in  st
-	out st
+	in  string
+	out string
 }{
 	{"0", ""},
 	{"O", ""},
@@ -49,8 +49,8 @@ var invalidStringTests = []struct {
 }
 
 var hexTests = []struct {
-	in  st
-	out st
+	in  string
+	out string
 }{
 	{"", ""},
 	{"61", "2g"},
@@ -75,7 +75,7 @@ var hexTests = []struct {
 func TestBase58(t *testing.T) {
 	// Encode tests
 	for x, test := range stringTests {
-		tmp := by(test.in)
+		tmp := []byte(test.in)
 		if res := base58.Encode(tmp); res != test.out {
 			t.Errorf("Encode test #%d failed: got: %s want: %s",
 				x, res, test.out)
@@ -99,7 +99,7 @@ func TestBase58(t *testing.T) {
 
 	// Decode with invalid input
 	for x, test := range invalidStringTests {
-		if res := base58.Decode(test.in); st(res) != test.out {
+		if res := base58.Decode(test.in); string(res) != test.out {
 			t.Errorf("Decode invalidString test #%d failed: got: %q want: %q",
 				x, res, test.out)
 			continue

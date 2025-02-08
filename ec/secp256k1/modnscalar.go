@@ -190,7 +190,7 @@ func (s *ModNScalar) IsZeroBit() uint32 {
 }
 
 // IsZero returns whether or not the scalar is equal to zero in constant time.
-func (s *ModNScalar) IsZero() bo {
+func (s *ModNScalar) IsZero() bool {
 	// The scalar can only be zero if no bits are set in any of the words.
 	bits := s.n[0] | s.n[1] | s.n[2] | s.n[3] | s.n[4] | s.n[5] | s.n[6] | s.n[7]
 	return bits == 0
@@ -351,7 +351,7 @@ func zeroArray32(b *[32]byte) { copy(b[:], zero32[:]) }
 // the caller to decide whether it needs to provide numbers of the appropriate
 // size or it is acceptable to use this function with the described truncation
 // and overflow behavior.
-func (s *ModNScalar) SetByteSlice(b by) bo {
+func (s *ModNScalar) SetByteSlice(b []byte) bool {
 	var b32 [32]byte
 	b = b[:constantTimeMin(uint32(len(b)), 32)]
 	copy(b32[:], b32[:32-len(b)])
@@ -372,7 +372,7 @@ func (s *ModNScalar) SetByteSlice(b by) bo {
 //
 // Preconditions:
 //   - The target slice MUST have at least 32 bytes available
-func (s *ModNScalar) PutBytesUnchecked(b by) {
+func (s *ModNScalar) PutBytesUnchecked(b []byte) {
 	// Unpack the 256 total bits from the 8 uint32 words.  This could be done
 	// with a for loop, but benchmarks show this unrolled version is about 2
 	// times faster than the variant which uses a loop.
@@ -435,13 +435,13 @@ func (s *ModNScalar) Bytes() [32]byte {
 }
 
 // IsOdd returns whether the scalar is an odd number in constant time.
-func (s *ModNScalar) IsOdd() bo {
+func (s *ModNScalar) IsOdd() bool {
 	// Only odd numbers have the bottom bit set.
 	return s.n[0]&1 == 1
 }
 
 // Equals returns whether or not the two scalars are the same in constant time.
-func (s *ModNScalar) Equals(val *ModNScalar) bo {
+func (s *ModNScalar) Equals(val *ModNScalar) bool {
 	// Xor only sets bits when they are different, so the two scalars can only
 	// be the same if no bits are set after xoring each word.
 	bits := (s.n[0] ^ val.n[0]) | (s.n[1] ^ val.n[1]) | (s.n[2] ^ val.n[2]) |
@@ -1028,7 +1028,7 @@ func (s *ModNScalar) InverseNonConst() *ModNScalar {
 
 // IsOverHalfOrder returns whether the scalar exceeds the group order
 // divided by 2 in constant time.
-func (s *ModNScalar) IsOverHalfOrder() bo {
+func (s *ModNScalar) IsOverHalfOrder() bool {
 	// The intuition here is that the scalar is greater than half of the group
 	// order if one of the higher individual words is greater than the
 	// corresponding word of the half group order and all higher words in the

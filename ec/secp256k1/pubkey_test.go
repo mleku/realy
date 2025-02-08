@@ -6,6 +6,7 @@
 package secp256k1
 
 import (
+	"bytes"
 	"errors"
 	"testing"
 )
@@ -14,11 +15,11 @@ import (
 // to the spec including both the positive and negative cases.
 func TestParsePubKey(t *testing.T) {
 	tests := []struct {
-		name  st // test description
-		key   st // hex encoded public key
-		err   er // expected error
-		wantX st // expected x coordinate
-		wantY st // expected y coordinate
+		name  string // test description
+		key   string // hex encoded public key
+		err   error  // expected error
+		wantX string // expected x coordinate
+		wantY string // expected y coordinate
 	}{{
 		name: "uncompressed ok",
 		key: "04" +
@@ -231,11 +232,11 @@ func TestParsePubKey(t *testing.T) {
 // for both the compressed and uncompressed cases.
 func TestPubKeySerialize(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		pubX     st // hex encoded x coordinate for pubkey to serialize
-		pubY     st // hex encoded y coordinate for pubkey to serialize
-		compress bo // whether to serialize compressed or uncompressed
-		expected st // hex encoded expected pubkey serialization
+		name     string // test description
+		pubX     string // hex encoded x coordinate for pubkey to serialize
+		pubY     string // hex encoded y coordinate for pubkey to serialize
+		compress bool   // whether to serialize compressed or uncompressed
+		expected string // hex encoded expected pubkey serialization
 	}{{
 		name:     "uncompressed (ybit = 0)",
 		pubX:     "11db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5c",
@@ -315,14 +316,14 @@ func TestPubKeySerialize(t *testing.T) {
 		pubKey := NewPublicKey(x, y)
 		// Serialize with the correct method and ensure the result matches the
 		// expected value.
-		var serialized by
+		var serialized []byte
 		if test.compress {
 			serialized = pubKey.SerializeCompressed()
 		} else {
 			serialized = pubKey.SerializeUncompressed()
 		}
 		expected := hexToBytes(test.expected)
-		if !equals(serialized, expected) {
+		if !bytes.Equal(serialized, expected) {
 			t.Errorf("%s: mismatched serialized public key -- got %x, want %x",
 				test.name, serialized, expected)
 			continue
@@ -365,10 +366,10 @@ func TestPublicKeyIsEqual(t *testing.T) {
 // with a Z coordinate of 1 works as expected.
 func TestPublicKeyAsJacobian(t *testing.T) {
 	tests := []struct {
-		name   st // test description
-		pubKey st // hex encoded serialized compressed pubkey
-		wantX  st // hex encoded expected X coordinate
-		wantY  st // hex encoded expected Y coordinate
+		name   string // test description
+		pubKey string // hex encoded serialized compressed pubkey
+		wantX  string // hex encoded expected X coordinate
+		wantY  string // hex encoded expected Y coordinate
 	}{{
 		name:   "public key for secret key 0x01",
 		pubKey: "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
@@ -421,10 +422,10 @@ func TestPublicKeyAsJacobian(t *testing.T) {
 // as expected.
 func TestPublicKeyIsOnCurve(t *testing.T) {
 	tests := []struct {
-		name st // test description
-		pubX st // hex encoded x coordinate for pubkey to serialize
-		pubY st // hex encoded y coordinate for pubkey to serialize
-		want bo // expected result
+		name string // test description
+		pubX string // hex encoded x coordinate for pubkey to serialize
+		pubY string // hex encoded y coordinate for pubkey to serialize
+		want bool   // expected result
 	}{{
 		name: "valid with even y",
 		pubX: "11db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5c",

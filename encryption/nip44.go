@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/hkdf"
+
 	"realy.lol/sha256"
 )
 
@@ -21,14 +22,14 @@ const (
 )
 
 type Opts struct {
-	err   er
-	nonce by
+	err   error
+	nonce []byte
 }
 
 // Deprecated: use WithCustomNonce instead of WithCustomSalt, so the naming is less confusing
 var WithCustomSalt = WithCustomNonce
 
-func WithCustomNonce(salt by) func(opts *Opts) {
+func WithCustomNonce(salt []byte) func(opts *Opts) {
 	return func(opts *Opts) {
 		if len(salt) != 32 {
 			opts.err = errorf.E("salt must be 32 bytes, got %d", len(salt))
@@ -37,9 +38,9 @@ func WithCustomNonce(salt by) func(opts *Opts) {
 	}
 }
 
-func Encrypt(plaintext st, conversationKey by,
-	applyOptions ...func(opts *Opts)) (cipherString st,
-	err er) {
+func Encrypt(plaintext string, conversationKey []byte,
+	applyOptions ...func(opts *Opts)) (cipherString string,
+	err error) {
 	var o Opts
 	for _, apply := range applyOptions {
 		apply(&o)
@@ -49,34 +50,34 @@ func Encrypt(plaintext st, conversationKey by,
 		return
 	}
 	if o.nonce == nil {
-		o.nonce = make(by, 32)
+		o.nonce = make([]byte, 32)
 		if _, err = rand.Read(o.nonce); chk.E(err) {
 			return
 		}
 	}
-	var enc, cc20nonce, auth by
+	var enc, cc20nonce, auth []byte
 	if enc, cc20nonce, auth, err = getKeys(conversationKey, o.nonce); chk.E(err) {
 		return
 	}
-	plain := by(plaintext)
+	plain := []byte(plaintext)
 	size := len(plain)
 	if size < MinPlaintextSize || size > MaxPlaintextSize {
 		err = errorf.E("plaintext should be between 1b and 64kB")
 		return
 	}
 	padding := calcPadding(size)
-	padded := make(by, 2+padding)
+	padded := make([]byte, 2+padding)
 	binary.BigEndian.PutUint16(padded, uint16(size))
 	copy(padded[2:], plain)
-	var cipher by
+	var cipher []byte
 	if cipher, err = encrypt(enc, cc20nonce, padded); chk.E(err) {
 		return
 	}
-	var mac by
+	var mac []byte
 	if mac, err = sha256Hmac(auth, cipher, o.nonce); chk.E(err) {
 		return
 	}
-	ct := make(by, 0, 1+32+len(cipher)+32)
+	ct := make([]byte, 0, 1+32+len(cipher)+32)
 	ct = append(ct, version)
 	ct = append(ct, o.nonce...)
 	ct = append(ct, cipher...)
@@ -85,7 +86,7 @@ func Encrypt(plaintext st, conversationKey by,
 	return
 }
 
-func Decrypt(b64ciphertextWrapped st, conversationKey by) (plaintext st, err er) {
+func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (plaintext string, err error) {
 	cLen := len(b64ciphertextWrapped)
 	if cLen < 132 || cLen > 87472 {
 		err = errorf.E("invalid payload length: %d", cLen)
@@ -95,7 +96,7 @@ func Decrypt(b64ciphertextWrapped st, conversationKey by) (plaintext st, err er)
 		err = errorf.E("unknown version")
 		return
 	}
-	var decoded by
+	var decoded []byte
 	if decoded, err = base64.StdEncoding.DecodeString(b64ciphertextWrapped); chk.E(err) {
 		return
 	}
@@ -109,11 +110,11 @@ func Decrypt(b64ciphertextWrapped st, conversationKey by) (plaintext st, err er)
 		return
 	}
 	nonce, ciphertext, givenMac := decoded[1:33], decoded[33:dLen-32], decoded[dLen-32:]
-	var enc, cc20nonce, auth by
+	var enc, cc20nonce, auth []byte
 	if enc, cc20nonce, auth, err = getKeys(conversationKey, nonce); chk.E(err) {
 		return
 	}
-	var expectedMac by
+	var expectedMac []byte
 	if expectedMac, err = sha256Hmac(auth, ciphertext, nonce); chk.E(err) {
 		return
 	}
@@ -121,51 +122,51 @@ func Decrypt(b64ciphertextWrapped st, conversationKey by) (plaintext st, err er)
 		err = errorf.E("invalid hmac")
 		return
 	}
-	var padded by
+	var padded []byte
 	if padded, err = encrypt(enc, cc20nonce, ciphertext); chk.E(err) {
 		return
 	}
 	unpaddedLen := binary.BigEndian.Uint16(padded[0:2])
 	if unpaddedLen < uint16(MinPlaintextSize) || unpaddedLen > uint16(MaxPlaintextSize) ||
-		len(padded) != 2+calcPadding(no(unpaddedLen)) {
+		len(padded) != 2+calcPadding(int(unpaddedLen)) {
 		err = errorf.E("invalid padding")
 		return
 	}
 	unpadded := padded[2:][:unpaddedLen]
-	if len(unpadded) == 0 || len(unpadded) != no(unpaddedLen) {
+	if len(unpadded) == 0 || len(unpadded) != int(unpaddedLen) {
 		err = errorf.E("invalid padding")
 		return
 	}
-	plaintext = st(unpadded)
+	plaintext = string(unpadded)
 	return
 }
 
-func GenerateConversationKey(pkh, skh st) (ck by, err er) {
+func GenerateConversationKey(pkh, skh string) (ck []byte, err error) {
 	if skh >= "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141" ||
 		skh == "0000000000000000000000000000000000000000000000000000000000000000" {
 		err = errorf.E("invalid private key: x coordinate %s is not on the secp256k1 curve",
 			skh)
 		return
 	}
-	var shared by
+	var shared []byte
 	if shared, err = ComputeSharedSecret(pkh, skh); chk.E(err) {
 		return
 	}
-	ck = hkdf.Extract(sha256.New, shared, by("nip44-v2"))
+	ck = hkdf.Extract(sha256.New, shared, []byte("nip44-v2"))
 	return
 }
 
-func encrypt(key, nonce, message by) (dst by, err er) {
+func encrypt(key, nonce, message []byte) (dst []byte, err error) {
 	var cipher *chacha20.Cipher
 	if cipher, err = chacha20.NewUnauthenticatedCipher(key, nonce); chk.E(err) {
 		return
 	}
-	dst = make(by, len(message))
+	dst = make([]byte, len(message))
 	cipher.XORKeyStream(dst, message)
 	return
 }
 
-func sha256Hmac(key, ciphertext, nonce by) (h by, err er) {
+func sha256Hmac(key, ciphertext, nonce []byte) (h []byte, err error) {
 	if len(nonce) != sha256.Size {
 		err = errorf.E("nonce aad must be 32 bytes")
 		return
@@ -177,7 +178,7 @@ func sha256Hmac(key, ciphertext, nonce by) (h by, err er) {
 	return
 }
 
-func getKeys(conversationKey, nonce by) (enc, cc20nonce, auth by, err er) {
+func getKeys(conversationKey, nonce []byte) (enc, cc20nonce, auth []byte, err error) {
 	if len(conversationKey) != 32 {
 		err = errorf.E("conversation key must be 32 bytes")
 		return
@@ -187,27 +188,27 @@ func getKeys(conversationKey, nonce by) (enc, cc20nonce, auth by, err er) {
 		return
 	}
 	r := hkdf.Expand(sha256.New, conversationKey, nonce)
-	enc = make(by, 32)
+	enc = make([]byte, 32)
 	if _, err = io.ReadFull(r, enc); chk.E(err) {
 		return
 	}
-	cc20nonce = make(by, 12)
+	cc20nonce = make([]byte, 12)
 	if _, err = io.ReadFull(r, cc20nonce); chk.E(err) {
 		return
 	}
-	auth = make(by, 32)
+	auth = make([]byte, 32)
 	if _, err = io.ReadFull(r, auth); chk.E(err) {
 		return
 	}
 	return
 }
 
-func calcPadding(sLen no) (l no) {
+func calcPadding(sLen int) (l int) {
 	if sLen <= 32 {
 		return 32
 	}
-	nextPower := 1 << no(math.Floor(math.Log2(float64(sLen-1)))+1)
-	chunk := no(math.Max(32, float64(nextPower/8)))
-	l = chunk * no(math.Floor(float64((sLen-1)/chunk))+1)
+	nextPower := 1 << int(math.Floor(math.Log2(float64(sLen-1)))+1)
+	chunk := int(math.Max(32, float64(nextPower/8)))
+	l = chunk * int(math.Floor(float64((sLen-1)/chunk))+1)
 	return
 }

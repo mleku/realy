@@ -16,7 +16,7 @@ import (
 // panic if there is an error.  This is only provided for the hard-coded
 // constants so errors in the source code can be detected. It will only (and
 // must only) be called with hard-coded values.
-func hexToModNScalar(s st) *secp256k1.ModNScalar {
+func hexToModNScalar(s string) *secp256k1.ModNScalar {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -32,7 +32,7 @@ func hexToModNScalar(s st) *secp256k1.ModNScalar {
 // if there is an error.  This is only provided for the hard-coded constants so
 // errors in the source code can be detected. It will only (and must only) be
 // called with hard-coded values.
-func hexToFieldVal(s st) *secp256k1.FieldVal {
+func hexToFieldVal(s string) *secp256k1.FieldVal {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)

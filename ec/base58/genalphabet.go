@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	start = by(`// Copyright (c) 2015 The btcsuite developers
+	start = []byte(`// Copyright (c) 2015 The btcsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -33,17 +33,17 @@ const (
 
 var b58 = [256]byte{`)
 
-	end = by(`}`)
+	end = []byte(`}`)
 
-	alphabet = by("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
-	tab      = by("\t")
-	invalid  = by("255")
-	comma    = by(",")
-	space    = by(" ")
-	nl       = by("\n")
+	alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+	tab      = []byte("\t")
+	invalid  = []byte("255")
+	comma    = []byte(",")
+	space    = []byte(" ")
+	nl       = []byte("\n")
 )
 
-func write(w io.Writer, b by) {
+func write(w io.Writer, b []byte) {
 	_, err := w.Write(b)
 	if err != nil {
 		log.Fatal(err)

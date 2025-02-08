@@ -19,7 +19,7 @@ import (
 // is an error.  This is only provided for the hard-coded constants so errors in
 // the source code can be detected. It will only (and must only) be called with
 // hard-coded values.
-func hexToBytes(s st) by {
+func hexToBytes(s string) []byte {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -31,7 +31,7 @@ func hexToBytes(s st) by {
 // panic if there is an error.  This is only provided for the hard-coded
 // constants so errors in the source code can be detected. It will only (and
 // must only) be called with hard-coded values.
-func hexToModNScalar(s st) *btcec.ModNScalar {
+func hexToModNScalar(s string) *btcec.ModNScalar {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -47,7 +47,7 @@ func hexToModNScalar(s st) *btcec.ModNScalar {
 // if there is an error.  This is only provided for the hard-coded constants so
 // errors in the source code can be detected. It will only (and must only) be
 // called with hard-coded values.
-func hexToFieldVal(s st) *btcec.FieldVal {
+func hexToFieldVal(s string) *btcec.FieldVal {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -63,7 +63,7 @@ func hexToFieldVal(s st) *btcec.FieldVal {
 // panic is there is an error.  This is only provided for the hard-coded
 // constants so errors in the source code can bet detected. It will only (and
 // must only) be called for initialization purposes.
-func fromHex(s st) *big.Int {
+func fromHex(s string) *big.Int {
 	if s == "" {
 		return big.NewInt(0)
 	}
@@ -74,7 +74,7 @@ func fromHex(s st) *big.Int {
 	return r
 }
 
-var testOk bo
+var testOk bool
 
 // BenchmarkSign benchmarks how long it takes to sign a message.
 func BenchmarkSign(b *testing.B) {
@@ -88,7 +88,7 @@ func BenchmarkSign(b *testing.B) {
 	auxBytes[0] ^= 1
 	var (
 		sig *Signature
-		err er
+		err error
 	)
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -109,7 +109,7 @@ func BenchmarkSigVerify(b *testing.B) {
 	privKey := secp256k1.NewSecretKey(d)
 	pubKey := privKey.PubKey()
 	// Double sha256 of by{0x01, 0x02, 0x03, 0x04}
-	msgHash := sha256.Sum256(by("benchmark"))
+	msgHash := sha256.Sum256([]byte("benchmark"))
 	sig, err := Sign(privKey, msgHash[:])
 	if err != nil {
 		b.Fatalf("unable to sign: %v", err)
@@ -118,7 +118,7 @@ func BenchmarkSigVerify(b *testing.B) {
 		b.Errorf("Signature failed to verify")
 		return
 	}
-	var ok bo
+	var ok bool
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -130,7 +130,7 @@ func BenchmarkSigVerify(b *testing.B) {
 // Used to ensure the compiler doesn't optimize away the benchmark.
 var (
 	testSig *Signature
-	testErr er
+	testErr error
 )
 
 // BenchmarkSignRfc6979 benchmarks how long it takes to sign a message.
@@ -142,7 +142,7 @@ func BenchmarkSignRfc6979(b *testing.B) {
 	msgHash := hexToBytes("c301ba9de5d6053caad9f5eb46523f007702add2c62fa39de03146a36b8026b7")
 	var (
 		sig *Signature
-		err er
+		err error
 	)
 	b.ReportAllocs()
 	b.ResetTimer()

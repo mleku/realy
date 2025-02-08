@@ -25,16 +25,16 @@ import (
 var (
 	// singleZero is used during RFC6979 nonce generation.  It is provided
 	// here to avoid the need to create it multiple times.
-	singleZero = by{0x00}
+	singleZero = []byte{0x00}
 	// zeroInitializer is used during RFC6979 nonce generation.  It is provided
 	// here to avoid the need to create it multiple times.
-	zeroInitializer = bytes.Repeat(by{0x00}, sha256.BlockSize)
+	zeroInitializer = bytes.Repeat([]byte{0x00}, sha256.BlockSize)
 	// singleOne is used during RFC6979 nonce generation.  It is provided
 	// here to avoid the need to create it multiple times.
-	singleOne = by{0x01}
+	singleOne = []byte{0x01}
 	// oneInitializer is used during RFC6979 nonce generation.  It is provided
 	// here to avoid the need to create it multiple times.
-	oneInitializer = bytes.Repeat(by{0x01}, sha256.Size)
+	oneInitializer = bytes.Repeat([]byte{0x01}, sha256.Size)
 )
 
 // hmacsha256 implements a resettable version of HMAC-SHA256.
@@ -44,10 +44,10 @@ type hmacsha256 struct {
 }
 
 // Write adds data to the running hash.
-func (h *hmacsha256) Write(p by) { h.inner.Write(p) }
+func (h *hmacsha256) Write(p []byte) { h.inner.Write(p) }
 
 // initKey initializes the HMAC-SHA256 instance to the provided key.
-func (h *hmacsha256) initKey(key by) {
+func (h *hmacsha256) initKey(key []byte) {
 	// Hash the key if it is too large.
 	if len(key) > sha256.BlockSize {
 		h.outer.Write(key)
@@ -67,7 +67,7 @@ func (h *hmacsha256) initKey(key by) {
 // ResetKey resets the HMAC-SHA256 to its initial state and then initializes it
 // with the provided key.  It is equivalent to creating a new instance with the
 // provided key without allocating more memory.
-func (h *hmacsha256) ResetKey(key by) {
+func (h *hmacsha256) ResetKey(key []byte) {
 	h.inner.Reset()
 	h.outer.Reset()
 	copy(h.ipad[:], zeroInitializer)
@@ -82,7 +82,7 @@ func (h *hmacsha256) Reset() {
 }
 
 // Sum returns the hash of the written data.
-func (h *hmacsha256) Sum() by {
+func (h *hmacsha256) Sum() []byte {
 	h.outer.Reset()
 	h.outer.Write(h.opad[:])
 	h.outer.Write(h.inner.Sum(nil))
@@ -90,7 +90,7 @@ func (h *hmacsha256) Sum() by {
 }
 
 // newHMACSHA256 returns a new HMAC-SHA256 hasher using the provided key.
-func newHMACSHA256(key by) *hmacsha256 {
+func newHMACSHA256(key []byte) *hmacsha256 {
 	h := new(hmacsha256)
 	h.inner = sha256.New()
 	h.outer = sha256.New()
@@ -110,7 +110,7 @@ func newHMACSHA256(key by) *hmacsha256 {
 // that results in a valid signature in the extremely unlikely event the
 // original nonce produced results in an invalid signature (e.g. R == 0).
 // Signing code should start with 0 and increment it if necessary.
-func NonceRFC6979(secKey by, hash by, extra by, version by,
+func NonceRFC6979(secKey []byte, hash []byte, extra []byte, version []byte,
 	extraIterations uint32) *ModNScalar {
 	// Input to HMAC is the 32-byte secret key and the 32-byte hash.  In
 	// addition, it may include the optional 32-byte extra data and 16-byte

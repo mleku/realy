@@ -16,10 +16,10 @@ import (
 var (
 	// NonceBlindTag is that tag used to construct the value b, which
 	// blinds the second public nonce of each party.
-	NonceBlindTag = by("MuSig/noncecoef")
+	NonceBlindTag = []byte("MuSig/noncecoef")
 
 	// ChallengeHashTag is the tag used to construct the challenge hash
-	ChallengeHashTag = by("BIP0340/challenge")
+	ChallengeHashTag = []byte("BIP0340/challenge")
 
 	// ErrNoncePointAtInfinity is returned if during signing, the fully
 	// combined public nonce is the point at infinity.
@@ -72,7 +72,7 @@ func NewPartialSignature(s *btcec.ModNScalar,
 
 // Encode writes a serialized version of the partial signature to the passed
 // io.Writer
-func (p *PartialSignature) Encode(w io.Writer) er {
+func (p *PartialSignature) Encode(w io.Writer) error {
 	var sBytes [32]byte
 	p.S.PutBytes(&sBytes)
 
@@ -84,7 +84,7 @@ func (p *PartialSignature) Encode(w io.Writer) er {
 }
 
 // Decode attempts to parse a serialized PartialSignature stored in the io reader.
-func (p *PartialSignature) Decode(r io.Reader) er {
+func (p *PartialSignature) Decode(r io.Reader) error {
 	p.S = new(btcec.ModNScalar)
 
 	var sBytes [32]byte
@@ -109,11 +109,11 @@ type SignOption func(*signOptions)
 type signOptions struct {
 	// fastSign determines if we'll skip the check at the end of the
 	// routine where we attempt to verify the produced signature.
-	fastSign bo
+	fastSign bool
 
 	// sortKeys determines if the set of keys should be sorted before doing
 	// key aggregation.
-	sortKeys bo
+	sortKeys bool
 
 	// tweaks specifies a series of tweaks to be applied to the aggregated
 	// public key, which also partially carries over into the signing
@@ -126,12 +126,12 @@ type signOptions struct {
 	// tweaking, and then use it as the internal key. This is required as
 	// the taproot tweak also commits to the public key, which in this case
 	// is the aggregated key before the tweak.
-	taprootTweak by
+	taprootTweak []byte
 
 	// bip86Tweak specifies that the taproot tweak should be done in a BIP
 	// 86 style, where we don't expect an actual tweak and instead just
 	// commit to the public key itself.
-	bip86Tweak bo
+	bip86Tweak bool
 }
 
 // defaultSignOptions returns the default set of signing operations.
@@ -173,7 +173,7 @@ func WithTweaks(tweaks ...KeyTweakDesc) SignOption {
 // This option should be used in the taproot context to create a valid
 // signature for the keypath spend for taproot, when the output key is actually
 // committing to a script path, or some other data.
-func WithTaprootSignTweak(scriptRoot by) SignOption {
+func WithTaprootSignTweak(scriptRoot []byte) SignOption {
 	return func(o *signOptions) {
 		o.taprootTweak = scriptRoot
 	}
@@ -197,7 +197,7 @@ func WithBip86SignTweak() SignOption {
 // be the R value used in the final signature.
 func computeSigningNonce(combinedNonce [PubNonceSize]byte,
 	combinedKey *btcec.PublicKey, msg [32]byte) (
-	*btcec.JacobianPoint, *btcec.ModNScalar, er) {
+	*btcec.JacobianPoint, *btcec.ModNScalar, error) {
 
 	// Next we'll compute the value b, that blinds our second public
 	// nonce:
@@ -251,7 +251,7 @@ func computeSigningNonce(combinedNonce [PubNonceSize]byte,
 // infinity.
 func Sign(secNonce [SecNonceSize]byte, privKey *btcec.SecretKey,
 	combinedNonce [PubNonceSize]byte, pubKeys []*btcec.PublicKey,
-	msg [32]byte, signOpts ...SignOption) (*PartialSignature, er) {
+	msg [32]byte, signOpts ...SignOption) (*PartialSignature, error) {
 
 	// First, parse the set of optional signing options.
 	opts := defaultSignOptions()
@@ -260,14 +260,14 @@ func Sign(secNonce [SecNonceSize]byte, privKey *btcec.SecretKey,
 	}
 
 	// Check that our signing key belongs to the secNonce
-	if !equals(secNonce[btcec.SecKeyBytesLen*2:],
+	if !bytes.Equal(secNonce[btcec.SecKeyBytesLen*2:],
 		privKey.PubKey().SerializeCompressed()) {
 
 		return nil, ErrSecNoncePubkey
 	}
 
 	// Check that the key set contains the public key to our secret key.
-	var containsSecKey bo
+	var containsSecKey bool
 	for _, pk := range pubKeys {
 		if privKey.PubKey().IsEqual(pk) {
 			containsSecKey = true
@@ -345,7 +345,7 @@ func Sign(secNonce [SecNonceSize]byte, privKey *btcec.SecretKey,
 	}
 
 	pubKey := privKey.PubKey()
-	combinedKeyYIsOdd := func() bo {
+	combinedKeyYIsOdd := func() bool {
 		combinedKeyBytes := combinedKey.FinalKey.SerializeCompressed()
 		return combinedKeyBytes[0] == secp256k1.PubKeyFormatCompressedOdd
 	}()
@@ -407,7 +407,7 @@ func Sign(secNonce [SecNonceSize]byte, privKey *btcec.SecretKey,
 // signed.
 func (p *PartialSignature) Verify(pubNonce [PubNonceSize]byte,
 	combinedNonce [PubNonceSize]byte, keySet []*btcec.PublicKey,
-	signingKey *btcec.PublicKey, msg [32]byte, signOpts ...SignOption) bo {
+	signingKey *btcec.PublicKey, msg [32]byte, signOpts ...SignOption) bool {
 
 	pubKey := signingKey.SerializeCompressed()
 
@@ -421,7 +421,7 @@ func (p *PartialSignature) Verify(pubNonce [PubNonceSize]byte,
 // detailed errors.  signed.
 func verifyPartialSig(partialSig *PartialSignature, pubNonce [PubNonceSize]byte,
 	combinedNonce [PubNonceSize]byte, keySet []*btcec.PublicKey,
-	pubKey by, msg [32]byte, signOpts ...SignOption) er {
+	pubKey []byte, msg [32]byte, signOpts ...SignOption) error {
 
 	opts := defaultSignOptions()
 	for _, option := range signOpts {
@@ -617,7 +617,7 @@ func defaultCombineOptions() *combineOptions {
 // enough information to reconstruct the challenge, and also the final
 // accumulated tweak value.
 func WithTweakedCombine(msg [32]byte, keys []*btcec.PublicKey,
-	tweaks []KeyTweakDesc, sort bo) CombineOption {
+	tweaks []KeyTweakDesc, sort bool) CombineOption {
 
 	return func(o *combineOptions) {
 		combinedKey, _, tweakAcc, _ := AggregateKeys(
@@ -638,7 +638,7 @@ func WithTweakedCombine(msg [32]byte, keys []*btcec.PublicKey,
 // aggregate signatures for a top-level taproot keyspend, where the output key
 // commits to a script root.
 func WithTaprootTweakedCombine(msg [32]byte, keys []*btcec.PublicKey,
-	scriptRoot by, sort bo) CombineOption {
+	scriptRoot []byte, sort bool) CombineOption {
 
 	return func(o *combineOptions) {
 		combinedKey, _, tweakAcc, _ := AggregateKeys(
@@ -660,7 +660,7 @@ func WithTaprootTweakedCombine(msg [32]byte, keys []*btcec.PublicKey,
 // aggregate signatures for a top-level taproot keyspend, where the output key
 // was generated using BIP 86.
 func WithBip86TweakedCombine(msg [32]byte, keys []*btcec.PublicKey,
-	sort bo) CombineOption {
+	sort bool) CombineOption {
 
 	return func(o *combineOptions) {
 		combinedKey, _, tweakAcc, _ := AggregateKeys(

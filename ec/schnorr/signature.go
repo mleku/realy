@@ -52,7 +52,7 @@ func NewSignature(r *btcec.FieldVal, s *btcec.ModNScalar) *Signature {
 //
 //	sig[0:32]  x coordinate of the point R, encoded as a big-endian uint256
 //	sig[32:64] s, encoded also as big-endian uint256
-func (sig Signature) Serialize() by {
+func (sig Signature) Serialize() []byte {
 	// Total length of returned signature is the length of r and s.
 	var b [SignatureSize]byte
 	sig.r.PutBytesUnchecked(b[0:32])
@@ -65,7 +65,7 @@ func (sig Signature) Serialize() by {
 //
 // - The r component must be in the valid range for secp256k1 field elements
 // - The s component must be in the valid range for secp256k1 scalars
-func ParseSignature(sig by) (*Signature, er) {
+func ParseSignature(sig []byte) (*Signature, error) {
 	// The signature must be the correct length.
 	sigLen := len(sig)
 	if sigLen < SignatureSize {
@@ -96,7 +96,7 @@ func ParseSignature(sig by) (*Signature, er) {
 // IsEqual compares this Signature instance to the one passed, returning true
 // if both Signatures are equivalent. A signature is equivalent to another, if
 // they both have the same scalar value for R and S.
-func (sig Signature) IsEqual(otherSig *Signature) bo {
+func (sig Signature) IsEqual(otherSig *Signature) bool {
 	return sig.r.Equals(&otherSig.r) && sig.s.Equals(&otherSig.s)
 }
 
@@ -107,7 +107,7 @@ func (sig Signature) IsEqual(otherSig *Signature) bo {
 // This differs from the exported Verify method in that it returns a specific
 // error to support better testing while the exported method simply returns a
 // bool indicating success or failure.
-func schnorrVerify(sig *Signature, hash by, pubKeyBytes by) er {
+func schnorrVerify(sig *Signature, hash []byte, pubKeyBytes []byte) error {
 	// The algorithm for producing a BIP-340 signature is described in
 	// README.md and is reproduced here for reference:
 	//
@@ -213,7 +213,7 @@ func schnorrVerify(sig *Signature, hash by, pubKeyBytes by) er {
 
 // Verify returns whether or not the signature is valid for the provided hash
 // and secp256k1 public key.
-func (sig *Signature) Verify(hash by, pubKey *btcec.PublicKey) bo {
+func (sig *Signature) Verify(hash []byte, pubKey *btcec.PublicKey) bool {
 	pubkeyBytes := SerializePubKey(pubKey)
 	return schnorrVerify(sig, hash, pubkeyBytes) == nil
 }
@@ -234,7 +234,7 @@ func zeroArray(a *[scalarSize]byte) {
 // NOT be 0.  Since this is an internal use function, these preconditions MUST
 // be satisified by the caller.
 func schnorrSign(privKey, nonce *btcec.ModNScalar, pubKey *btcec.PublicKey,
-	hash by, opts *signOptions) (*Signature, er) {
+	hash []byte, opts *signOptions) (*Signature, error) {
 
 	// The algorithm for producing a BIP-340 signature is described in
 	// README.md and is reproduced here for reference:
@@ -330,7 +330,7 @@ type SignOption func(*signOptions)
 type signOptions struct {
 	// fastSign determines if we'll skip the check at the end of the routine
 	// where we attempt to verify the produced signature.
-	fastSign bo
+	fastSign bool
 	// authNonce allows the user to pass in their own nonce information, which
 	// is useful for schemes like mu-sig.
 	authNonce *[32]byte
@@ -365,8 +365,8 @@ func CustomNonce(auxData [32]byte) SignOption {
 // which can expose the signer to constant time attacks.  As a result, this
 // function should not be used in situations where there is the possibility of
 // someone having EM field/cache/etc access.
-func Sign(privKey *btcec.SecretKey, hash by,
-	signOpts ...SignOption) (*Signature, er) {
+func Sign(privKey *btcec.SecretKey, hash []byte,
+	signOpts ...SignOption) (*Signature, error) {
 	// First, parse the set of optional signing options.
 	opts := defaultSignOptions()
 	for _, option := range signOpts {

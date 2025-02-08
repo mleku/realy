@@ -19,7 +19,7 @@ var (
 // passed.
 type ConsensusDeploymentStarter interface {
 	// HasStarted returns true if the consensus deployment has started.
-	HasStarted(*wire.BlockHeader) (bo, er)
+	HasStarted(*wire.BlockHeader) (bool, error)
 }
 
 // ConsensusDeploymentEnder determines if a given consensus deployment has
@@ -27,7 +27,7 @@ type ConsensusDeploymentStarter interface {
 // deployment is no longer eligible for activation.
 type ConsensusDeploymentEnder interface {
 	// HasEnded returns true if the consensus deployment has ended.
-	HasEnded(*wire.BlockHeader) (bo, er)
+	HasEnded(*wire.BlockHeader) (bool, error)
 }
 
 // BlockClock is an abstraction over the past median time computation. The past
@@ -39,7 +39,7 @@ type BlockClock interface {
 	// PastMedianTime returns the past median time from the PoV of the
 	// passed block header. The past median time is the median time of the
 	// 11 blocks prior to the passed block header.
-	PastMedianTime(*wire.BlockHeader) (time.Time, er)
+	PastMedianTime(*wire.BlockHeader) (time.Time, error)
 }
 
 // ClockConsensusDeploymentEnder is a more specialized version of the
@@ -74,8 +74,8 @@ func NewMedianTimeDeploymentStarter(startTime time.Time) *MedianTimeDeploymentSt
 }
 
 // HasStarted returns true if the consensus deployment has started.
-func (m *MedianTimeDeploymentStarter) HasStarted(blkHeader *wire.BlockHeader) (bo,
-	er) {
+func (m *MedianTimeDeploymentStarter) HasStarted(blkHeader *wire.BlockHeader) (bool,
+	error) {
 	switch {
 	// If we haven't yet been synchronized with a block clock, then we
 	// can't tell the time, so we'll fail.
@@ -112,8 +112,8 @@ func NewMedianTimeDeploymentEnder(endTime time.Time) *MedianTimeDeploymentEnder 
 }
 
 // HasEnded returns true if the deployment has ended.
-func (m *MedianTimeDeploymentEnder) HasEnded(blkHeader *wire.BlockHeader) (bo,
-	er) {
+func (m *MedianTimeDeploymentEnder) HasEnded(blkHeader *wire.BlockHeader) (bool,
+	error) {
 	switch {
 	// If we haven't yet been synchronized with a block clock, then we can't tell
 	// the time, so we'll we haven't yet been synchronized with a block

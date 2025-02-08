@@ -7,6 +7,7 @@
 package secp256k1
 
 import (
+	"bytes"
 	"fmt"
 	"math/big"
 	"math/rand"
@@ -98,10 +99,10 @@ func TestFieldSetInt(t *testing.T) {
 // edge cases.  Random cases are tested via the various other tests.
 func TestFieldSetBytes(t *testing.T) {
 	tests := []struct {
-		name     st         // test description
-		in       st         // hex encoded test value
+		name     string     // test description
+		in       string     // hex encoded test value
 		expected [10]uint32 // expected raw ints
-		overflow bo         // expected overflow result
+		overflow bool       // expected overflow result
 	}{{
 		name:     "zero",
 		in:       "00",
@@ -331,7 +332,7 @@ func TestFieldBytes(t *testing.T) {
 		expected := hexToBytes(test.expected)
 		// Ensure getting the bytes works as expected.
 		gotBytes := f.Bytes()
-		if !equals(gotBytes[:], expected) {
+		if !bytes.Equal(gotBytes[:], expected) {
 			t.Errorf("%s: unexpected result\ngot: %x\nwant: %x", test.name,
 				*gotBytes, expected)
 			continue
@@ -339,7 +340,7 @@ func TestFieldBytes(t *testing.T) {
 		// Ensure getting the bytes directly into an array works as expected.
 		var b32 [32]byte
 		f.PutBytes(&b32)
-		if !equals(b32[:], expected) {
+		if !bytes.Equal(b32[:], expected) {
 			t.Errorf("%s: unexpected result\ngot: %x\nwant: %x", test.name,
 				b32, expected)
 			continue
@@ -347,7 +348,7 @@ func TestFieldBytes(t *testing.T) {
 		// Ensure getting the bytes directly into a slice works as expected.
 		var buffer [64]byte
 		f.PutBytesUnchecked(buffer[:])
-		if !equals(buffer[:32], expected) {
+		if !bytes.Equal(buffer[:32], expected) {
 			t.Errorf("%s: unexpected result\ngot: %x\nwant: %x", test.name,
 				buffer[:32], expected)
 			continue
@@ -408,8 +409,8 @@ func TestFieldIsOne(t *testing.T) {
 	tests := []struct {
 		name      string // test description
 		in        string // hex encoded test value
-		normalize bo     // whether or not to normalize the test value
-		expected  bo     // expected result
+		normalize bool   // whether or not to normalize the test value
+		expected  bool   // expected result
 	}{{
 		name:      "zero",
 		in:        "0",
@@ -932,7 +933,7 @@ func TestFieldIsOdd(t *testing.T) {
 	tests := []struct {
 		name     string // test description
 		in       string // hex encoded value
-		expected bo     // expected oddness
+		expected bool   // expected oddness
 	}{{
 		name:     "zero",
 		in:       "0",
@@ -983,10 +984,10 @@ func TestFieldIsOdd(t *testing.T) {
 // Equals works as expected.
 func TestFieldEquals(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		in1      st // hex encoded value
-		in2      st // hex encoded value
-		expected bo // expected equality
+		name     string // test description
+		in1      string // hex encoded value
+		in2      string // hex encoded value
+		expected bool   // expected equality
 	}{{
 		name:     "0 == 0?",
 		in1:      "0",
@@ -1507,10 +1508,10 @@ func TestFieldSquare(t *testing.T) {
 // via SquareRootVal works as expected for edge cases.
 func TestFieldSquareRoot(t *testing.T) {
 	tests := []struct {
-		name  st // test description
-		in    st // hex encoded value
-		valid bo // whether the value has a square root
-		want  st // expected hex encoded value
+		name  string // test description
+		in    string // hex encoded value
+		valid bool   // whether the value has a square root
+		want  string // expected hex encoded value
 	}{{
 		name:  "secp256k1 prime (as 0 in and out)",
 		in:    "0",
@@ -1700,9 +1701,9 @@ func TestFieldInverse(t *testing.T) {
 // as expected for edge cases.
 func TestFieldIsGtOrEqPrimeMinusOrder(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		in       st // hex encoded test value
-		expected bo // expected result
+		name     string // test description
+		in       string // hex encoded test value
+		expected bool   // expected result
 	}{{
 		name:     "zero",
 		in:       "0",

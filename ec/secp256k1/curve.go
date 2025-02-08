@@ -48,7 +48,7 @@ func hexToFieldVal(s string) *FieldVal {
 // constants so errors in the source code can be detected. It will only (and
 // must only) be called with hard-coded values.
 func hexToModNScalar(s string) *ModNScalar {
-	var isNegative bo
+	var isNegative bool
 	if len(s) > 0 && s[0] == '-' {
 		isNegative = true
 		s = s[1:]
@@ -913,11 +913,11 @@ type nafScalar struct {
 
 // Pos returns the bytes of the encoded value with bits set in the positions
 // that represent a signed digit of +1.
-func (s *nafScalar) Pos() by { return s.pos[s.start:s.end] }
+func (s *nafScalar) Pos() []byte { return s.pos[s.start:s.end] }
 
 // Neg returns the bytes of the encoded value with bits set in the positions
 // that represent a signed digit of -1.
-func (s *nafScalar) Neg() by { return s.neg[s.start:s.end] }
+func (s *nafScalar) Neg() []byte { return s.neg[s.start:s.end] }
 
 // naf takes a positive integer up to a maximum value of 2^256 - 1 and returns
 // its non-adjacent form (NAF), which is a unique signed-digit representation
@@ -936,7 +936,7 @@ func (s *nafScalar) Neg() by { return s.neg[s.start:s.end] }
 // doubling.  This is an excellent tradeoff because subtraction of points has
 // the same computational complexity as addition of points and point doubling is
 // faster than both.
-func naf(k by) nafScalar {
+func naf(k []byte) nafScalar {
 	// Strip leading zero bytes.
 	for len(k) > 0 && k[0] == 0x00 {
 		k = k[1:]
@@ -1190,7 +1190,7 @@ func ScalarBaseMultNonConst(k *ModNScalar, result *JacobianPoint) {
 }
 
 // isOnCurve returns whether or not the affine point (x,y) is on the curve.
-func isOnCurve(fx, fy *FieldVal) bo {
+func isOnCurve(fx, fy *FieldVal) bool {
 	// Elliptic curve equation for secp256k1 is: y^2 = x^3 + 7
 	y2 := new(FieldVal).SquareVal(fy).Normalize()
 	result := new(FieldVal).SquareVal(fx).Mul(fx).AddInt(7).Normalize()
@@ -1204,7 +1204,7 @@ func isOnCurve(fx, fy *FieldVal) bo {
 //
 // The magnitude of the provided X coordinate field val must be a max of 8 for a
 // correct result.  The resulting Y field val will have a max magnitude of 2.
-func DecompressY(x *FieldVal, odd bo, resultY *FieldVal) bo {
+func DecompressY(x *FieldVal, odd bool, resultY *FieldVal) bool {
 	// The curve equation for secp256k1 is: y^2 = x^3 + 7.  Thus
 	// y = +-sqrt(x^3 + 7).
 	//

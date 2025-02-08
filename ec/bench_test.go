@@ -19,7 +19,7 @@ import (
 //
 // The field value is returned to support chaining.  This enables syntax like:
 // f := new(FieldVal).SetHex("0abc").Add(1) so that f = 0x0abc + 1
-func setHex(hexString st) *FieldVal {
+func setHex(hexString string) *FieldVal {
 	if len(hexString)%2 != 0 {
 		hexString = "0" + hexString
 	}
@@ -33,7 +33,7 @@ func setHex(hexString st) *FieldVal {
 // if there is an error.  This is only provided for the hard-coded constants so
 // errors in the source code can be detected. It will only (and must only) be
 // called with hard-coded values.
-func hexToFieldVal(s st) *FieldVal {
+func hexToFieldVal(s string) *FieldVal {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -49,7 +49,7 @@ func hexToFieldVal(s st) *FieldVal {
 // panic is there is an error.  This is only provided for the hard-coded
 // constants so errors in the source code can bet detected. It will only (and
 // must only) be called for initialization purposes.
-func fromHex(s st) *big.Int {
+func fromHex(s string) *big.Int {
 	if s == "" {
 		return big.NewInt(0)
 	}
@@ -63,7 +63,7 @@ func fromHex(s st) *big.Int {
 // jacobianPointFromHex decodes the passed big-endian hex strings into a
 // Jacobian point with its internal fields set to the resulting values.  Only
 // the first 32-bytes are used.
-func jacobianPointFromHex(x, y, z st) JacobianPoint {
+func jacobianPointFromHex(x, y, z string) JacobianPoint {
 	var p JacobianPoint
 	p.X = *setHex(x)
 	p.Y = *setHex(y)
@@ -147,7 +147,7 @@ func BenchmarkScalarMult(b *testing.B) {
 // panic if there is an error.  This is only provided for the hard-coded
 // constants so errors in the source code can be detected. It will only (and
 // must only) be called with hard-coded values.
-func hexToModNScalar(s st) *ModNScalar {
+func hexToModNScalar(s string) *ModNScalar {
 	b, err := hex.Dec(s)
 	if err != nil {
 		panic("invalid hex in source file: " + s)
@@ -176,7 +176,7 @@ func BenchmarkParseCompressedPubKey(b *testing.B) {
 
 	var (
 		pk  *PublicKey
-		err er
+		err error
 	)
 	b.ReportAllocs()
 	b.ResetTimer()

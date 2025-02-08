@@ -5,11 +5,11 @@ import (
 )
 
 //go:embed rawbytepoints.bin
-var bytepoints by
+var bytepoints []byte
 var BytePointTable [32][256]JacobianPoint
 
 func init() {
-	var cursor no
+	var cursor int
 	for i := range BytePointTable {
 		for j := range BytePointTable[i] {
 			BytePointTable[i][j].X.SetByteSlice(bytepoints[cursor:])

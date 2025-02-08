@@ -12,8 +12,8 @@ import (
 
 var checkEncodingStringTests = []struct {
 	version byte
-	in      st
-	out     st
+	in      string
+	out     string
 }{
 	{20, "", "3MNQE1X"},
 	{20, " ", "B2Kr6dBE"},
@@ -33,7 +33,7 @@ var checkEncodingStringTests = []struct {
 func TestBase58Check(t *testing.T) {
 	for x, test := range checkEncodingStringTests {
 		// test encoding
-		if res := base58.CheckEncode(by(test.in),
+		if res := base58.CheckEncode([]byte(test.in),
 			test.version); res != test.out {
 			t.Errorf("CheckEncode test #%d failed: got %s, want: %s", x, res,
 				test.out)
@@ -49,7 +49,7 @@ func TestBase58Check(t *testing.T) {
 			t.Errorf("CheckDecode test #%d failed: got version: %d want: %d", x,
 				version, test.version)
 
-		case st(res) != test.in:
+		case string(res) != test.in:
 			t.Errorf("CheckDecode test #%d failed: got: %s want: %s", x, res,
 				test.in)
 		}

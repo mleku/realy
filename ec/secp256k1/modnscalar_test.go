@@ -5,6 +5,7 @@
 package secp256k1
 
 import (
+	"bytes"
 	"fmt"
 	"math/big"
 	"math/rand"
@@ -154,7 +155,7 @@ func TestModNScalarSetBytes(t *testing.T) {
 		name     string    // test description
 		in       string    // hex encoded test value
 		expected [8]uint32 // expected raw ints
-		overflow bo        // expected overflow result
+		overflow bool      // expected overflow result
 	}{{
 		name:     "zero",
 		in:       "00",
@@ -285,10 +286,10 @@ func TestModNScalarSetBytes(t *testing.T) {
 // edge cases.  Random cases are tested via the various other tests.
 func TestModNScalarBytes(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		in       st // hex encoded test value
-		expected st // expected hex encoded bytes
-		overflow bo // expected overflow result
+		name     string // test description
+		in       string // hex encoded test value
+		expected string // expected hex encoded bytes
+		overflow bool   // expected overflow result
 	}{{
 		name:     "zero",
 		in:       "0",
@@ -347,7 +348,7 @@ func TestModNScalarBytes(t *testing.T) {
 		expected := hexToBytes(test.expected)
 		// Ensure getting the bytes works as expected.
 		gotBytes := s.Bytes()
-		if !equals(gotBytes[:], expected) {
+		if !bytes.Equal(gotBytes[:], expected) {
 			t.Errorf("%s: unexpected result\ngot: %x\nwant: %x", test.name,
 				gotBytes, expected)
 			continue
@@ -355,7 +356,7 @@ func TestModNScalarBytes(t *testing.T) {
 		// Ensure getting the bytes directly into an array works as expected.
 		var b32 [32]byte
 		s.PutBytes(&b32)
-		if !equals(b32[:], expected) {
+		if !bytes.Equal(b32[:], expected) {
 			t.Errorf("%s: unexpected result\ngot: %x\nwant: %x", test.name,
 				b32, expected)
 			continue
@@ -363,7 +364,7 @@ func TestModNScalarBytes(t *testing.T) {
 		// Ensure getting the bytes directly into a slice works as expected.
 		var buffer [64]byte
 		s.PutBytesUnchecked(buffer[:])
-		if !equals(buffer[:32], expected) {
+		if !bytes.Equal(buffer[:32], expected) {
 			t.Errorf("%s: unexpected result\ngot: %x\nwant: %x", test.name,
 				buffer[:32], expected)
 			continue
@@ -375,9 +376,9 @@ func TestModNScalarBytes(t *testing.T) {
 // expected.
 func TestModNScalarIsOdd(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		in       st // hex encoded value
-		expected bo // expected oddness
+		name     string // test description
+		in       string // hex encoded value
+		expected bool   // expected oddness
 	}{{
 		name:     "zero",
 		in:       "0",
@@ -421,10 +422,10 @@ func TestModNScalarIsOdd(t *testing.T) {
 // expected for edge cases.
 func TestModNScalarEquals(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		in1      st // hex encoded value
-		in2      st // hex encoded value
-		expected bo // expected equality
+		name     string // test description
+		in1      string // hex encoded value
+		in2      string // hex encoded value
+		expected bool   // expected equality
 	}{{
 		name:     "0 == 0?",
 		in1:      "0",
@@ -1157,9 +1158,9 @@ func TestModNScalarInverseNonConstRandom(t *testing.T) {
 // exceeed the half order works as expected for edge cases.
 func TestModNScalarIsOverHalfOrder(t *testing.T) {
 	tests := []struct {
-		name     st // test description
-		in       st // hex encoded test value
-		expected bo // expected result
+		name     string // test description
+		in       string // hex encoded test value
+		expected bool   // expected result
 	}{{
 		name:     "zero",
 		in:       "0",

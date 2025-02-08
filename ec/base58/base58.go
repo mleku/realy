@@ -27,7 +27,7 @@ var bigRadix = [...]*big.Int{
 var bigRadix10 = big.NewInt(58 * 58 * 58 * 58 * 58 * 58 * 58 * 58 * 58 * 58) // 58^10
 
 // Decode decodes a modified base58 string to a byte slice.
-func Decode(b st) by {
+func Decode(b string) []byte {
 	answer := big.NewInt(0)
 	scratch := new(big.Int)
 
@@ -56,12 +56,12 @@ func Decode(b st) by {
 		total := uint64(0)
 		for _, v := range t[:n] {
 			if v > 255 {
-				return by("")
+				return []byte("")
 			}
 
 			tmp := b58[v]
 			if tmp == 255 {
-				return by("")
+				return []byte("")
 			}
 			total = total*58 + uint64(tmp)
 		}
@@ -75,27 +75,27 @@ func Decode(b st) by {
 
 	tmpval := answer.Bytes()
 
-	var numZeros no
+	var numZeros int
 	for numZeros = 0; numZeros < len(b); numZeros++ {
 		if b[numZeros] != alphabetIdx0 {
 			break
 		}
 	}
 	flen := numZeros + len(tmpval)
-	val := make(by, flen)
+	val := make([]byte, flen)
 	copy(val[numZeros:], tmpval)
 
 	return val
 }
 
 // Encode encodes a byte slice to a modified base58 string.
-func Encode(b by) st {
+func Encode(b []byte) string {
 	x := new(big.Int)
 	x.SetBytes(b)
 
 	// maximum length of output is log58(2^(8*len(b))) == len(b) * 8 / log(58)
-	maxlen := no(float64(len(b))*1.365658237309761) + 1
-	answer := make(by, 0, maxlen)
+	maxlen := int(float64(len(b))*1.365658237309761) + 1
+	answer := make([]byte, 0, maxlen)
 	mod := new(big.Int)
 	for x.Sign() > 0 {
 		// Calculating with big.Int is slow for each iteration.
@@ -138,5 +138,5 @@ func Encode(b by) st {
 		answer[i], answer[alen-1-i] = answer[alen-1-i], answer[i]
 	}
 
-	return st(answer)
+	return string(answer)
 }

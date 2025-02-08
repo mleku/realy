@@ -56,10 +56,10 @@ func TestError(t *testing.T) {
 // a specific error kind via errors.Is and unwrapped via errors.As.
 func TestErrorKindIsAs(t *testing.T) {
 	tests := []struct {
-		name      st
-		err       er
-		target    er
-		wantMatch bo
+		name      string
+		err       error
+		target    error
+		wantMatch bool
 		wantAs    ErrorKind
 	}{{
 		name:      "ErrPubKeyInvalidLen == ErrPubKeyInvalidLen",

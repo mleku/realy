@@ -22,27 +22,27 @@ const (
 
 var (
 	// TagBIP0340Challenge is the BIP-0340 tag for challenges.
-	TagBIP0340Challenge = by("BIP0340/challenge")
+	TagBIP0340Challenge = []byte("BIP0340/challenge")
 	// TagBIP0340Aux is the BIP-0340 tag for aux data.
-	TagBIP0340Aux = by("BIP0340/aux")
+	TagBIP0340Aux = []byte("BIP0340/aux")
 	// TagBIP0340Nonce is the BIP-0340 tag for nonces.
-	TagBIP0340Nonce = by("BIP0340/nonce")
+	TagBIP0340Nonce = []byte("BIP0340/nonce")
 	// TagTapSighash is the tag used by BIP 341 to generate the sighash
 	// flags.
-	TagTapSighash = by("TapSighash")
+	TagTapSighash = []byte("TapSighash")
 	// TagTapLeaf is the message tag prefix used to compute the hash
 	// digest of a tapscript leaf.
-	TagTapLeaf = by("TapLeaf")
+	TagTapLeaf = []byte("TapLeaf")
 	// TagTapBranch is the message tag prefix used to compute the
 	// hash digest of two tap leaves into a taproot branch node.
-	TagTapBranch = by("TapBranch")
+	TagTapBranch = []byte("TapBranch")
 	// TagTapTweak is the message tag prefix used to compute the hash tweak
 	// used to enable a public key to commit to the taproot branch root
 	// for the witness program.
-	TagTapTweak = by("TapTweak")
+	TagTapTweak = []byte("TapTweak")
 	// precomputedTags is a map containing the SHA-256 hash of the BIP-0340
 	// tags.
-	precomputedTags = map[st]Hash{
+	precomputedTags = map[string]Hash{
 		string(TagBIP0340Challenge): sha256.Sum256(TagBIP0340Challenge),
 		string(TagBIP0340Aux):       sha256.Sum256(TagBIP0340Aux),
 		string(TagBIP0340Nonce):     sha256.Sum256(TagBIP0340Nonce),
@@ -76,15 +76,15 @@ func (hash Hash) String() string {
 //
 // NOTE: It is generally cheaper to just slice the hash directly thereby reusing
 // the same bytes rather than calling this method.
-func (hash *Hash) CloneBytes() by {
-	newHash := make(by, HashSize)
+func (hash *Hash) CloneBytes() []byte {
+	newHash := make([]byte, HashSize)
 	copy(newHash, hash[:])
 	return newHash
 }
 
 // SetBytes sets the bytes which represent the hash.  An error is returned if
 // the number of bytes passed in is not HashSize.
-func (hash *Hash) SetBytes(newHash by) er {
+func (hash *Hash) SetBytes(newHash []byte) error {
 	nhlen := len(newHash)
 	if nhlen != HashSize {
 		return fmt.Errorf("invalid hash length of %v, want %v", nhlen,
@@ -95,7 +95,7 @@ func (hash *Hash) SetBytes(newHash by) er {
 }
 
 // IsEqual returns true if target is the same as hash.
-func (hash *Hash) IsEqual(target *Hash) bo {
+func (hash *Hash) IsEqual(target *Hash) bool {
 	if hash == nil && target == nil {
 		return true
 	}
@@ -106,12 +106,12 @@ func (hash *Hash) IsEqual(target *Hash) bo {
 }
 
 // MarshalJSON serialises the hash as a JSON appropriate string value.
-func (hash Hash) MarshalJSON() (by, er) {
+func (hash Hash) MarshalJSON() ([]byte, error) {
 	return json.Marshal(hash.String())
 }
 
 // UnmarshalJSON parses the hash with JSON appropriate string value.
-func (hash *Hash) UnmarshalJSON(input by) er {
+func (hash *Hash) UnmarshalJSON(input []byte) error {
 	// If the first byte indicates an array, the hash could have been marshalled
 	// using the legacy method and e.g. persisted.
 	if len(input) > 0 && input[0] == '[' {
@@ -131,7 +131,7 @@ func (hash *Hash) UnmarshalJSON(input by) er {
 
 // NewHash returns a new Hash from a byte slice.  An error is returned if
 // the number of bytes passed in is not HashSize.
-func NewHash(newHash by) (*Hash, er) {
+func NewHash(newHash []byte) (*Hash, error) {
 	var sh Hash
 	err := sh.SetBytes(newHash)
 	if err != nil {
@@ -143,7 +143,7 @@ func NewHash(newHash by) (*Hash, er) {
 // TaggedHash implements the tagged hash scheme described in BIP-340. We use
 // sha-256 to bind a message hash to a specific context using a tag:
 // sha256(sha256(tag) || sha256(tag) || msg).
-func TaggedHash(tag by, msgs ...by) *Hash {
+func TaggedHash(tag []byte, msgs ...[]byte) *Hash {
 	// Check to see if we've already pre-computed the hash of the tag. If
 	// so then this'll save us an extra sha256 hash.
 	shaTag, ok := precomputedTags[string(tag)]
@@ -167,7 +167,7 @@ func TaggedHash(tag by, msgs ...by) *Hash {
 // NewHashFromStr creates a Hash from a hash string.  The string should be
 // the hexadecimal string of a byte-reversed hash, but any missing characters
 // result in zero padding at the end of the Hash.
-func NewHashFromStr(hash string) (*Hash, er) {
+func NewHashFromStr(hash string) (*Hash, error) {
 	ret := new(Hash)
 	err := Decode(ret, hash)
 	if err != nil {
@@ -178,18 +178,18 @@ func NewHashFromStr(hash string) (*Hash, er) {
 
 // Decode decodes the byte-reversed hexadecimal string encoding of a Hash to a
 // destination.
-func Decode(dst *Hash, src string) er {
+func Decode(dst *Hash, src string) error {
 	// Return error if hash string is too long.
 	if len(src) > MaxHashStringSize {
 		return ErrHashStrSize
 	}
 	// Hex decoder expects the hash to be a multiple of two.  When not, pad
 	// with a leading zero.
-	var srcBytes by
+	var srcBytes []byte
 	if len(src)%2 == 0 {
-		srcBytes = by(src)
+		srcBytes = []byte(src)
 	} else {
-		srcBytes = make(by, 1+len(src))
+		srcBytes = make([]byte, 1+len(src))
 		srcBytes[0] = '0'
 		copy(srcBytes[1:], src)
 	}
@@ -210,8 +210,8 @@ func Decode(dst *Hash, src string) er {
 
 // decodeLegacy decodes an Hash that has been encoded with the legacy method
 // (i.e. represented as a bytes array) to a destination.
-func decodeLegacy(dst *Hash, src by) er {
-	var hashBytes by
+func decodeLegacy(dst *Hash, src []byte) error {
+	var hashBytes []byte
 	err := json.Unmarshal(src, &hashBytes)
 	if err != nil {
 		return err

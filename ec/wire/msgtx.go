@@ -13,12 +13,12 @@ type OutPoint struct {
 
 // TxWitness defines the witness for a TxIn. A witness is to be interpreted as
 // a slice of byte slices, or a stack with one or many elements.
-type TxWitness []by
+type TxWitness [][]byte
 
 // TxIn defines a bitcoin transaction input.
 type TxIn struct {
 	PreviousOutPoint OutPoint
-	SignatureScript  by
+	SignatureScript  []byte
 	Witness          TxWitness
 	Sequence         uint32
 }
@@ -26,7 +26,7 @@ type TxIn struct {
 // TxOut defines a bitcoin transaction output.
 type TxOut struct {
 	Value    int64
-	PkScript by
+	PkScript []byte
 }
 
 // MsgTx implements the Message interface and represents a bitcoin tx message.

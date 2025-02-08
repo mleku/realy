@@ -29,7 +29,7 @@ func bigAffineToJacobian(x, y *big.Int, result *secp256k1.JacobianPoint) {
 
 // serializedBytePoints returns a serialized byte slice which contains all possible points per
 // 8-bit window. This is used to when generating compressedbytepoints.go.
-func serializedBytePoints() by {
+func serializedBytePoints() []byte {
 	// Calculate G^(2^i) for i in 0..255.  These are used to avoid recomputing
 	// them for each digit of the 8-bit windows.
 	doublingPoints := make([]secp256k1.JacobianPoint, curveParams.BitSize)
@@ -43,7 +43,7 @@ func serializedBytePoints() by {
 
 	// Separate the bits into byte-sized windows.
 	curveByteSize := curveParams.BitSize / 8
-	serialized := make(by, curveByteSize*256*2*32)
+	serialized := make([]byte, curveByteSize*256*2*32)
 	offset := 0
 	for byteNum := 0; byteNum < curveByteSize; byteNum++ {
 		// Grab the 8 bits that make up this byte from doubling points.

@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	raw5k       = bytes.Repeat(by{0xff}, 5000)
-	raw100k     = bytes.Repeat(by{0xff}, 100*1000)
+	raw5k       = bytes.Repeat([]byte{0xff}, 5000)
+	raw100k     = bytes.Repeat([]byte{0xff}, 100*1000)
 	encoded5k   = base58.Encode(raw5k)
 	encoded100k = base58.Encode(raw100k)
 )

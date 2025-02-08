@@ -19,15 +19,15 @@ import (
 )
 
 type bip340Test struct {
-	secretKey    st
-	publicKey    st
-	auxRand      st
-	message      st
-	signature    st
-	verifyResult bo
-	validPubKey  bo
-	expectErr    er
-	rfc6979      bo
+	secretKey    string
+	publicKey    string
+	auxRand      string
+	message      string
+	signature    string
+	verifyResult bool
+	validPubKey  bool
+	expectErr    error
+	rfc6979      bool
 }
 
 var bip340TestVectors = []bip340Test{
@@ -189,7 +189,7 @@ var bip340TestVectors = []bip340Test{
 // decodeHex decodes the passed hex string and returns the resulting bytes.  It
 // panics if an error occurs.  This is only used in the tests as a helper since
 // the only way it can fail is if there is an error in the test source code.
-func decodeHex(hexStr st) by {
+func decodeHex(hexStr string) []byte {
 	b, err := hex.Dec(hexStr)
 	if err != nil {
 		panic("invalid hex string in test source: err " + err.Error() +
@@ -281,7 +281,7 @@ func TestSchnorrSignNoMutate(t *testing.T) {
 	t.Parallel()
 	// Assert that given a random secret key and message, we can generate
 	// a signature from that w/o modifying the underlying secret key.
-	f := func(privBytes, msg [32]byte) bo {
+	f := func(privBytes, msg [32]byte) bool {
 		privBytesCopy := privBytes
 		privKey, _ := btcec.SecKeyFromBytes(privBytesCopy[:])
 		// Generate a signature for secret key with our message.

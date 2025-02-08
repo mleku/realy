@@ -16,10 +16,10 @@ import (
 var (
 	// KeyAggTagList is the tagged hash tag used to compute the hash of the
 	// list of sorted public keys.
-	KeyAggTagList = by("KeyAgg list")
+	KeyAggTagList = []byte("KeyAgg list")
 	// KeyAggTagCoeff is the tagged hash tag used to compute the key
 	// aggregation coefficient for each key.
-	KeyAggTagCoeff = by("KeyAgg coefficient")
+	KeyAggTagCoeff = []byte("KeyAgg coefficient")
 	// ErrTweakedKeyIsInfinity is returned if while tweaking a key, we end
 	// up with the point at infinity.
 	ErrTweakedKeyIsInfinity = fmt.Errorf("tweaked key is infinity point")
@@ -34,7 +34,7 @@ type sortableKeys []*btcec.PublicKey
 
 // Less reports whether the element with index i must sort before the element
 // with index j.
-func (s sortableKeys) Less(i, j no) bo {
+func (s sortableKeys) Less(i, j int) bool {
 	// TODO(roasbeef): more efficient way to compare...
 	keyIBytes := s[i].SerializeCompressed()
 	keyJBytes := s[j].SerializeCompressed()
@@ -42,10 +42,10 @@ func (s sortableKeys) Less(i, j no) bo {
 }
 
 // Swap swaps the elements with indexes i and j.
-func (s sortableKeys) Swap(i, j no) { s[i], s[j] = s[j], s[i] }
+func (s sortableKeys) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 // Len is the number of elements in the collection.
-func (s sortableKeys) Len() no { return len(s) }
+func (s sortableKeys) Len() int { return len(s) }
 
 // sortKeys takes a set of public keys and returns a new slice that is a copy
 // of the keys sorted in lexicographical order bytes on the x-only pubkey
@@ -63,13 +63,13 @@ func sortKeys(keys []*btcec.PublicKey) []*btcec.PublicKey {
 // keys passed as input. This is used to compute the aggregation coefficient
 // for each key. The final computation is:
 //   - H(tag=KeyAgg list, pk1 || pk2..)
-func keyHashFingerprint(keys []*btcec.PublicKey, sort bo) by {
+func keyHashFingerprint(keys []*btcec.PublicKey, sort bool) []byte {
 	if sort {
 		keys = sortKeys(keys)
 	}
 	// We'll create a single buffer and slice into that so the bytes buffer
 	// doesn't continually need to grow the underlying buffer.
-	keyAggBuf := make(by, 33*len(keys))
+	keyAggBuf := make([]byte, 33*len(keys))
 	keyBytes := bytes.NewBuffer(keyAggBuf[0:0])
 	for _, key := range keys {
 		keyBytes.Write(key.SerializeCompressed())
@@ -80,16 +80,16 @@ func keyHashFingerprint(keys []*btcec.PublicKey, sort bo) by {
 
 // keyBytesEqual returns true if two keys are the same based on the compressed
 // serialization of each key.
-func keyBytesEqual(a, b *btcec.PublicKey) bo {
-	return equals(a.SerializeCompressed(), b.SerializeCompressed())
+func keyBytesEqual(a, b *btcec.PublicKey) bool {
+	return bytes.Equal(a.SerializeCompressed(), b.SerializeCompressed())
 }
 
 // aggregationCoefficient computes the key aggregation coefficient for the
 // specified target key. The coefficient is computed as:
 //   - H(tag=KeyAgg coefficient, keyHashFingerprint(pks) || pk)
 func aggregationCoefficient(keySet []*btcec.PublicKey,
-	targetKey *btcec.PublicKey, keysHash by,
-	secondKeyIdx no) *btcec.ModNScalar {
+	targetKey *btcec.PublicKey, keysHash []byte,
+	secondKeyIdx int) *btcec.ModNScalar {
 
 	var mu btcec.ModNScalar
 	// If this is the second key, then this coefficient is just one.
@@ -109,7 +109,7 @@ func aggregationCoefficient(keySet []*btcec.PublicKey,
 
 // secondUniqueKeyIndex returns the index of the second unique key. If all keys
 // are the same, then a value of -1 is returned.
-func secondUniqueKeyIndex(keySet []*btcec.PublicKey, sort bo) no {
+func secondUniqueKeyIndex(keySet []*btcec.PublicKey, sort bool) int {
 	if sort {
 		keySet = sortKeys(keySet)
 	}
@@ -134,7 +134,7 @@ type KeyTweakDesc struct {
 	Tweak [32]byte
 	// IsXOnly if true, then the public key will be mapped to an x-only key
 	// before the tweaking operation is applied.
-	IsXOnly bo
+	IsXOnly bool
 }
 
 // KeyAggOption is a functional option argument that allows callers to specify
@@ -145,30 +145,30 @@ type KeyAggOption func(*keyAggOption)
 // aggregation.
 type keyAggOption struct {
 	// keyHash is the output of keyHashFingerprint for a given set of keys.
-	keyHash by
+	keyHash []byte
 	// uniqueKeyIndex is the pre-computed index of the second unique key.
-	uniqueKeyIndex *no
+	uniqueKeyIndex *int
 	// tweaks specifies a series of tweaks to be applied to the aggregated
 	// public key.
 	tweaks []KeyTweakDesc
 	// taprootTweak controls if the tweaks above should be applied in a BIP
 	// 340 style.
-	taprootTweak bo
+	taprootTweak bool
 	// bip86Tweak specifies that the taproot tweak should be done in a BIP
 	// 86 style, where we don't expect an actual tweak and instead just
 	// commit to the public key itself.
-	bip86Tweak bo
+	bip86Tweak bool
 }
 
 // WithKeysHash allows key aggregation to be optimize, by allowing the caller
 // to specify the hash of all the keys.
-func WithKeysHash(keyHash by) KeyAggOption {
+func WithKeysHash(keyHash []byte) KeyAggOption {
 	return func(o *keyAggOption) { o.keyHash = keyHash }
 }
 
 // WithUniqueKeyIndex allows the caller to specify the index of the second
 // unique key.
-func WithUniqueKeyIndex(idx no) KeyAggOption {
+func WithUniqueKeyIndex(idx int) KeyAggOption {
 	return func(o *keyAggOption) {
 		i := idx
 		o.uniqueKeyIndex = &i
@@ -189,7 +189,7 @@ func WithKeyTweaks(tweaks ...KeyTweakDesc) KeyAggOption {
 // This option should be used instead of WithKeyTweaks when the aggregated key
 // is intended to be used as a taproot output key that commits to a script
 // root.
-func WithTaprootKeyTweak(scriptRoot by) KeyAggOption {
+func WithTaprootKeyTweak(scriptRoot []byte) KeyAggOption {
 	return func(o *keyAggOption) {
 		var tweak [32]byte
 		copy(tweak[:], scriptRoot[:])
@@ -223,7 +223,7 @@ func defaultKeyAggOptions() *keyAggOption { return &keyAggOption{} }
 // point has an even y coordinate.
 //
 // TODO(roasbeef): double check, can just check the y coord even not jacobian?
-func hasEvenY(pJ btcec.JacobianPoint) bo {
+func hasEvenY(pJ btcec.JacobianPoint) bool {
 	pJ.ToAffine()
 	p := btcec.NewPublicKey(&pJ.X, &pJ.Y)
 	keyBytes := p.SerializeCompressed()
@@ -238,7 +238,7 @@ func hasEvenY(pJ btcec.JacobianPoint) bo {
 func tweakKey(keyJ btcec.JacobianPoint, parityAcc btcec.ModNScalar,
 	tweak [32]byte,
 	tweakAcc btcec.ModNScalar,
-	xOnly bo) (btcec.JacobianPoint, btcec.ModNScalar, btcec.ModNScalar, er) {
+	xOnly bool) (btcec.JacobianPoint, btcec.ModNScalar, btcec.ModNScalar, error) {
 
 	// First we'll compute the new parity factor for this key. If the key has
 	// an odd y coordinate (not even), then we'll need to negate it (multiply
@@ -298,9 +298,9 @@ type AggregateKey struct {
 // value can be passed for keyHash, which causes this function to re-derive it.
 // In addition to the combined public key, the parity accumulator and the tweak
 // accumulator are returned as well.
-func AggregateKeys(keys []*btcec.PublicKey, sort bo,
+func AggregateKeys(keys []*btcec.PublicKey, sort bool,
 	keyOpts ...KeyAggOption) (
-	*AggregateKey, *btcec.ModNScalar, *btcec.ModNScalar, er) {
+	*AggregateKey, *btcec.ModNScalar, *btcec.ModNScalar, error) {
 	// First, parse the set of optional signing options.
 	opts := defaultKeyAggOptions()
 	for _, option := range keyOpts {
@@ -361,7 +361,7 @@ func AggregateKeys(keys []*btcec.PublicKey, sort bo,
 		// to a BIP-0086 key only spend output. Otherwise, we just
 		// commit to the internal key and an empty byte slice as the
 		// root hash.
-		tweakBytes := by{}
+		tweakBytes := []byte{}
 		if !opts.bip86Tweak {
 			tweakBytes = opts.tweaks[0].Tweak[:]
 		}
@@ -377,7 +377,7 @@ func AggregateKeys(keys []*btcec.PublicKey, sort bo,
 	}
 
 	var (
-		err       er
+		err       error
 		tweakAcc  btcec.ModNScalar
 		parityAcc btcec.ModNScalar
 	)
