@@ -3,13 +3,13 @@ package nwc
 type MakeInvoiceRequest struct {
 	Request
 	Amount          Msat
-	Description     by // optional
-	DescriptionHash by // optional
-	Expiry          no // optional
+	Description     []byte // optional
+	DescriptionHash []byte // optional
+	Expiry          int    // optional
 }
 
-func NewMakeInvoiceRequest(amount Msat, description, descriptionHash by,
-	expiry no) MakeInvoiceRequest {
+func NewMakeInvoiceRequest(amount Msat, description, descriptionHash []byte,
+	expiry int) MakeInvoiceRequest {
 	return MakeInvoiceRequest{
 		Request{Methods.MakeInvoice},
 		amount,

@@ -11,7 +11,7 @@ func NewMultiPayKeysendRequest(keysends []PayKeysendRequest) MultiPayKeysendRequ
 
 type MultiPayKeysendResponse = PayKeysendResponse
 
-func NewMultiPayKKeysendResponse(preimage by, feesPaid Msat) MultiPayKeysendResponse {
+func NewMultiPayKKeysendResponse(preimage []byte, feesPaid Msat) MultiPayKeysendResponse {
 	return MultiPayKeysendResponse{
 		Response{Type: Methods.MultiPayKeysend}, preimage, feesPaid,
 	}

@@ -13,17 +13,17 @@ var Methods = struct {
 	LookupInvoice,
 	ListTransactions,
 	GetBalance,
-	GetInfo by
+	GetInfo []byte
 }{
-	by("pay_invoice"),
-	by("multi_pay_invoice"),
-	by("pay_keysend"),
-	by("multi_pay_keysend"),
-	by("make_invoice"),
-	by("lookup_invoice"),
-	by("list_transactions"),
-	by("get_balance"),
-	by("get_info"),
+	[]byte("pay_invoice"),
+	[]byte("multi_pay_invoice"),
+	[]byte("pay_keysend"),
+	[]byte("multi_pay_keysend"),
+	[]byte("make_invoice"),
+	[]byte("lookup_invoice"),
+	[]byte("list_transactions"),
+	[]byte("get_balance"),
+	[]byte("get_info"),
 }
 
 // Keys are the proper JSON bytes for the JSON object keys of the structs of the
@@ -59,46 +59,46 @@ var Keys = struct {
 	Notifications,
 	NotificationType,
 	Notification,
-	PaymentHash by
+	PaymentHash []byte
 }{
-	by("method"),
-	by("params"),
-	by("result_type"),
-	by("error"),
-	by("result"),
-	by("invoice"),
-	by("amount"),
-	by("preimage"),
-	by("fees_paid"),
-	by("id"),
-	by("tlv_records"),
-	by("type"),
-	by("value"),
-	by("pubkey"),
-	by("description"),
-	by("description_hash"),
-	by("expiry"),
-	by("created_at"),
-	by("expires_at"),
-	by("metadata"),
-	by("settled_at"),
-	by("from"),
-	by("until"),
-	by("offset"),
-	by("unpaid"),
-	by("balance"),
-	by("notifications"),
-	by("notification_type"),
-	by("notification"),
-	by("payment_hash"),
+	[]byte("method"),
+	[]byte("params"),
+	[]byte("result_type"),
+	[]byte("error"),
+	[]byte("result"),
+	[]byte("invoice"),
+	[]byte("amount"),
+	[]byte("preimage"),
+	[]byte("fees_paid"),
+	[]byte("id"),
+	[]byte("tlv_records"),
+	[]byte("type"),
+	[]byte("value"),
+	[]byte("pubkey"),
+	[]byte("description"),
+	[]byte("description_hash"),
+	[]byte("expiry"),
+	[]byte("created_at"),
+	[]byte("expires_at"),
+	[]byte("metadata"),
+	[]byte("settled_at"),
+	[]byte("from"),
+	[]byte("until"),
+	[]byte("offset"),
+	[]byte("unpaid"),
+	[]byte("balance"),
+	[]byte("notifications"),
+	[]byte("notification_type"),
+	[]byte("notification"),
+	[]byte("payment_hash"),
 }
 
 // Notifications are the proper strings for the Notification.NotificationType
 var Notifications = struct {
-	PaymentReceived, PaymentSent by
+	PaymentReceived, PaymentSent []byte
 }{
-	by("payment_received"),
-	by("payment_sent"),
+	[]byte("payment_received"),
+	[]byte("payment_sent"),
 }
 
 var Errors = struct {
@@ -117,14 +117,14 @@ var Errors = struct {
 	// Internal - An internal error.
 	Internal,
 	// Other - Other error.
-	Other by
+	Other []byte
 }{
-	by("RATE_LIMITED"),
-	by("NOT_IMPLEMENTED"),
-	by("INSUFFICIENT_BALANCE"),
-	by("QUOTA_EXCEEDED"),
-	by("RESTRICTED"),
-	by("UNAUTHORIZED"),
-	by("INTERNAL"),
-	by("OTHER"),
+	[]byte("RATE_LIMITED"),
+	[]byte("NOT_IMPLEMENTED"),
+	[]byte("INSUFFICIENT_BALANCE"),
+	[]byte("QUOTA_EXCEEDED"),
+	[]byte("RESTRICTED"),
+	[]byte("UNAUTHORIZED"),
+	[]byte("INTERNAL"),
+	[]byte("OTHER"),
 }

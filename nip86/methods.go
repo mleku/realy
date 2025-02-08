@@ -7,7 +7,7 @@ import (
 	"realy.lol/keys"
 )
 
-func DecodeRequest(req Request) (MethodParams, er) {
+func DecodeRequest(req Request) (MethodParams, error) {
 	switch req.Method {
 	case "supportedmethods":
 		return SupportedMethods{}, nil
@@ -97,7 +97,7 @@ func DecodeRequest(req Request) (MethodParams, er) {
 		if !ok || math.Trunc(kind) != kind {
 			return nil, errorf.E("invalid kind '%v' for '%s'", req.Params[0], req.Method)
 		}
-		return AllowKind{no(kind)}, nil
+		return AllowKind{int(kind)}, nil
 	case "disallowkind":
 		if len(req.Params) == 0 {
 			return nil, errorf.E("invalid number of params for '%s'", req.Method)
@@ -106,7 +106,7 @@ func DecodeRequest(req Request) (MethodParams, er) {
 		if !ok || math.Trunc(kind) != kind {
 			return nil, errorf.E("invalid kind '%v' for '%s'", req.Params[0], req.Method)
 		}
-		return DisallowKind{no(kind)}, nil
+		return DisallowKind{int(kind)}, nil
 	case "listallowedkinds":
 		return ListAllowedKinds{}, nil
 	case "blockip":
@@ -236,13 +236,13 @@ type ChangeRelayIcon struct {
 func (_ ChangeRelayIcon) MethodName() string { return "changerelayicon" }
 
 type AllowKind struct {
-	Kind no
+	Kind int
 }
 
 func (_ AllowKind) MethodName() string { return "allowkind" }
 
 type DisallowKind struct {
-	Kind no
+	Kind int
 }
 
 func (_ DisallowKind) MethodName() string { return "disallowkind" }

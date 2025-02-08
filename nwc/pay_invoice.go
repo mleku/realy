@@ -9,13 +9,13 @@ type PayInvoiceRequest struct {
 	Invoice
 }
 
-func NewPayInvoiceRequest[V st | by](invoice V, amount Msat) PayInvoiceRequest {
+func NewPayInvoiceRequest[V string | []byte](invoice V, amount Msat) PayInvoiceRequest {
 	return PayInvoiceRequest{
-		Request{Methods.PayInvoice}, Invoice{nil, by(invoice), amount},
+		Request{Methods.PayInvoice}, Invoice{nil, []byte(invoice), amount},
 	}
 }
 
-func (p PayInvoiceRequest) Marshal(dst by) (b by) {
+func (p PayInvoiceRequest) Marshal(dst []byte) (b []byte) {
 	// open parentheses
 	dst = append(dst, '{')
 	// method
@@ -41,24 +41,24 @@ func (p PayInvoiceRequest) Marshal(dst by) (b by) {
 	return
 }
 
-func (p PayInvoiceRequest) Unmarshal(b by) (r by, err er) {
+func (p PayInvoiceRequest) Unmarshal(b []byte) (r []byte, err error) {
 
 	return
 }
 
 type PayInvoiceResponse struct {
 	Response
-	Preimage by
+	Preimage []byte
 	FeesPaid Msat // optional, omitted if zero
 }
 
-func NewPayInvoiceResponse(preimage by, feesPaid Msat) PayInvoiceResponse {
+func NewPayInvoiceResponse(preimage []byte, feesPaid Msat) PayInvoiceResponse {
 	return PayInvoiceResponse{
 		Response{Type: Methods.PayInvoice}, preimage, feesPaid,
 	}
 }
 
-func (p PayInvoiceResponse) Marshal(dst by) (b by) {
+func (p PayInvoiceResponse) Marshal(dst []byte) (b []byte) {
 	// open parentheses
 	dst = append(dst, '{')
 	// method
@@ -83,7 +83,7 @@ func (p PayInvoiceResponse) Marshal(dst by) (b by) {
 	return
 }
 
-func (p PayInvoiceResponse) Unmarshal(b by) (r by, err er) {
+func (p PayInvoiceResponse) Unmarshal(b []byte) (r []byte, err error) {
 	// TODO implement me
 	panic("implement me")
 }

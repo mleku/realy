@@ -12,15 +12,15 @@ import (
 // All request, responses and methods embed the implementations and their types then become easily checked.
 
 type Requester interface {
-	RequestType() by
+	RequestType() []byte
 }
 
 type Resulter interface {
-	ResultType() by
+	ResultType() []byte
 }
 
 type Notifier interface {
-	NotificationType() by
+	NotificationType() []byte
 }
 
 // Implementations
@@ -30,44 +30,44 @@ type Notifier interface {
 // the interface accessor method.
 
 type Request struct {
-	Method by
+	Method []byte
 }
 
-func (r Request) RequestType() by { return r.Method }
+func (r Request) RequestType() []byte { return r.Method }
 
 type Response struct {
-	Type by
+	Type []byte
 	Error
 }
 
-func (r Response) ResultType() by { return r.Type }
+func (r Response) ResultType() []byte { return r.Type }
 
 type Notification struct {
-	Type by
+	Type []byte
 }
 
-func (n Notification) NotificationType() by { return n.Type }
+func (n Notification) NotificationType() []byte { return n.Type }
 
 // Msat  is milli-sat, max possible value is 1000 x 21 x 100 000 000 (well, under 19 places of 64 bits in base 10)
 type Msat uint64
 
-func (m Msat) Bytes(dst by) (b by) { return ints.New(uint64(m)).Marshal(dst) }
+func (m Msat) Bytes(dst []byte) (b []byte) { return ints.New(uint64(m)).Marshal(dst) }
 
 // Methods
 
 type Invoice struct {
-	Id      by // nil for request, required for responses (omitted if nil)
-	Invoice by
+	Id      []byte // nil for request, required for responses (omitted if nil)
+	Invoice []byte
 	Amount  Msat // optional, omitted if zero
 }
 
 type InvoiceResponse struct {
-	Type            by // incoming or outgoing
-	Invoice         by // optional
-	Description     by // optional
-	DescriptionHash by // optional
-	Preimage        by // optional if unpaid
-	PaymentHash     by
+	Type            []byte // incoming or outgoing
+	Invoice         []byte // optional
+	Description     []byte // optional
+	DescriptionHash []byte // optional
+	Preimage        []byte // optional if unpaid
+	PaymentHash     []byte
 	Amount          Msat
 	FeesPaid        Msat
 	CreatedAt       int64
@@ -77,19 +77,19 @@ type InvoiceResponse struct {
 }
 
 type ListTransactions struct {
-	From   int64 // optional
-	Until  int64 // optional
-	Limit  no    // optional
-	Offset no    // optional
-	Unpaid bo    // optional default false
-	Type   by    // incoming/outgoing/empty for "both"
+	From   int64  // optional
+	Until  int64  // optional
+	Limit  int    // optional
+	Offset int    // optional
+	Unpaid bool   // optional default false
+	Type   []byte // incoming/outgoing/empty for "both"
 }
 
 // Notifications
 
 var (
-	PaymentSent     = by("payment_sent")
-	PaymentReceived = by("payment_received")
+	PaymentSent     = []byte("payment_sent")
+	PaymentReceived = []byte("payment_received")
 )
 
 type PaymentSentNotification struct {

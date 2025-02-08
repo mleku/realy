@@ -14,6 +14,6 @@ func NewMultiPayInvoiceRequest(invoices []Invoice) MultiPayInvoiceRequest {
 
 type MultiPayInvoiceResponse = PayInvoiceResponse
 
-func NewMultiPayInvoiceResponse(preimage by, feesPaid Msat) MultiPayInvoiceResponse {
+func NewMultiPayInvoiceResponse(preimage []byte, feesPaid Msat) MultiPayInvoiceResponse {
 	return MultiPayInvoiceResponse{Response{Type: Methods.MultiPayInvoice}, preimage, feesPaid}
 }

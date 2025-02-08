@@ -6,8 +6,8 @@ import (
 
 func ExamplePayInvoiceRequest_Marshal() {
 	ir := NewPayInvoiceRequest("lnbc50n1...", 0)
-	var b by
-	var err er
+	var b []byte
+	var err error
 	if b = ir.Marshal(b); chk.E(err) {
 		return
 	}

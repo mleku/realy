@@ -10,13 +10,13 @@ func NewGetInfoRequest() GetInfoRequest {
 }
 
 type GetInfo struct {
-	Alias       by
-	Color       by // Hex string
-	Pubkey      by
-	Network     by // mainnet/testnet/signet/regtest
+	Alias       []byte
+	Color       []byte // Hex string
+	Pubkey      []byte
+	Network     []byte // mainnet/testnet/signet/regtest
 	BlockHeight uint64
-	BlockHash   by
-	Methods     by // pay_invoice, get_balance, make_invoice, lookup_invoice, list_transactions, get_info (list of methods)
+	BlockHash   []byte
+	Methods     []byte // pay_invoice, get_balance, make_invoice, lookup_invoice, list_transactions, get_info (list of methods)
 }
 
 type GetInfoResponse struct {

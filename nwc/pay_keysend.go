@@ -2,18 +2,18 @@ package nwc
 
 type TLV struct {
 	Type  uint64
-	Value by
+	Value []byte
 }
 
 type PayKeysendRequest struct {
 	Request
 	Amount     Msat
-	Pubkey     by
-	Preimage   by    // optional
-	TLVRecords []TLV // optional
+	Pubkey     []byte
+	Preimage   []byte // optional
+	TLVRecords []TLV  // optional
 }
 
-func NewPayKeysendRequest(amount Msat, pubkey, preimage by,
+func NewPayKeysendRequest(amount Msat, pubkey, preimage []byte,
 	tlvRecords []TLV) PayKeysendRequest {
 	return PayKeysendRequest{
 		Request{Methods.PayKeysend},
@@ -26,7 +26,7 @@ func NewPayKeysendRequest(amount Msat, pubkey, preimage by,
 
 type PayKeysendResponse = PayInvoiceResponse
 
-func NewPayKeysendResponse(preimage by, feesPaid Msat) PayKeysendResponse {
+func NewPayKeysendResponse(preimage []byte, feesPaid Msat) PayKeysendResponse {
 	return PayInvoiceResponse{
 		Response{Type: Methods.PayKeysend}, preimage, feesPaid,
 	}
