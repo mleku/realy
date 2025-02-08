@@ -8,30 +8,31 @@ import (
 	"strings"
 
 	"realy.lol/bech32encoding/pointers"
+	"realy.lol/context"
 	"realy.lol/keys"
 )
 
 var Nip05Regex = regexp.MustCompile(`^(?:([\w.+-]+)@)?([\w_-]+(\.[\w_-]+)+)$`)
 
 type WellKnownResponse struct {
-	Names  map[st]st   `json:"names"`
-	Relays map[st][]st `json:"relays,omitempty"`
-	NIP46  map[st][]st `json:"nip46,omitempty"`
+	Names  map[string]string   `json:"names"`
+	Relays map[string][]string `json:"relays,omitempty"`
+	NIP46  map[string][]string `json:"nip46,omitempty"`
 }
 
 func NewWellKnownResponse() *WellKnownResponse {
 	return &WellKnownResponse{
-		Names:  make(map[st]st),
-		Relays: make(map[st][]st),
-		NIP46:  make(map[st][]st),
+		Names:  make(map[string]string),
+		Relays: make(map[string][]string),
+		NIP46:  make(map[string][]string),
 	}
 }
 
-func IsValidIdentifier(input st) bo {
+func IsValidIdentifier(input string) bool {
 	return Nip05Regex.MatchString(input)
 }
 
-func ParseIdentifier(account st) (name, domain st, err er) {
+func ParseIdentifier(account string) (name, domain string, err error) {
 	res := Nip05Regex.FindStringSubmatch(account)
 	if len(res) == 0 {
 		return "", "", errorf.E("invalid identifier")
@@ -42,9 +43,9 @@ func ParseIdentifier(account st) (name, domain st, err er) {
 	return res[1], res[2], nil
 }
 
-func QueryIdentifier(c cx, account st) (prf *pointers.Profile, err er) {
+func QueryIdentifier(c context.T, account string) (prf *pointers.Profile, err error) {
 	var result *WellKnownResponse
-	var name st
+	var name string
 	if result, name, err = Fetch(c, account); chk.E(err) {
 		return
 	}
@@ -56,7 +57,7 @@ func QueryIdentifier(c cx, account st) (prf *pointers.Profile, err er) {
 	if !keys.IsValidPublicKey(pubkey) {
 		return nil, errorf.E("got an invalid public key '%s'", pubkey)
 	}
-	var pkb by
+	var pkb []byte
 	if pkb, err = keys.HexPubkeyToBytes(pubkey); chk.E(err) {
 		return
 	}
@@ -67,8 +68,8 @@ func QueryIdentifier(c cx, account st) (prf *pointers.Profile, err er) {
 	}, nil
 }
 
-func Fetch(c cx, account st) (resp *WellKnownResponse, name st, err er) {
-	var domain st
+func Fetch(c context.T, account string) (resp *WellKnownResponse, name string, err error) {
+	var domain string
 	if name, domain, err = ParseIdentifier(account); chk.E(err) {
 		err = errorf.E("failed to parse '%s': %w", account, err)
 		return
@@ -82,7 +83,7 @@ func Fetch(c cx, account st) (resp *WellKnownResponse, name st, err er) {
 	}
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request,
-			via []*http.Request) er {
+			via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}
@@ -93,8 +94,8 @@ func Fetch(c cx, account st) (resp *WellKnownResponse, name st, err er) {
 	}
 	defer res.Body.Close()
 	resp = NewWellKnownResponse()
-	b := make(by, 65535)
-	var n no
+	b := make([]byte, 65535)
+	var n int
 	if n, err = res.Body.Read(b); chk.E(err) {
 		return
 	}
@@ -105,16 +106,16 @@ func Fetch(c cx, account st) (resp *WellKnownResponse, name st, err er) {
 	return
 }
 
-func NormalizeIdentifier(account st) st {
+func NormalizeIdentifier(account string) string {
 	if strings.HasPrefix(account, "_@") {
 		return account[2:]
 	}
 	return account
 }
 
-func StringSliceToByteSlice(ss []st) (bs []by) {
+func StringSliceToByteSlice(ss []string) (bs [][]byte) {
 	for _, s := range ss {
-		bs = append(bs, by(s))
+		bs = append(bs, []byte(s))
 	}
 	return
 }

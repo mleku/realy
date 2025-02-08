@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"bytes"
 	"context"
 	"testing"
 
@@ -41,8 +42,8 @@ func TestParse(t *testing.T) {
 }
 
 func TestQuery(t *testing.T) {
-	var pkb by
-	var err er
+	var pkb []byte
+	var err error
 	var pp *pointers.Profile
 	acct := "fiatjaf.com"
 	if pp, err = QueryIdentifier(context.Background(), acct); chk.E(err) {
@@ -52,7 +53,7 @@ func TestQuery(t *testing.T) {
 		"3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d"); chk.E(err) {
 		t.Fatal(err)
 	}
-	if err != nil || !equals(pp.PublicKey, pkb) {
+	if err != nil || !bytes.Equal(pp.PublicKey, pkb) {
 		t.Fatalf("invalid query for fiatjaf.com")
 	}
 
@@ -61,7 +62,7 @@ func TestQuery(t *testing.T) {
 		"f9dd6a762506260b38a2d3e5b464213c2e47fa3877429fe9ee60e071a31a07d7"); chk.E(err) {
 		t.Fatal(err)
 	}
-	if err != nil || !equals(pp.PublicKey, pkb) {
+	if err != nil || !bytes.Equal(pp.PublicKey, pkb) {
 		t.Fatalf("invalid query for htlc@fiatjaf.com")
 	}
 }
