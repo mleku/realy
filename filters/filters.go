@@ -9,9 +9,9 @@ type T struct {
 	F []*filter.T
 }
 
-func Make(l no) *T { return &T{F: make([]*filter.T, l)} }
+func Make(l int) *T { return &T{F: make([]*filter.T, l)} }
 
-func (f *T) GetFingerprints() (fps []uint64, err er) {
+func (f *T) GetFingerprints() (fps []uint64, err error) {
 	for _, ff := range f.F {
 		var fp uint64
 		if fp, err = ff.Fingerprint(); chk.E(err) {
@@ -22,11 +22,11 @@ func (f *T) GetFingerprints() (fps []uint64, err er) {
 	return
 }
 
-func (f *T) Len() no { return len(f.F) }
+func (f *T) Len() int { return len(f.F) }
 
 func New(ff ...*filter.T) (f *T) { return &T{F: ff} }
 
-func (f *T) Match(event *event.T) bo {
+func (f *T) Match(event *event.T) bool {
 	for _, f := range f.F {
 		if f.Matches(event) {
 			return true
@@ -35,10 +35,10 @@ func (f *T) Match(event *event.T) bo {
 	return false
 }
 
-func (f *T) String() (s st) { return st(f.Marshal(nil)) }
+func (f *T) String() (s string) { return string(f.Marshal(nil)) }
 
-func (f *T) Marshal(dst by) (b by) {
-	var err er
+func (f *T) Marshal(dst []byte) (b []byte) {
+	var err error
 	_ = err
 	b = dst
 	b = append(b, '[')
@@ -53,7 +53,7 @@ func (f *T) Marshal(dst by) (b by) {
 	return
 }
 
-func (f *T) Unmarshal(b by) (r by, err er) {
+func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b[:]
 	if len(r) < 1 {
 		err = errorf.E("cannot unmarshal nothing")
@@ -94,7 +94,7 @@ func (f *T) Unmarshal(b by) (r by, err er) {
 	return
 }
 
-func GenFilters(n no) (ff *T, err er) {
+func GenFilters(n int) (ff *T, err error) {
 	ff = &T{}
 	for _ = range n {
 		var f *filter.T

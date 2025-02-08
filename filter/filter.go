@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"bytes"
 	"encoding/binary"
 	"sort"
 
@@ -20,7 +21,7 @@ import (
 	"realy.lol/timestamp"
 )
 
-func Present(i *uint) bo { return i != nil }
+func Present(i *uint) bool { return i != nil }
 
 // T is the primary query form for requesting events from a nostr relay.
 //
@@ -38,7 +39,7 @@ type T struct {
 	Tags    *tags.T      `json:"-,omitempty"`
 	Since   *timestamp.T `json:"since,omitempty"`
 	Until   *timestamp.T `json:"until,omitempty"`
-	Search  by           `json:"search,omitempty"`
+	Search  []byte       `json:"search,omitempty"`
 	Limit   *uint        `json:"limit,omitempty"`
 }
 
@@ -61,40 +62,40 @@ func New() (f *T) {
 func (f *T) Clone() (clone *T) {
 	lim := new(uint)
 	*lim = 1
-	IDs := *f.IDs
-	Kinds := *f.Kinds
-	Authors := *f.Authors
-	Tags := *f.Tags.Clone()
-	Since := *f.Since
-	Until := *f.Until
-	Search := make(by, len(f.Search))
+	_IDs := *f.IDs
+	_Kinds := *f.Kinds
+	_Authors := *f.Authors
+	_Tags := *f.Tags.Clone()
+	_Since := *f.Since
+	_Until := *f.Until
+	_Search := make([]byte, len(f.Search))
 	copy(Search, f.Search)
 	return &T{
-		IDs:     &IDs,
-		Kinds:   &Kinds,
-		Authors: &Authors,
-		Tags:    &Tags,
-		Since:   &Since,
-		Until:   &Until,
-		Search:  Search,
+		IDs:     &_IDs,
+		Kinds:   &_Kinds,
+		Authors: &_Authors,
+		Tags:    &_Tags,
+		Since:   &_Since,
+		Until:   &_Until,
+		Search:  _Search,
 		Limit:   lim,
 	}
 }
 
 var (
-	IDs     = by("ids")
-	Kinds   = by("kinds")
-	Authors = by("authors")
-	Since   = by("since")
-	Until   = by("until")
-	Limit   = by("limit")
-	Search  = by("search")
+	IDs     = []byte("ids")
+	Kinds   = []byte("kinds")
+	Authors = []byte("authors")
+	Since   = []byte("since")
+	Until   = []byte("until")
+	Limit   = []byte("limit")
+	Search  = []byte("search")
 )
 
-func (f *T) Marshal(dst by) (b by) {
-	var err er
+func (f *T) Marshal(dst []byte) (b []byte) {
+	var err error
 	_ = err
-	var first bo
+	var first bool
 	// sort the fields so they come out the same
 	f.Sort()
 	// open parentheses
@@ -219,7 +220,7 @@ func (f *T) Marshal(dst by) (b by) {
 	return
 }
 
-func (f *T) Serialize() (b by) { return f.Marshal(nil) }
+func (f *T) Serialize() (b []byte) { return f.Marshal(nil) }
 
 // states of the unmarshaler
 const (
@@ -232,10 +233,10 @@ const (
 	afterClose
 )
 
-func (f *T) Unmarshal(b by) (r by, err er) {
+func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b[:]
-	var key by
-	var state no
+	var key []byte
+	var state int
 	for ; len(r) >= 0; r = r[1:] {
 		// log.I.F("%c", rem[0])
 		switch state {
@@ -267,27 +268,27 @@ func (f *T) Unmarshal(b by) (r by, err er) {
 			}
 			switch key[0] {
 			case '#':
-				k := make(by, len(key))
+				k := make([]byte, len(key))
 				copy(k, key)
 				// r = r[1:]
 				switch key[1] {
 				case 'e', 'p':
 					// the tags must all be 64 character hexadecimal
-					var ff []by
+					var ff [][]byte
 					if ff, r, err = text.UnmarshalHexArray(r,
 						sha256.Size); chk.E(err) {
 						return
 					}
-					ff = append([]by{k}, ff...)
+					ff = append([][]byte{k}, ff...)
 					f.Tags = f.Tags.AppendTags(tag.New(ff...))
 					// f.Tags.T = append(f.Tags.T, tag.New(ff...))
 				default:
 					// other types of tags can be anything
-					var ff []by
+					var ff [][]byte
 					if ff, r, err = text.UnmarshalStringArray(r); chk.E(err) {
 						return
 					}
-					ff = append([]by{k}, ff...)
+					ff = append([][]byte{k}, ff...)
 					f.Tags = f.Tags.AppendTags(tag.New(ff...))
 					// f.Tags.T = append(f.Tags.T, tag.New(ff...))
 				}
@@ -296,7 +297,7 @@ func (f *T) Unmarshal(b by) (r by, err er) {
 				if len(key) < len(IDs) {
 					goto invalid
 				}
-				var ff []by
+				var ff [][]byte
 				if ff, r, err = text.UnmarshalHexArray(r,
 					sha256.Size); chk.E(err) {
 					return
@@ -316,7 +317,7 @@ func (f *T) Unmarshal(b by) (r by, err er) {
 				if len(key) < len(Authors) {
 					goto invalid
 				}
-				var ff []by
+				var ff [][]byte
 				if ff, r, err = text.UnmarshalHexArray(r, schnorr.PubKeyBytesLen); chk.E(err) {
 					return
 				}
@@ -352,7 +353,7 @@ func (f *T) Unmarshal(b by) (r by, err er) {
 					if len(key) < len(Search) {
 						goto invalid
 					}
-					var txt by
+					var txt []byte
 					if txt, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 						return
 					}
@@ -401,11 +402,11 @@ func (f *T) Unmarshal(b by) (r by, err er) {
 		}
 	}
 invalid:
-	err = errorf.E("invalid key,\n'%s'\n'%s'", st(b), st(r))
+	err = errorf.E("invalid key,\n'%s'\n'%s'", string(b), string(r))
 	return
 }
 
-func (f *T) Matches(ev *event.T) bo {
+func (f *T) Matches(ev *event.T) bool {
 	if ev == nil {
 		// log.T.F("nil event")
 		return false
@@ -442,10 +443,10 @@ func (f *T) Matches(ev *event.T) bo {
 // This hash is generated via the JSON encoded form of the filter, with the Limit field removed.
 // This value should be set to zero after all results from a query of stored events, as per
 // NIP-01.
-func (f *T) Fingerprint() (fp uint64, err er) {
+func (f *T) Fingerprint() (fp uint64, err error) {
 	lim := f.Limit
 	f.Limit = nil
-	var b by
+	var b []byte
 	b = f.Marshal(b)
 	h := sha256.Sum256(b)
 	hb := h[:]
@@ -471,7 +472,7 @@ func (f *T) Sort() {
 	}
 }
 
-func arePointerValuesEqual[V comparable](a *V, b *V) bo {
+func arePointerValuesEqual[V comparable](a *V, b *V) bool {
 	if a == nil && b == nil {
 		return true
 	}
@@ -481,25 +482,25 @@ func arePointerValuesEqual[V comparable](a *V, b *V) bo {
 	return false
 }
 
-func Equal(a, b *T) bo {
+func Equal(a, b *T) bool {
 	if !a.Kinds.Equals(b.Kinds) ||
 		!a.IDs.Equal(b.IDs) ||
 		!a.Authors.Equal(b.Authors) ||
 		a.Tags.Len() != b.Tags.Len() ||
 		!arePointerValuesEqual(a.Since, b.Since) ||
 		!arePointerValuesEqual(a.Until, b.Until) ||
-		!equals(a.Search, b.Search) ||
+		!bytes.Equal(a.Search, b.Search) ||
 		!a.Tags.Equal(b.Tags) {
 		return false
 	}
 	return true
 }
 
-func GenFilter() (f *T, err er) {
+func GenFilter() (f *T, err error) {
 	f = New()
 	n := frand.Intn(16)
 	for _ = range n {
-		id := make(by, sha256.Size)
+		id := make([]byte, sha256.Size)
 		frand.Read(id)
 		f.IDs = f.IDs.Append(id)
 		// f.IDs.Field = append(f.IDs.Field, id)
@@ -523,38 +524,38 @@ func GenFilter() (f *T, err er) {
 		n = a
 	}
 	for i := range n {
-		p := make(by, 0, schnorr.PubKeyBytesLen*2)
+		p := make([]byte, 0, schnorr.PubKeyBytesLen*2)
 		p = hex.EncAppend(p, f.Authors.B(i))
 	}
 	for b := 'a'; b <= 'z'; b++ {
 		l := frand.Intn(6)
 		if b == 'e' || b == 'p' {
-			var idb []by
+			var idb [][]byte
 			for range l {
-				id := make(by, sha256.Size)
+				id := make([]byte, sha256.Size)
 				frand.Read(id)
 				idb = append(idb, id)
 			}
-			idb = append([]by{{'#', byte(b)}}, idb...)
+			idb = append([][]byte{{'#', byte(b)}}, idb...)
 			f.Tags = f.Tags.AppendTags(tag.FromBytesSlice(idb...))
 			// f.Tags.T = append(f.Tags.T, tag.FromBytesSlice(idb...))
 		} else {
-			var idb []by
+			var idb [][]byte
 			for range l {
-				bb := make(by, frand.Intn(31)+1)
+				bb := make([]byte, frand.Intn(31)+1)
 				frand.Read(bb)
-				id := make(by, 0, len(bb)*2)
+				id := make([]byte, 0, len(bb)*2)
 				id = hex.EncAppend(id, bb)
 				idb = append(idb, id)
 			}
-			idb = append([]by{{'#', byte(b)}}, idb...)
+			idb = append([][]byte{{'#', byte(b)}}, idb...)
 			f.Tags = f.Tags.AppendTags(tag.FromBytesSlice(idb...))
 			// f.Tags.T = append(f.Tags.T, tag.FromBytesSlice(idb...))
 		}
 	}
-	tn := no(timestamp.Now().I64())
+	tn := int(timestamp.Now().I64())
 	f.Since = &timestamp.T{int64(tn - frand.Intn(10000))}
 	f.Until = timestamp.Now()
-	f.Search = by("token search text")
+	f.Search = []byte("token search text")
 	return
 }
