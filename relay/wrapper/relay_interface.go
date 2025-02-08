@@ -1,10 +1,12 @@
 package wrapper
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"sort"
 
+	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/kinds"
@@ -17,8 +19,8 @@ import (
 // RelayInterface is a wrapper thing that unifies Store and Relay under a common
 // API.
 type RelayInterface interface {
-	Publish(c cx, evt *event.T) er
-	QuerySync(c cx, f *filter.T, opts ...ws.SubscriptionOption) ([]*event.T, er)
+	Publish(c context.T, evt *event.T) error
+	QuerySync(c context.T, f *filter.T, opts ...ws.SubscriptionOption) ([]*event.T, error)
 }
 
 type Relay struct {
@@ -27,7 +29,7 @@ type Relay struct {
 
 var _ RelayInterface = (*Relay)(nil)
 
-func (w Relay) Publish(c cx, evt *event.T) (err er) {
+func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 	if evt.Kind.IsEphemeral() {
 		// do not store ephemeral events
 		return nil
@@ -46,11 +48,11 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 			log.I.F("found events %d", len(evs))
 			for _, ev := range evs {
 				del := true
-				if equals(ev.ID, evt.ID) {
+				if bytes.Equal(ev.ID, evt.ID) {
 					continue
 				}
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
-					return errorf.W(st(normalize.Invalid.F("not replacing newer replaceable event")))
+					return errorf.W(string(normalize.Invalid.F("not replacing newer replaceable event")))
 				}
 				// not deleting these events because some clients are retarded and the query
 				// will pull the new one but a backup can recover the data of old ones
@@ -65,7 +67,10 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 							// the event.
 							return
 						}
-						log.T.C(func() st { return fmt.Sprintf("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize()) })
+						log.T.C(func() string {
+							return fmt.Sprintf("%s\nreplacing\n%s", evt.Serialize(),
+								ev.Serialize())
+						})
 						// replaceable events we don't tombstone when replacing, so if deleted, old
 						// versions can be restored
 						if err = w.I.DeleteEvent(c, ev.EventID(), true); chk.E(err) {
@@ -93,7 +98,7 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 				err = nil
 				log.I.F("maybe replace %s", ev.Serialize())
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
-					return errorf.D(st(normalize.Blocked.F("not replacing newer parameterized replaceable event")))
+					return errorf.D(string(normalize.Blocked.F("not replacing newer parameterized replaceable event")))
 				}
 				// not deleting these events because some clients are retarded and the query
 				// will pull the new one but a backup can recover the data of old ones
@@ -103,7 +108,7 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 				evdt := ev.Tags.GetFirst(tag.New("d"))
 				evtdt := evt.Tags.GetFirst(tag.New("d"))
 				log.I.F("%s != %s", evdt.Value(), evtdt.Value())
-				if !equals(evdt.Value(), evtdt.Value()) {
+				if !bytes.Equal(evdt.Value(), evtdt.Value()) {
 					continue
 				}
 				if del {
@@ -113,7 +118,10 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 							// the event.
 							return
 						}
-						log.T.C(func() st { return fmt.Sprintf("%s\nreplacing\n%s", evt.Serialize(), ev.Serialize()) })
+						log.T.C(func() string {
+							return fmt.Sprintf("%s\nreplacing\n%s", evt.Serialize(),
+								ev.Serialize())
+						})
 						// replaceable events we don't tombstone when replacing, so if deleted, old
 						// versions can be restored
 						if err = w.I.DeleteEvent(c, ev.EventID(), true); chk.E(err) {
@@ -130,8 +138,8 @@ func (w Relay) Publish(c cx, evt *event.T) (err er) {
 	return
 }
 
-func (w Relay) QuerySync(c cx, f *filter.T,
-	opts ...ws.SubscriptionOption) ([]*event.T, er) {
+func (w Relay) QuerySync(c context.T, f *filter.T,
+	opts ...ws.SubscriptionOption) ([]*event.T, error) {
 
 	evs, err := w.I.QueryEvents(c, f)
 	if chk.E(err) {

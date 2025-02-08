@@ -11,7 +11,7 @@ import (
 )
 
 // Fetch fetches the NIP-11 Info.
-func Fetch(c cx, u by) (info *T, err er) {
+func Fetch(c context.T, u []byte) (info *T, err error) {
 	if _, ok := c.Deadline(); !ok {
 		// if no timeout is set, force it to 7 seconds
 		var cancel context.F
@@ -20,7 +20,7 @@ func Fetch(c cx, u by) (info *T, err er) {
 	}
 	u = normalize.URL(u)
 	var req *http.Request
-	if req, err = http.NewRequestWithContext(c, http.MethodGet, st(u), nil); chk.E(err) {
+	if req, err = http.NewRequestWithContext(c, http.MethodGet, string(u), nil); chk.E(err) {
 		return
 	}
 	// add the NIP-11 header
@@ -32,7 +32,7 @@ func Fetch(c cx, u by) (info *T, err er) {
 		return
 	}
 	defer chk.E(resp.Body.Close())
-	var b by
+	var b []byte
 	if b, err = io.ReadAll(resp.Body); chk.E(err) {
 		return
 	}
