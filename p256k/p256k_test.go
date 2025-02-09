@@ -83,14 +83,15 @@ func TestSignerSign(t *testing.T) {
 	var err error
 	signer := &p256k.Signer{}
 	var skb, pkb []byte
-	if skb, pkb, _, _, _, err = p256k.Generate(); chk.E(err) {
+	if skb, pkb, _, _, err = p256k.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
+	log.I.S(skb, pkb)
 	if err = signer.InitSec(skb); chk.E(err) {
 		t.Fatal(err)
 	}
 	verifier := &p256k.Signer{}
-	if err = verifier.InitPub(pkb[1:]); chk.E(err) {
+	if err = verifier.InitPub(pkb); chk.E(err) {
 		t.Fatal(err)
 	}
 	for scanner.Scan() {
@@ -130,10 +131,10 @@ func TestECDH(t *testing.T) {
 		if err = s1.Generate(); chk.E(err) {
 			t.Fatal(err)
 		}
-		if err = s2.Generate(); chk.E(err) {
-			t.Fatal(err)
-		}
 		for _ = range total {
+			if err = s2.Generate(); chk.E(err) {
+				t.Fatal(err)
+			}
 			var secret1, secret2 []byte
 			if secret1, err = s1.ECDH(s2.Pub()); chk.E(err) {
 				t.Fatal(err)
@@ -150,7 +151,6 @@ func TestECDH(t *testing.T) {
 	}
 	a := time.Now()
 	duration := a.Sub(n)
-	log.I.Ln("errors", counter, "total", total, "time", duration, "time/op",
-		int(duration/total),
-		"ops/sec", int(time.Second)/int(duration/total))
+	log.I.Ln("errors", counter, "total", total*total, "time", duration, "time/op",
+		duration/total/total, "ops/sec", float64(time.Second)/float64(duration/total/total))
 }

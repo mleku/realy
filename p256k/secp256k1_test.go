@@ -54,7 +54,7 @@ func TestSign(t *testing.T) {
 	var sec1 *p256k.Sec
 	var pub1 *p256k.XPublicKey
 	var pb []byte
-	if _, pb, sec1, pub1, _, err = p256k.Generate(); chk.E(err) {
+	if _, pb, sec1, pub1, err = p256k.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
 	for scanner.Scan() {

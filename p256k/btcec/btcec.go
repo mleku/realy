@@ -10,6 +10,7 @@ import (
 type Signer struct {
 	SecretKey *secp256k1.SecretKey
 	PublicKey *secp256k1.PublicKey
+	BTCECSec  *ec.SecretKey
 	pkb, skb  []byte
 }
 
@@ -32,6 +33,7 @@ func (s *Signer) Generate() (err error) {
 			break
 		}
 	}
+	s.BTCECSec, _ = ec.PrivKeyFromBytes(s.skb)
 	return
 }
 
@@ -47,6 +49,7 @@ func (s *Signer) InitSec(sec []byte) (err error) {
 		err = errorf.E("invalid odd pubkey from secret key %0x", s.pkb)
 		return
 	}
+	s.BTCECSec, _ = ec.PrivKeyFromBytes(s.skb)
 	return
 }
 
@@ -94,12 +97,10 @@ func (s *Signer) Zero() { s.SecretKey.Key.Zero() }
 
 func (s *Signer) ECDH(pubkeyBytes []byte) (secret []byte, err error) {
 	var pub *secp256k1.PublicKey
-	// Note the public key must be even, if the secret key derives an odd compressed pubkey ECDH will fail in that
-	// direction.
 	if pub, err = secp256k1.ParsePubKey(append([]byte{0x02}, pubkeyBytes...)); chk.E(err) {
 		return
 	}
-	secret = ec.GenerateSharedSecret(s.SecretKey, pub)
+	secret = ec.GenerateSharedSecret(s.BTCECSec, pub)
 	return
 }
 

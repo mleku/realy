@@ -2,7 +2,6 @@
 
 package p256k
 
-import "C"
 import (
 	"crypto/rand"
 	"unsafe"
@@ -75,7 +74,7 @@ type Sec struct {
 }
 
 func GenSec() (sec *Sec, err error) {
-	if _, _, sec, _, _, err = Generate(); chk.E(err) {
+	if _, _, sec, _, err = Generate(); chk.E(err) {
 		return
 	}
 	return
@@ -101,15 +100,15 @@ func (s *Sec) Pub() (p *Pub, err error) {
 	return
 }
 
-type PublicKey struct {
-	Key *C.secp256k1_pubkey
-}
-
-func NewPublicKey() *PublicKey {
-	return &PublicKey{
-		Key: &C.secp256k1_pubkey{},
-	}
-}
+// type PublicKey struct {
+// 	Key *C.secp256k1_pubkey
+// }
+//
+// func NewPublicKey() *PublicKey {
+// 	return &PublicKey{
+// 		Key: &C.secp256k1_pubkey{},
+// 	}
+// }
 
 type XPublicKey struct {
 	Key *C.secp256k1_xonly_pubkey
@@ -123,12 +122,17 @@ func NewXPublicKey() *XPublicKey {
 
 // FromSecretBytes parses and processes what should be a secret key. If it is a correct key within the curve order, but
 // with a public key having an odd Y coordinate, it returns an error with the fixed key.
-func FromSecretBytes(skb []byte) (pkb []byte, sec *Sec, pub *XPublicKey, ecPub *PublicKey, err error) {
+func FromSecretBytes(skb []byte) (
+	pkb []byte,
+	sec *Sec,
+	pub *XPublicKey,
+// ecPub *PublicKey,
+	err error) {
 	ecpkb := make([]byte, secp256k1.PubKeyBytesLenCompressed)
-	clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
+	// clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
 	pkb = make([]byte, secp256k1.PubKeyBytesLenCompressed)
 	var parity Cint
-	ecPub = NewPublicKey()
+	// ecPub = NewPublicKey()
 	pub = NewXPublicKey()
 	sec = &Sec{}
 	uskb := ToUchar(skb)
@@ -137,9 +141,9 @@ func FromSecretBytes(skb []byte) (pkb []byte, sec *Sec, pub *XPublicKey, ecPub *
 		err = errorf.E("failed to create secp256k1 keypair")
 		return
 	}
-	C.secp256k1_keypair_pub(ctx, ecPub.Key, &sec.Key)
-	C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key,
-		C.SECP256K1_EC_COMPRESSED)
+	// C.secp256k1_keypair_pub(ctx, ecPub.Key, &sec.Key)
+	// C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key,
+	// 	C.SECP256K1_EC_COMPRESSED)
 	// if ecpkb[0] != 2 {
 	// log.W.F("odd pubkey from %0x -> %0x", skb, ecpkb)
 	// 	Negate(skb)
@@ -164,13 +168,20 @@ func FromSecretBytes(skb []byte) (pkb []byte, sec *Sec, pub *XPublicKey, ecPub *
 // signature and ECDH operations.
 //
 // Note that the pubkey bytes are the 33 byte form with the sign prefix, slice it off for X-only use.
-func Generate() (skb, pkb []byte, sec *Sec, pub *XPublicKey, ecpub *PublicKey, err error) {
+func Generate() (
+	skb, pkb []byte,
+	sec *Sec,
+	pub *XPublicKey,
+// ecpub *PublicKey,
+	err error,
+) {
 	skb = make([]byte, secp256k1.SecKeyBytesLen)
-	ecpkb := make([]byte, secp256k1.PubKeyBytesLenCompressed)
-	clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
-	pkb = make([]byte, secp256k1.PubKeyBytesLenCompressed)
+	// ecpkb := make([]byte, secp256k1.PubKeyBytesLenCompressed)
+	// clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
+	pkb = make([]byte, schnorr.PubKeyBytesLen)
+	upkb := ToUchar(pkb)
 	var parity Cint
-	ecpub = NewPublicKey()
+	// ecpub = NewPublicKey()
 	pub = NewXPublicKey()
 	sec = &Sec{}
 	for {
@@ -180,26 +191,27 @@ func Generate() (skb, pkb []byte, sec *Sec, pub *XPublicKey, ecpub *PublicKey, e
 		uskb := ToUchar(skb)
 		if res := C.secp256k1_keypair_create(ctx, &sec.Key, uskb); res != 1 {
 			err = errorf.E("failed to create secp256k1 keypair")
-			return
+			continue
 		}
-		C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
-		C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key,
-			C.SECP256K1_EC_COMPRESSED)
+		// C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
+		// C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key,
+		// 	C.SECP256K1_EC_COMPRESSED)
 		// negate key if it generates an odd Y compressed public key per BIP-340 (or at least so ecdsa can assume - and
 		// maybe it's a tiny bit faster to verify? idk, bip-340 says "implicit 0x02 key" so whatever let's make em)
-		if ecpkb[0] == 2 {
-			C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
-			break
-		} else {
-			Negate(skb)
-			C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
-			C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key,
-				C.SECP256K1_EC_COMPRESSED)
-			C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
-			break
-		}
+		// if ecpkb[0] == 2 {
+		C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
+		C.secp256k1_xonly_pubkey_serialize(ctx, upkb, pub.Key)
+		break
+		// } else {
+		// 	Negate(skb)
+		// C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
+		// C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key,
+		// 	C.SECP256K1_EC_COMPRESSED)
+		// C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
+		// break
+		// }
 	}
-	pkb = ecpkb
+	// pkb = ecpkb
 	return
 }
 
@@ -217,7 +229,7 @@ func ECPubFromSchnorrBytes(xkb []byte) (pub *ECPub, err error) {
 		return
 	}
 	pub = &ECPub{}
-	p := append([]byte{0x02}, xkb...)
+	p := append([]byte{0}, xkb...)
 	if C.secp256k1_ec_pubkey_parse(ctx, &pub.Key, ToUchar(p),
 		secp256k1.PubKeyBytesLenCompressed) != 1 {
 		err = errorf.E("failed to parse pubkey from %0x", p)
@@ -227,20 +239,20 @@ func ECPubFromSchnorrBytes(xkb []byte) (pub *ECPub, err error) {
 	return
 }
 
-// ECPubFromBytes parses a pubkey from 33 bytes to the bitcoin-core/secp256k1 struct.
-func ECPubFromBytes(pkb []byte) (pub *ECPub, err error) {
-	if err = AssertLen(pkb, secp256k1.PubKeyBytesLenCompressed, "pubkey"); chk.E(err) {
-		return
-	}
-	pub = &ECPub{}
-	if C.secp256k1_ec_pubkey_parse(ctx, &pub.Key, ToUchar(pkb),
-		secp256k1.PubKeyBytesLenCompressed) != 1 {
-		err = errorf.E("failed to parse pubkey from %0x", pkb)
-		log.I.S(pub)
-		return
-	}
-	return
-}
+// // ECPubFromBytes parses a pubkey from 33 bytes to the bitcoin-core/secp256k1 struct.
+// func ECPubFromBytes(pkb []byte) (pub *ECPub, err error) {
+// 	if err = AssertLen(pkb, secp256k1.PubKeyBytesLenCompressed, "pubkey"); chk.E(err) {
+// 		return
+// 	}
+// 	pub = &ECPub{}
+// 	if C.secp256k1_ec_pubkey_parse(ctx, &pub.Key, ToUchar(pkb),
+// 		secp256k1.PubKeyBytesLenCompressed) != 1 {
+// 		err = errorf.E("failed to parse pubkey from %0x", pkb)
+// 		log.I.S(pub)
+// 		return
+// 	}
+// 	return
+// }
 
 type Pub struct {
 	Key PubKey
@@ -348,6 +360,9 @@ func Zero(sk *SecKey) {
 			b[j] = ^b[lb-1-j]
 		}
 	}
+	for i := range b {
+		b[i] = 0
+	}
 }
 
 // Keygen is an implementation of a key miner designed to be used for vanity key generation with X-only BIP-340 keys.
@@ -355,8 +370,8 @@ type Keygen struct {
 	secBytes, comprPubBytes []byte
 	secUchar, cmprPubUchar  *Uchar
 	sec                     *Sec
-	ecpub                   *PublicKey
-	cmprLen                 C.size_t
+	// ecpub                   *PublicKey
+	cmprLen C.size_t
 }
 
 // NewKeygen allocates the required buffers for deriving a key. This should only be done once to avoid garbage and make
@@ -372,7 +387,7 @@ func NewKeygen() (k *Keygen) {
 	k.secUchar = ToUchar(k.secBytes)
 	k.cmprPubUchar = ToUchar(k.comprPubBytes)
 	k.sec = &Sec{}
-	k.ecpub = NewPublicKey()
+	// k.ecpub = NewPublicKey()
 	return
 }
 
@@ -380,7 +395,12 @@ func NewKeygen() (k *Keygen) {
 // secret key and the compressed pubkey bytes for the partial collision search.
 //
 // The first byte of pubBytes must be sliced off before deriving the hex/Bech32 forms of the nostr public key.
-func (k *Keygen) Generate() (pubBytes []byte, err error) {
+func (k *Keygen) Generate() (
+	sec *Sec,
+	pub *XPublicKey,
+	pubBytes []byte,
+	err error,
+) {
 	if _, err = rand.Read(k.secBytes); chk.E(err) {
 		return
 	}
@@ -388,10 +408,14 @@ func (k *Keygen) Generate() (pubBytes []byte, err error) {
 		err = errorf.E("failed to create secp256k1 keypair")
 		return
 	}
-	C.secp256k1_keypair_pub(ctx, k.ecpub.Key, &k.sec.Key)
-	C.secp256k1_ec_pubkey_serialize(ctx, k.cmprPubUchar, &k.cmprLen, k.ecpub.Key,
-		C.SECP256K1_EC_COMPRESSED)
-	pubBytes = k.comprPubBytes
+	var parity Cint
+	C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
+	// C.secp256k1_keypair_pub(ctx, k.ecpub.Key, &k.sec.Key)
+	// C.secp256k1_ec_pubkey_serialize(ctx, k.cmprPubUchar, &k.cmprLen, k.ecpub.Key,
+	// 	C.SECP256K1_EC_COMPRESSED)
+	// pubBytes = k.comprPubBytes
+	C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(pubBytes), pub.Key)
+	// pubBytes =
 	return
 }
 
@@ -400,8 +424,10 @@ func (k *Keygen) Generate() (pubBytes []byte, err error) {
 // correctly. This can be done after a match is found as it does not impact anything except the first byte.
 func (k *Keygen) Negate() { C.secp256k1_ec_seckey_negate(ctx, k.secUchar) }
 
-func (k *Keygen) KeyPairBytes() (secBytes, cmprPubBytes []byte) {
-	C.secp256k1_ec_pubkey_serialize(ctx, k.cmprPubUchar, &k.cmprLen, k.ecpub.Key,
-		C.SECP256K1_EC_COMPRESSED)
+func (k *Keygen) KeyPairBytes() (secBytes, pubBytes []byte) {
+	pub := new(XPublicKey)
+	C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(pubBytes), pub.Key)
+	// C.secp256k1_ec_pubkey_serialize(ctx, k.cmprPubUchar, &k.cmprLen, k.ecpub.Key,
+	// 	C.SECP256K1_EC_COMPRESSED)
 	return k.secBytes, k.comprPubBytes[1:]
 }
