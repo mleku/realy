@@ -1,9 +1,8 @@
 = realy.lol
+:toc:
 
 image:https://img.shields.io/badge/godoc-documentation-blue.svg[Documentation,link=https://pkg.go.dev/realy.lol]
-
 image:https://img.shields.io/badge/donate-geyser_crowdfunding_project_page-orange.svg[Support this project,link=https://geyser.fund/project/realy]
-
 zap me: ⚡️mleku@getalby.com
 
 image:./realy.png[realy.png]
