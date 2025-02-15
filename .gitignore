@@ -67,6 +67,7 @@ node_modules/**
 !*.service
 !*.benc
 !*.png
+!*.adoc
 
 # ...even if they are in subdirectories
 !*/
