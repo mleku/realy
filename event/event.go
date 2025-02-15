@@ -49,6 +49,8 @@ func New() (ev *T) { return &T{} }
 
 func (ev *T) Serialize() (b []byte) { return ev.Marshal(nil) }
 
+func (ev *T) SerializeIndented() (b []byte) { return ev.marshalWithWhitespace(nil, true) }
+
 // stringy functions for retarded other libraries
 
 func (ev *T) IDString() (s string)       { return hex.Enc(ev.ID) }

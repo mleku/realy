@@ -126,11 +126,11 @@ func FromSecretBytes(skb []byte) (
 	pkb []byte,
 	sec *Sec,
 	pub *XPublicKey,
-// ecPub *PublicKey,
+	// ecPub *PublicKey,
 	err error) {
-	ecpkb := make([]byte, secp256k1.PubKeyBytesLenCompressed)
-	// clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
-	pkb = make([]byte, secp256k1.PubKeyBytesLenCompressed)
+	xpkb := make([]byte, schnorr.PubKeyBytesLen)
+	// clen := C.size_t(secp256k1.PubKeyBytesLenCompressed - 1)
+	pkb = make([]byte, schnorr.PubKeyBytesLen)
 	var parity Cint
 	// ecPub = NewPublicKey()
 	pub = NewXPublicKey()
@@ -159,8 +159,9 @@ func FromSecretBytes(skb []byte) (
 	// 	err = errors.New("provided secret generates a public key with odd Y coordinate, fixed version returned")
 	// }
 	C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
-	// log.I.S(sec, ecPub, pub)
-	pkb = ecpkb
+	C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(xpkb), pub.Key)
+	pkb = xpkb
+	// log.I.S(sec, pub, skb, pkb)
 	return
 }
 
@@ -172,7 +173,7 @@ func Generate() (
 	skb, pkb []byte,
 	sec *Sec,
 	pub *XPublicKey,
-// ecpub *PublicKey,
+	// ecpub *PublicKey,
 	err error,
 ) {
 	skb = make([]byte, secp256k1.SecKeyBytesLen)

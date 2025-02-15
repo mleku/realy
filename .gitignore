@@ -26,6 +26,10 @@ node_modules/**
 **/node_modules/
 **/node_modules/**
 
+# and others
+/go.work.sum
+/secp256k1/
+
 # But not these files...
 !/.gitignore
 !*.go
@@ -66,4 +70,3 @@ node_modules/**
 
 # ...even if they are in subdirectories
 !*/
-/go.work.sum

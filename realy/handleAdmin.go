@@ -11,7 +11,7 @@ import (
 	"realy.lol/hex"
 )
 
-// func (s *Server) auth(r *http.Request) (authed bo) {
+// func (s *Server) auth(r *http.Request) (authed bool) {
 // 	if s.adminUser == "" || s.adminPass == "" {
 // 		// disallow this if it hasn't been configured, the default values are empty.
 // 		return

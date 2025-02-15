@@ -24,35 +24,71 @@ var (
 )
 
 func (ev *T) Marshal(dst []byte) (b []byte) {
+	b = ev.marshalWithWhitespace(dst, false)
+	return
+}
+
+func (ev *T) marshalWithWhitespace(dst []byte, on bool) (b []byte) {
 	// open parentheses
 	dst = append(dst, '{')
 	// ID
+	if on {
+		dst = append(dst, '\n')
+		dst = append(dst, '\t')
+	}
 	dst = text.JSONKey(dst, jId)
 	dst = text.AppendQuote(dst, ev.ID, hex.EncAppend)
 	dst = append(dst, ',')
 	// PubKey
+	if on {
+		dst = append(dst, '\n')
+		dst = append(dst, '\t')
+	}
 	dst = text.JSONKey(dst, jPubkey)
 	dst = text.AppendQuote(dst, ev.PubKey, hex.EncAppend)
 	dst = append(dst, ',')
+	if on {
+		dst = append(dst, '\n')
+		dst = append(dst, '\t')
+	}
 	// CreatedAt
 	dst = text.JSONKey(dst, jCreatedAt)
 	dst = ev.CreatedAt.Marshal(dst)
 	dst = append(dst, ',')
+	if on {
+		dst = append(dst, '\n')
+		dst = append(dst, '\t')
+	}
 	// Kind
 	dst = text.JSONKey(dst, jKind)
 	dst = ev.Kind.Marshal(dst)
 	dst = append(dst, ',')
+	if on {
+		dst = append(dst, '\n')
+		dst = append(dst, '\t')
+	}
 	// Tags
 	dst = text.JSONKey(dst, jTags)
 	dst = ev.Tags.Marshal(dst)
 	dst = append(dst, ',')
+	if on {
+		dst = append(dst, '\n')
+		dst = append(dst, '\t')
+	}
 	// Content
 	dst = text.JSONKey(dst, jContent)
 	dst = text.AppendQuote(dst, ev.Content, text.NostrEscape)
 	dst = append(dst, ',')
+	if on {
+		dst = append(dst, '\n')
+		dst = append(dst, '\t')
+	}
 	// jSig
 	dst = text.JSONKey(dst, jSig)
 	dst = text.AppendQuote(dst, ev.Sig, hex.EncAppend)
+	if on {
+		dst = append(dst, '\n')
+	}
 	// close parentheses
 	dst = append(dst, '}')
 	b = dst

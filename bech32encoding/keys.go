@@ -72,6 +72,7 @@ func NsecToBytes(encoded []byte) (sk []byte, err error) {
 	if sk, err = ConvertFromBech32(b5); chk.E(err) {
 		return
 	}
+	sk = sk[:secp256k1.SecKeyBytesLen]
 	return
 }
 
