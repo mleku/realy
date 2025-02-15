@@ -41,7 +41,7 @@ func (s *Server) auth(r *http.Request) (authed bool) {
 func (s *Server) unauthorized(w http.ResponseWriter) {
 	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
-	fmt.Fprintf(w, "your npub is not welcome here")
+	fmt.Fprintf(w, "your npub is not welcome here\n")
 }
 
 func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) {
