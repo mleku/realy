@@ -1,5 +1,6 @@
 = realy.lol
 :toc:
+:note-caption: note 👉
 
 image:https://img.shields.io/badge/godoc-documentation-blue.svg[Documentation,link=https://pkg.go.dev/realy.lol]
 image:https://img.shields.io/badge/donate-geyser_crowdfunding_project_page-orange.svg[Support this project,link=https://geyser.fund/project/realy]
@@ -18,7 +19,7 @@ and https://github.com/fiatjaf/relayer[fiatjaf/relayer] aimed at maximum perform
 * https://github.com/bitcoin/secp256k1[libsecp256k1]-enabled signature and signature verification (see link:p256k/README.md[here])
 * efficient, mutable byte slice based hash/pubkey/signature encoding in memory (zero allocation decode from wire)
 * custom badger based event store with a garbage collector that deletes least recent once the store exceeds a specified size access, and data encoded using a more space efficient format based on the nost canonical json array event form
-* vanity npub generator that can mine a 5 letter prefix in around 15 minutes on a 6 core Ryzen 5 processor
+* vanity npub generator that can mine a 5 letter suffix in around 15 minutes on a 6 core Ryzen 5 processor using the CGO bitcoin core signature library
 * reverse proxy tool with support for Go vanity imports and https://github.com/nostr-protocol/nips/blob/master/05.md[nip-05] npub DNS verification and own TLS certificates
 
 == Building
@@ -100,6 +101,131 @@ will show you the instructions, and the one simple extension of being able to us
 === Database Storage Location
 
 The database is stored in `$HOME/.local/share/realy` and if need be you can stop `realy` delete everything in this directory and restart to "nuke" the database.
+
+== API support
+
+=== Standard Nostr NIPs
+
+`realy` already accepts all the standard NIPs mainly nip-01 and many other types are recognised such an NIP-42 auth messages and it uses and parses relay lists, and all that other stuff. It has maybe the most faithful implementation of NIP-42 but most clients don't correctly implement it, or at all. Which is sad, but what can you do with stupid people?
+
+=== Simplified Nostr
+
+Using websockets for everything is stupid. Only subscriptions need the capabilities that are easier accessed through sockets. So we are going to implement a simplified form for accessing nostr events that is based on the principles of RESTful interfaces.
+
+The distinction is that most of these HTTP endpoints _require_ authentication, but may not limit access by identity.
+
+A second distinction is that calls to these endpoints MUST have an `Accept` header with a recognised encoding.
+
+- `application/nostr+json` designates the use of the standard encoding, though the actual APIs may diverge from this such as segregating facets of the "filter" to be only available from a given endpoint.
+- `application/nostr+text` is a new format that is inspired by the standard encodings used in old protocols like SMTP, POP, NNTP and IMAP. These are optimized for human reading and composition.
+
+Of course, to translate between these protocols will require additional complexities, and for the moment we are focusing on implementing `application/nostr+json` style.
+
+==== Capabilities
+
+`https://example.com/capabilities` is an unprotected endpoint, and works like `nip-11` but is more sensible and relates to the RESTful endpoints described here.
+
+Calling this with `GET` will return a JSON array containing arrays with the following format:
+
+
+===== nostr+json
+----
+["<protocol name/path>", "<url of protocol repo>/path/to/spec.adoc","<version in semver vX.X.X-optional>",[["<flag>","<flag option>"]]]
+----
+
+- `protocol name/path` means the path string after the relay URL that invokes the protocol API method.
+
+- The URL refers to the HTTP Git URL, and the path is from the root of the repository (not necessarily the URL you can open on a web browser).
+
+- Version is the semver tag on the Git repository that contains the current documentation and reference implementation.
+
+- The flags are an optional array of flags specifying protocol features that are or aren't available on this method endpoint.
+
+From these and with a little research anyone should then be able to construct valid queries for the protocol.
+
+NOTE: that this message will differ if you use a different `Accept` type as different encodings may have differing degrees of implementation. This above is the `nostr+json` form
+
+==== Event
+
+`https://example.com/event` is the endpoint for publishing events.
+
+This will have the requirement for `nip-98` authentication in accordance with the `nip-11` `restricted-writes` field in limitations. It should also show in the `capabilities` that it is `auth-required`, which should be used to restrict access to subscribers to the relay service.
+
+The standard OK envelope JSON will be returned, eg:
+
+----
+["OK",true]
+["OK",false,"machine-readable: human-readable explanation"]
+----
+
+==== Events
+
+`https://example.com/events` is the endpoint for retrieving events.
+
+Rather than use the muddled "filter" structure, this will expect a simple array of the event IDs encoded in the encoding standard, ie, for `nostr+json` this means hexadecimal strings, in an array.
+
+The result will be JSONL formatted events returned in what should be reverse chronological order.
+
+==== Filter
+
+`https://example.com/filter` is the endpoint for the main set of criteria used in a filter in standard nostr websockets.
+
+The structure for `nostr+json` is as follows:
+
+:json:
+----
+{
+  "authors":["npubs in hex",...],
+  "kinds":[1,2,3,...],
+  "#a":["tag values for letter tag",...],...
+  "since":<timestamp>,
+  "until":<timestamp>,
+}
+----
+
+NOTE: there is no `ids` or `search` or `limit` field in here.
+
+The result from this is an array of the event IDs that match the filter, in reverse chronological order. By doing this, the burden of maintaining query state is shifted to the client, who is now free to request using the `events` endpoint to fetch the full events.
+
+The capabilities flag "limit" expresses how many results will be returned, and it can be relied upon that the last event in the return has a newer timestamp than any others that may have been truncated if the limit is hit.
+
+==== Fulltext
+
+`https://example.com/fulltext` is the endpoint for making a query using words that should be processed by a full text search engine.
+
+:json:
+----
+{
+  "authors":["npubs in hex",...],
+  "kinds":[1,2,3,...],
+  "#a":["tag values for letter tag",...],...
+  "since":<timestamp>,
+  "until":<timestamp>,
+  "search":"full text search text"
+}
+----
+
+The results are the same as `filter`.
+
+The purpose of also providing the filter fields is they form the basis of the matches, and then within that set the full text can be filtered. If there is no filter fields then there can be a very large number of results, so for this endpoint in the capabilities the relay will list some limit, which should be somewhere around 1000-10000.
+
+==== Relay
+
+`https://example.com/relay` is an endpoint that accepts a single event that should be sent to open subscriptions.
+
+This of course includes standard nostr websocket subscriptions as well as the ones in the next section.
+
+According to standard nostr `kind` this will, when using `application/nostr+json` only accept ephemeral event kinds (20k numbered), but on other encodings it is how this behaviour is specified by clients.
+
+Like `event` this endpoint also may have access restrictions, the flag for this in `capabilities` must specify.
+
+==== Subscribe
+
+`https://example.com/subscribe` is an endpoint that upgrades to a websocket if authorized, and will deliver event IDs in separate messages, in the same encoding as used to make the request.
+
+It uses the exact same query structure as `filter` as regards to the matching criteria, but the comparison is made as an event is received and then dispatched to subscribed clients.
+
+NOTE: Only the event IDs are given, they must be separately fetched by the client. This enables clients to opt to defer loading them for bandwidth conservation reasons.
 
 == Administrative functions
 
