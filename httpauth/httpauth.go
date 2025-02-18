@@ -28,48 +28,71 @@ func MakeEvent(u, method string) (ev *event.T) {
 	return
 }
 
-func MakeRequest(ur, meth string,
-	sign signer.I, payloadHash string, payload ...io.ReadCloser) (r *http.Request, err error) {
+// MakePostRequest creates a new http request with a nip-98 authentication code
+// in the header, signed by a provided signer.I with secret loaded, for pushing
+// data up to a server.
+func MakePostRequest(ur *url.URL, payloadHash, userAgent string,
+	sign signer.I, payload io.ReadCloser) (r *http.Request, err error) {
 
-	if _, err = url.Parse(ur); chk.E(err) {
-		return
-	}
-	method := strings.ToUpper(meth)
-	ev := MakeEvent(ur, method)
+	const method = "POST"
+	ev := MakeEvent(ur.String(), method)
 	if err = ev.Sign(sign); chk.E(err) {
 		return
 	}
 	// log.I.F("signing event %s", ev.Serialize())
-	log.T.F("nip-98 auth event:\n%s\n", ev.SerializeIndented())
+	log.T.F("nip-98 http auth event:\n%s\n", ev.SerializeIndented())
 	b64 := base64.URLEncoding.EncodeToString(ev.Serialize())
-	if r, err = http.NewRequest(method, ur, nil); chk.E(err) {
-		return
+	r = &http.Request{
+		Method:     "POST",
+		URL:        ur,
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header:     make(http.Header),
+		Body:       payload,
+		Host:       ur.Host,
 	}
-
 	r.Header.Add(HeaderKey, "Nostr "+b64)
 	if payloadHash != "" {
 		r.Header.Add("payload", payloadHash)
 	}
 	// log.I.F("Authorization: %s", req.Header.Get("Authorization"))
-	switch method {
-	case "POST":
-		// add the reader for the data
-		if len(payload) < 1 {
-			r.Body = payload[0]
-		}
-	case "GET":
-
-	default:
-		err = errorf.E("unsupported http method: %s", method)
-		return
-	}
+	r.Header.Add("User-Agent", userAgent)
+	// r.Header.Add("Content-Type", "application/binary")
+	log.I.F("made post request")
 	return
 }
 
+// MakeGetRequest creates a new http request with a nip-98 authentication code
+// in the header, signed by a provided signer.I with secret loaded. This is for
+// a simple query on a path and parameters.
+func MakeGetRequest(u *url.URL, userAgent string, sign signer.I) (r *http.Request,
+	err error) {
+
+	const method = "GET"
+	ev := MakeEvent(u.String(), method)
+	if err = ev.Sign(sign); chk.E(err) {
+		return
+	}
+	log.T.F("nip-98 http auth event:\n%s\n", ev.SerializeIndented())
+	b64 := base64.URLEncoding.EncodeToString(ev.Serialize())
+	if r, err = http.NewRequest(method, u.String(), nil); chk.E(err) {
+		return
+	}
+	r.Header.Add(HeaderKey, "Nostr "+b64)
+	// log.I.F("Authorization: %s", req.Header.Get("Authorization"))
+	r.Header.Add("User-Agent", userAgent[:len(userAgent)-1])
+	// r.Header.Add("Content-Type", "application/text")
+	return
+}
+
+// ValidateRequest verifies a received http.Request has got a valid
+// authentication event in it, and provides the public key that should be
+// verified to be authorized to access the resource associated with the request.
 func ValidateRequest(r *http.Request) (valid bool, pubkey []byte, err error) {
 	val := r.Header.Get(HeaderKey)
 	if val == "" {
-		err = errorf.E("'%s' key missing from request header")
+		err = errorf.E("'%s' key missing from request header", HeaderKey)
 		return
 	}
 	if !strings.HasPrefix(val, HeaderPrefix) {
@@ -126,9 +149,20 @@ func ValidateRequest(r *http.Request) (valid bool, pubkey []byte, err error) {
 	}
 	uts := ut.Value()
 	// The u tag MUST be exactly the same as the absolute request URL (including query parameters).
-	if r.URL.String() != string(uts[0].Value()) {
+
+	// log.I.S(r.Proto, r.Host, r.URL)
+	proto := "http"
+	// if this came through a proxy we need to get the protocol to match the event
+	if p := r.Header.Get("X-Forwarded-Proto"); p != "" {
+		proto = p
+	}
+	fullUrl := proto + "://" + r.Host + r.URL.RequestURI()
+	evUrl := string(uts[0].Value())
+	// log.I.S(r)
+	log.T.F("full URL: %s event u tag value: %s", fullUrl, evUrl)
+	if fullUrl != evUrl {
 		err = errorf.E("request has URL %s but signed nip-98 event has url %s",
-			r.URL.String(), string(uts[0].Value()))
+			fullUrl, string(uts[0].Value()))
 		return
 	}
 	// The method tag MUST be the same HTTP method used for the requested resource.

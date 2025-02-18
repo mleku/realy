@@ -12,9 +12,11 @@ import (
 
 	"github.com/pkg/profile"
 
+	realy_lol "realy.lol"
 	"realy.lol/bech32encoding"
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
+	"realy.lol/hex"
 	"realy.lol/interrupt"
 	"realy.lol/lol"
 	"realy.lol/p256k"
@@ -27,6 +29,7 @@ import (
 )
 
 func main() {
+	log.I.F("starting realy %s", realy_lol.Version)
 	var err error
 	var cfg *config.C
 	if cfg, err = config.New(); chk.T(err) {
@@ -77,17 +80,18 @@ func main() {
 	var server *realy.Server
 	admins := strings.Split(cfg.AdminNpubs, ",")
 	var administrators []signer.I
-	for _, admin := range admins {
-		if len(admin) < 1 {
+	for _, src := range admins {
+		if len(src) < 1 {
 			continue
 		}
-		var pk []byte
-		if pk, err = bech32encoding.NpubToBytes([]byte(admin)); chk.E(err) {
-			return
+		dst := make([]byte, len(src)/2)
+		if _, err = hex.DecBytes(dst, []byte(src)); chk.E(err) {
+			if dst, err = bech32encoding.NpubToBytes([]byte(src)); chk.E(err) {
+				continue
+			}
 		}
-		log.I.S(pk)
 		sign := &p256k.Signer{}
-		if err = sign.InitPub(pk); chk.E(err) {
+		if err = sign.InitPub(dst); chk.E(err) {
 			return
 		}
 		administrators = append(administrators, sign)

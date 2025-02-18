@@ -1,6 +1,7 @@
 package realy
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
 	"realy.lol/hex"
+	"realy.lol/httpauth"
 )
 
 // func (s *Server) auth(r *http.Request) (authed bool) {
@@ -34,7 +36,22 @@ import (
 // }
 
 func (s *Server) auth(r *http.Request) (authed bool) {
-
+	var valid bool
+	var pubkey []byte
+	var err error
+	if valid, pubkey, err = httpauth.ValidateRequest(r); chk.E(err) {
+		return
+	}
+	if !valid {
+		return
+	}
+	// check admins pubkey list
+	for _, v := range s.admins {
+		if bytes.Equal(v.Pub(), pubkey) {
+			authed = true
+			return
+		}
+	}
 	return
 }
 
@@ -45,6 +62,7 @@ func (s *Server) unauthorized(w http.ResponseWriter) {
 }
 
 func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) {
+	log.I.S(r.Header)
 	switch {
 	case strings.HasPrefix(r.URL.Path, "/export"):
 		if ok := s.auth(r); !ok {
@@ -85,10 +103,10 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) {
 			sto.Export(s.Ctx, w)
 		}
 	case strings.HasPrefix(r.URL.Path, "/import"):
-		if ok := s.auth(r); !ok {
-			s.unauthorized(w)
-			return
-		}
+		// if ok := s.auth(r); !ok {
+		// 	s.unauthorized(w)
+		// 	return
+		// }
 		log.I.F("import of event data requested on admin port %s", r.RequestURI)
 		sto := s.relay.Storage()
 		read := io.LimitReader(r.Body, r.ContentLength)

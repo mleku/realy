@@ -17,7 +17,7 @@ func TestMakeRequest_ValidateRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 	var r *http.Request
-	if r, err = MakeRequest("https://example.com/getnpubs?a=b&c=d", "get", sign, ""); chk.E(err) {
+	if r, err = MakePostRequest("https://example.com/getnpubs?a=b&c=d", "get", sign, ""); chk.E(err) {
 		t.Fatal(err)
 	}
 	var pk []byte

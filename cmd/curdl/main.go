@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
+	realy_lol "realy.lol"
 	"realy.lol/bech32encoding"
 	"realy.lol/hex"
 	"realy.lol/httpauth"
 	"realy.lol/p256k"
-	"realy.lol/sha256"
 )
 
 const secEnv = "NOSTR_SECRET_KEY"
+
+var userAgent = fmt.Sprintf("curdl/%s", realy_lol.Version)
 
 func fail(format string, a ...any) {
 	_, _ = fmt.Fprintf(os.Stderr, format+"\n", a...)
@@ -23,17 +26,17 @@ func fail(format string, a ...any) {
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "help" {
-		fmt.Printf(`nurl help:
+		fmt.Printf(`curdl help:
 
 to read:
 
-    nurl <post> <url>
+    curdl <post> <url>
 
 output will be rendered to stdout.
 
 to write:
 
-    nurl <post> <url> [<payload sha256 hash in hex>] <file>
+    curdl <post> <url> [<payload sha256 hash in hex>] <file>
 
     use '-' as file to indicate to read from the stdin
 
@@ -42,7 +45,7 @@ to write:
 		os.Exit(0)
 	}
 	if len(os.Args) < 3 {
-		fail(`error: nurl requires minimum 2 args: <get/post> <url>
+		fail(`error: curdl requires minimum 2 args: <get> <url> 
 
     singing nsec (in bech32 format) is expected to be found in %s environment variable.
 
@@ -50,15 +53,17 @@ to write:
 `, secEnv)
 	}
 	meth := strings.ToLower(os.Args[1])
-	ur := os.Args[2]
-	_ = ur
+	var err error
+	var ur *url.URL
+	if ur, err = url.Parse(os.Args[2]); chk.E(err) {
+		fail("invalid URL: `%s` error: `%s`", os.Args[2], err.Error())
+	}
 	switch meth {
 	case "get", "post":
 	default:
 		fail("first parameter must be either 'get' or 'post', got '%s'", meth)
 	}
 	var sk []byte
-	var err error
 	nsex := os.Getenv(secEnv)
 	if len(nsex) == 0 {
 		fail("no key found in environment variable %s", secEnv)
@@ -71,41 +76,68 @@ to write:
 	if err = sign.InitSec(sk); chk.E(err) {
 		fail("failed to init signer: '%s'", err.Error())
 	}
-	// log.I.S(sign.Pub())
-	var read io.ReadCloser
 	// we assume the hash comes before the filename if it is generated using sha256sum
-	var h string
-	var filename string
-	if meth == "post" {
-		if len(os.Args) == 4 && len(os.Args[3]) == sha256.Size*2 {
+	var req *http.Request
+	var payload io.ReadCloser
+	switch meth {
+	case "post":
+		// get the file path parameters and optional hash
+		var filePath, h string
+		if len(os.Args) == 4 {
+			if os.Args[3] == "-" {
+				payload = os.Stdin
+			} else {
+				filePath = os.Args[3]
+			}
+			filePath = os.Args[3]
 		} else if len(os.Args) == 5 {
 			// only need to check this is hex
 			if _, err = hex.Dec(os.Args[3]); chk.E(err) {
 				// if it's not hex and there is 4 args then this is invalid
 				fail("invalid missing hex in parameters with 4 parameters set: %v", os.Args[1:])
 			}
-			filename = os.Args[4]
+			filePath = os.Args[4]
 			h = os.Args[3]
 		} else {
 			fail("extraneous stuff in commandline: %v", os.Args[3:])
 		}
-	}
-	// if we are uploading data
-	if len(os.Args) > 3 && meth == "post" {
-		switch os.Args[3] {
-		// as is common, `-` means "read data from stdin"
-		case "-":
-			read = os.Stdin
-		default:
-			// otherwise assume it is a file and fail if it isn't
-			if read, err = os.OpenFile(filename, os.O_RDONLY, 0600); chk.E(err) {
-				fail("failed to open file for reading")
+		log.I.F("reading from %s optional hash: %s", filePath, h)
+		if payload == nil {
+			if payload, err = os.Open(filePath); chk.E(err) {
+				return
 			}
+			log.I.F("opened file %s", filePath)
+		}
+		var r *http.Request
+		if r, err = httpauth.MakePostRequest(ur, h, userAgent, sign, payload); chk.E(err) {
+			fail(err.Error())
+		}
+		client := &http.Client{}
+		var res *http.Response
+		if res, err = client.Do(r); chk.E(err) {
+			return
+		}
+		defer res.Body.Close()
+		if io.Copy(os.Stdout, res.Body); chk.E(err) {
+			return
+		}
+
+	case "get":
+		req, err = httpauth.MakeGetRequest(ur, userAgent, sign)
+		client := &http.Client{
+			CheckRedirect: func(req *http.Request,
+				via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		}
+		var res *http.Response
+		if res, err = client.Do(req); chk.E(err) {
+			err = errorf.E("request failed: %w", err)
+			return
+		}
+		defer res.Body.Close()
+		if _, err = io.Copy(os.Stdout, res.Body); chk.E(err) {
+			return
 		}
 	}
-	var r *http.Request
-	if r, err = httpauth.MakeRequest(ur, meth, sign, h, read); chk.E(err) {
-		fail("failed to create nostr authed http request: %s", err.Error())
-	}
-	_ = r
 }

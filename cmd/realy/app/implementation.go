@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"realy.lol/bech32encoding"
 	"realy.lol/context"
 	"realy.lol/ec/schnorr"
 	"realy.lol/event"
@@ -59,7 +60,9 @@ func (r *Relay) Init() (err error) {
 		}
 		dst := make([]byte, len(src)/2)
 		if _, err = hex.DecBytes(dst, []byte(src)); chk.E(err) {
-			continue
+			if dst, err = bech32encoding.NpubToBytes([]byte(src)); chk.E(err) {
+				continue
+			}
 		}
 		r.Owners = append(r.Owners, dst)
 	}

@@ -26,12 +26,12 @@ type C struct {
 	DataDir        string   `env:"REALY_DATA_DIR" usage:"storage location for the ratel event store"`
 	Listen         string   `env:"REALY_LISTEN" default:"0.0.0.0" usage:"network listen address"`
 	Port           int      `env:"REALY_PORT" default:"3334" usage:"port to listen on"`
-	AdminNpubs     string   `env:"REALY_ADMIN_NPUBS" usage:"comma separated lists of bech32 format pubkeys of authorised administrators for the http admin endpoints"`
+	AdminNpubs     string   `env:"REALY_ADMIN_NPUBS" usage:"comma separated lists of hex or bech32 format pubkeys of authorised administrators for the http admin endpoints"`
 	LogLevel       string   `env:"REALY_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
 	DbLogLevel     string   `env:"REALY_DB_LOG_LEVEL" default:"info" usage:"debug level: fatal error warn info debug trace"`
 	AuthRequired   bool     `env:"REALY_AUTH_REQUIRED" default:"false" usage:"requires auth for all access"`
 	PublicReadable bool     `env:"REALY_PUBLIC_READABLE" default:"true" usage:"allows all read access, overriding read access limit from REALY_AUTH_REQUIRED"`
-	Owners         []string `env:"REALY_OWNERS" usage:"comma separated list of npubs of users in hex format whose follow and mute list dictate accepting requests and events with AUTH_REQUIRED enabled - follows and follows follows are allowed to read/write, owners mutes events are rejected"`
+	Owners         []string `env:"REALY_OWNERS" usage:"comma separated list of npubs of users in hex or bech32 format whose follow and mute list dictate accepting requests and events with AUTH_REQUIRED enabled - follows and follows follows are allowed to read/write, owners mutes events are rejected"`
 	DBSizeLimit    int      `env:"REALY_DB_SIZE_LIMIT" default:"0" usage:"the number of gigabytes (1,000,000,000 bytes) we want to keep the data store from exceeding, 0 means disabled"`
 	DBLowWater     int      `env:"REALY_DB_LOW_WATER" default:"60" usage:"the percentage of DBSizeLimit a GC run will reduce the used storage down to"`
 	DBHighWater    int      `env:"REALY_DB_HIGH_WATER" default:"80" usage:"the trigger point at which a GC run should start if exceeded"`

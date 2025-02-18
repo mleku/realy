@@ -5,6 +5,7 @@ go 1.23.1
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/alexflint/go-arg v1.5.1
+	github.com/andelf/go-curl v0.0.0-20240707050732-dfa6a0d469d2
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/badger/v4 v4.5.0
 	github.com/fasthttp/websocket v1.5.12
@@ -41,6 +42,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
 	github.com/google/pprof v0.0.0-20250121033306-997b0b79cac0 // indirect
+	github.com/kirinlabs/HttpRequest v1.1.2 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
