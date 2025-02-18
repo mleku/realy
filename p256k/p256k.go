@@ -118,9 +118,4 @@ func (s *Signer) ECDH(pubkeyBytes []byte) (secret []byte, err error) {
 	return
 }
 
-func (s *Signer) Negate() {
-	Negate(s.skb)
-	chk.E(s.InitSec(s.skb))
-}
-
 func (s *Signer) Zero() { Zero(s.SecretKey) }

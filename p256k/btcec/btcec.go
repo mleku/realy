@@ -17,23 +17,13 @@ type Signer struct {
 var _ signer.I = &Signer{}
 
 func (s *Signer) Generate() (err error) {
-	for {
-		if s.SecretKey, err = ec.NewSecretKey(); chk.E(err) {
-			return
-		}
-		s.skb = s.SecretKey.Serialize()
-		s.PublicKey = s.SecretKey.PubKey()
-		s.pkb = s.PublicKey.SerializeCompressed()
-		if s.pkb[0] == 2 {
-			s.skb = s.SecretKey.Serialize()
-			break
-		} else {
-			s.Negate()
-			s.pkb = s.PublicKey.SerializeCompressed()
-			break
-		}
+	if s.SecretKey, err = ec.NewSecretKey(); chk.E(err) {
+		return
 	}
+	s.skb = s.SecretKey.Serialize()
 	s.BTCECSec, _ = ec.PrivKeyFromBytes(s.skb)
+	s.PublicKey = s.SecretKey.PubKey()
+	s.pkb = schnorr.SerializePubKey(s.PublicKey)
 	return
 }
 
@@ -44,11 +34,7 @@ func (s *Signer) InitSec(sec []byte) (err error) {
 	}
 	s.SecretKey = secp256k1.SecKeyFromBytes(sec)
 	s.PublicKey = s.SecretKey.PubKey()
-	s.pkb = s.SecretKey.PubKey().SerializeCompressed()
-	if s.pkb[0] != 2 {
-		err = errorf.E("invalid odd pubkey from secret key %0x", s.pkb)
-		return
-	}
+	s.pkb = schnorr.SerializePubKey(s.PublicKey)
 	s.BTCECSec, _ = ec.PrivKeyFromBytes(s.skb)
 	return
 }
@@ -62,7 +48,7 @@ func (s *Signer) InitPub(pub []byte) (err error) {
 }
 
 func (s *Signer) Sec() (b []byte)   { return s.skb }
-func (s *Signer) Pub() (b []byte)   { return s.pkb[1:] }
+func (s *Signer) Pub() (b []byte)   { return s.pkb }
 func (s *Signer) ECPub() (b []byte) { return s.pkb }
 
 func (s *Signer) Sign(msg []byte) (sig []byte, err error) {
@@ -104,13 +90,6 @@ func (s *Signer) ECDH(pubkeyBytes []byte) (secret []byte, err error) {
 	return
 }
 
-func (s *Signer) Negate() {
-	s.SecretKey.Key = *s.SecretKey.Key.Negate()
-	s.skb = s.SecretKey.Serialize()
-	s.PublicKey = s.SecretKey.PubKey()
-	s.pkb = s.PublicKey.SerializeCompressed()
-}
-
 type Keygen struct {
 	Signer
 }
@@ -120,13 +99,8 @@ func (k *Keygen) Generate() (pubBytes []byte, err error) {
 		return
 	}
 	k.Signer.PublicKey = k.SecretKey.PubKey()
-	k.Signer.pkb = k.PublicKey.SerializeCompressed()
+	k.Signer.pkb = schnorr.SerializePubKey(k.Signer.PublicKey)
 	pubBytes = k.Signer.pkb
-	return
-}
-
-func (k *Keygen) Negate() {
-	k.Signer.Negate()
 	return
 }
 

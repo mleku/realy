@@ -419,16 +419,3 @@ func (k *Keygen) Generate() (
 	// pubBytes =
 	return
 }
-
-// Negate should be called when the pubkey's X coordinate is a match but the prefix is a 3. The X coordinate will not
-// change but this ensures that when the X-only key has a 2 prefix added for ECDH and other purposes that it works
-// correctly. This can be done after a match is found as it does not impact anything except the first byte.
-func (k *Keygen) Negate() { C.secp256k1_ec_seckey_negate(ctx, k.secUchar) }
-
-func (k *Keygen) KeyPairBytes() (secBytes, pubBytes []byte) {
-	pub := new(XPublicKey)
-	C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(pubBytes), pub.Key)
-	// C.secp256k1_ec_pubkey_serialize(ctx, k.cmprPubUchar, &k.cmprLen, k.ecpub.Key,
-	// 	C.SECP256K1_EC_COMPRESSED)
-	return k.secBytes, k.comprPubBytes[1:]
-}

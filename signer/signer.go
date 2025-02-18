@@ -23,8 +23,6 @@ type I interface {
 	// ECDH returns a shared secret derived using Elliptic Curve Diffie-Hellman on
 	// the I secret and provided pubkey.
 	ECDH(pub []byte) (secret []byte, err error)
-	// Negate flips the secret key to change between odd and even compressed public key.
-	Negate()
 }
 
 // Gen is an interface for nostr BIP-340 key generation.

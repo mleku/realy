@@ -90,6 +90,7 @@ func main() {
 				continue
 			}
 		}
+		log.T.S(dst)
 		sign := &p256k.Signer{}
 		if err = sign.InitPub(dst); chk.E(err) {
 			return
