@@ -112,9 +112,9 @@ The database is stored in `$HOME/.local/share/realy` and if need be you can stop
 
 Using websockets for everything is stupid. Only subscriptions need the capabilities that are easier accessed through sockets. So we are going to implement a simplified form for accessing nostr events that is based on the principles of RESTful interfaces.
 
-The distinction is that most of these HTTP endpoints _require_ authentication, but may not limit access by identity.
+Instead of confusing authentication as in nip-42, which nobody has implemented, this will just use nip-98 in all cases for authentication, which is just a HTTP header field containing an event that references the URL and method of the query. Whether authentication is required will be designated explicitly in the `capabilities` described below.
 
-A second distinction is that calls to these endpoints MUST have an `Accept` header with a recognised encoding.
+Calls to these endpoints MUST have an `Accept` header with a recognised encoding. Different values in this header value field allow for entirely separate protocols, both encoding AND API.
 
 - `application/nostr+json` designates the use of the standard encoding, though the actual APIs may diverge from this such as segregating facets of the "filter" to be only available from a given endpoint.
 - `application/nostr+text` is a new format that is inspired by the standard encodings used in old protocols like SMTP, POP, NNTP and IMAP. These are optimized for human reading and composition.
@@ -125,8 +125,9 @@ Of course, to translate between these protocols will require additional complexi
 
 `https://example.com/capabilities` is an unprotected endpoint, and works like `nip-11` but is more sensible and relates to the RESTful endpoints described here.
 
-Calling this with `GET` will return a JSON array containing arrays with the following format:
+The protocols available and the encoding of this message are different based on the `Accept` field of the HTTP header. We will describe the `application/nostr+json` versions here and implement them first.
 
+Calling this with `GET` and `Accept: application/nostr+json` will return a JSON array containing arrays with the following format:
 
 ===== nostr+json
 ----
