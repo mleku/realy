@@ -31,22 +31,26 @@ func main() {
 
 to read:
 
-    curdl <post> <url>
+    curdl post <url>
 
 output will be rendered to stdout.
 
 to write:
 
-    curdl <post> <url> [<payload sha256 hash in hex>] <file>
+    curdl post <url> [<payload sha256 hash in hex>] <file>
 
     if payload hash is not given, it is not computed. NIP-98 authentication can optionally require the file upload hash be in the "payload" HTTP header with the value as the hash encoded in hexadecimal.
+
+for nostr http protocol:
+
+	curdl nostr <url> <nostr http json>
 `)
 		os.Exit(0)
 	}
 	if len(os.Args) < 3 {
 		fail(`error: curdl requires minimum 2 args: <get> <url> 
 
-    singing nsec (in bech32 format) is expected to be found in %s environment variable.
+    signing nsec (in bech32 format) is expected to be found in %s environment variable.
 
     use "help" to get usage information
 `, secEnv)
@@ -80,6 +84,8 @@ to write:
 	var payload io.ReadCloser
 	contentLength := int64(math.MaxInt64)
 	switch meth {
+	case "nostr":
+		fail("nostr json protocol not yet implemented")
 	case "post":
 		// get the file path parameters and optional hash
 		var filePath, h string
