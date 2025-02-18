@@ -3,6 +3,7 @@ package httpauth
 import (
 	"bytes"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"realy.lol/lol"
@@ -16,8 +17,12 @@ func TestMakeRequest_ValidateRequest(t *testing.T) {
 	if chk.E(err) {
 		t.Fatal(err)
 	}
+	var ur *url.URL
+	if ur, err = url.Parse("https://example.com/getnpubs?a=b&c=d"); chk.E(err) {
+		t.Fatal(err)
+	}
 	var r *http.Request
-	if r, err = MakePostRequest("https://example.com/getnpubs?a=b&c=d", "get", sign, ""); chk.E(err) {
+	if r, err = MakeGetRequest(ur, "test/0.0.0", sign); chk.E(err) {
 		t.Fatal(err)
 	}
 	var pk []byte

@@ -70,6 +70,7 @@ func MakeGetRequest(u *url.URL, userAgent string, sign signer.I) (r *http.Reques
 	err error) {
 
 	const method = "GET"
+	log.I.S(u.String())
 	ev := MakeEvent(u.String(), method)
 	if err = ev.Sign(sign); chk.E(err) {
 		return
@@ -79,6 +80,7 @@ func MakeGetRequest(u *url.URL, userAgent string, sign signer.I) (r *http.Reques
 	if r, err = http.NewRequest(method, u.String(), nil); chk.E(err) {
 		return
 	}
+	log.I.S(r.URL.String())
 	r.Header.Add(HeaderKey, "Nostr "+b64)
 	// log.I.F("Authorization: %s", req.Header.Get("Authorization"))
 	r.Header.Add("User-Agent", userAgent[:len(userAgent)-1])
@@ -151,7 +153,7 @@ func ValidateRequest(r *http.Request) (valid bool, pubkey []byte, err error) {
 	// The u tag MUST be exactly the same as the absolute request URL (including query parameters).
 
 	// log.I.S(r.Proto, r.Host, r.URL)
-	proto := "http"
+	proto := r.URL.Scheme
 	// if this came through a proxy we need to get the protocol to match the event
 	if p := r.Header.Get("X-Forwarded-Proto"); p != "" {
 		proto = p
