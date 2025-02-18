@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -37,8 +38,6 @@ output will be rendered to stdout.
 to write:
 
     curdl <post> <url> [<payload sha256 hash in hex>] <file>
-
-    use '-' as file to indicate to read from the stdin
 
     if payload hash is not given, it is not computed. NIP-98 authentication can optionally require the file upload hash be in the "payload" HTTP header with the value as the hash encoded in hexadecimal.
 `)
@@ -79,16 +78,12 @@ to write:
 	// we assume the hash comes before the filename if it is generated using sha256sum
 	var req *http.Request
 	var payload io.ReadCloser
+	contentLength := int64(math.MaxInt64)
 	switch meth {
 	case "post":
 		// get the file path parameters and optional hash
 		var filePath, h string
 		if len(os.Args) == 4 {
-			if os.Args[3] == "-" {
-				payload = os.Stdin
-			} else {
-				filePath = os.Args[3]
-			}
 			filePath = os.Args[3]
 		} else if len(os.Args) == 5 {
 			// only need to check this is hex
@@ -102,21 +97,30 @@ to write:
 			fail("extraneous stuff in commandline: %v", os.Args[3:])
 		}
 		log.I.F("reading from %s optional hash: %s", filePath, h)
-		if payload == nil {
-			if payload, err = os.Open(filePath); chk.E(err) {
-				return
-			}
-			log.I.F("opened file %s", filePath)
+		var fi os.FileInfo
+		if fi, err = os.Stat(filePath); chk.E(err) {
+			return
 		}
+		contentLength = fi.Size()
+		if payload, err = os.Open(filePath); chk.E(err) {
+			return
+		}
+		log.I.F("opened file %s", filePath)
 		var r *http.Request
-		if r, err = httpauth.MakePostRequest(ur, h, userAgent, sign, payload); chk.E(err) {
+		if r, err = httpauth.MakePostRequest(ur, h, userAgent, sign, payload, contentLength); chk.E(err) {
 			fail(err.Error())
 		}
+		r.GetBody = func() (rc io.ReadCloser, err error) {
+			rc = payload
+			return
+		}
+		log.I.S(r)
 		client := &http.Client{}
 		var res *http.Response
 		if res, err = client.Do(r); chk.E(err) {
 			return
 		}
+		log.I.S(res)
 		defer res.Body.Close()
 		if io.Copy(os.Stdout, res.Body); chk.E(err) {
 			return

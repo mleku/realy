@@ -32,25 +32,25 @@ func MakeEvent(u, method string) (ev *event.T) {
 // in the header, signed by a provided signer.I with secret loaded, for pushing
 // data up to a server.
 func MakePostRequest(ur *url.URL, payloadHash, userAgent string,
-	sign signer.I, payload io.ReadCloser) (r *http.Request, err error) {
+	sign signer.I, payload io.ReadCloser, contentLength int64) (r *http.Request, err error) {
 
 	const method = "POST"
 	ev := MakeEvent(ur.String(), method)
 	if err = ev.Sign(sign); chk.E(err) {
 		return
 	}
-	// log.I.F("signing event %s", ev.Serialize())
 	log.T.F("nip-98 http auth event:\n%s\n", ev.SerializeIndented())
 	b64 := base64.URLEncoding.EncodeToString(ev.Serialize())
 	r = &http.Request{
-		Method:     "POST",
-		URL:        ur,
-		Proto:      "HTTP/1.1",
-		ProtoMajor: 1,
-		ProtoMinor: 1,
-		Header:     make(http.Header),
-		Body:       payload,
-		Host:       ur.Host,
+		Method:        "POST",
+		URL:           ur,
+		Proto:         "HTTP/1.1",
+		ProtoMajor:    1,
+		ProtoMinor:    1,
+		Header:        make(http.Header),
+		Body:          payload,
+		ContentLength: contentLength,
+		Host:          ur.Host,
 	}
 	r.Header.Add(HeaderKey, "Nostr "+b64)
 	if payloadHash != "" {
