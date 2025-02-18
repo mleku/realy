@@ -103,10 +103,10 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) {
 			sto.Export(s.Ctx, w)
 		}
 	case strings.HasPrefix(r.URL.Path, "/import"):
-		// if ok := s.auth(r); !ok {
-		// 	s.unauthorized(w)
-		// 	return
-		// }
+		if ok := s.auth(r); !ok {
+			s.unauthorized(w)
+			return
+		}
 		log.I.F("import of event data requested on admin port %s", r.RequestURI)
 		sto := s.relay.Storage()
 		read := io.LimitReader(r.Body, r.ContentLength)

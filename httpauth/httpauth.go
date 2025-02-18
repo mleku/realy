@@ -152,11 +152,14 @@ func ValidateRequest(r *http.Request) (valid bool, pubkey []byte, err error) {
 	uts := ut.Value()
 	// The u tag MUST be exactly the same as the absolute request URL (including query parameters).
 
-	// log.I.S(r.Proto, r.Host, r.URL)
+	log.I.S(r.Proto, r.URL.Scheme, r.Host, r.URL)
 	proto := r.URL.Scheme
 	// if this came through a proxy we need to get the protocol to match the event
 	if p := r.Header.Get("X-Forwarded-Proto"); p != "" {
 		proto = p
+	}
+	if proto == "" {
+		proto = "http"
 	}
 	fullUrl := proto + "://" + r.Host + r.URL.RequestURI()
 	evUrl := string(uts[0].Value())
