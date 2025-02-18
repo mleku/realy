@@ -24,7 +24,9 @@ and https://github.com/fiatjaf/relayer[fiatjaf/relayer] aimed at maximum perform
 == Building
 
 If you just want to make it run from source, you should check out a tagged version.
+
 The commits on these tags will explain what state the commit is at.
+
 In general, the most stable versions are new minor tags, eg v1.2.0 or v1.23.0, and minor patch versions may not be stable and occasionally may not compile (not very often).
 
 Go 1.24 or better is recommended. Go 1.23.1 is minimum required.
