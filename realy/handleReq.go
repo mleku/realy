@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/dgraph-io/badger/v4"
+	"golang.org/x/time/rate"
 
 	"realy.lol/context"
 	"realy.lol/envelopes/authenvelope"
@@ -28,6 +29,18 @@ import (
 func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I) (r []byte) {
 	if !s.publicReadable && (ws.AuthRequested() && len(ws.Authed()) == 0) {
 		return []byte("awaiting auth for req")
+	}
+	if len(ws.Authed()) == 0 && ws.Limiter() == nil {
+		log.I.F("setting rate limiter %v, %d",
+			s.options.PerConnectionLimiter.Limit(), s.options.PerConnectionLimiter.Burst())
+		ws.SetLimiter(rate.NewLimiter(s.options.PerConnectionLimiter.Limit(),
+			s.options.PerConnectionLimiter.Burst()))
+	}
+	if ws.Limiter() != nil {
+		log.I.F("%s enforcing rate limit %v %d", ws.RealRemote(), ws.Limiter().Limit(), ws.Limiter().Burst())
+		if err := ws.Limiter().Wait(context.TODO()); err != nil {
+		}
+		log.I.F("%s rate limit waited out %v %d", ws.RealRemote(), ws.Limiter().Limit(), ws.Limiter().Burst())
 	}
 	var err error
 	var rem []byte
