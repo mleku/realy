@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/pkg/profile"
-	"golang.org/x/time/rate"
 
 	realy_lol "realy.lol"
 	"realy.lol/bech32encoding"
@@ -91,6 +90,7 @@ func main() {
 				continue
 			}
 		}
+		log.T.S(dst)
 		sign := &p256k.Signer{}
 		if err = sign.InitPub(dst); chk.E(err) {
 			return
@@ -108,10 +108,10 @@ func main() {
 		PublicReadable: cfg.PublicReadable,
 	}
 	var opts []options.O
-	// if cfg.AuthRequired || len(cfg.Owners) > 0 {
-	// 	log.W.Ln("rate limiter enabled")
-	opts = append(opts, options.WithPerConnectionLimiter(rate.Every(time.Minute/2), 5))
-	// }
+	if cfg.AuthRequired || len(cfg.Owners) > 0 {
+		log.W.Ln("rate limiter enabled")
+		opts = append(opts, options.WithPerConnectionLimiter(1, 5))
+	}
 	if len(cfg.Owners) > 0 || cfg.AuthRequired {
 		log.I.F("relay requires auth for writing")
 	}
