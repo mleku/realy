@@ -49,7 +49,7 @@ func (ws *Socket) setRemoteFromReq(r *http.Request) {
 		if len(splitted) == 2 {
 			rr = splitted[1]
 		}
-		// in case upstream doesn't set this or we are directly listening instead of
+		// in case upstream doesn't set this, or we are directly listening instead of
 		// via reverse proxy or just if the header field is missing, put the
 		// connection remote address into the websocket state data.
 		if rr == "" {

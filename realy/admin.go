@@ -7,9 +7,10 @@ import (
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
 	"realy.lol/hex"
+	"realy.lol/realy/handler"
 )
 
-func (s *Server) exportHandler(h Handler) {
+func (s *Server) exportHandler(h handler.H) {
 	if ok := s.auth(h.Request); !ok {
 		s.unauthorized(h.ResponseWriter)
 		return
@@ -48,7 +49,8 @@ func (s *Server) exportHandler(h Handler) {
 		sto.Export(s.Ctx, h.ResponseWriter)
 	}
 }
-func (s *Server) importHandler(h Handler) {
+
+func (s *Server) importHandler(h handler.H) {
 	if ok := s.auth(h.Request); !ok {
 		s.unauthorized(h.ResponseWriter)
 		return
@@ -62,7 +64,8 @@ func (s *Server) importHandler(h Handler) {
 		realy.CheckOwnerLists(context.Bg())
 	}
 }
-func (s *Server) shutdownHandler(h Handler) {
+
+func (s *Server) shutdownHandler(h handler.H) {
 	if ok := s.auth(h.Request); !ok {
 		s.unauthorized(h.ResponseWriter)
 		return
@@ -71,7 +74,8 @@ func (s *Server) shutdownHandler(h Handler) {
 	defer chk.E(h.Body.Close())
 	s.Shutdown()
 }
-func (s *Server) defaultHandler(h Handler) {
+
+func (s *Server) defaultHandler(h handler.H) {
 	fprintf(h.ResponseWriter, "todo: realy web interface page\n\n")
 	s.handleRelayInfo(h)
 }

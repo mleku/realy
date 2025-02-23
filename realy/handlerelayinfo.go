@@ -5,12 +5,13 @@ import (
 	"sort"
 
 	"realy.lol"
+	"realy.lol/realy/handler"
 	"realy.lol/relay"
 	"realy.lol/relayinfo"
 	"realy.lol/store"
 )
 
-func (s *Server) handleRelayInfo(h Handler) {
+func (s *Server) handleRelayInfo(h handler.H) {
 	h.Request.Header.Set("Content-Type", "application/json")
 	log.T.Ln("handling relay information document")
 	var info *relayinfo.T

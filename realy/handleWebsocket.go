@@ -15,13 +15,14 @@ import (
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/envelopes/noticeenvelope"
 	"realy.lol/envelopes/reqenvelope"
+	"realy.lol/realy/handler"
 	"realy.lol/realy/listeners"
 	"realy.lol/relay"
 	"realy.lol/store"
 	"realy.lol/web"
 )
 
-func (s *Server) handleWebsocket(h Handler) {
+func (s *Server) handleWebsocket(h handler.H) {
 	conn, err := listeners.Upgrader.Upgrade(h.ResponseWriter, h.Request, nil)
 	if err != nil {
 		log.E.F("failed to upgrade websocket: %v", err)
