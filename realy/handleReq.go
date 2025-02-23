@@ -87,33 +87,35 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 			}
 			i = *f.Limit
 		}
-		if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
-			if f.Kinds.IsPrivileged() {
-				log.T.F("privileged request with auth enabled\n%s", f.Serialize())
-				senders := f.Authors
-				receivers := f.Tags.GetAll(tag.New("#p"))
-				switch {
-				case len(ws.Authed()) == 0:
-					ws.RequestAuth()
-					if err = closedenvelope.NewFrom(env.Subscription,
-						normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.E(err) {
-					}
-					log.I.F("requesting auth from client from %s", ws.RealRemote())
-					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
-						return
-					}
-					notice := normalize.Restricted.F("this realy does not serve kind-4 to unauthenticated users," + " does your client implement NIP-42?")
-					return notice
-				case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny([]byte("#p"),
-					tag.New(ws.AuthedBytes())):
-					log.T.F("user %0x from %s allowed to query for privileged event",
-						ws.AuthedBytes(), ws.RealRemote())
-				default:
-					return normalize.Restricted.F("authenticated user %0x does not have"+" authorization for requested filters",
-						ws.AuthedBytes())
+		// if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+		if f.Kinds.IsPrivileged() {
+			log.T.F("privileged request\n%s", f.Serialize())
+			senders := f.Authors
+			receivers := f.Tags.GetAll(tag.New("#p"))
+			switch {
+			case len(ws.Authed()) == 0:
+				ws.RequestAuth()
+				if err = closedenvelope.NewFrom(env.Subscription,
+					normalize.AuthRequired.F("auth required for processing request due to presence of privileged kinds (DMs, app specific data)")).Write(ws); chk.E(err) {
 				}
+				log.I.F("requesting auth from client from %s", ws.RealRemote())
+				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+					return
+				}
+				notice := normalize.Restricted.F("this realy does not serve DMs or Application Specific Data " +
+					"to unauthenticated users or to npubs not found in the event tags or author fields, does your " +
+					"client implement NIP-42?")
+				return notice
+			case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny([]byte("#p"),
+				tag.New(ws.AuthedBytes())):
+				log.T.F("user %0x from %s allowed to query for privileged event",
+					ws.AuthedBytes(), ws.RealRemote())
+			default:
+				return normalize.Restricted.F("authenticated user %0x does not have authorization for "+
+					"requested filters", ws.AuthedBytes())
 			}
 		}
+		// }
 		var events event.Ts
 		log.D.F("query from %s %0x,%s", ws.RealRemote(), ws.AuthedBytes(), f.Serialize())
 		if events, err = sto.QueryEvents(c, f); err != nil {
