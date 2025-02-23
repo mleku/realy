@@ -8,17 +8,21 @@ type Handler struct {
 	http.ResponseWriter
 	*http.Request
 }
-type Paths map[string]func(h Handler)
+
+type Protocol map[string]func(h Handler)
+
+type Paths map[string]Protocol
 
 func Route(h Handler, p Paths) {
-	for path, fn := range p {
-		if path == h.URL.Path {
-			fn(h)
-			return
+	acc := h.Request.Header.Get("Accept")
+	for proto, fns := range p {
+		if proto == acc {
+			for path, fn := range fns {
+				if path == h.URL.Path {
+					fn(h)
+					return
+				}
+			}
 		}
-	}
-	// if there is a default empty string and no path matched, run the default
-	if fn, ok := p[""]; ok {
-		fn(h)
 	}
 }

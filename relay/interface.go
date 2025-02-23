@@ -39,6 +39,8 @@ type I interface {
 	Storage() store.I
 	// NoLimiter returns true if the provided npub should not be rate limited.
 	NoLimiter(pubKey []byte) bool
+	// Owners returns the list of pubkeys designated as owners of the relay.
+	Owners() [][]byte
 }
 
 // ReqAcceptor is the main interface for implementing a nostr

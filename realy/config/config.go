@@ -16,7 +16,6 @@ import (
 	"realy.lol"
 	"realy.lol/apputil"
 	"realy.lol/config"
-	"realy.lol/sha256"
 )
 
 type C struct {
@@ -70,7 +69,7 @@ func New() (cfg *C, err error) {
 		var owners []string
 		// remove empties if any
 		for _, o := range cfg.Owners {
-			if len(o) == sha256.Size*2 {
+			if len(o) > 0 {
 				owners = append(owners, o)
 			}
 		}

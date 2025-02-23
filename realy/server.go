@@ -35,6 +35,7 @@ type Server struct {
 	publicReadable bool
 	maxLimit       int
 	admins         []signer.I
+	owners         [][]byte
 	listeners      *listeners.T
 }
 
@@ -45,6 +46,7 @@ type ServerParams struct {
 	DbPath         string
 	MaxLimit       int
 	Admins         []signer.I
+	Owners         [][]byte
 	PublicReadable bool
 }
 
@@ -57,6 +59,14 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 	if ar, ok := sp.Rl.(relay.Authenticator); ok {
 		authRequired = ar.AuthEnabled()
 	}
+	if storage := sp.Rl.Storage(); storage != nil {
+		if err := storage.Init(sp.DbPath); chk.T(err) {
+			return nil, fmt.Errorf("storage init: %w", err)
+		}
+	}
+	if err := sp.Rl.Init(); chk.T(err) {
+		return nil, fmt.Errorf("realy init: %w", err)
+	}
 	srv := &Server{
 		Ctx:            sp.Ctx,
 		Cancel:         sp.Cancel,
@@ -68,15 +78,8 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 		publicReadable: sp.PublicReadable,
 		maxLimit:       sp.MaxLimit,
 		admins:         sp.Admins,
+		owners:         sp.Rl.Owners(),
 		listeners:      listeners.New(),
-	}
-	if storage := sp.Rl.Storage(); storage != nil {
-		if err := storage.Init(sp.DbPath); chk.T(err) {
-			return nil, fmt.Errorf("storage init: %w", err)
-		}
-	}
-	if err := sp.Rl.Init(); chk.T(err) {
-		return nil, fmt.Errorf("realy init: %w", err)
 	}
 	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
@@ -90,10 +93,16 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h := Handler{w, r}
-	if h.Request.Header.Get("Upgrade") == "websocket" {
-		s.handleWebsocket(h)
-	} else if r.Header.Get("Accept") == "application/nostr+json" {
-		s.handleRelayInfo(h)
+	// standard nostr protocol only governs the "root" path of the relay and websockets
+	log.I.S(h.Request.URL.Host, h.Request.URL.String(), h.Request.Header.Get("Accept"))
+	if h.Request.URL.Path == "/" {
+		if r.Header.Get("Accept") == "application/nostr+json" {
+			s.handleRelayInfo(h)
+		} else if h.Request.Header.Get("Upgrade") == "websocket" {
+			s.handleWebsocket(h)
+		} else {
+			s.defaultHandler(h)
+		}
 	} else {
 		s.HandleHTTP(h)
 	}
