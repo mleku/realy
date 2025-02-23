@@ -214,20 +214,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin 
 
 func (r *Relay) AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.T,
 	authedPubkey []byte) (allowed *filters.T, ok bool) {
-	if !r.AuthEnabled() || r.PublicReadable && len(authedPubkey) > 0 {
-		allowed = &filters.T{}
-		// non-authed users may not make filters that have too broad criteria, resource
-		// exhaustion attack mitigation.
-		for _, f := range ff.F {
-			// if f.Authors.Len() < 1 &&
-			// 	f.IDs.Len() < 1 &&
-			// 	f.Tags.Len() < 1 &&
-			// 	f.Kinds.Len() < 1 {
-			// 	// no criteria or only time criteria are not permitted
-			// } else {
-			allowed.F = append(allowed.F, f)
-			// }
-		}
+	if !r.AuthEnabled() {
+		allowed = ff
 		ok = true
 		return
 	}
@@ -270,11 +258,10 @@ func (r *Relay) AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.
 	}
 	// client is permitted, pass through the filter so request/count processing does
 	// not need logic and can just use the returned filter.
-	allowed = ff
 	// check that the client is authed to a pubkey in the owner follow list
 	r.Lock()
 	defer r.Unlock()
-	if len(r.owners) > 0 {
+	if len(r.Owners()) > 0 {
 		for pk := range r.Followed {
 			if bytes.Equal(authedPubkey, []byte(pk)) {
 				ok = true
@@ -375,7 +362,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 	}
 }
 
-func (r *Relay) AuthEnabled() bool { return r.AuthRequired || len(r.owners) > 0 }
+func (r *Relay) AuthEnabled() bool { return r.AuthRequired || !r.PublicReadable }
 
 // ServiceUrl returns the address of the relay to send back in auth responses.
 // If auth is disabled this returns an empty string.
