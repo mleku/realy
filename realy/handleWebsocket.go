@@ -2,7 +2,6 @@ package realy
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/fasthttp/websocket"
@@ -22,8 +21,8 @@ import (
 	"realy.lol/web"
 )
 
-func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := listeners.Upgrader.Upgrade(w, r, nil)
+func (s *Server) handleWebsocket(h Handler) {
+	conn, err := listeners.Upgrader.Upgrade(h.ResponseWriter, h.Request, nil)
 	if err != nil {
 		log.E.F("failed to upgrade websocket: %v", err)
 		return
@@ -34,13 +33,13 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	ticker := time.NewTicker(s.listeners.PingPeriod)
 	ip := conn.RemoteAddr().String()
 	var realIP string
-	if realIP = r.Header.Get("X-Forwarded-For"); realIP != "" {
+	if realIP = h.Request.Header.Get("X-Forwarded-For"); realIP != "" {
 		ip = realIP
-	} else if realIP = r.Header.Get("X-Real-Ip"); realIP != "" {
+	} else if realIP = h.Request.Header.Get("X-Real-Ip"); realIP != "" {
 		ip = realIP
 	}
 	log.T.F("connected from %s", ip)
-	ws := s.listeners.GetChallenge(conn, r, ip)
+	ws := s.listeners.GetChallenge(conn, h.Request, ip)
 	if s.options.PerConnectionLimiter != nil {
 		// this does not apply to users on the owners' Followed list
 		ws.SetLimiter(rate.NewLimiter(s.options.PerConnectionLimiter.Limit(),
@@ -88,7 +87,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 					websocket.CloseAbnormalClosure,
 				) {
 					log.W.F("unexpected close error from %s: %v",
-						r.Header.Get("X-Forwarded-For"), err)
+						h.Request.Header.Get("X-Forwarded-For"), err)
 				}
 				break
 			}

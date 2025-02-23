@@ -40,7 +40,6 @@ type C struct {
 	MemLimit       int      `env:"REALY_MEMLIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
 	UseCompact     bool     `env:"REALY_USE_COMPACT" default:"false" usage:"use the compact database encoding for the ratel event store"`
 	Compression    string   `env:"REALY_COMPRESSION" default:"none" usage:"compress the database, [none|snappy|zstd]"`
-	SpiderKey      string   `env:"REALY_SPIDER_KEY" usage:"auth key to use when spidering other relays"`
 	// NWC          st   `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"` // todo
 }
 

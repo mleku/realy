@@ -3,13 +3,8 @@ package realy
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
 
-	"realy.lol/cmd/realy/app"
-	"realy.lol/context"
-	"realy.lol/hex"
 	"realy.lol/httpauth"
 )
 
@@ -61,70 +56,12 @@ func (s *Server) unauthorized(w http.ResponseWriter) {
 	fmt.Fprintf(w, "your npub is not welcome here\n")
 }
 
-func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) {
-	log.I.S(r.Header)
-	switch {
-	case strings.HasPrefix(r.URL.Path, "/export"):
-		if ok := s.auth(r); !ok {
-			s.unauthorized(w)
-			return
-		}
-		log.I.F("export of event data requested on admin port")
-		sto := s.relay.Storage()
-		if strings.Count(r.URL.Path, "/") > 1 {
-			split := strings.Split(r.URL.Path, "/")
-			if len(split) != 3 {
-				fprintf(w, "incorrectly formatted export parameter: '%s'", r.URL.Path)
-				return
-			}
-			switch split[2] {
-			case "users":
-				if rl, ok := s.relay.(*app.Relay); ok {
-					follows := make([][]byte, 0, len(rl.Followed))
-					for f := range rl.Followed {
-						follows = append(follows, []byte(f))
-					}
-					sto.Export(s.Ctx, w, follows...)
-				}
-			default:
-				var exportPubkeys [][]byte
-				pubkeys := strings.Split(split[2], "-")
-				for _, pubkey := range pubkeys {
-					pk, err := hex.Dec(pubkey)
-					if err != nil {
-						log.E.F("invalid public key '%s' in parameters", pubkey)
-						continue
-					}
-					exportPubkeys = append(exportPubkeys, pk)
-				}
-				sto.Export(s.Ctx, w, exportPubkeys...)
-			}
-		} else {
-			sto.Export(s.Ctx, w)
-		}
-	case strings.HasPrefix(r.URL.Path, "/import"):
-		if ok := s.auth(r); !ok {
-			s.unauthorized(w)
-			return
-		}
-		log.I.F("import of event data requested on admin port %s", r.RequestURI)
-		sto := s.relay.Storage()
-		read := io.LimitReader(r.Body, r.ContentLength)
-		sto.Import(read)
-		if realy, ok := s.relay.(*app.Relay); ok {
-			realy.ZeroLists()
-			realy.CheckOwnerLists(context.Bg())
-		}
-	case strings.HasPrefix(r.URL.Path, "/shutdown"):
-		if ok := s.auth(r); !ok {
-			s.unauthorized(w)
-			return
-		}
-		fprintf(w, "shutting down")
-		defer chk.E(r.Body.Close())
-		s.Shutdown()
-	default:
-		fprintf(w, "todo: realy web interface page\n\n")
-		s.handleRelayInfo(w, r)
-	}
+func (s *Server) HandleHTTP(h Handler) {
+	log.T.S(h.Request.Header)
+	Route(h, Paths{
+		"/export":   s.exportHandler,
+		"/import":   s.importHandler,
+		"/shutdown": s.shutdownHandler,
+		"":          s.defaultHandler,
+	})
 }

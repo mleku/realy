@@ -89,12 +89,13 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Upgrade") == "websocket" {
-		s.handleWebsocket(w, r)
+	h := Handler{w, r}
+	if h.Request.Header.Get("Upgrade") == "websocket" {
+		s.handleWebsocket(h)
 	} else if r.Header.Get("Accept") == "application/nostr+json" {
-		s.handleRelayInfo(w, r)
+		s.handleRelayInfo(h)
 	} else {
-		s.handleHTTP(w, r)
+		s.HandleHTTP(h)
 	}
 }
 
