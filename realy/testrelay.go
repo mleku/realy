@@ -52,6 +52,8 @@ func (tr *testRelay) NoLimiter(pubKey []byte) bool {
 	return false
 }
 
+func (tr *testRelay) Owners() [][]byte { return nil }
+
 func (tr *testRelay) OnShutdown(c context.T) {
 	if fn := tr.onShutdown; fn != nil {
 		fn(c)
