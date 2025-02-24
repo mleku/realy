@@ -156,6 +156,10 @@ An example of an entry from a capabilities message signifying that DMs and appli
 
 In such a case, a malicious snooper would not be able to get at an event that doesn't match up with the auth provided for the query. They also would not be told that the relay had the event or not, the relay would just not return it. If the auth proved being party to the event, it would be returned. The attacker would only know they can't get the event, not whether or not the relay has it. And they would know only that the relay does not return these events without privilege being proven, which is what the default should be.
 
+==== Policy
+
+`/policy` is an endpoint that just returns a human-readable text that lays out your typical Terms of Service type crap. Implementing this is optional but for silly people who make deals with the karens in government bureaucratic morality enforcer goon shows this is where they can put that bullcrap. I don't care what format it's in, because I'm never going to implement it but I'm putting this here as a hint to the karen-worshipers to let them put this crap here to CYA against government litigation.
+
 ==== Relay Info
 
 `/relayinfo` is an alias for returning the same as the `/` endpoint (the main NIP style protocol websocket upgrading endpoint) with the `Accept` HTTP header key set to `application/nostr+json` and the HTTP protocol used instead of WS the relay returns the nip-11 relay information document. This is just because it's easy to do, users of the simplified protocol should instead use `/capabilities`.
