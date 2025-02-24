@@ -11,6 +11,7 @@ import (
 	"realy.lol/filters"
 	"realy.lol/kind"
 	"realy.lol/kinds"
+	"realy.lol/simple"
 	"realy.lol/tag"
 	"realy.lol/tags"
 )
@@ -23,7 +24,7 @@ func TestSubscribeBasic(t *testing.T) {
 	defer rl.Close()
 	var lim uint = 2
 	sub, err := rl.Subscribe(context.Bg(),
-		filters.New(&filter.T{Kinds: kinds.New(kind.TextNote), Limit: &lim}))
+		filters.New(&filter.T{Filter: &simple.Filter{Kinds: kinds.New(kind.TextNote)}, Limit: &lim}))
 	if err != nil {
 		t.Fatalf("subscription failed: %v", err)
 		return
@@ -64,9 +65,11 @@ func TestNestedSubscriptions(t *testing.T) {
 	var lim3 uint = 3
 	sub, err := rl.Subscribe(context.Bg(),
 		filters.New(&filter.T{
-			Kinds: kinds.New(kind.TextNote),
-			Tags: tags.New(tag.New("e",
-				"0e34a74f8547e3b95d52a2543719b109fd0312aba144e2ef95cba043f42fe8c5")),
+			Filter: &simple.Filter{
+				Kinds: kinds.New(kind.TextNote),
+				Tags: tags.New(tag.New("e",
+					"0e34a74f8547e3b95d52a2543719b109fd0312aba144e2ef95cba043f42fe8c5")),
+			},
 			Limit: &lim3,
 		}))
 	if err != nil {
@@ -80,8 +83,8 @@ func TestNestedSubscriptions(t *testing.T) {
 			// now fetch author of this
 			var lim uint = 1
 			sub, err := rl.Subscribe(context.Bg(),
-				filters.New(&filter.T{Kinds: kinds.New(kind.ProfileMetadata),
-					Authors: tag.New(event.PubKey), Limit: &lim}))
+				filters.New(&filter.T{Filter: &simple.Filter{Kinds: kinds.New(kind.ProfileMetadata),
+					Authors: tag.New(event.PubKey)}, Limit: &lim}))
 			if err != nil {
 				t.Fatalf("subscription 2 failed: %v", err)
 				return

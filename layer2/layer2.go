@@ -11,6 +11,7 @@ import (
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/filter"
+	"realy.lol/simple"
 	"realy.lol/store"
 	"realy.lol/tag"
 	"realy.lol/timestamp"
@@ -75,7 +76,7 @@ func (b *Backend) Init(path string) (err error) {
 				until := timestamp.Now()
 				var evs []*event.T
 				if evs, err = b.L2.QueryEvents(b.Ctx,
-					&filter.T{Since: timestamp.FromUnix(last), Until: until}); chk.E(err) {
+					&filter.T{Filter: &simple.Filter{Since: timestamp.FromUnix(last), Until: until}}); chk.E(err) {
 					continue out
 				}
 				// todo now wat

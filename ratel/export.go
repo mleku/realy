@@ -15,6 +15,7 @@ import (
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/prefixes"
 	"realy.lol/sha256"
+	"realy.lol/simple"
 	"realy.lol/tag"
 	"realy.lol/tags"
 )
@@ -35,14 +36,14 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 		log.I.F("exporting selected pubkeys:\n%s", o)
 		keyChan := make(chan []byte, 256)
 		// specific set of public keys, so we need to run a search
-		fa := &filter.T{Authors: tag.New(pubkeys...)}
+		fa := &filter.T{Filter: &simple.Filter{Authors: tag.New(pubkeys...)}}
 		var queries []query
 		if queries, _, _, err = PrepareQueries(fa); chk.E(err) {
 			return
 		}
 		pTag := [][]byte{[]byte("#b")}
 		pTag = append(pTag, pubkeys...)
-		fp := &filter.T{Tags: tags.New(tag.New(pTag...))}
+		fp := &filter.T{Filter: &simple.Filter{Tags: tags.New(tag.New(pTag...))}}
 		var queries2 []query
 		if queries2, _, _, err = PrepareQueries(fp); chk.E(err) {
 			return

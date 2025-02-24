@@ -27,6 +27,8 @@ func (r *T) Init(path string) (err error) {
 		opts.Compression = options.Snappy
 	case "zstd":
 		opts.Compression = options.ZSTD
+	default:
+		opts.Compression = options.Snappy
 	}
 	r.Logger = NewLogger(r.InitLogLevel, r.dataDir)
 	opts.Logger = r.Logger

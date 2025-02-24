@@ -244,7 +244,15 @@ Like `event` this endpoint also may have access restrictions, the flag for this 
 
 `/subscribe` is an endpoint that upgrades to a websocket if authorized, and will deliver event IDs in separate messages, in the same encoding as used to make the request.
 
-It uses the exact same query structure as `filter` as regards to the matching criteria, but the comparison is made as an event is received and then dispatched to subscribed clients. If the relay has a `/fulltext` endpoint the `search` field can be used and after running the filter to check the event it will then inspect the matches for fulltext matches. This does not require a fulltext index to work, as all the relay has to do is scan the event matches for the keywords.
+It uses the exact same query structure as `filter` as regards to the matching criteria, but the comparison is made as an event is received and then dispatched to subscribed clients.
+
+NOTE: Only the event IDs are given, they must be separately fetched by the client. This enables clients to opt to defer loading them for bandwidth conservation reasons.
+
+==== Subscribe Fulltext
+
+`/subscribe-fulltext` is an endpoint that upgrades to a websocket if authorized, and will deliver event IDs in separate messages, in the same encoding as used to make the request.
+
+It uses the exact same query structure as a `/fulltext` endpoint the `search` field can be used and after running the filter to check the event it will then inspect the matches for fulltext matches. This does not require a fulltext index to work, as all the relay has to do is scan the event matches for the keywords.
 
 NOTE: Only the event IDs are given, they must be separately fetched by the client. This enables clients to opt to defer loading them for bandwidth conservation reasons.
 

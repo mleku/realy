@@ -15,6 +15,7 @@ import (
 	"realy.lol/kind"
 	"realy.lol/kinds"
 	"realy.lol/sha256"
+	"realy.lol/simple"
 	"realy.lol/tag"
 	"realy.lol/tags"
 	"realy.lol/text"
@@ -33,22 +34,20 @@ func Present(i *uint) bool { return i != nil }
 // This is to facilitate the deduplication of filters so an effective identical match is not
 // performed on an identical filter.
 type T struct {
-	IDs     *tag.T       `json:"ids,omitempty"`
-	Kinds   *kinds.T     `json:"kinds,omitempty"`
-	Authors *tag.T       `json:"authors,omitempty"`
-	Tags    *tags.T      `json:"-,omitempty"`
-	Since   *timestamp.T `json:"since,omitempty"`
-	Until   *timestamp.T `json:"until,omitempty"`
-	Search  []byte       `json:"search,omitempty"`
-	Limit   *uint        `json:"limit,omitempty"`
+	IDs *tag.T `json:"ids,omitempty"`
+	*simple.Filter
+	Search []byte `json:"search,omitempty"`
+	Limit  *uint  `json:"limit,omitempty"`
 }
 
 func New() (f *T) {
 	return &T{
-		IDs:     tag.NewWithCap(10),
-		Kinds:   kinds.NewWithCap(10),
-		Authors: tag.NewWithCap(10),
-		Tags:    tags.New(),
+		IDs: tag.NewWithCap(10),
+		Filter: &simple.Filter{
+			Kinds:   kinds.NewWithCap(10),
+			Authors: tag.NewWithCap(10),
+			Tags:    tags.New(),
+		},
 		// Since:   timestamp.New(),
 		// Until:   timestamp.New(),
 		Search: nil,
@@ -71,14 +70,16 @@ func (f *T) Clone() (clone *T) {
 	_Search := make([]byte, len(f.Search))
 	copy(Search, f.Search)
 	return &T{
-		IDs:     &_IDs,
-		Kinds:   &_Kinds,
-		Authors: &_Authors,
-		Tags:    &_Tags,
-		Since:   &_Since,
-		Until:   &_Until,
-		Search:  _Search,
-		Limit:   lim,
+		IDs: &_IDs,
+		Filter: &simple.Filter{
+			Kinds:   &_Kinds,
+			Authors: &_Authors,
+			Tags:    &_Tags,
+			Since:   &_Since,
+			Until:   &_Until,
+		},
+		Search: _Search,
+		Limit:  lim,
 	}
 }
 

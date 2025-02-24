@@ -13,6 +13,7 @@ import (
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/prefixes"
+	"realy.lol/simple"
 	"realy.lol/timestamp"
 )
 
@@ -104,7 +105,7 @@ func PrepareQueries(f *filter.T) (
 			// log.T.S("authors/kinds", qs)
 		}
 		if f.Tags.Len() > 0 {
-			ext = &filter.T{Tags: f.Tags}
+			ext = &filter.T{Filter: &simple.Filter{Tags: f.Tags}}
 			// log.T.S("extra filter", ext)
 		}
 	case f.Tags.Len() > 0:
@@ -119,7 +120,7 @@ func PrepareQueries(f *filter.T) (
 		// we need a query for each tag search
 		qs = make([]query, size)
 		// and any kinds mentioned as well in extra filter
-		ext = &filter.T{Kinds: f.Kinds}
+		ext = &filter.T{Filter: &simple.Filter{Kinds: f.Kinds}}
 		i := 0
 		// log.T.S(f.Tags.Value())
 		for _, values := range f.Tags.Value() {

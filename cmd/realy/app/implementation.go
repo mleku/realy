@@ -19,6 +19,7 @@ import (
 	"realy.lol/kind"
 	"realy.lol/kinds"
 	"realy.lol/realy/config"
+	"realy.lol/simple"
 	"realy.lol/store"
 	"realy.lol/tag"
 	"realy.lol/tag/atag"
@@ -294,8 +295,8 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			}
 			log.D.Ln("regenerating owners follow lists")
 			if evs, err = r.Store.QueryEvents(c,
-				&filter.T{Authors: tag.New(r.owners...),
-					Kinds: kinds.New(kind.FollowList)}); chk.E(err) {
+				&filter.T{Filter: &simple.Filter{Authors: tag.New(r.owners...),
+					Kinds: kinds.New(kind.FollowList)}}); chk.E(err) {
 			}
 			for _, ev := range evs {
 				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.ID)
@@ -318,8 +319,8 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 				followed = append(followed, f)
 			}
 			if evs, err = r.Store.QueryEvents(c,
-				&filter.T{Authors: tag.New(followed...),
-					Kinds: kinds.New(kind.FollowList)}); chk.E(err) {
+				&filter.T{Filter: &simple.Filter{Authors: tag.New(followed...),
+					Kinds: kinds.New(kind.FollowList)}}); chk.E(err) {
 			}
 			for _, ev := range evs {
 				// we want to protect the follow lists of users as well so they also cannot be
@@ -341,8 +342,8 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			log.D.Ln("regenerating owners mute lists")
 			r.Muted = make(map[string]struct{})
 			if evs, err = r.Store.QueryEvents(c,
-				&filter.T{Authors: tag.New(r.owners...),
-					Kinds: kinds.New(kind.MuteList)}); chk.E(err) {
+				&filter.T{Filter: &simple.Filter{Authors: tag.New(r.owners...),
+					Kinds: kinds.New(kind.MuteList)}}); chk.E(err) {
 			}
 			for _, ev := range evs {
 				r.OwnersMuteLists = append(r.OwnersMuteLists, ev.ID)

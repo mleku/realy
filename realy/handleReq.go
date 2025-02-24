@@ -20,6 +20,7 @@ import (
 	"realy.lol/kinds"
 	"realy.lol/normalize"
 	"realy.lol/relay"
+	"realy.lol/simple"
 	"realy.lol/store"
 	"realy.lol/tag"
 	"realy.lol/web"
@@ -127,8 +128,8 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 		}
 		if aut := ws.Authed(); ws.IsAuthed() {
 			var mutes event.Ts
-			if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),
-				Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
+			if mutes, err = sto.QueryEvents(c, &filter.T{Filter: &simple.Filter{Authors: tag.New(aut),
+				Kinds: kinds.New(kind.MuteList)}}); !chk.E(err) {
 				var mutePubs [][]byte
 				for _, ev := range mutes {
 					for _, t := range ev.Tags.F() {
