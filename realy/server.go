@@ -15,7 +15,8 @@ import (
 	"github.com/rs/cors"
 
 	"realy.lol/context"
-	"realy.lol/realy/handler"
+	"realy.lol/realy/accept"
+	"realy.lol/realy/api"
 	"realy.lol/realy/listeners"
 	"realy.lol/realy/options"
 	"realy.lol/relay"
@@ -93,11 +94,11 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h := handler.H{w, r}
+	h := api.H{w, r}
 	// standard nostr protocol only governs the "root" path of the relay and websockets
 	log.I.S(h.Request.URL.Host, h.Request.URL.String(), h.Request.Header.Get("Accept"))
 	if h.Request.URL.Path == "/" {
-		if r.Header.Get("Accept") == "application/nostr+json" {
+		if r.Header.Get("Accept") == accept.NostrJSON {
 			s.handleRelayInfo(h)
 		} else if h.Request.Header.Get("Upgrade") == "websocket" {
 			s.handleWebsocket(h)

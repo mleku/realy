@@ -1,4 +1,4 @@
-package handler
+package api
 
 import (
 	"net/http"
@@ -6,33 +6,34 @@ import (
 	"sync"
 )
 
-var registry = make(map[string]string)
+type Registry map[string]Method
+
+var registry = make(map[string]Method)
 
 var registryMx sync.Mutex
 
 // RegisterCapability stores a string that describes a given method in the
 // simplified nostr API.
-func RegisterCapability(path, c string) {
+func RegisterCapability(m Method) {
 	registryMx.Lock()
 	defer registryMx.Unlock()
-	registry[path] = c
+	log.I.F("registering method for path %s", m.Path())
+	registry[m.Path()] = m
 }
 
-// GetCapability returns an existing capability string if it exists.
-func GetCapability(c string) string {
+// GetCapability returns an existing capability if it exists.
+func GetCapability(c string) (m Method, ok bool) {
 	registryMx.Lock()
 	defer registryMx.Unlock()
-	if C, ok := registry[c]; ok {
-		return C
-	}
-	return "unknown"
+	m, ok = registry[c]
+	return
 }
 
 // GetCapabilities returns a new map that is a copy of the registry.
-func GetCapabilities() (c map[string]string) {
+func GetCapabilities() (c map[string]Method) {
 	registryMx.Lock()
 	defer registryMx.Unlock()
-	c = make(map[string]string)
+	c = make(map[string]Method)
 	for path, s := range registry {
 		c[path] = s
 	}
@@ -67,22 +68,4 @@ func (h H) RealRemote() (rr string) {
 		rr = h.Request.Host
 	}
 	return
-}
-
-type Protocol map[string]func(h H)
-
-type Paths map[string]Protocol
-
-func Route(h H, p Paths) {
-	acc := h.Request.Header.Get("Accept")
-	for proto, fns := range p {
-		if proto == acc {
-			for path, fn := range fns {
-				if strings.HasPrefix(h.URL.Path, path) {
-					fn(h)
-					return
-				}
-			}
-		}
-	}
 }

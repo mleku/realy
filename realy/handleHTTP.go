@@ -6,7 +6,8 @@ import (
 	"net/http"
 
 	"realy.lol/httpauth"
-	"realy.lol/realy/handler"
+	"realy.lol/realy/api"
+	"realy.lol/realy/router"
 )
 
 func (s *Server) auth(r *http.Request) (authed bool) {
@@ -35,26 +36,7 @@ func (s *Server) unauthorized(w http.ResponseWriter) {
 	fmt.Fprintf(w, "your npub is not welcome here\n")
 }
 
-func (s *Server) HandleHTTP(h handler.H) {
+func (s *Server) HandleHTTP(h api.H) {
 	log.T.S(h.Request.Header)
-	handler.Route(h, handler.Paths{
-		"application/nostr+json": {
-			"/relayinfo":    s.handleRelayInfo,
-			"/capabilities": s.CapabilitiesHandler,
-			"/event":        s.EventHandler,
-			"/events":       s.EventsHandler,
-			"/filter":       s.FilterHandler,
-			"/fulltext":     s.FulltextHandler,
-			"/relay":        s.RelayHandler,
-			"/subscribe":    s.SubscribeHandler,
-			// todo: we will use nostr+json as the codec switch for the simplified nostr
-			//       http/ws on non-root paths
-		},
-		"": {
-			"/export":   s.exportHandler,
-			"/import":   s.importHandler,
-			"/shutdown": s.shutdownHandler,
-			"":          s.defaultHandler,
-		},
-	})
+	router.Route(h, "")
 }

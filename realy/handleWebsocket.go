@@ -15,14 +15,14 @@ import (
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/envelopes/noticeenvelope"
 	"realy.lol/envelopes/reqenvelope"
-	"realy.lol/realy/handler"
+	"realy.lol/realy/api"
 	"realy.lol/realy/listeners"
 	"realy.lol/relay"
 	"realy.lol/store"
 	"realy.lol/web"
 )
 
-func (s *Server) handleWebsocket(h handler.H) {
+func (s *Server) handleWebsocket(h api.H) {
 	conn, err := listeners.Upgrader.Upgrade(h.ResponseWriter, h.Request, nil)
 	if err != nil {
 		log.E.F("failed to upgrade websocket: %v", err)
@@ -92,12 +92,12 @@ func (s *Server) handleWebsocket(h handler.H) {
 				}
 				break
 			}
-			if ws.Limiter() != nil {
-				if err = ws.Limiter().Wait(context.TODO()); chk.T(err) {
-					log.W.F("unexpected limiter error %v", err)
-					continue
-				}
-			}
+			// if ws.Limiter() != nil {
+			// 	if err = ws.Limiter().Wait(context.TODO()); chk.T(err) {
+			// 		log.W.F("unexpected limiter error %v", err)
+			// 		continue
+			// 	}
+			// }
 			if typ == websocket.PingMessage {
 				if err = ws.WriteMessage(websocket.PongMessage, nil); chk.E(err) {
 				}

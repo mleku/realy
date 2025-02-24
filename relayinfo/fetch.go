@@ -8,6 +8,7 @@ import (
 
 	"realy.lol/context"
 	"realy.lol/normalize"
+	"realy.lol/realy/accept"
 )
 
 // Fetch fetches the NIP-11 Info.
@@ -24,7 +25,7 @@ func Fetch(c context.T, u []byte) (info *T, err error) {
 		return
 	}
 	// add the NIP-11 header
-	req.Header.Add("Accept", "application/nostr+json")
+	req.Header.Add("Accept", accept.NostrJSON)
 	// send the response
 	var resp *http.Response
 	if resp, err = http.DefaultClient.Do(req); chk.E(err) {

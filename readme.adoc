@@ -123,20 +123,20 @@ Of course, to translate between these protocols will require additional complexi
 
 Requests to the simplified nostr protocol MUST have this header set so the relay knows what format request to expect in the request body, as well as what to format the returned data.
 
-==== Capabilities
+==== API
 
-`/capabilities` is an unprotected endpoint, and works like `nip-11` but is more sensible and relates to the RESTful endpoints described here.
+`/api` is an unprotected endpoint, and works like `nip-11` but is more sensible and relates to the RESTful endpoints described here.
 
 The protocols available and the encoding of this message are different based on the `Accept` field of the HTTP header. We will describe the `application/nostr+json` versions here and implement them first.
 
 Calling this with `GET` and `Accept: application/nostr+json` will return a JSON array containing arrays with the following format:
 
-===== nostr+json
+===== application/nostr+json
 ----
 ["<path>", "<url of implementing repo>", "/path/to/spec.adoc","<version in semver vX.X.X-extra>",[["<flag>","<flag option>"]]]...
 ----
 
-- `path` means the path string after the relay URL that invokes the protocol API method.
+- `path` means the path string after the relay URL that invokes the protocol API method, eg "/api"
 
 - The URL refers to the HTTP Git URL, and the path is from the root of the repository (not necessarily the URL you can open on a web browser).
 
@@ -146,7 +146,7 @@ Calling this with `GET` and `Accept: application/nostr+json` will return a JSON 
 
 From these and with a little research anyone should then be able to construct valid queries for the protocol.
 
-NOTE: that this message will differ if you use a different `Accept` type as different encodings may have differing degrees of implementation. This above is the `nostr+json` form
+NOTE: that this message will differ if you use a different `Accept` type as different encodings may have differing degrees of implementation. This above is the `application/nostr+json` form
 
 An example of an entry from a capabilities message signifying that DMs and application specific data require auth:
 
@@ -177,7 +177,7 @@ The standard OK envelope JSON will be returned, eg:
 
 `/events` is the endpoint for retrieving events.
 
-Rather than use the muddled "filter" structure, this will expect a simple array of the event IDs encoded in the encoding standard, ie, for `nostr+json` this means hexadecimal strings, in an array.
+Rather than use the muddled "filter" structure, this will expect a simple array of the event IDs encoded in the encoding standard, ie, for `application/nostr+json` this means hexadecimal strings, in an array.
 
 The result will be JSONL formatted events returned in what should be reverse chronological order.
 
@@ -185,7 +185,7 @@ The result will be JSONL formatted events returned in what should be reverse chr
 
 `/filter` is the endpoint for the main set of criteria used in a filter in standard nostr websockets.
 
-The structure for `nostr+json` is as follows:
+The structure for `application/nostr+json` is as follows:
 
 :json:
 ----
