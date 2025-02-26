@@ -119,22 +119,24 @@ Calls to these endpoints MUST have an `Accept` header with a recognised encoding
 - `application/nostr+json` designates the use of the standard encoding, though the actual APIs may diverge from this such as segregating facets of the "filter" to be only available from a given endpoint.
 - `application/nostr+text` is a new format that is inspired by the standard encodings used in old protocols like SMTP, POP, NNTP and IMAP. These are optimized for human reading and composition.
 
-Of course, to translate between these protocols will require additional complexities, and for the moment we are focusing on implementing `application/nostr+json` style.
+Of course, to translate between these protocols will require additional complexities, and for the moment we are focusing on implementing `application/nostr+json` style, as codecs for much of these elements is already existing or just plain simple JSON.
 
-==== Capabilities
+Requests to the simplified nostr protocol MUST have this header set so the relay knows what format request to expect in the request body, as well as what to format the returned data.
 
-`https://example.com/capabilities` is an unprotected endpoint, and works like `nip-11` but is more sensible and relates to the RESTful endpoints described here.
+==== API
+
+`/api` is an unprotected endpoint, and works like `nip-11` but is more sensible and relates to the RESTful endpoints described here.
 
 The protocols available and the encoding of this message are different based on the `Accept` field of the HTTP header. We will describe the `application/nostr+json` versions here and implement them first.
 
 Calling this with `GET` and `Accept: application/nostr+json` will return a JSON array containing arrays with the following format:
 
-===== nostr+json
+===== application/nostr+json
 ----
-["<protocol name/path>", "<url of protocol repo>/path/to/spec.adoc","<version in semver vX.X.X-optional>",[["<flag>","<flag option>"]]]
+["<path>", "<url of implementing repo>", "/path/to/spec.adoc","<version in semver vX.X.X-extra>",[["<flag>","<flag option>"]]]...
 ----
 
-- `protocol name/path` means the path string after the relay URL that invokes the protocol API method.
+- `path` means the path string after the relay URL that invokes the protocol API method, eg "/api"
 
 - The URL refers to the HTTP Git URL, and the path is from the root of the repository (not necessarily the URL you can open on a web browser).
 
@@ -144,11 +146,27 @@ Calling this with `GET` and `Accept: application/nostr+json` will return a JSON 
 
 From these and with a little research anyone should then be able to construct valid queries for the protocol.
 
-NOTE: that this message will differ if you use a different `Accept` type as different encodings may have differing degrees of implementation. This above is the `nostr+json` form
+NOTE: that this message will differ if you use a different `Accept` type as different encodings may have differing degrees of implementation. This above is the `application/nostr+json` form
+
+An example of an entry from a capabilities message signifying that DMs and application specific data require auth:
+
+----
+["/events","https://realy.lol","/readme.adoc","v1.9.6",[["auth-required","kind=[4,1059,1060,30078]]]]
+----
+
+In such a case, a malicious snooper would not be able to get at an event that doesn't match up with the auth provided for the query. They also would not be told that the relay had the event or not, the relay would just not return it. If the auth proved being party to the event, it would be returned. The attacker would only know they can't get the event, not whether or not the relay has it. And they would know only that the relay does not return these events without privilege being proven, which is what the default should be.
+
+==== Policy
+
+`/policy` is an endpoint that just returns a human-readable text that lays out your typical Terms of Service type crap. Implementing this is optional but for silly people who make deals with the karens in government bureaucratic morality enforcer goon shows this is where they can put that bullcrap. I don't care what format it's in, because I'm never going to implement it but I'm putting this here as a hint to the karen-worshipers to let them put this crap here to CYA against government litigation.
+
+==== Relay Info
+
+`/relayinfo` is an alias for returning the same as the `/` endpoint (the main NIP style protocol websocket upgrading endpoint) with the `Accept` HTTP header key set to `application/nostr+json` and the HTTP protocol used instead of WS the relay returns the nip-11 relay information document. This is just because it's easy to do, users of the simplified protocol should instead use `/capabilities`.
 
 ==== Event
 
-`https://example.com/event` is the endpoint for publishing events.
+`/event` is the endpoint for publishing events.
 
 This will have the requirement for `nip-98` authentication in accordance with the `nip-11` `restricted-writes` field in limitations. It should also show in the `capabilities` that it is `auth-required`, which should be used to restrict access to subscribers to the relay service.
 
@@ -161,17 +179,17 @@ The standard OK envelope JSON will be returned, eg:
 
 ==== Events
 
-`https://example.com/events` is the endpoint for retrieving events.
+`/events` is the endpoint for retrieving events.
 
-Rather than use the muddled "filter" structure, this will expect a simple array of the event IDs encoded in the encoding standard, ie, for `nostr+json` this means hexadecimal strings, in an array.
+Rather than use the muddled "filter" structure, this will expect a simple array of the event IDs encoded in the encoding standard, ie, for `application/nostr+json` this means hexadecimal strings, in an array.
 
 The result will be JSONL formatted events returned in what should be reverse chronological order.
 
 ==== Filter
 
-`https://example.com/filter` is the endpoint for the main set of criteria used in a filter in standard nostr websockets.
+`/filter` is the endpoint for the main set of criteria used in a filter in standard nostr websockets.
 
-The structure for `nostr+json` is as follows:
+The structure for `application/nostr+json` is as follows:
 
 :json:
 ----
@@ -190,9 +208,11 @@ The result from this is an array of the event IDs that match the filter, in reve
 
 The capabilities flag "limit" expresses how many results will be returned, and it can be relied upon that the last event in the return has a newer timestamp than any others that may have been truncated if the limit is hit.
 
+As mentioned above in `/capabilities` if there is an auth-required restriction similar to the one described there, likewise even if otherwise not auth-required such filters will only be processed with auth, and the results only the ones that contain the pubkey that was authed to.
+
 ==== Fulltext
 
-`https://example.com/fulltext` is the endpoint for making a query using words that should be processed by a full text search engine.
+`/fulltext` is the endpoint for making a query using words that should be processed by a full text search engine.
 
 :json:
 ----
@@ -212,7 +232,7 @@ The purpose of also providing the filter fields is they form the basis of the ma
 
 ==== Relay
 
-`https://example.com/relay` is an endpoint that accepts a single event that should be sent to open subscriptions.
+`/relay` is an endpoint that accepts a single event that should be sent to open subscriptions.
 
 This of course includes standard nostr websocket subscriptions as well as the ones in the next section.
 
@@ -222,9 +242,17 @@ Like `event` this endpoint also may have access restrictions, the flag for this 
 
 ==== Subscribe
 
-`https://example.com/subscribe` is an endpoint that upgrades to a websocket if authorized, and will deliver event IDs in separate messages, in the same encoding as used to make the request.
+`/subscribe` is an endpoint that upgrades to a websocket if authorized, and will deliver event IDs in separate messages, in the same encoding as used to make the request.
 
 It uses the exact same query structure as `filter` as regards to the matching criteria, but the comparison is made as an event is received and then dispatched to subscribed clients.
+
+NOTE: Only the event IDs are given, they must be separately fetched by the client. This enables clients to opt to defer loading them for bandwidth conservation reasons.
+
+==== Subscribe Fulltext
+
+`/subscribe-fulltext` is an endpoint that upgrades to a websocket if authorized, and will deliver event IDs in separate messages, in the same encoding as used to make the request.
+
+It uses the exact same query structure as a `/fulltext` endpoint the `search` field can be used and after running the filter to check the event it will then inspect the matches for fulltext matches. This does not require a fulltext index to work, as all the relay has to do is scan the event matches for the keywords.
 
 NOTE: Only the event IDs are given, they must be separately fetched by the client. This enables clients to opt to defer loading them for bandwidth conservation reasons.
 
