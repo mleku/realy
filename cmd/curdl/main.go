@@ -13,6 +13,7 @@ import (
 	"realy.lol/bech32encoding"
 	"realy.lol/hex"
 	"realy.lol/httpauth"
+	"realy.lol/lol"
 	"realy.lol/p256k"
 )
 
@@ -26,6 +27,7 @@ func fail(format string, a ...any) {
 }
 
 func main() {
+	lol.SetLogLevel("trace")
 	if len(os.Args) > 1 && os.Args[1] == "help" {
 		fmt.Printf(`curdl help:
 
@@ -62,9 +64,9 @@ for nostr http protocol:
 		fail("invalid URL: `%s` error: `%s`", os.Args[2], err.Error())
 	}
 	switch meth {
-	case "get", "post":
+	case "get", "post", "nostr":
 	default:
-		fail("first parameter must be either 'get' or 'post', got '%s'", meth)
+		fail("first parameter must be either 'get', 'post', or 'nostr', got '%s'", meth)
 	}
 	var sk []byte
 	nsex := os.Getenv(secEnv)
@@ -80,12 +82,36 @@ for nostr http protocol:
 		fail("failed to init signer: '%s'", err.Error())
 	}
 	// we assume the hash comes before the filename if it is generated using sha256sum
-	var req *http.Request
 	var payload io.ReadCloser
 	contentLength := int64(math.MaxInt64)
 	switch meth {
 	case "nostr":
-		fail("nostr json protocol not yet implemented")
+		switch ur.Path {
+		case "/relayinfo":
+			var r *http.Request
+			if r, err = http.NewRequest("GET", ur.String(), nil); chk.E(err) {
+				fail(err.Error())
+			}
+			r.Header.Add("User-Agent", userAgent[:len(userAgent)-1])
+			r.Header.Add("Accept", "application/nostr+json")
+			client := &http.Client{
+				CheckRedirect: func(req *http.Request,
+					via []*http.Request) error {
+					return http.ErrUseLastResponse
+				},
+			}
+			var res *http.Response
+			if res, err = client.Do(r); chk.E(err) {
+				err = errorf.E("request failed: %w", err)
+				return
+			}
+			defer res.Body.Close()
+			if _, err = io.Copy(os.Stdout, res.Body); chk.E(err) {
+				return
+			}
+		default:
+			fail("unrecognised method '%s'")
+		}
 	case "post":
 		// get the file path parameters and optional hash
 		var filePath, h string
@@ -120,20 +146,23 @@ for nostr http protocol:
 			rc = payload
 			return
 		}
-		log.I.S(r)
+		// log.I.S(r)
 		client := &http.Client{}
 		var res *http.Response
 		if res, err = client.Do(r); chk.E(err) {
 			return
 		}
-		log.I.S(res)
+		// log.I.S(res)
 		defer res.Body.Close()
 		if io.Copy(os.Stdout, res.Body); chk.E(err) {
 			return
 		}
 
 	case "get":
-		req, err = httpauth.MakeGetRequest(ur, userAgent, sign)
+		var r *http.Request
+		if r, err = httpauth.MakeGetRequest(ur, userAgent, sign); chk.E(err) {
+			fail(err.Error())
+		}
 		client := &http.Client{
 			CheckRedirect: func(req *http.Request,
 				via []*http.Request) error {
@@ -141,7 +170,7 @@ for nostr http protocol:
 			},
 		}
 		var res *http.Response
-		if res, err = client.Do(req); chk.E(err) {
+		if res, err = client.Do(r); chk.E(err) {
 			err = errorf.E("request failed: %w", err)
 			return
 		}

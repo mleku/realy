@@ -12,7 +12,7 @@ import (
 
 func (s *Server) handleRelayInfo(h Handler) {
 	h.Request.Header.Set("Content-Type", "application/json")
-	log.T.Ln("handling relay information document")
+	log.I.Ln("handling relay information document")
 	var info *relayinfo.T
 	if informationer, ok := s.relay.(relay.Informationer); ok {
 		info = informationer.GetNIP11InformationDocument()
