@@ -112,7 +112,7 @@ The database is stored in `$HOME/.local/share/realy` and if need be you can stop
 
 Using websockets for everything is stupid. Only subscriptions need the capabilities that are easier accessed through sockets. So we are going to implement a simplified form for accessing nostr events that is based on the principles of RESTful interfaces.
 
-Instead of confusing authentication as in nip-42, which nobody has implemented, this will just use nip-98 in all cases for authentication, which is just a HTTP header field containing an event that references the URL and method of the query. Whether authentication is required will be designated explicitly in the `capabilities` described below.
+Instead of confusing authentication as in nip-42, which nobody has implemented, this will just use nip-98 in all cases for authentication, which is just a HTTP header field containing an event that references the URL and method of the query. Whether authentication is required will be designated explicitly in the `api` described below.
 
 Calls to these endpoints MUST have an `Accept` header with a recognised encoding. Different values in this header value field allow for entirely separate protocols, both encoding AND API.
 
@@ -148,7 +148,7 @@ From these and with a little research anyone should then be able to construct va
 
 NOTE: that this message will differ if you use a different `Accept` type as different encodings may have differing degrees of implementation. This above is the `application/nostr+json` form
 
-An example of an entry from a capabilities message signifying that DMs and application specific data require auth:
+An example of an entry from a api message signifying that DMs and application specific data require auth:
 
 ----
 ["/events","https://realy.lol","/readme.adoc","v1.9.6",[["auth-required","kind=[4,1059,1060,30078]]]]
@@ -162,13 +162,13 @@ In such a case, a malicious snooper would not be able to get at an event that do
 
 ==== Relay Info
 
-`/relayinfo` is an alias for returning the same as the `/` endpoint (the main NIP style protocol websocket upgrading endpoint) with the `Accept` HTTP header key set to `application/nostr+json` and the HTTP protocol used instead of WS the relay returns the nip-11 relay information document. This is just because it's easy to do, users of the simplified protocol should instead use `/capabilities`.
+`/relayinfo` is an alias for returning the same as the `/` endpoint (the main NIP style protocol websocket upgrading endpoint) with the `Accept` HTTP header key set to `application/nostr+json` and the HTTP protocol used instead of WS the relay returns the nip-11 relay information document. This is just because it's easy to do, users of the simplified protocol should instead use `/api`.
 
 ==== Event
 
 `/event` is the endpoint for publishing events.
 
-This will have the requirement for `nip-98` authentication in accordance with the `nip-11` `restricted-writes` field in limitations. It should also show in the `capabilities` that it is `auth-required`, which should be used to restrict access to subscribers to the relay service.
+This will have the requirement for `nip-98` authentication in accordance with the `nip-11` `restricted-writes` field in limitations. It should also show in the `api` that it is `auth-required`, which should be used to restrict access to subscribers to the relay service.
 
 The standard OK envelope JSON will be returned, eg:
 
@@ -206,9 +206,9 @@ NOTE: there is no `ids` or `search` or `limit` field in here.
 
 The result from this is an array of the event IDs that match the filter, in reverse chronological order. By doing this, the burden of maintaining query state is shifted to the client, who is now free to request using the `events` endpoint to fetch the full events.
 
-The capabilities flag "limit" expresses how many results will be returned, and it can be relied upon that the last event in the return has a newer timestamp than any others that may have been truncated if the limit is hit.
+The api flag "limit" expresses how many results will be returned, and it can be relied upon that the last event in the return has a newer timestamp than any others that may have been truncated if the limit is hit.
 
-As mentioned above in `/capabilities` if there is an auth-required restriction similar to the one described there, likewise even if otherwise not auth-required such filters will only be processed with auth, and the results only the ones that contain the pubkey that was authed to.
+As mentioned above in `/api` if there is an auth-required restriction similar to the one described there, likewise even if otherwise not auth-required such filters will only be processed with auth, and the results only the ones that contain the pubkey that was authed to.
 
 ==== Fulltext
 
@@ -228,7 +228,7 @@ As mentioned above in `/capabilities` if there is an auth-required restriction s
 
 The results are the same as `filter`.
 
-The purpose of also providing the filter fields is they form the basis of the matches, and then within that set the full text can be filtered. If there is no filter fields then there can be a very large number of results, so for this endpoint in the capabilities the relay will list some limit, which should be somewhere around 1000-10000.
+The purpose of also providing the filter fields is they form the basis of the matches, and then within that set the full text can be filtered. If there is no filter fields then there can be a very large number of results, so for this endpoint in the api the relay will list some limit, which should be somewhere around 1000-10000.
 
 ==== Relay
 
@@ -238,7 +238,7 @@ This of course includes standard nostr websocket subscriptions as well as the on
 
 According to standard nostr `kind` this will, when using `application/nostr+json` only accept ephemeral event kinds (20k numbered), but on other encodings it is how this behaviour is specified by clients.
 
-Like `event` this endpoint also may have access restrictions, the flag for this in `capabilities` must specify.
+Like `event` this endpoint also may have access restrictions, the flag for this in `api` must specify.
 
 ==== Subscribe
 
