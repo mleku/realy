@@ -25,7 +25,7 @@ So, the event structure is as follows:
   "created_at": 1234567890,
   "content": "",
   "tags": [
-    ["J":"<JWT token","<user pubkey>"],
+    ["J":"<JWT pubkey>","<user pubkey>"],
   ],
   "sig": "<signature matching user pubkey>"
 }
