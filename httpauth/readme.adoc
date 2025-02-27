@@ -1,4 +1,5 @@
 = http authentication
+:toc:
 
 The nostr protocol includes an authentication mechanism based on nostr events and HTTP headers that you can read our local version here: link:98.adoc[nip-98]
 
@@ -43,3 +44,15 @@ The encoding should then be:
   ["GET","http://example.com/path/to/endpoint",11234567890]
 
 The JWT token must then have a signature on this string, and that signature match the JWT token registered in the kind 30050 and the request will then be associated with the given npub and authorized if it is permitted by the relay's access control list.
+
+== The Actual Authorization
+
+Where the NIP-98 uses:
+
+  Authorization: Nostr <base64 encoded auth event>
+
+to comport with the standard for JWT:
+
+  Authorization: Bearer <jwt.token.string>
+
+The relay must be able to distinguish between the `Nostr` and `Bearer` sentinels in the header value for `Authorization` and then it can validate the JWT token, and then search for the JWT registration, and then use the associated nostr public key to check for permission to do whatever the POST (or QUERY) body specifies.
