@@ -1,0 +1,45 @@
+= http authentication
+
+The nostr protocol includes an authentication mechanism based on nostr events and HTTP headers that you can read our local version here: link:98.adoc[nip-98]
+
+The package in this directory already contains code that enables the creation of a GET or POST request containing a NIP-98 `Authorization` field with the additional optional payload SHA256 hash for the POST method, and a validation function that checks the header field is valid and returns the authorized pubkey of the authorization event so the relay or other server can decide if it is permitted.
+
+In addition to this, for the sake of simplifying interoperability for other tooling, we also wish to enable JWT, based on the same nostr secret keys.
+
+JWT libraries do not include a BIP-340 style x-only secp256k1 signature and pubkey library, so we need to enable the user to generate an additional public key that is recognised by most JWT implementations.
+
+== JWT Authentication Registration Event
+
+The simplest way to enable this for a nostr relay is to create a new event kind which allows a user to associate a JWT public key token with their nostr public key, and then the relay's access control mechanism can search for it.
+
+To make this mesh with the standard NIP-01 specification for indexing, the simplest way is to place the JWT public key in a `J` tag and then when a request is received with the JWT token, after it is decoded, the event tagged with this token can be found with a simple query and then the associated public key of the user that published the event with this token can be located.
+
+So, the event structure is as follows:
+
+```json
+{
+  "id": "<event id>",
+  "kind": 30050,
+  "pubkey": "<user pubkey>",
+  "created_at": 1234567890,
+  "content": "",
+  "tags": [
+    ["J":"<JWT token","<user pubkey>"],
+  ],
+  "sig": "<signature matching user pubkey>"
+}
+```
+
+By publishing this event, with the JWT secret key, the user proves control of the JWT token and that it is equivalent as their own nsec for signing JWT signed HTTP requests in place of using the NIP-98 authentication.
+
+== JWT Authentication Protocol
+
+In every respect, other than the different key/signature algorithm, and authentication event token encoding, this protocol is identical to NIP-98
+
+This means that the JWT must include the HTTP method, the full URL of the request, and a base 10 encoded timestamp that is within 15 seconds of the server/relay current unix time:
+
+The encoding should then be:
+
+  ["GET","http://example.com/path/to/endpoint",11234567890]
+
+The JWT token must then have a signature on this string, and that signature match the JWT token registered in the kind 30050 and the request will then be associated with the given npub and authorized if it is permitted by the relay's access control list.
