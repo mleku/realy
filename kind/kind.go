@@ -48,6 +48,7 @@ var Privileged = []*T{
 	EncryptedDirectMessage,
 	GiftWrap,
 	GiftWrapWithKind4,
+	JWTBinding,
 	ApplicationSpecificData,
 }
 
@@ -243,6 +244,8 @@ var (
 	UserEmojiList         = &T{10030}
 	DMRelaysList          = &T{10050}
 	FileStorageServerList = &T{10096}
+	// JWTBinding is an event kind that creates a link between a JWT certificate and a pubkey
+	JWTBinding = &T{13004}
 	// NWCWalletInfo is an event type that...
 	NWCWalletInfo = &T{13194}
 	WalletInfo    = NWCWalletInfo
