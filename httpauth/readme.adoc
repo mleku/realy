@@ -17,7 +17,8 @@ To make this mesh with the standard NIP-01 specification for indexing, the simpl
 
 So, the event structure is as follows:
 
-```json
+[source,json]
+----
 {
   "id": "<event id>",
   "kind": 30050,
@@ -25,11 +26,11 @@ So, the event structure is as follows:
   "created_at": 1234567890,
   "content": "",
   "tags": [
-    ["J","<JWT pubkey>","<user pubkey>"],
+    ["J","<JWT pubkey>","<user pubkey>"]
   ],
   "sig": "<signature matching user pubkey>"
 }
-```
+----
 
 By publishing this event, with the JWT secret key, the user proves control of the JWT token and that it is equivalent as their own nsec for signing JWT signed HTTP requests in place of using the NIP-98 authentication.
 
@@ -41,9 +42,23 @@ This means that the JWT must include the HTTP method, the full URL of the reques
 
 The encoding should then be:
 
-  ["GET","http://example.com/path/to/endpoint",11234567890]
+[source]
+----
+{
+    "iss":"<pubkey .cert stringified>",
+    "typ":"message",
+    "sub":"<hex pubkey of user>",
+    "alg":"ES256"
+    "aud":http://example.com/path/to/endpoint",
+    "iat":1234567890,
+}
+----
 
-The JWT token must then have a signature on this string, and that signature match the JWT token registered in the kind 30050 and the request will then be associated with the given npub and authorized if it is permitted by the relay's access control list.
+The JWT token must then have a signature on this string, and that signature match the JWT token registered in the kind 30050, as well as the `iss` field and the request will then be associated with the given npub and authorized if it is permitted by the relay's access control list.
+
+The pubkey and `.crt` also must match. The `alg` field can differ from here but ECDSA p256 is the preferred signature algorithm and pubkey derivation scheme. Some devices may only understand RSA and for those, the `alg` will signify this.
+
+An additional field `exp` can be present and will allow the client to generate one certificate and use it until the time specified (same as `iat` it is a decimal unix timestamp seconds).
 
 == The Actual Authorization
 
