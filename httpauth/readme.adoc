@@ -8,6 +8,7 @@ The main use cases are for testing and administrative purposes, but it may also 
 HTTP versions of the protocol are not just about enabling devices that may not be able to do websockets, or be easily programmable even still to do NIP-98 authentication, they are also simpler and enable lowering the overhead caused by the use of sockets for simple request/response protocols that have no need to maintain liveness or store socket state information.
 
 == JWT Authentication Registration Event
+[[authevent]]
 
 The simplest way to enable this for a nostr relay is to create a new event kind which allows a user to associate a JWT public key token with their nostr public key, and then the relay's access control mechanism can search for it and authorize using JWT in place of NIP-98 or NIP-42 websocket auth.
 
@@ -55,7 +56,7 @@ The encoding should then be:
 
 The JWT token must then have a signature on this string, and that signature match the JWT token registered in the kind 30050.
 
-An additional field `exp` can be present and will allow the client to generate one certificate and use it until the time specified (same as `iat` it is a decimal unix timestamp seconds).
+An additional field `exp` can be present and will allow the client to generate one certificate and use it until the time specified. The authorization can be revoked by deleting or updating the link:#authevent[registration event]
 
 == The Actual Authorization
 
