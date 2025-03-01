@@ -4,11 +4,8 @@ import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
-
-	"github.com/golang-jwt/jwt/v4"
 
 	realy_lol "realy.lol"
 	"realy.lol/bech32encoding"
@@ -113,28 +110,20 @@ nostrjwt bearer <request URL> <nostr pubkey> [<optional expiry in 0h0m0s format 
 			if sec, err = x509.ParseECPrivateKey(jskb); chk.E(err) {
 				fail(err.Error())
 			}
-			_ = sec // todo
 			var tok []byte
 			// generate claim
 			if len(os.Args) < 5 {
-				tok, err = httpauth.GenerateJWTtoken(os.Args[2], os.Args[3])
+				if tok, err = httpauth.GenerateJWTtoken(os.Args[2], os.Args[3]); chk.E(err) {
+					fail(err.Error())
+				}
 			} else if len(os.Args) > 4 {
-				tok, err = httpauth.GenerateJWTtoken(os.Args[2], os.Args[3], os.Args[4])
+				if tok, err = httpauth.GenerateJWTtoken(os.Args[2], os.Args[3], os.Args[4]); chk.E(err) {
+					fail(err.Error())
+				}
 			}
 
-			// fmt.Printf("%s\n", tok)
-
-			var claims jwt.MapClaims
-			if err = json.Unmarshal(tok, &claims); chk.E(err) {
-				fail(err.Error())
-			}
-			// log.I.S(claims)
-			alg := jwt.GetSigningMethod(claims["alg"].(string))
-			// log.I.S(alg)
-			token := jwt.NewWithClaims(alg, claims)
-			// log.I.S(token)
 			var signed string
-			if signed, err = token.SignedString(sec); chk.E(err) {
+			if signed, err = httpauth.SignJWTtoken(tok, sec); chk.E(err) {
 				fail(err.Error())
 			}
 			fmt.Printf("Authorization: Bearer %s\n", signed)

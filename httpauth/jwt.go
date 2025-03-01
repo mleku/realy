@@ -9,7 +9,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"fmt"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type JWT struct {
@@ -77,5 +80,20 @@ func GenerateJWTtoken(issuer, ur string,
 	if b, err = json.Marshal(claim); chk.E(err) {
 		return
 	}
+	return
+}
+
+func SignJWTtoken(tok []byte, sec *ecdsa.PrivateKey) (headerEntry string, err error) {
+	var claims jwt.MapClaims
+	if err = json.Unmarshal(tok, &claims); chk.E(err) {
+		return
+	}
+	alg := jwt.GetSigningMethod(claims["alg"].(string))
+	token := jwt.NewWithClaims(alg, claims)
+	var signed string
+	if signed, err = token.SignedString(sec); chk.E(err) {
+		return
+	}
+	headerEntry = fmt.Sprintf("Authorization: Bearer %s\n", signed)
 	return
 }
