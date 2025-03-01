@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"realy.lol/bech32encoding"
 	"realy.lol/context"
@@ -98,17 +97,17 @@ func (r *Relay) ZeroLists() {
 	r.OwnersMuteLists = r.OwnersMuteLists[:0]
 }
 
-func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin string,
-	authedPubkey []byte) (accept bool, notice string, afterSave func()) {
+func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
+	origin string, authedPubkey []byte) (accept bool, notice string, afterSave func()) {
 	// if the authenticator is enabled we require auth to accept events
 	if !r.AuthEnabled() && len(r.owners) < 1 {
 		return true, "", nil
 	}
-	if evt.CreatedAt.I64()-10 > time.Now().Unix() {
-		return false,
-			"realy does not accept timestamps that are so obviously fake, fix your clock",
-			nil
-	}
+	// if evt.CreatedAt.I64()-10 > time.Now().Unix() {
+	// 	return false,
+	// 		"realy does not accept timestamps that are so obviously fake, fix your clock",
+	// 		nil
+	// }
 	if len(authedPubkey) != 32 && !r.PublicReadable {
 		return false, fmt.Sprintf("client not authed with auth required %s", origin), nil
 	}
@@ -208,6 +207,10 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin 
 	accept = len(authedPubkey) == schnorr.PubKeyBytesLen
 	if !accept {
 		notice = "auth required but user not authed"
+		log.I.F("notice: %s", notice)
+		afterSave = func() {
+
+		}
 	}
 	return
 }
@@ -365,7 +368,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 	}
 }
 
-func (r *Relay) AuthEnabled() bool { return r.AuthRequired || !r.PublicReadable }
+func (r *Relay) AuthEnabled() bool { return r.AuthRequired || !r.PublicReadable || len(r.owners) > 0 }
 
 // ServiceUrl returns the address of the relay to send back in auth responses.
 // If auth is disabled this returns an empty string.

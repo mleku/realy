@@ -37,21 +37,22 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 	if len(rem) > 0 {
 		log.I.F("extra '%s'", rem)
 	}
-	accept, notice, after := s.relay.AcceptEvent(c, env.T, ws.Req(), ws.RealRemote(),
-		[]byte(ws.Authed()))
+	accept, notice, after := s.relay.AcceptEvent(c, env.T, ws.Req(),
+		ws.RealRemote(), []byte(ws.Authed()))
 	if !accept {
 		if strings.Contains(notice, "mute") {
 			if err = okenvelope.NewFrom(env.ID, false,
 				normalize.Blocked.F(notice)).Write(ws); chk.T(err) {
 			}
 		} else {
+			log.I.F("AUTHING")
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 				if !ws.AuthRequested() {
 					if err = okenvelope.NewFrom(env.ID, false,
 						normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.T(err) {
 					}
-					log.T.F("requesting auth from client %s", ws.RealRemote())
+					log.I.F("requesting auth from client %s", ws.RealRemote())
 					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
 						return
 					}
@@ -61,12 +62,14 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 					if err = okenvelope.NewFrom(env.ID, false,
 						normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
 					}
-					log.T.F("requesting auth again from client %s", ws.RealRemote())
+					log.I.F("requesting auth again from client %s", ws.RealRemote())
 					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
 						return
 					}
 					return
 				}
+			} else {
+				log.W.F("didn't find authentication method")
 			}
 		}
 		if err = okenvelope.NewFrom(env.ID, false,
