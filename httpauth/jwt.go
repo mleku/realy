@@ -97,3 +97,7 @@ func SignJWTtoken(tok []byte, sec *ecdsa.PrivateKey) (headerEntry string, err er
 	headerEntry = fmt.Sprintf("Authorization: Bearer %s\n", signed)
 	return
 }
+
+func VerifyJWTtoken() {
+
+}

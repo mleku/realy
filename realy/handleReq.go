@@ -40,10 +40,10 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 	}
 	allowed := env.Filters
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
-		var accepted bool
-		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
+		var accepted, modified bool
+		allowed, accepted, modified = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
 			[]byte(ws.Authed()))
-		if !accepted || allowed == nil {
+		if !accepted || allowed == nil || modified {
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
 				ws.RequestAuth()
@@ -55,9 +55,10 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
 				}
-				return
+				if !modified {
+					return
+				}
 			}
-			return
 		}
 	}
 	// log.I.F("handling %s", env.Marshal(nil))
@@ -70,14 +71,16 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.E(err) {
 				}
-				log.T.F("requesting auth from client from %s, challenge '%s'", ws.RealRemote(),
-					ws.Challenge())
+				log.T.F("requesting auth from client from %s, challenge '%s'", ws.RealRemote(), ws.Challenge())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
 				}
 				return
 			}
 		}()
+	}
+	if allowed == nil {
+		return
 	}
 	for _, f := range allowed.F {
 		var i uint

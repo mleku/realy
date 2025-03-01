@@ -60,8 +60,8 @@ type ReqAcceptor interface {
 	// support for in/outbox access.
 	//
 	// In order to support the ability to respond to
-	AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.T,
-		authedPubkey []byte) (allowed *filters.T, ok bool)
+	AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.T, authedPubkey []byte) (allowed *filters.T,
+		ok bool, modified bool)
 }
 
 // Authenticator is the interface for implementing NIP-42.

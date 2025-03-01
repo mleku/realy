@@ -37,10 +37,10 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req []byte, store stor
 	}
 	allowed := env.Filters
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
-		var accepted bool
-		allowed, accepted = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
+		var accepted, modified bool
+		allowed, accepted, modified = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
 			[]byte(ws.Authed()))
-		if !accepted || allowed == nil {
+		if !accepted || allowed == nil || modified {
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
 				ws.RequestAuth()
@@ -51,7 +51,9 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req []byte, store stor
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
 				}
-				return
+				if !modified {
+					return
+				}
 			}
 		}
 	}

@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -42,7 +40,9 @@ to write:
 
 for nostr http protocol:
 
-	curdl nostr <url> <nostr http json>
+	curdl nostr <url>
+
+	the json must be fed in via stdin using a pipe.
 `)
 		os.Exit(0)
 	}
@@ -81,31 +81,8 @@ for nostr http protocol:
 	// we assume the hash comes before the filename if it is generated using sha256sum
 	switch meth {
 	case "nostr":
-		switch ur.Path {
-		case "/relayinfo":
-			var r *http.Request
-			if r, err = http.NewRequest("GET", ur.String(), nil); chk.E(err) {
-				fail(err.Error())
-			}
-			r.Header.Add("User-Agent", userAgent[:len(userAgent)-1])
-			r.Header.Add("Accept", "application/nostr+json")
-			client := &http.Client{
-				CheckRedirect: func(req *http.Request,
-					via []*http.Request) error {
-					return http.ErrUseLastResponse
-				},
-			}
-			var res *http.Response
-			if res, err = client.Do(r); chk.E(err) {
-				err = errorf.E("request failed: %w", err)
-				return
-			}
-			defer res.Body.Close()
-			if _, err = io.Copy(os.Stdout, res.Body); chk.E(err) {
-				return
-			}
-		default:
-			fail("unrecognised method '%s'")
+		if err = Nostr(os.Args, ur, sign); chk.E(err) {
+			fail(err.Error())
 		}
 
 	case "post":

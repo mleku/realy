@@ -39,8 +39,7 @@ func (s *Server) HandleHTTP(h Handler) {
 	Route(h, Paths{
 		"application/nostr+json": {
 			"/relayinfo": s.handleRelayInfo,
-			// todo: we will use nostr+json as the codec switch for the simplified nostr
-			//       http/ws on non-root paths
+			"/event":     s.handleSimpleEvent,
 		},
 		"": {
 			"/export":   s.exportHandler,

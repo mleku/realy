@@ -101,7 +101,7 @@ func (r *Relay) ZeroLists() {
 func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin string,
 	authedPubkey []byte) (accept bool, notice string, afterSave func()) {
 	// if the authenticator is enabled we require auth to accept events
-	if !r.AuthEnabled() {
+	if !r.AuthEnabled() && len(r.owners) < 1 {
 		return true, "", nil
 	}
 	if evt.CreatedAt.I64()-10 > time.Now().Unix() {
@@ -213,8 +213,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, origin 
 }
 
 func (r *Relay) AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.T,
-	authedPubkey []byte) (allowed *filters.T, ok bool) {
-	if !r.AuthEnabled() {
+	authedPubkey []byte) (allowed *filters.T, ok bool, modified bool) {
+	if r.PublicReadable && len(r.owners) == 0 {
 		allowed = ff
 		ok = true
 		return
@@ -229,7 +229,7 @@ func (r *Relay) AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.
 			fk := f.Kinds.K
 			allowedKinds := kinds.New()
 			for _, fkk := range fk {
-				if fkk.IsDirectoryEvent() {
+				if fkk.IsDirectoryEvent() || (!fkk.IsPrivileged() && r.PublicReadable) {
 					allowedKinds.K = append(allowedKinds.K, fkk)
 				}
 			}
@@ -242,6 +242,9 @@ func (r *Relay) AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.
 				allowed = &filters.T{}
 			}
 			// overwrite the kinds that have been permitted
+			if len(f.Kinds.K) != len(allowedKinds.K) {
+				modified = true
+			}
 			f.Kinds.K = allowedKinds.K
 			allowed.F = append(allowed.F, f)
 		}
