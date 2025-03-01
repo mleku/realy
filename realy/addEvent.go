@@ -16,18 +16,16 @@ import (
 	"realy.lol/store"
 )
 
-func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T, hr *http.Request, origin string,
+func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
+	hr *http.Request, origin string,
 	authedPubkey []byte) (accepted bool, message []byte) {
+
 	if ev == nil {
 		return false, normalize.Invalid.F("empty event")
 	}
 	sto := rl.Storage()
 	wrap := &wrapper.Relay{I: sto}
 	advancedSaver, _ := sto.(relay.AdvancedSaver)
-	accept, notice, after := rl.AcceptEvent(c, ev, hr, origin, authedPubkey)
-	if !accept {
-		return false, normalize.Blocked.F(notice)
-	}
 	// don't allow storing event with protected marker as per nip-70 with auth enabled.
 	if s.authRequired && ev.Tags.ContainsProtectedMarker() {
 		if len(authedPubkey) == 0 || !bytes.Equal(ev.PubKey, authedPubkey) {
@@ -66,9 +64,6 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T, hr *http.Request
 	var authRequired bool
 	if ar, ok := rl.(relay.Authenticator); ok {
 		authRequired = ar.AuthEnabled()
-	}
-	if after != nil {
-		after()
 	}
 	s.listeners.NotifyListeners(authRequired, ev)
 	accepted = true

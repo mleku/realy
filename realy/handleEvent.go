@@ -23,9 +23,6 @@ import (
 
 func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.I) (msg []byte) {
 	log.T.F("handleEvent %s %s", ws.RealRemote(), req)
-	if ws.AuthRequested() && len(ws.Authed()) == 0 {
-		return []byte("awaiting auth for event")
-	}
 	var err error
 	var ok bool
 	var rem []byte
@@ -38,7 +35,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 		log.I.F("extra '%s'", rem)
 	}
 	accept, notice, after := s.relay.AcceptEvent(c, env.T, ws.Req(),
-		ws.RealRemote(), []byte(ws.Authed()))
+		ws.RealRemote(), ws.AuthedBytes())
 	if !accept {
 		if strings.Contains(notice, "mute") {
 			if err = okenvelope.NewFrom(env.ID, false,
@@ -49,6 +46,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 				if !ws.AuthRequested() {
+					ws.RequestAuth()
 					if err = okenvelope.NewFrom(env.ID, false,
 						normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.T(err) {
 					}
@@ -56,7 +54,6 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
 						return
 					}
-					ws.RequestAuth()
 					return
 				} else {
 					if err = okenvelope.NewFrom(env.ID, false,
@@ -245,7 +242,8 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 		}
 	}
 	var reason []byte
-	ok, reason = s.addEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(), []byte(ws.Authed()))
+	ok, reason = s.addEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(), ws.AuthedBytes())
+	log.I.F("event added %v, %s", ok, reason)
 	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
 		return
 	}

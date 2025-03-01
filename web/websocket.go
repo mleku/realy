@@ -81,7 +81,7 @@ func (ws *Socket) WriteJSON(any interface{}) error {
 
 func (ws *Socket) WriteMessage(t int, b []byte) error {
 	ws.mutex.Lock()
-	defer ws.mutex.Unlock()
+	// defer ws.mutex.Unlock()
 	return ws.conn.WriteMessage(t, b)
 }
 

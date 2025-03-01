@@ -20,9 +20,6 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req []byte, store stor
 	if !ok {
 		return normalize.Restricted.F("this relay does not support NIP-45")
 	}
-	if ws.AuthRequested() && len(ws.Authed()) == 0 {
-		return []byte("awaiting auth for count")
-	}
 	var err error
 	var rem []byte
 	env := countenvelope.New()
@@ -61,8 +58,8 @@ func (s *Server) handleCount(c context.T, ws *web.Socket, req []byte, store stor
 		defer func() {
 			var auther relay.Authenticator
 			var ok bool
-			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
-				ws.RequestAuth()
+			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+				// ws.RequestAuth()
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.E(err) {
 				}

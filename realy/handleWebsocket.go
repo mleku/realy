@@ -65,16 +65,16 @@ func (s *Server) handleWebsocket(h Handler) {
 			chk.E(conn.SetReadDeadline(time.Now().Add(s.listeners.PongWait)))
 			return nil
 		})
-		if s.authRequired {
-			ws.RequestAuth()
-		}
-		if ws.AuthRequested() && len(ws.Authed()) == 0 {
-			log.I.F("requesting auth from client from %s", ws.RealRemote())
-			if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
-				return
-			}
-			// return
-		}
+		// if s.authRequired {
+		// 	ws.RequestAuth()
+		// }
+		// if ws.AuthRequested() && len(ws.Authed()) == 0 {
+		// 	log.I.F("requesting auth from client from %s", ws.RealRemote())
+		// 	if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+		// 		return
+		// 	}
+		// 	// return
+		// }
 		var message []byte
 		var typ int
 		for {
