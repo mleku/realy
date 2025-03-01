@@ -11,6 +11,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/gobwas/httphead v0.1.0
 	github.com/gobwas/ws v1.4.0
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/klauspost/cpuid/v2 v2.2.9
 	github.com/pkg/profile v1.7.0
