@@ -9,19 +9,22 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/pkg/errors"
 )
 
+const MaxSkew = 15
+
 type JWT struct {
-	Issuer    string `json:"iss"`
-	Type      string `json:"typ"`
-	Subject   string `json:"sub"`
-	Algorithm string `json:"alg"`
-	IssuedAt  int64  `json:"iat"`
-	Expiry    int64  `json:"exp,omitempty"`
+	Issuer         string `json:"iss"`
+	Subject        string `json:"sub"`
+	Algorithm      string `json:"alg"`
+	IssuedAt       int64  `json:"iat"`
+	ExpirationTime int64  `json:"exp,omitempty"`
+	NotBefore      int64  `json:"nbf,omitempty"`
+	Audience       string `json:"aud,omitempty"`
 }
 
 func GenerateJWTKeys() (x509sec, x509pub, pemSec, pemPub []byte, err error) {
@@ -64,7 +67,6 @@ func GenerateJWTtoken(issuer, ur string,
 	// generate claim
 	claim := &JWT{
 		Issuer:    issuer,
-		Type:      "message",
 		Subject:   ur,
 		Algorithm: "ES256",
 		IssuedAt:  time.Now().Unix(),
@@ -75,7 +77,7 @@ func GenerateJWTtoken(issuer, ur string,
 		if dur, err = time.ParseDuration(exp[0]); chk.E(err) {
 			return
 		}
-		claim.Expiry = claim.IssuedAt + int64(dur/time.Second)
+		claim.ExpirationTime = claim.IssuedAt + int64(dur/time.Second)
 	}
 	if b, err = json.Marshal(claim); chk.E(err) {
 		return
@@ -90,14 +92,65 @@ func SignJWTtoken(tok []byte, sec *ecdsa.PrivateKey) (headerEntry string, err er
 	}
 	alg := jwt.GetSigningMethod(claims["alg"].(string))
 	token := jwt.NewWithClaims(alg, claims)
-	var signed string
-	if signed, err = token.SignedString(sec); chk.E(err) {
+	if headerEntry, err = token.SignedString(sec); chk.E(err) {
 		return
 	}
-	headerEntry = fmt.Sprintf("Authorization: Bearer %s\n", signed)
 	return
 }
 
-func VerifyJWTtoken() {
+func VerifyJWTtoken(entry, URL, npub, jwtPub string) (valid bool, err error) {
 
+	var token *jwt.Token
+	if token, err = jwt.Parse(entry, func(token *jwt.Token) (ifc interface{}, err error) {
+		var pkb []byte
+		if pkb, err = base64.URLEncoding.DecodeString(jwtPub); chk.E(err) {
+			return
+		}
+		var jpk any
+		if jpk, err = x509.ParsePKIXPublicKey(pkb); chk.E(err) {
+			return
+		}
+		ifc = jpk
+		var sub string
+		if sub, err = token.Claims.GetSubject(); sub != URL {
+			err = errors.Wrap(jwt.ErrTokenInvalidClaims, "subject doesn't match expected URL")
+			return
+		}
+		now := time.Now().Unix()
+		var exp *jwt.NumericDate
+		if exp, err = token.Claims.GetExpirationTime(); chk.E(err) {
+		}
+		if exp != nil {
+			cmp := now - exp.Unix()
+			if cmp > MaxSkew {
+				err = errors.Wrapf(jwt.ErrTokenInvalidClaims,
+					"token is expired, %ds since expiry %d, time now %d, max allowed %d", cmp, exp.Unix(), now, MaxSkew)
+				return
+			}
+		} else {
+			var iat *jwt.NumericDate
+			if iat, err = token.Claims.GetIssuedAt(); chk.E(err) {
+				return
+			}
+			cmp := time.Now().Unix() - iat.Unix()
+			if cmp > 15 || cmp < -15 {
+				err = errors.Wrapf(jwt.ErrTokenInvalidClaims,
+					"issued at is more than %d seconds skewed", cmp)
+				return
+			}
+		}
+		var iss string
+		if iss, err = token.Claims.GetIssuer(); chk.E(err) {
+			return
+		}
+		if iss != npub {
+			err = errors.Wrapf(jwt.ErrTokenInvalidClaims, "expected issuer %s, got %s", npub, iss)
+			return
+		}
+		return
+	}, jwt.WithoutClaimsValidation()); chk.E(err) {
+		return
+	}
+	valid = token.Valid
+	return
 }

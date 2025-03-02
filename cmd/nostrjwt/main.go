@@ -126,7 +126,7 @@ nostrjwt bearer <request URL> <nostr pubkey> [<optional expiry in 0h0m0s format 
 			if signed, err = httpauth.SignJWTtoken(tok, sec); chk.E(err) {
 				fail(err.Error())
 			}
-			fmt.Printf("Authorization: Bearer %s\n", signed)
+			fmt.Printf("%s", signed)
 		}
 	}
 }

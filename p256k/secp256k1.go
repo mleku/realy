@@ -167,22 +167,16 @@ func FromSecretBytes(skb []byte) (
 
 // Generate gathers entropy to generate a full set of bytes and CGO values of it and derived from it to perform
 // signature and ECDH operations.
-//
-// Note that the pubkey bytes are the 33 byte form with the sign prefix, slice it off for X-only use.
 func Generate() (
 	skb, pkb []byte,
 	sec *Sec,
 	pub *XPublicKey,
-	// ecpub *PublicKey,
 	err error,
 ) {
 	skb = make([]byte, secp256k1.SecKeyBytesLen)
-	// ecpkb := make([]byte, secp256k1.PubKeyBytesLenCompressed)
-	// clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
 	pkb = make([]byte, schnorr.PubKeyBytesLen)
 	upkb := ToUchar(pkb)
 	var parity Cint
-	// ecpub = NewPublicKey()
 	pub = NewXPublicKey()
 	sec = &Sec{}
 	for {
@@ -194,25 +188,10 @@ func Generate() (
 			err = errorf.E("failed to create secp256k1 keypair")
 			continue
 		}
-		// C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
-		// C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key,
-		// 	C.SECP256K1_EC_COMPRESSED)
-		// negate key if it generates an odd Y compressed public key per BIP-340 (or at least so ecdsa can assume - and
-		// maybe it's a tiny bit faster to verify? idk, bip-340 says "implicit 0x02 key" so whatever let's make em)
-		// if ecpkb[0] == 2 {
 		C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
 		C.secp256k1_xonly_pubkey_serialize(ctx, upkb, pub.Key)
 		break
-		// } else {
-		// 	Negate(skb)
-		// C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
-		// C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key,
-		// 	C.SECP256K1_EC_COMPRESSED)
-		// C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
-		// break
-		// }
 	}
-	// pkb = ecpkb
 	return
 }
 
