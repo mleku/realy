@@ -13,9 +13,30 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
+
+	"realy.lol/event"
+	"realy.lol/kind"
+	"realy.lol/tag"
+	"realy.lol/tags"
+	"realy.lol/timestamp"
 )
 
-const MaxSkew = 15
+const (
+	MaxSkew        = 15
+	JWTPrefix      = "Bearer"
+	PEMSecretLabel = "EC PRIVATE KEY"
+	PEMPublicLabel = "EC PUBLIC KEY"
+	DefaultAlg     = "ES256"
+)
+
+func MakeJWTEvent(jpk string) (ev *event.T) {
+	ev = &event.T{
+		CreatedAt: timestamp.Now(),
+		Kind:      kind.JWTBinding,
+		Tags:      tags.New(tag.New("J", jpk)),
+	}
+	return
+}
 
 type JWT struct {
 	Issuer         string `json:"iss"`
@@ -27,34 +48,34 @@ type JWT struct {
 	Audience       string `json:"aud,omitempty"`
 }
 
-func GenerateJWTKeys() (x509sec, x509pub, pemSec, pemPub []byte, err error) {
-	var sec *ecdsa.PrivateKey
-	if sec, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader); chk.E(err) {
+func GenerateJWTKeys() (x509sec, x509pub, pemSec, pemPub []byte, sk *ecdsa.PrivateKey, pk ecdsa.PublicKey, err error) {
+	if sk, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader); chk.E(err) {
 		return
 	}
+	pk = sk.PublicKey
 	var pkb []byte
-	if pkb, err = x509.MarshalPKIXPublicKey(sec.Public()); chk.E(err) {
+	if pkb, err = x509.MarshalPKIXPublicKey(sk.Public()); chk.E(err) {
 		return
 	}
 	x509pub = make([]byte, len(pkb)*8/6+3)
 	base64.URLEncoding.Encode(x509pub, pkb)
 
 	var skb []byte
-	if skb, err = x509.MarshalECPrivateKey(sec); chk.E(err) {
+	if skb, err = x509.MarshalECPrivateKey(sk); chk.E(err) {
 		return
 	}
 	x509sec = make([]byte, len(skb)*8/6+3)
 	base64.URLEncoding.Encode(x509sec, skb)
 
 	bufS := new(bytes.Buffer)
-	if err = pem.Encode(bufS, &pem.Block{"EC PRIVATE KEY",
+	if err = pem.Encode(bufS, &pem.Block{PEMSecretLabel,
 		nil, skb}); chk.E(err) {
 		return
 	}
 	pemSec = bufS.Bytes()
 
 	bufP := new(bytes.Buffer)
-	if err = pem.Encode(bufP, &pem.Block{"EC PUBLIC KEY",
+	if err = pem.Encode(bufP, &pem.Block{PEMPublicLabel,
 		nil, pkb}); chk.E(err) {
 		return
 	}
@@ -63,12 +84,12 @@ func GenerateJWTKeys() (x509sec, x509pub, pemSec, pemPub []byte, err error) {
 }
 
 func GenerateJWTtoken(issuer, ur string,
-	exp ...string) (b []byte, err error) {
+	exp ...string) (tok []byte, err error) {
 	// generate claim
 	claim := &JWT{
 		Issuer:    issuer,
 		Subject:   ur,
-		Algorithm: "ES256",
+		Algorithm: DefaultAlg,
 		IssuedAt:  time.Now().Unix(),
 	}
 	if len(exp) > 0 {
@@ -79,7 +100,7 @@ func GenerateJWTtoken(issuer, ur string,
 		}
 		claim.ExpirationTime = claim.IssuedAt + int64(dur/time.Second)
 	}
-	if b, err = json.Marshal(claim); chk.E(err) {
+	if tok, err = json.Marshal(claim); chk.E(err) {
 		return
 	}
 	return

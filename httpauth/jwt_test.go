@@ -39,7 +39,7 @@ func TestSignJWTtoken_VerifyJWTtoken(t *testing.T) {
 	}
 	spub := base64.URLEncoding.EncodeToString(spkb)
 	var tok []byte
-	if tok, err = GenerateJWTtoken(hex.Enc(sign.Pub()), "https://example.com"); chk.E(err) {
+	if tok, err = GenerateJWTtoken(hex.Enc(sign.Pub()), "https://example.com", "1h"); chk.E(err) {
 		t.Fatal(err)
 	}
 	var entry string
@@ -55,4 +55,31 @@ func TestSignJWTtoken_VerifyJWTtoken(t *testing.T) {
 		log.I.S(valid, err)
 	}
 	_ = token
+}
+
+func TestMakeJWTEvent(t *testing.T) {
+	var err error
+	sign := &p256k.Signer{}
+	if err = sign.Generate(); chk.E(err) {
+		t.Fatal(err)
+	}
+	var jskb []byte
+	var sec *ecdsa.PrivateKey
+	if jskb, err = base64.URLEncoding.DecodeString(jwtSecret); chk.E(err) {
+		t.Fatal(err)
+	}
+	if sec, err = x509.ParseECPrivateKey(jskb); chk.E(err) {
+		t.Fatal(err)
+	}
+	spk := &sec.PublicKey
+	var spkb []byte
+	if spkb, err = x509.MarshalPKIXPublicKey(spk); chk.E(err) {
+		t.Fatal(err)
+	}
+	spub := base64.URLEncoding.EncodeToString(spkb)
+	ev := MakeJWTEvent(spub)
+	if err = ev.Sign(sign); chk.E(err) {
+		return
+	}
+	log.I.F("%s", ev.SerializeIndented())
 }

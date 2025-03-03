@@ -1,7 +1,7 @@
 = http authentication
 :toc:
 
-The nostr protocol includes an authentication mechanism based on nostr events and HTTP headers that you can read our local version here: link:98.adoc[nip-98]; however, there are numerous tools you might want to use to interact with HTTP listeners such as the simplified HTTP protocol described in link:../readme.adoc#simplified-nostr[the readme] which would permit the deployment of a relay with auth-controlled access, but be able to use tooling that can't be easily augmented to use link:98.adoc[nip-98], and use PEM encoded secrets that can be used with standards compliant JWT implementations.
+The nostr protocol includes an authentication mechanism based on nostr events and HTTP headers that you can read our local version here: link:98.adoc[nip-98]; however, there are numerous tools you might want to use to interact with HTTP listeners such as the simplified HTTP protocol described in link:../readme.adoc#simplified-nostr[the readme] which would permit the deployment of a relay with auth-controlled access, but be able to use tooling and clients that can't be easily augmented to use link:98.adoc[nip-98], and use PEM encoded secret keys that can be used with standards compliant JWT implementations to generate them.
 
 The main use cases are for testing and administrative purposes, but it may also enable devices such as old/low-spec ebook readers' browsers to interact with nostr based document libraries such as Alexandria, for devices that can neither do websockets nor easily handle NIP-98 headers for paid/private document repositories.
 
@@ -10,7 +10,7 @@ HTTP versions of the protocol are not just about enabling devices that may not b
 == JWT Authentication Registration Event
 [[authevent]]
 
-The simplest way to enable this for a nostr relay is to create a new event kind which allows a user to associate a JWT public key token with their nostr public key, and then the relay's access control mechanism can search for it and authorize using JWT in place of NIP-98 or NIP-42 websocket auth.
+The simplest way to enable this for a nostr relay is to create a new event kind which allows a user to associate a JWT public key token with their nostr public key, and then the relay's access control mechanism can search for it and authorize using JWT in place of NIP-98 or NIP-42 websocket auth (to be implemented later).
 
 To make this mesh with the standard NIP-01 specification for indexing, the simplest way is to place the JWT public key in a `J` tag and then when a request is received with the JWT token, after it is decoded, the event tagged with this token can be found with a simple query and then the associated public key of the user that published the event with this token can be located.
 
@@ -20,12 +20,12 @@ So, the event structure is as follows:
 ----
 {
   "id": "<event id>",
-  "kind": 30050,
+  "kind": 13004,
   "pubkey": "<user pubkey>",
   "created_at": 1234567890,
   "content": "",
   "tags": [
-    ["J","<JWT .cert>","<alg>"]
+    ["J","<JWT public key in x509 binary in base64 URL encoding>"]
   ],
   "sig": "<signature matching user pubkey>"
 }
@@ -33,7 +33,7 @@ So, the event structure is as follows:
 
 By publishing this event, with the JWT secret key, the user proves control of the JWT token and that it is equivalent as their own nsec for signing JWT signed HTTP requests in place of using the NIP-98 authentication.
 
-NOTE: it should be possible to later also use this to assign other authentication mechanisms trust, should other mechanisms be usable for other environments that would otherwise not be able to work with nostr relays.
+NOTE: it should be possible to later also use this to assign other authentication mechanisms trust, should other mechanisms be usable for other environments that would otherwise not be able to work with nostr relays. Other mechanisms would use a different tag key than `J` which stands for JWT.
 
 == JWT Authentication Protocol
 
@@ -43,7 +43,7 @@ This means that the JWT must include the HTTP method, the full URL of the reques
 
 The encoding should then be:
 
-[source]
+[source,json]
 ----
 {
     "iss":"<hex pubkey of user>",

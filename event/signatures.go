@@ -7,14 +7,15 @@ import (
 	k1 "realy.lol/ec/secp256k1"
 	"realy.lol/p256k"
 	"realy.lol/signer"
-	"realy.lol/timestamp"
 )
 
 // Sign the event using the signer.I. Uses github.com/bitcoin-core/secp256k1 if
 // available for much faster signatures.
+//
+// Note that this only populates the PubKey, ID and Sig. The caller must
+// set the CreatedAt timestamp as intended.
 func (ev *T) Sign(keys signer.I) (err error) {
 	ev.PubKey = keys.Pub()
-	ev.CreatedAt = timestamp.Now()
 	ev.ID = ev.GetIDBytes()
 	if ev.Sig, err = keys.Sign(ev.ID); chk.E(err) {
 		return
@@ -48,8 +49,7 @@ func (ev *T) Verify() (valid bool, err error) {
 
 // SignWithSecKey signs an event with a given *secp256xk1.SecretKey.
 //
-// Deprecated: use Sign and nostr.I and p256k.Signer / p256k.BTCECSigner
-// implementations.
+// Deprecated: use Sign method of event.T and signer.I instead.
 func (ev *T) SignWithSecKey(sk *k1.SecretKey,
 	so ...sch.SignOption) (err error) {
 

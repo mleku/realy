@@ -13,17 +13,19 @@ import (
 	"realy.lol/signer"
 	"realy.lol/tag"
 	"realy.lol/tags"
+	"realy.lol/timestamp"
 )
 
 const (
-	HeaderKey    = "Authorization"
-	HeaderPrefix = "Nostr"
+	HeaderKey   = "Authorization"
+	NIP98Prefix = "Nostr"
 )
 
-func MakeEvent(u, method string) (ev *event.T) {
+func MakeNIP98Event(u, method string) (ev *event.T) {
 	ev = &event.T{
-		Kind: kind.HTTPAuth,
-		Tags: tags.New(tag.New("u", u), tag.New("method", strings.ToUpper(method))),
+		CreatedAt: timestamp.Now(),
+		Kind:      kind.HTTPAuth,
+		Tags:      tags.New(tag.New("u", u), tag.New("method", strings.ToUpper(method))),
 	}
 	return
 }
@@ -35,7 +37,7 @@ func MakePostRequest(ur *url.URL, payloadHash, userAgent string,
 	sign signer.I, payload io.ReadCloser, contentLength int64) (r *http.Request, err error) {
 
 	const method = "POST"
-	ev := MakeEvent(ur.String(), method)
+	ev := MakeNIP98Event(ur.String(), method)
 	if err = ev.Sign(sign); chk.E(err) {
 		return
 	}
@@ -70,7 +72,7 @@ func MakeGetRequest(u *url.URL, userAgent string, sign signer.I) (r *http.Reques
 	err error) {
 
 	const method = "GET"
-	ev := MakeEvent(u.String(), method)
+	ev := MakeNIP98Event(u.String(), method)
 	if err = ev.Sign(sign); chk.E(err) {
 		return
 	}
@@ -95,7 +97,7 @@ func ValidateRequest(r *http.Request) (valid bool, pubkey []byte, err error) {
 		err = errorf.E("'%s' key missing from request header", HeaderKey)
 		return
 	}
-	if !strings.HasPrefix(val, HeaderPrefix) {
+	if !strings.HasPrefix(val, NIP98Prefix) {
 		err = errorf.E("invalid '%s' value: '%s'", HeaderKey, val)
 		return
 	}

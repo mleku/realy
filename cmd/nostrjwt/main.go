@@ -76,13 +76,14 @@ nostrjwt bearer <request URL> <nostr pubkey> [<optional expiry in 0h0m0s format 
 			}
 			// generate a new JWT key pair
 			var x509sec, x509pub, pemSec, pemPub []byte
-			if x509sec, x509pub, pemSec, pemPub, err = httpauth.GenerateJWTKeys(); chk.E(err) {
+			if x509sec, x509pub, pemSec, pemPub, _, _, err = httpauth.GenerateJWTKeys(); chk.E(err) {
 				fail(err.Error())
 			}
 			fmt.Printf("%s\n%s\n", pemSec, pemPub)
 			fmt.Printf("%s=%s\n\n", jwtSecEnv, x509sec)
 
 			var ev event.T
+			httpauth.MakeJWTEvent(string(x509pub))
 			ev.Tags = tags.New(tag.New([]byte("J"), x509pub, []byte("ES256")))
 			ev.CreatedAt = timestamp.Now()
 			ev.Kind = kind.JWTBinding
