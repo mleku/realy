@@ -1,15 +1,13 @@
 package httpauth
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
 	"testing"
 
-	"github.com/golang-jwt/jwt/v5"
-
-	"realy.lol/hex"
 	"realy.lol/p256k"
 )
 
@@ -39,22 +37,35 @@ func TestSignJWTtoken_VerifyJWTtoken(t *testing.T) {
 	}
 	spub := base64.URLEncoding.EncodeToString(spkb)
 	var tok []byte
-	if tok, err = GenerateJWTtoken(hex.Enc(sign.Pub()), "https://example.com", "1h"); chk.E(err) {
+	if tok, err = GenerateJWTtoken(pub, "https://example.com", "1h"); chk.E(err) {
 		t.Fatal(err)
 	}
 	var entry string
 	if entry, err = SignJWTtoken(tok, sec); chk.E(err) {
 		t.Fatal(err)
 	}
-	var token *jwt.Token
+	vfn := func(npub string) (jwtPub string, pk []byte, err error) {
+		// pubkey in token claims must match what we just put in it
+		if npub != pub {
+			err = fmt.Errorf("invalid jwt token npub")
+			return
+		}
+		pk = sign.Pub()
+		// we pretend that we found the 13004 event with the key if the above passed.
+		jwtPub = spub
+		return
+	}
 	var valid bool
-	if valid, err = VerifyJWTtoken(entry, URL, pub, spub); chk.E(err) {
+	var pk []byte
+	if pk, valid, err = VerifyJWTtoken(entry, URL, vfn); chk.E(err) {
 		t.Fatal(err)
+	}
+	if !bytes.Equal(pk, sign.Pub()) {
+		t.Fatalf("invalid npub, got %0x, expected %0x", pk, sign.Pub())
 	}
 	if !valid {
 		log.I.S(valid, err)
 	}
-	_ = token
 }
 
 func TestMakeJWTEvent(t *testing.T) {

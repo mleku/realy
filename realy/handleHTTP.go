@@ -12,7 +12,8 @@ func (s *Server) auth(r *http.Request) (authed bool) {
 	var valid bool
 	var pubkey []byte
 	var err error
-	if valid, pubkey, err = httpauth.ValidateRequest(r); chk.E(err) {
+	// todo: need to add the verifier function for JWT
+	if valid, pubkey, err = httpauth.ValidateRequest(r, nil); chk.E(err) {
 		return
 	}
 	if !valid {

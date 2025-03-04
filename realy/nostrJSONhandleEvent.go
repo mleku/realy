@@ -54,16 +54,10 @@ func (s *Server) handleSimpleEvent(h Handler) {
 	if req, err = ev.Unmarshal(req); chk.T(err) {
 		return
 	}
-	// env := eventenvelope.NewSubmission()
-	// if rem, err = env.Unmarshal(req); chk.E(err) {
-	// 	return
-	// }
-	// if len(rem) > 0 {
-	// 	log.I.F("extra '%s'", rem)
-	// }
 	var valid bool
 	var pubkey []byte
-	if valid, pubkey, err = httpauth.ValidateRequest(h.Request); chk.E(err) {
+	// todo: need to add the verifier function for JWT
+	if valid, pubkey, err = httpauth.ValidateRequest(h.Request, nil); chk.E(err) {
 		return
 	}
 	if !valid {

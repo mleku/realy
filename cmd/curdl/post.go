@@ -40,7 +40,7 @@ func Post(args []string, ur *url.URL, sign signer.I) (err error) {
 	}
 	log.I.F("opened file %s", filePath)
 	var r *http.Request
-	if r, err = httpauth.MakePostRequest(ur, h, userAgent, sign, payload, contentLength); chk.E(err) {
+	if r, err = httpauth.MakeNIP98PostRequest(ur, h, userAgent, sign, payload, contentLength); chk.E(err) {
 		fail(err.Error())
 	}
 	r.GetBody = func() (rc io.ReadCloser, err error) {

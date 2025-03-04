@@ -119,10 +119,23 @@ func SignJWTtoken(tok []byte, sec *ecdsa.PrivateKey) (headerEntry string, err er
 	return
 }
 
-func VerifyJWTtoken(entry, URL, npub, jwtPub string) (valid bool, err error) {
+// VerifyJWTFunc ostensibly should be a function that queries the event store
+// for a kind 13004 containing a J tag with a x509 encoded pubkey in base64-URL
+// that matches the signature on the JWT token.
+type VerifyJWTFunc func(npub string) (jwtPub string, pk []byte, err error)
+
+func VerifyJWTtoken(entry, URL string, vfn VerifyJWTFunc) (pk []byte, valid bool, err error) {
 
 	var token *jwt.Token
 	if token, err = jwt.Parse(entry, func(token *jwt.Token) (ifc interface{}, err error) {
+		var iss string
+		if iss, err = token.Claims.GetIssuer(); chk.E(err) {
+			return
+		}
+		var jwtPub string
+		if jwtPub, pk, err = vfn(iss); chk.E(err) {
+			return
+		}
 		var pkb []byte
 		if pkb, err = base64.URLEncoding.DecodeString(jwtPub); chk.E(err) {
 			return
@@ -160,14 +173,7 @@ func VerifyJWTtoken(entry, URL, npub, jwtPub string) (valid bool, err error) {
 				return
 			}
 		}
-		var iss string
-		if iss, err = token.Claims.GetIssuer(); chk.E(err) {
-			return
-		}
-		if iss != npub {
-			err = errors.Wrapf(jwt.ErrTokenInvalidClaims, "expected issuer %s, got %s", npub, iss)
-			return
-		}
+
 		return
 	}, jwt.WithoutClaimsValidation()); chk.E(err) {
 		return

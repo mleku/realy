@@ -12,7 +12,7 @@ import (
 
 func Get(ur *url.URL, sign signer.I) (err error) {
 	var r *http.Request
-	if r, err = httpauth.MakeGetRequest(ur, userAgent, sign); chk.E(err) {
+	if r, err = httpauth.MakeNIP98GetRequest(ur, userAgent, sign); chk.E(err) {
 		fail(err.Error())
 	}
 	client := &http.Client{

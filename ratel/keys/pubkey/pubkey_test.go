@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"lukechampine.com/frand"
+
 	"realy.lol/ec/schnorr"
 )
 

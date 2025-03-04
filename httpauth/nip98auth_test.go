@@ -10,7 +10,7 @@ import (
 	"realy.lol/p256k"
 )
 
-func TestMakeRequest_ValidateRequest(t *testing.T) {
+func TestMakeNIP98Request_ValidateNIP98Request(t *testing.T) {
 	lol.SetLogLevel("trace")
 	sign := new(p256k.Signer)
 	err := sign.Generate()
@@ -22,12 +22,12 @@ func TestMakeRequest_ValidateRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 	var r *http.Request
-	if r, err = MakeGetRequest(ur, "test/0.0.0", sign); chk.E(err) {
+	if r, err = MakeNIP98GetRequest(ur, "test/0.0.0", sign); chk.E(err) {
 		t.Fatal(err)
 	}
 	var pk []byte
 	var valid bool
-	if valid, pk, err = ValidateRequest(r); chk.E(err) {
+	if valid, pk, err = ValidateRequest(r, nil); chk.E(err) {
 		t.Fatal(err)
 	}
 	if !valid {
