@@ -5,15 +5,50 @@ import (
 	"fmt"
 	"net/http"
 
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/hex"
 	"realy.lol/httpauth"
+	"realy.lol/kind"
+	"realy.lol/kinds"
+	"realy.lol/tag"
 )
+
+func (s *Server) JWTVerifyFunc(npub string) (jwtPub string, pk []byte, err error) {
+	if pk, err = hex.Dec(npub); chk.E(err) {
+		return
+	}
+	var evs event.Ts
+	evs, err = s.relay.Storage().QueryEvents(context.Bg(), &filter.T{
+		Authors: tag.New(pk), Kinds: kinds.New(kind.JWTBinding),
+	})
+	if chk.E(err) {
+		return
+	}
+	// there should only be one
+	if len(evs) < 1 {
+		err = errorf.E("JWT Binding event not found for pubkey %s", npub)
+		return
+	}
+	// we will only use the first one, the query should only return the newest per
+	// pubkey/kind for kind.JWTBinding as it is a replaceable event.
+	ev := evs[0]
+	jtag := ev.Tags.GetAll(tag.New("J"))
+	if jtag.Len() < 1 {
+		err = errorf.E("JWT Binding event tag not found for pubkey %s\n%s\n",
+			npub, ev.SerializeIndented())
+		return
+	}
+	jwtPub = string(jtag.F()[0].Value())
+	return
+}
 
 func (s *Server) auth(r *http.Request) (authed bool) {
 	var valid bool
 	var pubkey []byte
 	var err error
-	// todo: need to add the verifier function for JWT
-	if valid, pubkey, err = httpauth.ValidateRequest(r, nil); chk.E(err) {
+	if valid, pubkey, err = httpauth.ValidateRequest(r, s.JWTVerifyFunc); chk.E(err) {
 		return
 	}
 	if !valid {

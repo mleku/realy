@@ -56,8 +56,7 @@ func (s *Server) handleSimpleEvent(h Handler) {
 	}
 	var valid bool
 	var pubkey []byte
-	// todo: need to add the verifier function for JWT
-	if valid, pubkey, err = httpauth.ValidateRequest(h.Request, nil); chk.E(err) {
+	if valid, pubkey, err = httpauth.ValidateRequest(h.Request, s.JWTVerifyFunc); chk.E(err) {
 		return
 	}
 	if !valid {
