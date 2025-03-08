@@ -10,9 +10,11 @@ import (
 	"realy.lol/bech32encoding"
 	"realy.lol/lol"
 	"realy.lol/p256k"
+	"realy.lol/signer"
 )
 
 const secEnv = "NOSTR_SECRET_KEY"
+const jwtSecEnv = "NOSTR_JWT_SECRET"
 
 var userAgent = fmt.Sprintf("curdl/%s", realy_lol.Version)
 
@@ -26,24 +28,28 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "help" {
 		fmt.Printf(`curdl help:
 
-to read:
+for nostr http using NIP-98 HTTP authentication:
 
-    curdl post <url>
+    curdl req <url> [[<payload sha256 hash in hex>] <file>]
 
-output will be rendered to stdout.
+	if no file or hash is given, the request will be processed as a HTTP GET (if relevant there can be request parameters).
 
-to write:
+    if payload hash is not given, it is not computed. NIP-98 authentication can optionally require the file upload hash be in the "payload" HTTP header with the value as the hash encoded in hexadecimal, if the relay requires this, use "sha256sum <file>" in place of the last two parameters for this result, as it may refuse to process it without it.
 
-    curdl post <url> [<payload sha256 hash in hex>] <file>
+	NIP-98 secret will be expected in the environment variable "%s" - if absent, will not be added to the header.
 
-    if payload hash is not given, it is not computed. NIP-98 authentication can optionally require the file upload hash be in the "payload" HTTP header with the value as the hash encoded in hexadecimal.
+	output will be rendered to stdout.
 
-for nostr http protocol:
+for nostr http methods using JWT:
 
-	curdl nostr <url>
+	curdl jwt <url> [[<payload sha256 hash in hex>] <file>]
 
-	the json must be fed in via stdin using a pipe.
-`)
+    if no file (or file and hash) is given, it will be executed as a GET request (if relevant there can be request parameters).
+
+	JWT secret will be expected in  the environment variable "%s" - if absent, will not be added to the header. This variable consists of two fields, <JWT token in base64>,<authorized pubkey in hex>
+
+	output will be rendered to stdout.
+`, secEnv, jwtSecEnv)
 		os.Exit(0)
 	}
 	if len(os.Args) < 3 {
@@ -61,38 +67,47 @@ for nostr http protocol:
 		fail("invalid URL: `%s` error: `%s`", os.Args[2], err.Error())
 	}
 	switch meth {
-	case "get", "post", "nostr":
+	case "req", "jwt":
 	default:
-		fail("first parameter must be either 'get', 'post', or 'nostr', got '%s'", meth)
+		fail("first parameter must be either 'req', or 'jwt', got '%s'", meth)
 	}
-	var sk []byte
-	nsex := os.Getenv(secEnv)
-	if len(nsex) == 0 {
-		fail("no key found in environment variable %s", secEnv)
-	}
-	if sk, err = bech32encoding.NsecToBytes([]byte(nsex)); chk.E(err) {
-		fail("failed to decode nsec: '%s'", err.Error())
-	}
-	// log.I.S(nsex, sk)
-	sign := &p256k.Signer{}
-	if err = sign.InitSec(sk); chk.E(err) {
-		fail("failed to init signer: '%s'", err.Error())
-	}
-	// we assume the hash comes before the filename if it is generated using sha256sum
 	switch meth {
-	case "nostr":
-		if err = Nostr(os.Args, ur, sign); chk.E(err) {
+	case "jwt":
+		if err = NostrJWT(os.Args, ur, "", os.Getenv(jwtSecEnv)); chk.E(err) {
 			fail(err.Error())
 		}
 
-	case "post":
+	case "req":
+		var sign signer.I
+		if sign, err = GetNIP98Signer(); chk.E(err) {
+			fail(err.Error())
+		}
+		if len(os.Args) == 3 {
+			if err = Get(ur, sign); chk.E(err) {
+				fail(err.Error())
+			}
+			return
+		}
 		if err = Post(os.Args, ur, sign); chk.E(err) {
 			fail(err.Error())
 		}
-
-	case "get":
-		if err = Get(ur, sign); chk.E(err) {
-			fail(err.Error())
-		}
 	}
+}
+
+func GetNIP98Signer() (sign signer.I, err error) {
+	nsex := os.Getenv(secEnv)
+	var sk []byte
+	if len(nsex) == 0 {
+		err = errorf.E("no key found in environment variable %s", secEnv)
+		return
+	} else if sk, err = bech32encoding.NsecToBytes([]byte(nsex)); chk.E(err) {
+		err = errorf.E("failed to decode nsec: '%s'", err.Error())
+		return
+	}
+	sign = &p256k.Signer{}
+	if err = sign.InitSec(sk); chk.E(err) {
+		err = errorf.E("failed to init signer: '%s'", err.Error())
+		return
+	}
+	return
 }

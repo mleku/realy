@@ -106,17 +106,35 @@ func GenerateJWTtoken(issuer, ur string,
 	return
 }
 
-func SignJWTtoken(tok []byte, sec *ecdsa.PrivateKey) (headerEntry string, err error) {
+func SignJWTtoken(tok []byte, sec *ecdsa.PrivateKey) (bearer string, err error) {
 	var claims jwt.MapClaims
 	if err = json.Unmarshal(tok, &claims); chk.E(err) {
 		return
 	}
 	alg := jwt.GetSigningMethod(claims["alg"].(string))
 	token := jwt.NewWithClaims(alg, claims)
-	if headerEntry, err = token.SignedString(sec); chk.E(err) {
+	if bearer, err = token.SignedString(sec); chk.E(err) {
 		return
 	}
 	return
+}
+
+// GenerateAndSignJWTtoken is a helper to do all the steps above in one, based
+// on having a base64 encoded x509 secret key provided
+func GenerateAndSignJWTtoken(issuer, ur, exp, sec string) (bearer string, err error) {
+	var t []byte
+	if t, err = GenerateJWTtoken(issuer, ur, exp); chk.E(err) {
+		return
+	}
+	var jskb []byte
+	if jskb, err = base64.URLEncoding.DecodeString(sec); chk.E(err) {
+		return
+	}
+	var sk *ecdsa.PrivateKey
+	if sk, err = x509.ParseECPrivateKey(jskb); chk.E(err) {
+		return
+	}
+	return SignJWTtoken(t, sk)
 }
 
 // VerifyJWTFunc ostensibly should be a function that queries the event store

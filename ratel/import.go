@@ -31,7 +31,9 @@ func (r *T) Import(rr io.Reader) {
 			continue
 		}
 		count++
-		log.I.F("received %d events", count)
+		if count%1000 == 0 {
+			log.I.F("received %d events", count)
+		}
 		if count > 0 && count%10000 == 0 {
 			chk.T(r.DB.Sync())
 			chk.T(r.DB.RunValueLogGC(0.5))

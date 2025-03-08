@@ -11,7 +11,7 @@ import (
 
 func (s *Server) exportHandler(h Handler) {
 	if ok := s.auth(h.Request); !ok {
-		s.unauthorized(h.ResponseWriter)
+		s.unauthorized(h)
 		return
 	}
 	log.I.F("export of event data requested on admin port")
@@ -48,9 +48,10 @@ func (s *Server) exportHandler(h Handler) {
 		sto.Export(s.Ctx, h.ResponseWriter)
 	}
 }
+
 func (s *Server) importHandler(h Handler) {
 	if ok := s.auth(h.Request); !ok {
-		s.unauthorized(h.ResponseWriter)
+		s.unauthorized(h)
 		return
 	}
 	log.I.F("import of event data requested on admin port %s", h.RequestURI)
@@ -62,15 +63,17 @@ func (s *Server) importHandler(h Handler) {
 		realy.CheckOwnerLists(context.Bg())
 	}
 }
+
 func (s *Server) shutdownHandler(h Handler) {
 	if ok := s.auth(h.Request); !ok {
-		s.unauthorized(h.ResponseWriter)
+		s.unauthorized(h)
 		return
 	}
 	fprintf(h.ResponseWriter, "shutting down")
 	defer chk.E(h.Body.Close())
 	s.Shutdown()
 }
+
 func (s *Server) defaultHandler(h Handler) {
 	fprintf(h.ResponseWriter, "todo: realy web interface page\n\n")
 	s.handleRelayInfo(h)

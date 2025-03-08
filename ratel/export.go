@@ -154,7 +154,8 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 				item := it.Item()
 				b, e := item.ValueCopy(nil)
 				if chk.E(e) {
-					err = nil
+					// already isn't the same as the return value!
+					// err = nil
 					continue
 				}
 				// send the event to client

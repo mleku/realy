@@ -27,7 +27,7 @@ func Post(args []string, ur *url.URL, sign signer.I) (err error) {
 		filePath = args[4]
 		h = args[3]
 	} else {
-		fail("extraneous stuff in commandline: %v", args[3:])
+		fail("extraneous stuff in commandline: %v", args)
 	}
 	log.I.F("reading from %s optional hash: %s", filePath, h)
 	var fi os.FileInfo

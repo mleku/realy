@@ -26,7 +26,7 @@ func Get(ur *url.URL, sign signer.I) (err error) {
 		err = errorf.E("request failed: %w", err)
 		return
 	}
-	defer res.Body.Close()
+	defer chk.E(res.Body.Close())
 	if _, err = io.Copy(os.Stdout, res.Body); chk.E(err) {
 		return
 	}

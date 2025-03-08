@@ -64,10 +64,11 @@ func (s *Server) auth(r *http.Request) (authed bool) {
 	return
 }
 
-func (s *Server) unauthorized(w http.ResponseWriter) {
-	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
-	http.Error(w, "Unauthorized", http.StatusUnauthorized)
-	fmt.Fprintf(w, "your npub is not welcome here\n")
+func (s *Server) unauthorized(h Handler) {
+	h.ResponseWriter.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+	http.Error(h.ResponseWriter, "Unauthorized", http.StatusUnauthorized)
+	fmt.Fprintf(h.ResponseWriter,
+		"not authorized, either you did not provide an auth token or what you provided does not grant access\n")
 }
 
 func (s *Server) HandleHTTP(h Handler) {
