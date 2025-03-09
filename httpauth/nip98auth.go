@@ -19,17 +19,30 @@ const (
 	NIP98Prefix = "Nostr"
 )
 
-func MakeNIP98Event(u, method string) (ev *event.T) {
-	ev = &event.T{
-		CreatedAt: timestamp.Now(),
-		Kind:      kind.HTTPAuth,
-		Tags:      tags.New(tag.New("u", u), tag.New("method", strings.ToUpper(method))),
+func MakeNIP98Event(u, method, hash string) (ev *event.T) {
+	if hash != "" {
+		ev = &event.T{
+			CreatedAt: timestamp.Now(),
+			Kind:      kind.HTTPAuth,
+			Tags: tags.New(
+				tag.New("u", u),
+				tag.New("method", strings.ToUpper(method)),
+				tag.New("payload", hash),
+			),
+		}
+	} else {
+		ev = &event.T{
+			CreatedAt: timestamp.Now(),
+			Kind:      kind.HTTPAuth,
+			Tags: tags.New(tag.New("u", u),
+				tag.New("method", strings.ToUpper(method))),
+		}
 	}
 	return
 }
 
-func AddNIP98Header(r *http.Request, ur *url.URL, method string, sign signer.I) (err error) {
-	ev := MakeNIP98Event(ur.String(), method)
+func AddNIP98Header(r *http.Request, ur *url.URL, method, hash string, sign signer.I) (err error) {
+	ev := MakeNIP98Event(ur.String(), method, hash)
 	if err = ev.Sign(sign); chk.E(err) {
 		return
 	}

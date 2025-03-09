@@ -10,6 +10,7 @@ import (
 	realy_lol "realy.lol"
 	"realy.lol/bech32encoding"
 	"realy.lol/event"
+	"realy.lol/hex"
 	"realy.lol/httpauth"
 	"realy.lol/kind"
 	"realy.lol/lol"
@@ -20,6 +21,7 @@ import (
 )
 
 const (
+	issuer    = "NOSTR_PUBLIC_KEY"
 	secEnv    = "NOSTR_SECRET_KEY"
 	jwtSecEnv = "NOSTR_JWT_SECRET"
 )
@@ -34,27 +36,38 @@ func fail(format string, a ...any) {
 func main() {
 	lol.SetLogLevel("trace")
 	// log.I.S(os.Args)
-	if len(os.Args) > 1 && os.Args[1] == "help" {
+	if len(os.Args) < 2 || os.Args[1] == "help" {
 		fmt.Printf(`nostrjwt usage:
 
 nostrjwt gen
 
-	generate a JWT secret and a nostr event for kind %d that creates a binding between the JWT pubkey and the nostr npub for authentication, as an alternative to nip-98 on devices that cannot do BIP-340 signatures.
+	generate a JWT secret and a nostr event for kind %d that creates a 
+	binding between the JWT pubkey and the nostr npub for authentication, 
+	as an alternative to nip-98 on devices that cannot do BIP-340 signatures
 
-	the secret key data should be stored in %s environment variable for later use
+	the secret key data should be stored in %s environment 
+	variable for later use
 
 	the pubkey in the nostr event is required for generating a token
 
-nostrjwt bearer <request URL> <nostr pubkey> [<optional expiry in 0h0m0s format for JWT token>]
+nostrjwt bearer <request URL> [<optional expiry in 0h0m0s format for JWT token>]
 
-	request URL must match the one that will be in the HTTP Request this bearer token must refer to
+	request URL must match the one that will be in the HTTP Request this bearer 
+	token must refer to
 
-	nostr pubkey must be registered with the relay as associated with the JWT secret signing the token
+	nostr pubkey must be registered with the relay as associated with the JWT 
+	secret signing the token, it should be stored in %s 
+	environment variable
 
-	using the JWT secret, found in the %s environment variable, generate a signed JWT header in standard format as used by curl to add to make GET and POST requests to a nostr HTTP JWT savvy relay to read or publish events.
+	using the JWT secret, found in the %s environment variable, 
+	generate a signed JWT header in standard format as used by curl to add 
+	to make GET and POST requests to a nostr HTTP JWT savvy relay to read or 
+	publish events
 
-	expiry sets an amount of time after the current moment that the token will expire
-`, kind.JWTBinding.K, jwtSecEnv, jwtSecEnv)
+	expiry sets an amount of time after the current moment that the token 
+	will expire
+
+`, kind.JWTBinding.K, jwtSecEnv, issuer, jwtSecEnv)
 		os.Exit(0)
 	}
 	var err error
@@ -74,14 +87,15 @@ nostrjwt bearer <request URL> <nostr pubkey> [<optional expiry in 0h0m0s format 
 			if err = sign.InitSec(skb); chk.E(err) {
 				fail("failed to init signer: '%s'", err.Error())
 			}
+			pub := hex.Enc(sign.Pub())
 			// generate a new JWT key pair
 			var x509sec, x509pub, pemSec, pemPub []byte
 			if x509sec, x509pub, pemSec, pemPub, _, _, err = httpauth.GenerateJWTKeys(); chk.E(err) {
 				fail(err.Error())
 			}
 			fmt.Printf("%s\n%s\n", pemSec, pemPub)
-			fmt.Printf("%s=%s\n\n", jwtSecEnv, x509sec)
-
+			fmt.Printf("export %s=%s\n", jwtSecEnv, x509sec)
+			fmt.Printf("export %s=%s\n\n", issuer, pub)
 			var ev event.T
 			httpauth.MakeJWTEvent(string(x509pub))
 			ev.Tags = tags.New(tag.New([]byte("J"), x509pub, []byte("ES256")))
@@ -114,11 +128,11 @@ nostrjwt bearer <request URL> <nostr pubkey> [<optional expiry in 0h0m0s format 
 			var tok []byte
 			// generate claim
 			if len(os.Args) < 5 {
-				if tok, err = httpauth.GenerateJWTtoken(os.Args[2], os.Args[3]); chk.E(err) {
+				if tok, err = httpauth.GenerateJWTClaims(os.Args[2], os.Args[3]); chk.E(err) {
 					fail(err.Error())
 				}
 			} else if len(os.Args) > 4 {
-				if tok, err = httpauth.GenerateJWTtoken(os.Args[2], os.Args[3], os.Args[4]); chk.E(err) {
+				if tok, err = httpauth.GenerateJWTClaims(os.Args[2], os.Args[3], os.Args[4]); chk.E(err) {
 					fail(err.Error())
 				}
 			}

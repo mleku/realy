@@ -18,6 +18,7 @@ import (
 // A VerifyJWTFunc should be provided in order to search the event store for a
 // kind 13004 with a JWT signer pubkey that is granted authority for the request.
 func ValidateRequest(r *http.Request, vfn VerifyJWTFunc) (valid bool, pubkey []byte, err error) {
+	log.I.F("validating nip-98")
 	val := r.Header.Get(HeaderKey)
 	if val == "" {
 		err = errorf.E("'%s' key missing from request header", HeaderKey)
@@ -63,7 +64,7 @@ func ValidateRequest(r *http.Request, vfn VerifyJWTFunc) (valid bool, pubkey []b
 			return
 		}
 		// we are going to say anything not specified in nip-98 is invalid also, such as extra tags
-		if ev.Tags.Len() != 2 {
+		if ev.Tags.Len() < 2 {
 			err = errorf.E("other than exactly 2 tags found in event\n%s",
 				ev.Tags.MarshalTo(nil))
 			return

@@ -42,6 +42,7 @@ func GetRemoteFromReq(r *http.Request) (rr string) {
 }
 
 func (s *Server) handleSimpleEvent(h Handler) {
+	log.I.F("event")
 	var err error
 	var ok bool
 	sto := s.relay.Storage()
@@ -59,6 +60,7 @@ func (s *Server) handleSimpleEvent(h Handler) {
 	if valid, pubkey, err = httpauth.ValidateRequest(h.Request, s.JWTVerifyFunc); chk.E(err) {
 		return
 	}
+	log.I.F("valid request %0x", pubkey)
 	if !valid {
 		return
 	}

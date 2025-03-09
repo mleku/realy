@@ -19,8 +19,7 @@ func MonitorResources(c context.T) {
 			return
 		case <-tick.C:
 			// runtime.ReadMemStats(memStats)
-			log.D.Ln("# goroutines", runtime.NumGoroutine())
-			log.D.Ln("# cgo calls", runtime.NumCgoCall())
+			log.D.Ln("# goroutines", runtime.NumGoroutine(), "# cgo calls", runtime.NumCgoCall())
 			// log.D.S(memStats)
 		}
 	}

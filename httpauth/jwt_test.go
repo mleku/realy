@@ -37,7 +37,7 @@ func TestSignJWTtoken_VerifyJWTtoken(t *testing.T) {
 	}
 	spub := base64.URLEncoding.EncodeToString(spkb)
 	var tok []byte
-	if tok, err = GenerateJWTtoken(pub, "https://example.com", "1h"); chk.E(err) {
+	if tok, err = GenerateJWTClaims(pub, "https://example.com", "1h"); chk.E(err) {
 		t.Fatal(err)
 	}
 	var entry string

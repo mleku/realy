@@ -6,15 +6,14 @@ import (
 	"net/url"
 	"os"
 
-	"realy.lol/httpauth"
 	"realy.lol/signer"
 )
 
 func Get(ur *url.URL, sign signer.I) (err error) {
 	var r *http.Request
-	if r, err = httpauth.MakeNIP98GetRequest(ur, userAgent, sign); chk.E(err) {
-		fail(err.Error())
-	}
+	// if r, err = httpauth.MakeNIP98GetRequest(ur, userAgent, sign); chk.E(err) {
+	// 	fail(err.Error())
+	// }
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request,
 			via []*http.Request) error {

@@ -83,7 +83,7 @@ func GenerateJWTKeys() (x509sec, x509pub, pemSec, pemPub []byte, sk *ecdsa.Priva
 	return
 }
 
-func GenerateJWTtoken(issuer, ur string,
+func GenerateJWTClaims(issuer, ur string,
 	exp ...string) (tok []byte, err error) {
 	// generate claim
 	claim := &JWT{
@@ -123,7 +123,7 @@ func SignJWTtoken(tok []byte, sec *ecdsa.PrivateKey) (bearer string, err error) 
 // on having a base64 encoded x509 secret key provided
 func GenerateAndSignJWTtoken(issuer, ur, exp, sec string) (bearer string, err error) {
 	var t []byte
-	if t, err = GenerateJWTtoken(issuer, ur, exp); chk.E(err) {
+	if t, err = GenerateJWTClaims(issuer, ur, exp); chk.E(err) {
 		return
 	}
 	var jskb []byte
