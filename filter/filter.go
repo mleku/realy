@@ -481,15 +481,15 @@ func arePointerValuesEqual[V comparable](a *V, b *V) bool {
 	return false
 }
 
-func Equal(a, b *T) bool {
-	if !a.Kinds.Equals(b.Kinds) ||
-		!a.IDs.Equal(b.IDs) ||
-		!a.Authors.Equal(b.Authors) ||
-		a.Tags.Len() != b.Tags.Len() ||
-		!arePointerValuesEqual(a.Since, b.Since) ||
-		!arePointerValuesEqual(a.Until, b.Until) ||
-		!bytes.Equal(a.Search, b.Search) ||
-		!a.Tags.Equal(b.Tags) {
+func (f *T) Equal(b *T) bool {
+	if !f.Kinds.Equals(b.Kinds) ||
+		!f.IDs.Equal(b.IDs) ||
+		!f.Authors.Equal(b.Authors) ||
+		f.Tags.Len() != b.Tags.Len() ||
+		!arePointerValuesEqual(f.Since, b.Since) ||
+		!arePointerValuesEqual(f.Until, b.Until) ||
+		!bytes.Equal(f.Search, b.Search) ||
+		!f.Tags.Equal(b.Tags) {
 		return false
 	}
 	return true
