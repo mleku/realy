@@ -48,7 +48,7 @@ func (s *Server) auth(r *http.Request) (authed bool) {
 	var valid bool
 	var pubkey []byte
 	var err error
-	if valid, pubkey, err = httpauth.ValidateRequest(r, s.JWTVerifyFunc); chk.E(err) {
+	if valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc); chk.E(err) {
 		return
 	}
 	if !valid {
@@ -77,6 +77,7 @@ func (s *Server) HandleHTTP(h Handler) {
 		"application/nostr+json": {
 			"/relayinfo": s.handleRelayInfo,
 			"/event":     s.handleSimpleEvent,
+			"/events":    s.handleEvents,
 		},
 		"": {
 			"/export":   s.exportHandler,

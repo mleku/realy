@@ -40,6 +40,7 @@ func PrepareQueries(f *filter.T) (
 ) {
 	if f == nil {
 		err = errorf.E("filter cannot be nil")
+		return
 	}
 	switch {
 	// first if there is IDs, just search for them, this overrides all other filters

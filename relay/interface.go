@@ -33,8 +33,8 @@ type I interface {
 	// messages, that are not on the mute list, that do not yet have a reply, should accept
 	// direct and group message events until there is three and thereafter will be restricted
 	// until the user adds them to their follow list.
-	AcceptEvent(c context.T, ev *event.T, hr *http.Request, origin string, authedPubkey []byte) (accept bool,
-		notice string, afterSave func())
+	AcceptEvent(c context.T, ev *event.T, hr *http.Request, origin string,
+		authedPubkey []byte) (accept bool, notice string, afterSave func())
 	// Storage returns the realy storage implementation.
 	Storage() store.I
 	// NoLimiter returns true if the provided npub should not be rate limited.

@@ -11,14 +11,14 @@ import (
 	"realy.lol/tag"
 )
 
-// ValidateRequest verifies a received http.Request has got a valid
+// CheckAuth verifies a received http.Request has got a valid
 // authentication event or token in it, and provides the public key that should be
 // verified to be authorized to access the resource associated with the request.
 //
 // A VerifyJWTFunc should be provided in order to search the event store for a
 // kind 13004 with a JWT signer pubkey that is granted authority for the request.
-func ValidateRequest(r *http.Request, vfn VerifyJWTFunc) (valid bool, pubkey []byte, err error) {
-	log.I.F("validating nip-98")
+func CheckAuth(r *http.Request, vfn VerifyJWTFunc) (valid bool, pubkey []byte, err error) {
+	log.I.F("validating auth %v", vfn)
 	val := r.Header.Get(HeaderKey)
 	if val == "" {
 		err = errorf.E("'%s' key missing from request header", HeaderKey)
@@ -113,7 +113,7 @@ func ValidateRequest(r *http.Request, vfn VerifyJWTFunc) (valid bool, pubkey []b
 		}
 		pubkey = ev.PubKey
 	case strings.HasPrefix(val, JWTPrefix):
-		if vfn != nil {
+		if vfn == nil {
 			err = errorf.E("JWT bearer header found but no JWT verifier function provided")
 			return
 		}

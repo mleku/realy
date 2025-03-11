@@ -21,7 +21,7 @@ func TestMakeNIP98Request_ValidateNIP98Request(t *testing.T) {
 	// // }
 	// var pk []byte
 	// var valid bool
-	// if valid, pk, err = ValidateRequest(r, nil); chk.E(err) {
+	// if valid, pk, err = CheckAuth(r, nil); chk.E(err) {
 	// 	t.Fatal(err)
 	// }
 	// if !valid {

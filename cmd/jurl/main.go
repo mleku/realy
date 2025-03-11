@@ -174,7 +174,8 @@ func Post(filePath string, ur *url.URL, bearer string) (err error) {
 		Host:          ur.Host,
 	}
 	r.Header.Add("User-Agent", userAgent)
-	r.Header.Add("Authorization", "Authorization "+bearer)
+	r.Header.Add("Authorization", "Bearer "+bearer)
+	r.Header.Add("Accept", "application/nostr+json")
 	r.GetBody = func() (rc io.ReadCloser, err error) {
 		rc = payload
 		return

@@ -298,8 +298,7 @@ func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 					goto invalid
 				}
 				var ff [][]byte
-				if ff, r, err = text.UnmarshalHexArray(r,
-					sha256.Size); chk.E(err) {
+				if ff, r, err = text.UnmarshalHexArray(r, sha256.Size); chk.E(err) {
 					return
 				}
 				f.IDs = tag.New(ff...)

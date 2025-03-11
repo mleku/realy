@@ -49,6 +49,10 @@ type Querent interface {
 	QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error)
 }
 
+type FetchByIds interface {
+	FetchByIds(c context.T, ids [][]byte) (evs event.Ts, err error)
+}
+
 type Counter interface {
 	// CountEvents performs the same work as QueryEvents but instead of delivering
 	// the events that were found it just returns the count of events

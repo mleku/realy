@@ -48,7 +48,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 				if !ws.AuthRequested() {
 					ws.RequestAuth()
 					if err = okenvelope.NewFrom(env.ID, false,
-						normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.T(err) {
+						normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
 					}
 					log.I.F("requesting auth from client %s", ws.RealRemote())
 					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
@@ -122,12 +122,14 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 								normalize.Blocked.F("not processing or storing delete event containing delete event references")).Write(ws); chk.E(err) {
 								return
 							}
+							return
 						}
 						if !bytes.Equal(res[i].PubKey, env.T.PubKey) {
 							if err = okenvelope.NewFrom(env.ID, false,
 								normalize.Blocked.F("cannot delete other users' events (delete by e tag)")).Write(ws); chk.E(err) {
 								return
 							}
+							return
 						}
 					}
 				case bytes.Equal(t.Key(), []byte("a")):
@@ -159,12 +161,14 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 							normalize.Blocked.F("delete event kind may not be deleted")).Write(ws); chk.E(err) {
 							return
 						}
+						return
 					}
 					if !kk.IsParameterizedReplaceable() {
 						if err = okenvelope.NewFrom(env.ID, false,
 							normalize.Error.F("delete tags with a tags containing non-parameterized-replaceable events cannot be processed")).Write(ws); chk.E(err) {
 							return
 						}
+						return
 					}
 					if !bytes.Equal(pk, env.T.PubKey) {
 						log.I.S(pk, env.T.PubKey, env.T)
@@ -172,6 +176,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 							normalize.Blocked.F("cannot delete other users' events (delete by a tag)")).Write(ws); chk.E(err) {
 							return
 						}
+						return
 					}
 					f := filter.New()
 					f.Kinds.K = []*kind.T{kk}
