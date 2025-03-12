@@ -104,6 +104,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 	var delEvs [][]byte
 	defer func() {
 		for _, d := range delEvs {
+			// if events were found that should be deleted, delete them
 			chk.E(r.DeleteEvent(r.Ctx, eventid.NewWith(d)))
 		}
 	}()

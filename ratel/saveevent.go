@@ -113,16 +113,13 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 		indexKeys = GetIndexKeysForEvent(ev, ser)
 		// log.I.S(indexKeys)
 		for _, k := range indexKeys {
-			if err = txn.Set(k, nil); chk.E(err) {
+			var val []byte
+			if k[0] == prefixes.Counter.B() {
+				val = keys.Write(createdat.New(timestamp.Now()))
+			}
+			if err = txn.Set(k, val); chk.E(err) {
 				return
 			}
-		}
-		// initialise access counter key
-		counterKey := GetCounterKey(ser)
-		// log.I.S(counterKey)
-		val := keys.Write(createdat.New(timestamp.Now()))
-		if err = txn.Set(counterKey, val); chk.E(err) {
-			return
 		}
 		// log.D.F("saved event to ratel %s:\n%s", r.dataDir, ev.Serialize())
 		return

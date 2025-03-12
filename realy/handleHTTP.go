@@ -44,7 +44,7 @@ func (s *Server) JWTVerifyFunc(npub string) (jwtPub string, pk []byte, err error
 	return
 }
 
-func (s *Server) auth(r *http.Request) (authed bool) {
+func (s *Server) authAdmin(r *http.Request) (authed bool) {
 	var valid bool
 	var pubkey []byte
 	var err error
@@ -76,10 +76,11 @@ func (s *Server) HandleHTTP(h Handler) {
 	Route(h, Paths{
 		"application/nostr+json": {
 			"/relayinfo": s.handleRelayInfo,
-			"/event":     s.handleSimpleEvent,
-			"/events":    s.handleEvents,
-		},
-		"": {
+			// methods that may need auth depending on configuration
+			"/event":  s.handleSimpleEvent,
+			"/events": s.handleEvents,
+			// admin methods that require REALY_ADMIN_NPUBS auth
+			"/nuke":     s.handleNuke, // todo: need some kind of confirmation scheme on this endpoint, particularly
 			"/export":   s.exportHandler,
 			"/import":   s.importHandler,
 			"/shutdown": s.shutdownHandler,

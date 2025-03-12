@@ -44,7 +44,7 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 	}
 	var indexKeys [][]byte
 	ev := event.New()
-	var evKey, evb, counterKey, tombstoneKey []byte
+	var evKey, evb, tombstoneKey []byte
 	// fetch the event to get its index keys
 	err = r.View(func(txn *badger.Txn) (err error) {
 		// retrieve the event record
@@ -66,9 +66,8 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 			}
 			// log.I.S(rem, ev, seri)
 			indexKeys = GetIndexKeysForEvent(ev, seri)
-			counterKey = GetCounterKey(seri)
 			// we don't make tombstones for replacements, but it is better to shift that
-			// logic outside of this method.
+			// logic outside of this closure.
 			if len(noTombstone) > 0 && !noTombstone[0] {
 				ts := tombstone.NewWith(ev.EventID())
 				tombstoneKey = prefixes.Tombstone.Key(ts, createdat.New(timestamp.Now()))
@@ -86,9 +85,6 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 		for _, key := range indexKeys {
 			if err = txn.Delete(key); chk.E(err) {
 			}
-		}
-		if err = txn.Delete(counterKey); chk.E(err) {
-			return
 		}
 		if len(tombstoneKey) > 0 {
 			// write tombstone

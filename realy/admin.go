@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) exportHandler(h Handler) {
-	if ok := s.auth(h.Request); !ok {
+	if ok := s.authAdmin(h.Request); !ok {
 		s.unauthorized(h)
 		return
 	}
@@ -50,7 +50,7 @@ func (s *Server) exportHandler(h Handler) {
 }
 
 func (s *Server) importHandler(h Handler) {
-	if ok := s.auth(h.Request); !ok {
+	if ok := s.authAdmin(h.Request); !ok {
 		s.unauthorized(h)
 		return
 	}
@@ -65,13 +65,28 @@ func (s *Server) importHandler(h Handler) {
 }
 
 func (s *Server) shutdownHandler(h Handler) {
-	if ok := s.auth(h.Request); !ok {
+	if ok := s.authAdmin(h.Request); !ok {
 		s.unauthorized(h)
 		return
 	}
 	fprintf(h.ResponseWriter, "shutting down")
 	defer chk.E(h.Body.Close())
 	s.Shutdown()
+}
+
+func (s *Server) handleNuke(h Handler) {
+	if ok := s.authAdmin(h.Request); !ok {
+		s.unauthorized(h)
+		return
+	}
+	fprintf(h.ResponseWriter, "nuking DB")
+	var err error
+	if err = s.relay.Storage().Nuke(); chk.E(err) {
+	}
+	if realy, ok := s.relay.(*app.Relay); ok {
+		realy.ZeroLists()
+		realy.CheckOwnerLists(context.Bg())
+	}
 }
 
 func (s *Server) defaultHandler(h Handler) {

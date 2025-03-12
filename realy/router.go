@@ -17,7 +17,7 @@ func Route(h Handler, p Paths) {
 	acc := h.Request.Header.Get("Accept")
 	log.I.S(acc)
 	for proto, fns := range p {
-		if proto == acc {
+		if proto == acc || proto == "" {
 			for path, fn := range fns {
 				if path == h.URL.Path {
 					fn(h)

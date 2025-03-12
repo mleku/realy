@@ -80,10 +80,10 @@ func (r *T) FetchByIds(c context.T, ids [][]byte) (evs event.Ts, err error) {
 		return
 	default:
 	}
-	// if events were found that should be deleted, delete them
 	var delEvs [][]byte
 	defer func() {
 		for _, d := range delEvs {
+			// after the count delete any events that are expired as per NIP-40
 			chk.E(r.DeleteEvent(r.Ctx, eventid.NewWith(d)))
 		}
 	}()

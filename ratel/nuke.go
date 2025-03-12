@@ -17,6 +17,8 @@ func (r *T) Nuke() (err error) {
 		{prefixes.Tag32.B()},
 		{prefixes.TagAddr.B()},
 		{prefixes.Counter.B()},
+		{prefixes.PubkeyIndex.B()},
+		{prefixes.FullIdIndex.B()},
 	}...); chk.E(err) {
 		return
 	}

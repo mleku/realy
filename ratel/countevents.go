@@ -26,13 +26,14 @@ func (r *T) CountEvents(c context.T, f *filter.T) (count int, approx bool, err e
 	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
 		return
 	}
-	// search for the keys generated from the filter
 	var delEvs [][]byte
 	defer func() {
+		// after the count delete any events that are expired as per NIP-40
 		for _, d := range delEvs {
 			chk.E(r.DeleteEvent(r.Ctx, eventid.NewWith(d)))
 		}
 	}()
+	// search for the keys generated from the filter
 	for _, q := range queries {
 		select {
 		case <-c.Done():

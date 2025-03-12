@@ -3,6 +3,7 @@ package prefixes
 import (
 	"realy.lol/ec/schnorr"
 	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/fullid"
 	"realy.lol/ratel/keys/id"
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/kinder"
@@ -87,8 +88,24 @@ const (
 	// PubkeyIndex is the prefix for an index that stores a mapping between pubkeys
 	// and a pubkey serial.
 	//
+	// todo: this is useful feature but rather than for saving space on pubkeys in
+	//       events might have a more useful place in some kind of search API. eg just
+	//       want pubkey from event id, combined with FullIdIndex.
+	//
 	// [ 11 ][ 32 bytes pubkey ][ 8 bytes pubkey serial ]
 	PubkeyIndex
+
+	// FullIdIndex is a secondary table for IDs that is used to fetch the full Id
+	// hash instead of fetching and unmarshalling the event. The Id index will
+	// ultimately be deprecated in favor of this because returning event Ids and
+	// letting the client handle pagination reduces relay complexity.
+	//
+	// In addition, as a mechanism of sorting, the event ID bears also a timestamp
+	// from its created_at field. The serial acts as a "first seen" ordering and
+	// then you also have the (claimed) chronological ordering.
+	//
+	//   [ 2 ][ 32 bytes eventid.T ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
+	FullIdIndex
 )
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop
@@ -102,6 +119,7 @@ var FilterPrefixes = [][]byte{
 	{Tag.B()},
 	{Tag32.B()},
 	{TagAddr.B()},
+	{FullIdIndex.B()},
 }
 
 // KeySizes are the byte size of keys of each type of key prefix. int(P) or call the P.I() method
@@ -132,4 +150,6 @@ var KeySizes = []int{
 	1 + sha256.Size/2 + serial.Len,
 	// PubkeyIndex
 	1 + schnorr.PubKeyBytesLen + serial.Len,
+	// FullIdIndex
+	1 + fullid.Len + serial.Len,
 }

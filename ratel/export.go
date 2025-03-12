@@ -127,6 +127,9 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 					k := item.KeyCopy(nil)
 					evKey := prefixes.Event.Key(serial.FromKey(k))
 					counter++
+					if counter%1000 == 0 && counter > 0 {
+						log.I.F("%d events exported", counter)
+					}
 					keyChan <- evKey
 				}
 				return
@@ -181,6 +184,9 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 					}
 				}
 				counter++
+				if counter%1000 == 0 && counter > 0 {
+					log.I.F("%d events exported", counter)
+				}
 			}
 			return
 		})
