@@ -64,6 +64,13 @@ type ReqAcceptor interface {
 		ok bool, modified bool)
 }
 
+type FilterAcceptor interface {
+	// AcceptFilter is basically the same as AcceptReq except it is additional to
+	// enable the simplified filter query type.
+	AcceptFilter(c context.T, hr *http.Request, f *filter.S,
+		authedPubkey []byte) (allowed *filter.S, ok bool, modified bool)
+}
+
 // Authenticator is the interface for implementing NIP-42.
 // ServiceURL() returns the URL used to verify the "AUTH" event from clients.
 type Authenticator interface {

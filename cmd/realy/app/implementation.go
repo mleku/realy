@@ -90,6 +90,8 @@ func (r *Relay) NoLimiter(pubKey []byte) (ok bool) {
 }
 
 func (r *Relay) ZeroLists() {
+	r.Lock()
+	defer r.Unlock()
 	r.Followed = make(map[string]struct{})
 	r.OwnersFollowed = make(map[string]struct{})
 	r.OwnersFollowLists = r.OwnersFollowLists[:0]
@@ -186,6 +188,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 			// check the mute list, and reject events authored by muted pubkeys, even if
 			// they come from a pubkey that is on the follow list.
 			for pk := range r.Muted {
+				r.Lock()
+				defer r.Unlock()
 				if bytes.Equal(evt.PubKey, []byte(pk)) {
 					return false, "rejecting event with pubkey " + hex.Enc(evt.PubKey) +
 						" because on owner mute list", nil
@@ -212,6 +216,64 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 
 		}
 	}
+	return
+}
+
+func (r *Relay) AcceptFilter(c context.T, hr *http.Request, f *filter.S,
+	authedPubkey []byte) (allowed *filter.S, ok bool, modified bool) {
+	if r.PublicReadable && len(r.owners) == 0 {
+		allowed = f
+		ok = true
+		return
+	}
+	// if client isn't authed but there are kinds in the filters that are
+	// kind.Directory type then trim the filter down and only respond to the queries
+	// that blanket should deliver events in order to facilitate non-authorized users
+	// to interact with users, even just such as to see their profile metadata or
+	// learn about deleted events.
+	if len(authedPubkey) == 0 {
+		fk := f.Kinds.K
+		allowedKinds := kinds.New()
+		for _, fkk := range fk {
+			if fkk.IsDirectoryEvent() || (!fkk.IsPrivileged() && r.PublicReadable) {
+				allowedKinds.K = append(allowedKinds.K, fkk)
+			}
+		}
+		if len(fk) > 0 && len(allowedKinds.K) == 0 {
+			// the filter has kinds, and none were permitted, this filter cannot be
+			// processed.
+			return
+		}
+		// overwrite the kinds that have been permitted
+		if len(f.Kinds.K) != len(allowedKinds.K) {
+			modified = true
+		}
+		f.Kinds.K = allowedKinds.K
+		// we can process what remains
+		ok = true
+		return
+	}
+	// if the client hasn't authed, reject
+	if len(authedPubkey) == 0 {
+		return
+	}
+	// check that the client is authed to a pubkey in the owner follow list, this
+	// relay is auth-to-read.
+	r.Lock()
+	defer r.Unlock()
+	if len(r.Owners()) > 0 {
+		for pk := range r.Followed {
+			if bytes.Equal(authedPubkey, []byte(pk)) {
+				ok = true
+				return
+			}
+		}
+		// if the authed pubkey was not found, reject the request.
+		return
+	}
+	// if auth is enabled and there is no moderators we just check that the pubkey
+	// has been loaded via the auth function.
+	ok = len(authedPubkey) == schnorr.PubKeyBytesLen
 	return
 }
 
@@ -363,6 +425,15 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 				}
 			}
 			evs = evs[:0]
+		}
+		// remove muted from the followed list
+		for m := range r.Muted {
+			for f := range r.Followed {
+				if f == m {
+					// delete muted element from Followed list
+					delete(r.Followed, m)
+				}
+			}
 		}
 		log.I.F("%d allowed npubs, %d blocked", len(r.Followed), len(r.Muted))
 	}

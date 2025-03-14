@@ -151,5 +151,5 @@ var KeySizes = []int{
 	// PubkeyIndex
 	1 + schnorr.PubKeyBytesLen + serial.Len,
 	// FullIdIndex
-	1 + fullid.Len + serial.Len,
+	1 + fullid.Len + createdat.Len + serial.Len,
 }

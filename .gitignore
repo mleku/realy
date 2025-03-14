@@ -57,6 +57,7 @@ node_modules/**
 !*.item
 !*.bin
 !*.yml
+!*.yaml
 !*.tmpl
 !*.s
 !*.asm

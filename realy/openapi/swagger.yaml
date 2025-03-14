@@ -1,0 +1,515 @@
+openapi: 3.0.4
+info:
+  title: Simplified Nostr HTTP API
+  description: A replacement for the messy websocket based NIP protocol that uses HTTP and standard OpenAPI 3 semantics
+  version: 1.0.0
+components:
+  schemas:
+    Event:
+      description: the primary unit of the nostr protocol, a self-signed JSON object that derives its id from a canonical ordered array
+      type: object
+      properties:
+        id:
+          type: string
+          example: "5408a05d0b51cdf34910f706e72961b3ab56296d80c59571e7a7559e433b9d67"
+        pubkey:
+          type: string
+          example: "21decdbc8c0eab836b2723f395f2bbbb974df0435ad1d91fa539cd335015b4d4"
+        created_at:
+          type: integer
+          example: 1741880900
+        kind:
+          type: integer
+          example: 1
+        content:
+          type: string
+          example: some text in no kind of markup
+        tags:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+            example:
+              [ "p","21decdbc8c0eab836b2723f395f2bbbb974df0435ad1d91fa539cd335015b4d4" ]
+        sig:
+          type: string
+          example: "97a31fc78e3df711f185ea0516b6d1b890ada16a535647de047a6fd3571fab643efeb5e4fb7fa1e38a2e1ab0cdb46ccdb15e3efb586bcab9d2f7380f079076ac"
+    Ids:
+      description: lists of hex encoded values, primarily for event Ids and public keys
+      type: array
+      items:
+        type: string
+        example:
+          - "5408a05d0b51cdf34910f706e72961b3ab56296d80c59571e7a7559e433b9d67"
+          - "5408a05d0b51cdf34910f706e72961b3ab56296d80c59571e7a7559e433b9d67"
+    Tag:
+      description: the keys lunacy of nostr tag filters, which we will not repeat - first field is the key, the remainder are the matching values for the fields, the first field must be "#[a-zA-Z]"
+      type: array
+      items:
+        type: array
+        items:
+          type: string
+          example:
+            - "#e"
+            - "5408a05d0b51cdf34910f706e72961b3ab56296d80c59571e7a7559e433b9d67"
+            - "5408a05d0b51cdf34910f706e72961b3ab56296d80c59571e7a7559e433b9d67"
+    Filter:
+      description: a simple filter structure used in request bodies to specify the parameters of a simple index search
+      type: object
+      properties:
+        kinds:
+          type: array
+          items:
+            type: integer
+            example:
+              - 1
+              - 2
+              - 3
+        authors:
+          $ref: '#/components/schemas/Ids'
+        tags:
+          type: array
+          items:
+            type: string
+            example:
+              - "#e"
+              - "5408a05d0b51cdf34910f706e72961b3ab56296d80c59571e7a7559e433b9d67"
+              - "5408a05d0b51cdf34910f706e72961b3ab56296d80c59571e7a7559e433b9d67"
+  parameters:
+    AdminAuth:
+      name: Authorization
+      description: NIP-98 "Nostr <token>" or JWT "Bearer <token>" for administrators (mandatory)
+      in: header
+      required: true
+      schema:
+        type: string
+    AlwaysAuth:
+      name: Authorization
+      description: NIP-98 "Nostr <token>" or JWT "Bearer <token>" for users on their own data (mandatory)
+      in: header
+      required: true
+      schema:
+        type: string
+    Auth:
+      name: Authorization
+      description: NIP-98 "Nostr <token>" or JWT "Bearer <token>" (required as per relay configuration)
+      in: header
+      required: false
+      schema:
+        type: string
+    Upgrade:
+      name: Upgrade
+      description: websocket upgrade
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+    NoPermissionError:
+      description: Authorization does not grant permission for action
+    InvalidEncodingError:
+      description: Request cannot be decoded due to encoding errors
+    CannotDeleteError:
+      description: Event cannot be deleted, only replaced
+    NotImplemented:
+      description: Method is not implemented
+paths:
+  /permissions:
+    get:
+      summary: lists conditions for authentication requirement on all http endpoints
+      tags:
+        - info
+      responses:
+        "200":
+          description: list of all endpoints that optionally require an Authorization header and specific conditions associated with them
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "permissions"
+                    auth_required:
+                      type: array
+                      items:
+                        type: array
+                        items:
+                          type: string
+                          example: "kinds=1,2,3,4"
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /documentation/{endpoint}:
+    get:
+      summary: return a document associated with the requested endpoint
+      tags:
+        - info
+      parameters:
+        - name: endpoint
+          in: path
+          description: name of endpoint you want the documentation of
+          required: true
+          schema:
+            type: string
+            example: "documentation"
+      responses:
+        "200":
+          description: the requested documentation in the format specified by the Accept header, if it is available, default will be text/html, generated by asciidoctor
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /policy:
+    get:
+      summary: read the terms of service/policy document for this relay
+      tags:
+        - info
+      responses:
+        "200":
+          description: the requested documentation in the format specified by the Accept header, if it is available, default will be text/html, generated by asciidoctor
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /store:
+    post:
+      summary: stores an event on the relay and sends it to subscribers
+      tags:
+        - events
+      requestBody:
+        description: the event encoded in standard nostr JSON wire format with id and sig
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+      parameters:
+        -  $ref: '#/components/parameters/Auth'
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/NoPermissionError'
+        "406":
+          description: Event violates message encoding rules
+        "410":
+          description: Cannot store event that has been already deleted
+        "411":
+          description: Cannot delete event other than ones authored by authenticated user
+        "423":
+          $ref: '#/components/responses/CannotDeleteError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /relay:
+    post:
+      summary: sends an event to subscribers but does not store event
+      tags:
+        - events
+      requestBody:
+        description: the event encoded in standard nostr JSON wire format with id and sig
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+      parameters:
+        -  $ref: '#/components/parameters/Auth'
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/NoPermissionError'
+        "406":
+          description: Event violates message encoding rules
+        "410":
+          description: Cannot store event that has been already deleted
+        "411":
+          description: Cannot delete event other than ones authored by authenticated user # administrators have this permission
+        "423":
+          $ref: '#/components/responses/CannotDeleteError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /event/{id}:
+    get:
+      summary: fetch one event by ID
+      tags:
+        - events
+      parameters:
+        - $ref: '#/components/parameters/Auth'
+        - name: id
+          in: path
+          description: event id hash
+          required: true
+          schema:
+            type: string
+      responses:
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "404":
+          description: Event not found
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /events:
+    post:
+      summary: request multiple events by event ID
+      tags:
+        - events
+      parameters:
+        - $ref: '#/components/parameters/Auth'
+      requestBody:
+        description: the list of event ids
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ids'
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /filter:
+    post:
+      summary: search for events by various matching parameters, and return a list of matching event Ids sorted by the requested order of created_at timestamps
+      tags:
+        - events
+      parameters:
+        - $ref: '#/components/parameters/Auth'
+        - in: query
+          description: only return events equal or greater than this unix timestamp
+          name: since
+          schema:
+            type: integer
+        - in: query
+          description: only return events equal or lesser than this unix timestamp
+          name: until
+          schema:
+            type: integer
+        - in: query
+          description: only return this many events from the starting point in the set order. if unset, there is no limit
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          description: return the results sorted by created_at in this direction
+          name: order
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+      requestBody:
+        description: the list of event ids
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Filter'
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /subscribe:
+    post:
+      summary: Same as filter except only for newly published events, only event Ids are sent, requires websocket connection
+      tags:
+        - events
+      parameters:
+        - $ref: '#/components/parameters/Auth'
+        - $ref: '#/components/parameters/Upgrade'
+      requestBody:
+        description: the list of event ids
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Filter'
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /fulltext:
+    post:
+      summary: search for events by various matching parameters, and return a list of matching event Ids sorted by the requested order of created_at timestamps
+      tags:
+        - events
+      parameters:
+        - $ref: '#/components/parameters/Auth'
+        - in: query
+          description: full text search based on a full text search index
+          name: search
+          schema:
+            type: integer
+        - in: query
+          description: only return events equal or greater than this unix timestamp
+          name: since
+          schema:
+            type: integer
+        - in: query
+          description: only return events equal or lesser than this unix timestamp
+          name: until
+          schema:
+            type: integer
+        - in: query
+          description: only return this many events from the starting point in the set order. if unset, there is no limit
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          description: return the results sorted by created_at in this direction
+          name: order
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+      requestBody:
+        description: the list of event ids
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Filter'
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /backup:
+    get:
+      summary: export events all events of the must-be-authed user in line structured JSON (.jsonl)
+      tags:
+        - users
+      parameters:
+        - $ref: '#/components/parameters/AlwaysAuth'
+      responses:
+        "200":
+          description: OK
+          content:
+            x-jsonl:
+              schema:
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/NoPermissionError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /export:
+    post:
+      summary: export events in line structured JSON (.jsonl)
+      tags:
+        - admin
+      parameters:
+        - $ref: '#/components/parameters/AdminAuth'
+      requestBody:
+        description: the list of pubkeys you want to export
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Filter'
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/NoPermissionError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /import:
+    post:
+      summary: import events in line structured JSON (.jsonl)
+      tags:
+        - admin
+      parameters:
+        -  $ref: '#/components/parameters/AdminAuth'
+      requestBody:
+        description: events in line structured JSON (.jsonl)
+        required: true
+        content:
+          x-jsonl:
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/NoPermissionError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /nuke:
+    get:
+      summary: delete all events in event store
+      tags:
+        - admin
+      parameters:
+        -  $ref: '#/components/parameters/AdminAuth'
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/NoPermissionError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
+  /shutdown:
+    get:
+      summary: shut down the relay
+      tags:
+        - admin
+      parameters:
+        -  $ref: '#/components/parameters/AdminAuth'
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: '#/components/responses/InvalidEncodingError'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+        "403":
+          $ref: '#/components/responses/NoPermissionError'
+        "501":
+          $ref: '#/components/responses/NotImplemented'
