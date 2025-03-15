@@ -76,6 +76,38 @@ components:
               - "#e"
               - "5408a05d0b51cdf34910f706e72961b3ab56296d80c59571e7a7559e433b9d67"
               - "5408a05d0b51cdf34910f706e72961b3ab56296d80c59571e7a7559e433b9d67"
+    RetentionListOfKinds:
+      type: array
+      items:
+        type: integer
+    RetentionKindsList:
+      description: an array of integers plus arrays of integers
+      type: array
+      items:
+        anyOf:
+          - $ref: "#/components/schemas/RetentionKinds"
+          - $ref: "#/components/schemas/RetentionKindsList"
+    RetentionKinds:
+      description: Specification of the time (in seconds) for retaining events of some specific set of kinds
+      type: object
+      properties:
+        kinds:
+          oneOf:
+            - $ref: "#/components/schemas/RetentionKindsList"
+        time:
+          type: integer
+        count:
+          type: integer
+      example:  { "kinds":[0, 1, [5, 7], [40, 49]], "time": 3600}
+    RetentionTime:
+      description: Specification of something something something (don't ask me i'm just implementing the syntax)
+      type: object
+      properties:
+        time:
+          type: integer
+        count:
+          type: integer
+      example: {"time": 3600, "count": 10000}
   parameters:
     AdminAuth:
       name: Authorization
@@ -105,11 +137,28 @@ components:
       required: true
       schema:
         type: string
+        default: "upgrade"
+    OptionalUpgrade:
+      name: Upgrade
+      description: websocket upgrade, for nostr websocket protocol (overrides nip-11 relay information document request)
+      in: header
+      required: false
+      schema:
+        type: string
+        default: "upgrade"
     NostrAccept:
       name: Accept
       description: nostr json encoding
       in: header
       required: true
+      schema:
+        type: string
+        default: application/nostr+json
+    NostrOptionalAccept:
+      name: Accept
+      description: nostr json encoding (on root this is required for nip-11 relay information document)
+      in: header
+      required: false
       schema:
         type: string
         default: application/nostr+json
@@ -125,6 +174,129 @@ components:
     NotImplemented:
       description: Method is not implemented
 paths:
+  /:
+    get:
+      summary: upgrades connection to websocket for nostr NIP protocol, or returns a NIP-11 relay information document depending on headers
+      tags:
+        - info
+      parameters: # if neither of these headers are present, the "default" handler is called, which presumably might serve some kind of relay subscription or informational web interface
+        - $ref: "#/components/parameters/NostrOptionalAccept" # required for NIP-11 relay information document
+        - $ref: "#/components/parameters/OptionalUpgrade" # required for standard nostr websocket NIP-01 (et al) protocol
+      responses:
+        "200":
+          description: Standard NIP-11 response (requires application/nostr+json Accept header)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  pubkey:
+                    type: string
+                  contact:
+                    type: string
+                  supported_nips:
+                    type: array
+                    items:
+                      type: integer
+                    example: [1,2,3]
+                  software:
+                    type: string
+                  version:
+                    type: string
+                  limitation:
+                    type: object
+                    properties:
+                      max_message_length:
+                        type: integer
+                      max_subscriptions:
+                        type: integer
+                      max_filters:
+                        type: integer
+                      max_limit:
+                        type: integer
+                      max_subid_length:
+                        type: integer
+                      max_event_tags:
+                        type: integer
+                      max_content_length:
+                        type: integer
+                      min_pow_difficulty:
+                        type: integer
+                      auth_required:
+                        type: boolean
+                      payment_required:
+                        type: boolean
+                      restricted_writes:
+                        type: boolean
+                      created_at_lower_limit:
+                        type: integer
+                      created_at_upper_limit:
+                        type: integer
+                  retention:
+                    type: array
+                    items:
+                      anyOf:
+                        - $ref: '#/components/schemas/RetentionTime'
+                        - $ref: '#/components/schemas/RetentionKinds'
+                  relay_countries:
+                    type: array
+                    items:
+                      type: string
+                  language_tags:
+                    type: array
+                    items:
+                      type: string
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                  posting_policy:
+                    type: string
+                  payments_url:
+                    type: string
+                  fees:
+                    type: object
+                    properties:
+                      admission:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                            amount:
+                              type: integer
+                            unit:
+                              type: string
+                      subscription:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            amount:
+                              type: integer
+                            unit:
+                              type: string
+                            period:
+                              type: integer
+                      publication:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            kinds:
+                              type: array
+                              items:
+                                type: integer
+                            amount:
+                              type: integer
+                            unit:
+                              type: string
+                  icon:
+                    type: string
   /permissions:
     get:
       summary: lists conditions for authentication requirement on all http endpoints
