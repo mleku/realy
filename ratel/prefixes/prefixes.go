@@ -122,6 +122,21 @@ var FilterPrefixes = [][]byte{
 	{FullIdIndex.B()},
 }
 
+var AllPrefixes = [][]byte{
+	{Event.B()},
+	{CreatedAt.B()},
+	{Id.B()},
+	{Kind.B()},
+	{Pubkey.B()},
+	{PubkeyKind.B()},
+	{Tag.B()},
+	{Tag32.B()},
+	{TagAddr.B()},
+	{Counter.B()},
+	{PubkeyIndex.B()},
+	{FullIdIndex.B()},
+}
+
 // KeySizes are the byte size of keys of each type of key prefix. int(P) or call the P.I() method
 // corresponds to the index 1:1. For future index additions be sure to add the
 // relevant KeySizes sum as it describes the data for a programmer.

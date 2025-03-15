@@ -30,14 +30,14 @@ import (
 // a list of event kinds that require auth and if the events contain this and
 // auth was not made and if made, does not match a pubkey in the relevant events
 // it is simply not returned.
-func (s *Server) handleEvents(h Handler) {
+func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 	log.I.F("events")
 	var fetcher store.FetchByIds
 	var ok bool
 	var err error
 	if fetcher, ok = s.relay.(store.FetchByIds); ok {
 		var pubkey []byte
-		if _, pubkey, err = httpauth.CheckAuth(h.Request, s.JWTVerifyFunc); chk.E(err) {
+		if _, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc); chk.E(err) {
 			return
 		}
 		// if auth is enabled, and either required or not set to public readable, and
@@ -49,12 +49,12 @@ func (s *Server) handleEvents(h Handler) {
 			(s.authRequired || !s.publicReadable) &&
 			len(pubkey) < 1 {
 
-			http.Error(h.ResponseWriter,
+			http.Error(w,
 				"Authentication required for method", http.StatusUnauthorized)
 			return
 		}
 		var req []byte
-		if req, err = io.ReadAll(h.Request.Body); chk.E(err) {
+		if req, err = io.ReadAll(r.Body); chk.E(err) {
 			return
 		}
 		// unmarshal the request
@@ -111,17 +111,17 @@ func (s *Server) handleEvents(h Handler) {
 			return evs[i].CreatedAt.Int() > evs[j].CreatedAt.Int()
 		})
 		for _, ev := range evs {
-			if _, err = h.ResponseWriter.Write(ev.Marshal(nil)); chk.E(err) {
+			if _, err = w.Write(ev.Marshal(nil)); chk.E(err) {
 				return
 			}
 			// results are jsonl format, one line per event
-			if _, err = h.ResponseWriter.Write([]byte{'\n'}); chk.E(err) {
+			if _, err = w.Write([]byte{'\n'}); chk.E(err) {
 				return
 			}
 		}
-		http.Error(h.ResponseWriter, "", http.StatusOK)
+		http.Error(w, "", http.StatusOK)
 	} else {
-		http.Error(h.ResponseWriter, "Method not implemented", NI)
+		http.Error(w, "Method not implemented", NI)
 	}
 	return
 }

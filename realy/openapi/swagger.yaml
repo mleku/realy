@@ -105,6 +105,14 @@ components:
       required: true
       schema:
         type: string
+    NostrAccept:
+      name: Accept
+      description: nostr json encoding
+      in: header
+      required: true
+      schema:
+        type: string
+        default: application/nostr+json
   responses:
     UnauthorizedError:
       description: Access token is missing or invalid
@@ -128,20 +136,18 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                      example: "permissions"
-                    auth_required:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "permissions"
+                  auth_required:
+                    type: array
+                    items:
                       type: array
                       items:
-                        type: array
-                        items:
-                          type: string
-                          example: "kinds=1,2,3,4"
+                        type: string
+                        example: "kinds=1,2,3,4"
         "501":
           $ref: '#/components/responses/NotImplemented'
   /documentation/{endpoint}:
@@ -185,7 +191,8 @@ paths:
             schema:
               $ref: '#/components/schemas/Event'
       parameters:
-        -  $ref: '#/components/parameters/Auth'
+        - $ref: '#/components/parameters/NostrAccept'
+        - $ref: '#/components/parameters/Auth'
       responses:
         "200":
           description: OK
@@ -218,6 +225,7 @@ paths:
             schema:
               $ref: '#/components/schemas/Event'
       parameters:
+        - $ref: '#/components/parameters/NostrAccept'
         -  $ref: '#/components/parameters/Auth'
       responses:
         "200":
@@ -244,6 +252,7 @@ paths:
       tags:
         - events
       parameters:
+        - $ref: '#/components/parameters/NostrAccept'
         - $ref: '#/components/parameters/Auth'
         - name: id
           in: path
@@ -270,6 +279,7 @@ paths:
       tags:
         - events
       parameters:
+        - $ref: '#/components/parameters/NostrAccept'
         - $ref: '#/components/parameters/Auth'
       requestBody:
         description: the list of event ids
@@ -293,6 +303,7 @@ paths:
       tags:
         - events
       parameters:
+        - $ref: '#/components/parameters/NostrAccept'
         - $ref: '#/components/parameters/Auth'
         - in: query
           description: only return events equal or greater than this unix timestamp
@@ -340,6 +351,7 @@ paths:
       tags:
         - events
       parameters:
+        - $ref: '#/components/parameters/NostrAccept'
         - $ref: '#/components/parameters/Auth'
         - $ref: '#/components/parameters/Upgrade'
       requestBody:
@@ -364,6 +376,7 @@ paths:
       tags:
         - events
       parameters:
+        - $ref: '#/components/parameters/NostrAccept'
         - $ref: '#/components/parameters/Auth'
         - in: query
           description: full text search based on a full text search index
@@ -437,12 +450,12 @@ paths:
       parameters:
         - $ref: '#/components/parameters/AdminAuth'
       requestBody:
-        description: the list of pubkeys you want to export
-        required: true
+        description: the list of pubkeys you want to export (or, all if no Ids list is given)
+        required: false
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Filter'
+              $ref: '#/components/schemas/Ids'
       responses:
         "200":
           description: OK
@@ -487,8 +500,6 @@ paths:
       responses:
         "200":
           description: OK
-        "400":
-          $ref: '#/components/responses/InvalidEncodingError'
         "401":
           $ref: '#/components/responses/UnauthorizedError'
         "403":
@@ -505,8 +516,6 @@ paths:
       responses:
         "200":
           description: OK
-        "400":
-          $ref: '#/components/responses/InvalidEncodingError'
         "401":
           $ref: '#/components/responses/UnauthorizedError'
         "403":

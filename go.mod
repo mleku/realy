@@ -9,10 +9,10 @@ require (
 	github.com/dgraph-io/badger/v4 v4.5.0
 	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.18.0
+	github.com/go-chi/chi/v5 v5.2.1
 	github.com/gobwas/httphead v0.1.0
 	github.com/gobwas/ws v1.4.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/gorilla/mux v1.8.0
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/klauspost/cpuid/v2 v2.2.9
 	github.com/oapi-codegen/runtime v1.1.1

@@ -92,19 +92,19 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h := Handler{w, r}
+	// h := Handler{w, r}
 	// standard nostr protocol only governs the "root" path of the relay and websockets
-	log.I.S(h.Request.URL.Host, h.Request.URL.String(), h.Request.Header.Get("Accept"))
-	if h.Request.URL.Path == "/" {
+	// log.I.S(r.URL.Host, r.URL.String(), r.Header.Get("Accept"))
+	if r.URL.Path == "/" {
 		if r.Header.Get("Accept") == "application/nostr+json" {
-			s.handleRelayInfo(h)
-		} else if h.Request.Header.Get("Upgrade") == "websocket" {
-			s.handleWebsocket(h)
+			s.handleRelayInfo(w, r)
+		} else if r.Header.Get("Upgrade") == "websocket" {
+			s.handleWebsocket(w, r)
 		} else {
-			s.defaultHandler(h)
+			s.defaultHandler(w, r)
 		}
 	} else {
-		s.HandleHTTP(h)
+		s.HandleHTTP(w, r)
 	}
 }
 
@@ -116,10 +116,13 @@ func (s *Server) Start(host string, port int, started ...chan bool) error {
 		return err
 	}
 	s.Addr = ln.Addr().String()
-	s.httpServer = &http.Server{Handler: cors.Default().Handler(s), Addr: addr,
+	s.httpServer = &http.Server{
+		Handler: cors.Default().Handler(s),
+		Addr:    addr,
 		// WriteTimeout: 7 * time.Second,
 		ReadHeaderTimeout: 7 * time.Second,
-		IdleTimeout:       28 * time.Second}
+		IdleTimeout:       28 * time.Second,
+	}
 	for _, startedC := range started {
 		close(startedC)
 	}

@@ -2,6 +2,7 @@ package realy
 
 import (
 	"io"
+	"net/http"
 	"strings"
 
 	"realy.lol/cmd/realy/app"
@@ -9,17 +10,17 @@ import (
 	"realy.lol/hex"
 )
 
-func (s *Server) exportHandler(h Handler) {
-	if ok := s.authAdmin(h.Request); !ok {
-		s.unauthorized(h)
+func (s *Server) exportHandler(w http.ResponseWriter, r *http.Request) {
+	if ok := s.authAdmin(r); !ok {
+		s.unauthorized(w, r)
 		return
 	}
 	log.I.F("export of event data requested on admin port")
 	sto := s.relay.Storage()
-	if strings.Count(h.URL.Path, "/") > 1 {
-		split := strings.Split(h.URL.Path, "/")
+	if strings.Count(r.URL.Path, "/") > 1 {
+		split := strings.Split(r.URL.Path, "/")
 		if len(split) != 3 {
-			fprintf(h.ResponseWriter, "incorrectly formatted export parameter: '%s'", h.URL.Path)
+			fprintf(w, "incorrectly formatted export parameter: '%s'", r.URL.Path)
 			return
 		}
 		switch split[2] {
@@ -29,7 +30,7 @@ func (s *Server) exportHandler(h Handler) {
 				for f := range rl.Followed {
 					follows = append(follows, []byte(f))
 				}
-				sto.Export(s.Ctx, h.ResponseWriter, follows...)
+				sto.Export(s.Ctx, w, follows...)
 			}
 		default:
 			var exportPubkeys [][]byte
@@ -42,21 +43,21 @@ func (s *Server) exportHandler(h Handler) {
 				}
 				exportPubkeys = append(exportPubkeys, pk)
 			}
-			sto.Export(s.Ctx, h.ResponseWriter, exportPubkeys...)
+			sto.Export(s.Ctx, w, exportPubkeys...)
 		}
 	} else {
-		sto.Export(s.Ctx, h.ResponseWriter)
+		sto.Export(s.Ctx, w)
 	}
 }
 
-func (s *Server) importHandler(h Handler) {
-	if ok := s.authAdmin(h.Request); !ok {
-		s.unauthorized(h)
+func (s *Server) importHandler(w http.ResponseWriter, r *http.Request) {
+	if ok := s.authAdmin(r); !ok {
+		s.unauthorized(w, r)
 		return
 	}
-	log.I.F("import of event data requested on admin port %s", h.RequestURI)
+	log.I.F("import of event data requested on admin port %s", r.RequestURI)
 	sto := s.relay.Storage()
-	read := io.LimitReader(h.Body, h.ContentLength)
+	read := io.LimitReader(r.Body, r.ContentLength)
 	sto.Import(read)
 	if realy, ok := s.relay.(*app.Relay); ok {
 		realy.ZeroLists()
@@ -64,22 +65,21 @@ func (s *Server) importHandler(h Handler) {
 	}
 }
 
-func (s *Server) shutdownHandler(h Handler) {
-	if ok := s.authAdmin(h.Request); !ok {
-		s.unauthorized(h)
+func (s *Server) shutdownHandler(w http.ResponseWriter, r *http.Request) {
+	if ok := s.authAdmin(r); !ok {
+		s.unauthorized(w, r)
 		return
 	}
-	fprintf(h.ResponseWriter, "shutting down")
-	defer chk.E(h.Body.Close())
+	fprintf(w, "shutting down")
+	defer chk.E(r.Body.Close())
 	s.Shutdown()
 }
 
-func (s *Server) handleNuke(h Handler) {
-	if ok := s.authAdmin(h.Request); !ok {
-		s.unauthorized(h)
+func (s *Server) handleNuke(w http.ResponseWriter, r *http.Request) {
+	if ok := s.authAdmin(r); !ok {
+		s.unauthorized(w, r)
 		return
 	}
-	fprintf(h.ResponseWriter, "nuking DB")
 	var err error
 	if err = s.relay.Storage().Nuke(); chk.E(err) {
 	}
@@ -87,9 +87,10 @@ func (s *Server) handleNuke(h Handler) {
 		realy.ZeroLists()
 		realy.CheckOwnerLists(context.Bg())
 	}
+	fprintf(w, "nuked DB\n")
 }
 
-func (s *Server) defaultHandler(h Handler) {
-	fprintf(h.ResponseWriter, "todo: realy web interface page\n\n")
-	s.handleRelayInfo(h)
+func (s *Server) defaultHandler(w http.ResponseWriter, r *http.Request) {
+	fprintf(w, "todo: realy web interface page\n\n")
+	s.handleRelayInfo(w, r)
 }

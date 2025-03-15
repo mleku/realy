@@ -9,18 +9,18 @@ type Handler struct {
 	*http.Request
 }
 
-type Protocol map[string]func(h Handler)
+type Protocol map[string]func(w http.ResponseWriter, r *http.Request)
 
 type Paths map[string]Protocol
 
-func Route(h Handler, p Paths) {
-	acc := h.Request.Header.Get("Accept")
+func Route(w http.ResponseWriter, r *http.Request, p Paths) {
+	acc := r.Header.Get("Accept")
 	log.I.S(acc)
 	for proto, fns := range p {
 		if proto == acc || proto == "" {
 			for path, fn := range fns {
-				if path == h.URL.Path {
-					fn(h)
+				if path == r.URL.Path {
+					fn(w, r)
 					return
 				}
 			}

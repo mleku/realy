@@ -24,13 +24,13 @@ const (
 	ERR = http.StatusInternalServerError
 )
 
-func (s *Server) handleSimpleEvent(h Handler) {
+func (s *Server) handleSimpleEvent(w http.ResponseWriter, r *http.Request) {
 	log.I.F("event")
 	var err error
 	var ok bool
 	sto := s.relay.Storage()
 	var req []byte
-	if req, err = io.ReadAll(h.Request.Body); chk.E(err) {
+	if req, err = io.ReadAll(r.Body); chk.E(err) {
 		return
 	}
 	advancedDeleter, _ := sto.(relay.AdvancedDeleter)
@@ -40,32 +40,31 @@ func (s *Server) handleSimpleEvent(h Handler) {
 	}
 	var valid bool
 	var pubkey []byte
-	if valid, pubkey, err = httpauth.CheckAuth(h.Request, s.JWTVerifyFunc); chk.E(err) {
+	if valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc); chk.E(err) {
 		return
 	}
-	rw := h.ResponseWriter
 	if !valid {
-		http.Error(rw,
+		http.Error(w,
 			fmt.Sprintf("invalid: %s", err.Error()), NA)
 	}
-	rr := GetRemoteFromReq(h.Request)
+	rr := GetRemoteFromReq(r)
 	c := context.Bg()
-	accept, notice, after := s.relay.AcceptEvent(c, ev, h.Request, rr, pubkey)
+	accept, notice, after := s.relay.AcceptEvent(c, ev, r, rr, pubkey)
 	if !accept {
-		http.Error(rw, notice, NA)
+		http.Error(w, notice, NA)
 		return
 	}
 	if !bytes.Equal(ev.GetIDBytes(), ev.ID) {
-		http.Error(rw,
+		http.Error(w,
 			"Event id is computed incorrectly", NA)
 		return
 	}
 	if ok, err = ev.Verify(); chk.T(err) {
-		http.Error(rw,
+		http.Error(w,
 			"failed to verify signature", NA)
 		return
 	} else if !ok {
-		http.Error(rw,
+		http.Error(w,
 			"signature is invalid", NA)
 		return
 	}
@@ -86,18 +85,18 @@ func (s *Server) handleSimpleEvent(h Handler) {
 					}
 					res, err = storage.QueryEvents(c, &filter.T{IDs: tag.New(evId)})
 					if err != nil {
-						http.Error(rw,
+						http.Error(w,
 							err.Error(), ERR)
 						return
 					}
 					for i := range res {
 						if res[i].Kind.Equal(kind.Deletion) {
-							http.Error(rw,
+							http.Error(w,
 								"not processing or storing delete event containing delete event references",
 								NA)
 						}
 						if !bytes.Equal(res[i].PubKey, ev.PubKey) {
-							http.Error(rw,
+							http.Error(w,
 								"cannot delete other users' events (delete by e tag)",
 								NA)
 							return
@@ -110,34 +109,34 @@ func (s *Server) handleSimpleEvent(h Handler) {
 					}
 					var pk []byte
 					if pk, err = hex.DecAppend(nil, split[1]); chk.E(err) {
-						http.Error(rw,
+						http.Error(w,
 							fmt.Sprintf("delete event a tag pubkey value invalid: %s",
 								t.Value()), NA)
 						return
 					}
 					kin := ints.New(uint16(0))
 					if _, err = kin.Unmarshal(split[0]); chk.E(err) {
-						http.Error(rw,
+						http.Error(w,
 							fmt.Sprintf("delete event a tag kind value invalid: %s",
 								t.Value()), NA)
 						return
 					}
 					kk := kind.New(kin.Uint16())
 					if kk.Equal(kind.Deletion) {
-						http.Error(rw,
+						http.Error(w,
 							"delete event kind may not be deleted",
 							NA)
 						return
 					}
 					if !kk.IsParameterizedReplaceable() {
-						http.Error(rw,
+						http.Error(w,
 							"delete tags with a tags containing non-parameterized-replaceable events cannot be processed",
 							NA)
 						return
 					}
 					if !bytes.Equal(pk, ev.PubKey) {
 						log.I.S(pk, ev.PubKey, ev)
-						http.Error(rw,
+						http.Error(w,
 							"cannot delete other users' events (delete by a tag)",
 							NA)
 						return
@@ -148,7 +147,7 @@ func (s *Server) handleSimpleEvent(h Handler) {
 					f.Tags.AppendTags(tag.New([]byte{'#', 'd'}, split[2]))
 					res, err = storage.QueryEvents(c, f)
 					if err != nil {
-						http.Error(rw, err.Error(), ERR)
+						http.Error(w, err.Error(), ERR)
 						return
 					}
 				}
@@ -165,7 +164,7 @@ func (s *Server) handleSimpleEvent(h Handler) {
 			res = resTmp
 			for _, target := range res {
 				if target.Kind.K == kind.Deletion.K {
-					http.Error(rw,
+					http.Error(w,
 						fmt.Sprintf("cannot delete delete event %s",
 							ev.ID), NA)
 					return
@@ -177,7 +176,7 @@ func (s *Server) handleSimpleEvent(h Handler) {
 					continue
 				}
 				if !bytes.Equal(target.PubKey, ev.PubKey) {
-					http.Error(rw,
+					http.Error(w,
 						"only author can delete event",
 						NA)
 					return
@@ -186,7 +185,7 @@ func (s *Server) handleSimpleEvent(h Handler) {
 					advancedDeleter.BeforeDelete(c, t.Value(), ev.PubKey)
 				}
 				if err = sto.DeleteEvent(c, target.EventID()); chk.T(err) {
-					http.Error(rw,
+					http.Error(w,
 						err.Error(), ERR)
 					return
 				}
@@ -196,16 +195,16 @@ func (s *Server) handleSimpleEvent(h Handler) {
 			}
 			res = nil
 		}
-		http.Error(rw, "", http.StatusOK)
+		http.Error(w, "", http.StatusOK)
 		return
 	}
 	var reason []byte
-	ok, reason = s.addEvent(c, s.relay, ev, h.Request, rr, pubkey)
+	ok, reason = s.addEvent(c, s.relay, ev, r, rr, pubkey)
 	// return the response whether true or false and any reason if false
 	if ok {
-		http.Error(rw, "", http.StatusOK)
+		http.Error(w, "", http.StatusOK)
 	} else {
-		http.Error(rw, string(reason), ERR)
+		http.Error(w, string(reason), ERR)
 	}
 	if after != nil {
 		// do this in the background and let the http response close

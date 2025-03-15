@@ -64,16 +64,17 @@ func (s *Server) authAdmin(r *http.Request) (authed bool) {
 	return
 }
 
-func (s *Server) unauthorized(h Handler) {
-	h.ResponseWriter.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
-	http.Error(h.ResponseWriter, "Unauthorized", http.StatusUnauthorized)
-	fmt.Fprintf(h.ResponseWriter,
+func (s *Server) unauthorized(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	fmt.Fprintf(w,
 		"not authorized, either you did not provide an auth token or what you provided does not grant access\n")
 }
 
-func (s *Server) HandleHTTP(h Handler) {
-	log.T.S(h.Request.Header)
-	Route(h, Paths{
+func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) {
+
+	log.T.S(r.Header)
+	Route(w, r, Paths{
 		"application/nostr+json": {
 			"/relayinfo": s.handleRelayInfo,
 			// methods that may need auth depending on configuration

@@ -2,6 +2,7 @@ package realy
 
 import (
 	"encoding/json"
+	"net/http"
 	"sort"
 
 	"realy.lol"
@@ -10,8 +11,8 @@ import (
 	"realy.lol/store"
 )
 
-func (s *Server) handleRelayInfo(h Handler) {
-	h.Request.Header.Set("Content-Type", "application/json")
+func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
+	r.Header.Set("Content-Type", "application/json")
 	log.I.Ln("handling relay information document")
 	var info *relayinfo.T
 	if informationer, ok := s.relay.(relay.Informationer); ok {
@@ -32,7 +33,7 @@ func (s *Server) handleRelayInfo(h Handler) {
 			relayinfo.RelayListMetadata,
 		)
 		var auther relay.Authenticator
-		if auther, ok = s.relay.(relay.Authenticator); ok && auther.ServiceUrl(h.Request) != "" {
+		if auther, ok = s.relay.(relay.Authenticator); ok && auther.ServiceUrl(r) != "" {
 			supportedNIPs = append(supportedNIPs, relayinfo.Authentication.N())
 		}
 		var storage store.I
@@ -53,6 +54,6 @@ func (s *Server) handleRelayInfo(h Handler) {
 			},
 			Icon: "https://cdn.satellite.earth/ac9778868fbf23b63c47c769a74e163377e6ea94d3f0f31711931663d035c4f6.png"}
 	}
-	if err := json.NewEncoder(h.ResponseWriter).Encode(info); chk.E(err) {
+	if err := json.NewEncoder(w).Encode(info); chk.E(err) {
 	}
 }
