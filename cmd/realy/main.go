@@ -108,10 +108,6 @@ func main() {
 		PublicReadable: cfg.PublicReadable,
 	}
 	var opts []options.O
-	if cfg.AuthRequired || len(cfg.Owners) > 0 {
-		log.W.Ln("rate limiter enabled")
-		opts = append(opts, options.WithPerConnectionLimiter(1, 5))
-	}
 	if len(cfg.Owners) > 0 || cfg.AuthRequired {
 		log.I.F("relay requires auth for writing")
 	}

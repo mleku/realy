@@ -37,8 +37,6 @@ type I interface {
 		authedPubkey []byte) (accept bool, notice string, afterSave func())
 	// Storage returns the realy storage implementation.
 	Storage() store.I
-	// NoLimiter returns true if the provided npub should not be rate limited.
-	NoLimiter(pubKey []byte) bool
 	// Owners returns the list of pubkeys designated as owners of the relay.
 	Owners() [][]byte
 }

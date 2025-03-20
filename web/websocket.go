@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/fasthttp/websocket"
-	"golang.org/x/time/rate"
 
 	"realy.lol/atomic"
 )
@@ -19,7 +18,6 @@ type Socket struct {
 	remote        atomic.String
 	authed        atomic.String
 	authRequested atomic.Bool
-	limiter       *rate.Limiter
 }
 
 func NewSocket(
@@ -94,6 +92,4 @@ func (ws *Socket) SetAuthed(s string) {
 	log.T.F("setting authed %0x", s)
 	ws.authed.Store(s)
 }
-func (ws *Socket) Req() *http.Request         { return ws.req }
-func (ws *Socket) Limiter() *rate.Limiter     { return ws.limiter }
-func (ws *Socket) SetLimiter(l *rate.Limiter) { ws.limiter = l }
+func (ws *Socket) Req() *http.Request { return ws.req }

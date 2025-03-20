@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/fasthttp/websocket"
-	"golang.org/x/time/rate"
 
 	"realy.lol/context"
 	"realy.lol/envelopes"
@@ -41,11 +40,6 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 	log.T.F("connected from %s", ip)
 	ws := s.listeners.GetChallenge(conn, r, ip)
-	if s.options.PerConnectionLimiter != nil {
-		// this does not apply to users on the owners' Followed list
-		ws.SetLimiter(rate.NewLimiter(s.options.PerConnectionLimiter.Limit(),
-			s.options.PerConnectionLimiter.Burst()))
-	}
 	ctx, cancel := context.Cancel(context.Bg())
 	sto := s.relay.Storage()
 	go func() {
@@ -91,12 +85,6 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 						r.Header.Get("X-Forwarded-For"), err)
 				}
 				break
-			}
-			if ws.Limiter() != nil {
-				if err = ws.Limiter().Wait(context.TODO()); chk.T(err) {
-					log.W.F("unexpected limiter error %v", err)
-					continue
-				}
 			}
 			if typ == websocket.PingMessage {
 				if err = ws.WriteMessage(websocket.PongMessage, nil); chk.E(err) {

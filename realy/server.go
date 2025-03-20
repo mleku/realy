@@ -29,7 +29,7 @@ type Server struct {
 	clientsMu      sync.Mutex
 	clients        map[*websocket.Conn]struct{}
 	Addr           string
-	serveMux       *http.ServeMux
+	mux            *http.ServeMux
 	httpServer     *http.Server
 	authRequired   bool
 	publicReadable bool
@@ -72,7 +72,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 		Cancel:         sp.Cancel,
 		relay:          sp.Rl,
 		clients:        make(map[*websocket.Conn]struct{}),
-		serveMux:       http.NewServeMux(),
+		mux:            http.NewServeMux(),
 		options:        op,
 		authRequired:   authRequired,
 		publicReadable: sp.PublicReadable,
@@ -92,20 +92,17 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// h := Handler{w, r}
 	// standard nostr protocol only governs the "root" path of the relay and websockets
-	// log.I.S(r.URL.Host, r.URL.String(), r.Header.Get("Accept"))
-	if r.URL.Path == "/" {
-		if r.Header.Get("Accept") == "application/nostr+json" {
-			s.handleRelayInfo(w, r)
-		} else if r.Header.Get("Upgrade") == "websocket" {
-			s.handleWebsocket(w, r)
-		} else {
-			s.defaultHandler(w, r)
-		}
-	} else {
-		s.HandleHTTP(w, r)
+	if r.URL.Path == "/" && r.Header.Get("Accept") == "application/nostr+json" {
+		s.handleRelayInfo(w, r)
+		return
 	}
+	if r.URL.Path == "/" && r.Header.Get("Upgrade") == "websocket" {
+		s.handleWebsocket(w, r)
+		return
+	}
+	s.HandleHTTP(w, r)
+	// s.mux.ServeHTTP(w, r)
 }
 
 func (s *Server) Start(host string, port int, started ...chan bool) error {
@@ -153,7 +150,7 @@ func (s *Server) Shutdown() {
 }
 
 func (s *Server) Router() *http.ServeMux {
-	return s.serveMux
+	return s.mux
 }
 
 func fprintf(w io.Writer, format string, a ...any) { _, _ = fmt.Fprintf(w, format, a...) }

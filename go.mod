@@ -9,7 +9,6 @@ require (
 	github.com/dgraph-io/badger/v4 v4.5.0
 	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.18.0
-	github.com/go-chi/chi/v5 v5.2.1
 	github.com/gobwas/httphead v0.1.0
 	github.com/gobwas/ws v1.4.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -28,7 +27,6 @@ require (
 	golang.org/x/lint v0.0.0-20241112194109-818c5a804067
 	golang.org/x/net v0.34.0
 	golang.org/x/sync v0.10.0
-	golang.org/x/time v0.9.0
 	honnef.co/go/tools v0.5.1
 	lukechampine.com/frand v1.5.1
 )
