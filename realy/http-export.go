@@ -1,6 +1,7 @@
 package realy
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -9,6 +10,7 @@ import (
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
 	"realy.lol/hex"
+	"realy.lol/httpauth"
 )
 
 type Export struct{ *Server }
@@ -21,11 +23,11 @@ type ExportInput struct {
 	Auth string `header:"Authorization"`
 }
 
-type ExportOutput struct{}
+type ExportOutput struct{ RawBody []byte }
 
-func (ep *EventPost) RegisterExport(api huma.API) {
+func (ep *Export) RegisterExport(api huma.API) {
 	name := "Export"
-	description := "Export all events"
+	description := "Export all events (only works with NIP-98/JWT capable client, will not work with UI)"
 	path := "/export"
 	scopes := []string{"admin"}
 	method := http.MethodGet
@@ -39,14 +41,23 @@ func (ep *EventPost) RegisterExport(api huma.API) {
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *ExportInput) (wgh *ExportOutput, err error) {
-		log.I.S(ctx)
 		r := ctx.Value("http-request").(*http.Request)
 		w := ctx.Value("http-response").(http.ResponseWriter)
 		rr := GetRemoteFromReq(r)
-		log.I.S(r.RemoteAddr, rr)
-
-		log.I.F("export of event data requested on admin port")
 		s := ep.Server
+		var valid bool
+		var pubkey []byte
+		if valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc); chk.E(err) {
+			return
+		}
+		if !valid {
+			// pubkey = ev.PubKey
+			err = huma.Error401Unauthorized(
+				fmt.Sprintf("invalid: %s", err.Error()))
+			return
+		}
+		log.I.F("export of event data requested on admin port from %s pubkey %0x",
+			rr, pubkey)
 		sto := s.relay.Storage()
 		if strings.Count(r.URL.Path, "/") > 1 {
 			split := strings.Split(r.URL.Path, "/")
