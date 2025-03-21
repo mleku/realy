@@ -91,7 +91,9 @@ func (t *T) Marshal(dst []byte) (b []byte) { return ints.New(t.U64()).Marshal(ds
 
 func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 	n := ints.New(0)
-	r, err = n.Unmarshal(b)
+	if r, err = n.Unmarshal(b); chk.E(err) {
+		return
+	}
 	*t = T{n.Int64()}
 	return
 }

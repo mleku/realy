@@ -11,9 +11,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/fasthttp/websocket"
 	"github.com/rs/cors"
 
+	realy_lol "realy.lol"
 	"realy.lol/context"
 	"realy.lol/realy/listeners"
 	"realy.lol/realy/options"
@@ -29,7 +31,7 @@ type Server struct {
 	clientsMu      sync.Mutex
 	clients        map[*websocket.Conn]struct{}
 	Addr           string
-	mux            *http.ServeMux
+	mux            *ServeMux
 	httpServer     *http.Server
 	authRequired   bool
 	publicReadable bool
@@ -37,6 +39,7 @@ type Server struct {
 	admins         []signer.I
 	owners         [][]byte
 	listeners      *listeners.T
+	huma.API
 }
 
 type ServerParams struct {
@@ -67,12 +70,13 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 	if err := sp.Rl.Init(); chk.T(err) {
 		return nil, fmt.Errorf("realy init: %w", err)
 	}
+	serveMux := NewServeMux()
 	srv := &Server{
 		Ctx:            sp.Ctx,
 		Cancel:         sp.Cancel,
 		relay:          sp.Rl,
 		clients:        make(map[*websocket.Conn]struct{}),
-		mux:            http.NewServeMux(),
+		mux:            serveMux,
 		options:        op,
 		authRequired:   authRequired,
 		publicReadable: sp.PublicReadable,
@@ -80,7 +84,9 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 		admins:         sp.Admins,
 		owners:         sp.Rl.Owners(),
 		listeners:      listeners.New(),
+		API:            NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version, realy_lol.Description),
 	}
+	huma.AutoRegister(srv.API, NewEventPost(srv))
 	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
@@ -101,7 +107,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.handleWebsocket(w, r)
 		return
 	}
-	s.HandleHTTP(w, r)
+	log.I.S(r.URL)
+	s.mux.ServeHTTP(w, r)
+	// s.HandleHTTP(w, r)
 	// s.mux.ServeHTTP(w, r)
 }
 
@@ -150,7 +158,7 @@ func (s *Server) Shutdown() {
 }
 
 func (s *Server) Router() *http.ServeMux {
-	return s.mux
+	return s.mux.ServeMux
 }
 
 func fprintf(w io.Writer, format string, a ...any) { _, _ = fmt.Fprintf(w, format, a...) }

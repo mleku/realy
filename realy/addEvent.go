@@ -67,5 +67,6 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 	}
 	s.listeners.NotifyListeners(authRequired, ev)
 	accepted = true
+	log.I.F("event id %0x stored", ev.ID)
 	return
 }

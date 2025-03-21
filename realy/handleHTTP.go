@@ -40,6 +40,7 @@ func (s *Server) JWTVerifyFunc(npub string) (jwtPub string, pk []byte, err error
 			npub, ev.SerializeIndented())
 		return
 	}
+	pk = ev.PubKey
 	jwtPub = string(jtag.F()[0].Value())
 	return
 }

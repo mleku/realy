@@ -2,6 +2,7 @@ package ints
 
 import (
 	_ "embed"
+	"io"
 )
 
 // run this to regenerate (pointlessly) the base 10 array of 4 places per entry
@@ -85,6 +86,17 @@ func (n *T) Unmarshal(b []byte) (r []byte, err error) {
 	if b[0] == zero {
 		r = b[1:]
 		n.N = 0
+		return
+	}
+	// skip non-number characters
+	for i, v := range b {
+		if v >= '0' && v <= '9' {
+			b = b[i:]
+			break
+		}
+	}
+	if len(b) == 0 {
+		err = io.EOF
 		return
 	}
 	// count the digits

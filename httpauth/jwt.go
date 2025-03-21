@@ -9,6 +9,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -83,7 +85,7 @@ func GenerateJWTKeys() (x509sec, x509pub, pemSec, pemPub []byte, sk *ecdsa.Priva
 	return
 }
 
-func GenerateJWTClaims(issuer, ur string,
+func GenerateJWTClaims(ur, issuer string,
 	exp ...string) (tok []byte, err error) {
 	// generate claim
 	claim := &JWT{
@@ -142,8 +144,13 @@ func GenerateAndSignJWTtoken(issuer, ur, exp, sec string) (bearer string, err er
 // that matches the signature on the JWT token.
 type VerifyJWTFunc func(npub string) (jwtPub string, pk []byte, err error)
 
+// VerifyJWTtoken checks that the claims and signature on a JWT token are valid,
+// and returns the public key to check the signer matches with a nostr npub
+// issuer.
+//
+// If there is an expiry, it only checks that the token's URL is the same as the
+// prefix of the URL being verified for.
 func VerifyJWTtoken(entry, URL string, vfn VerifyJWTFunc) (pk []byte, valid bool, err error) {
-
 	var token *jwt.Token
 	if token, err = jwt.Parse(entry, func(token *jwt.Token) (ifc interface{}, err error) {
 		var iss string
@@ -160,12 +167,6 @@ func VerifyJWTtoken(entry, URL string, vfn VerifyJWTFunc) (pk []byte, valid bool
 		}
 		var jpk any
 		if jpk, err = x509.ParsePKIXPublicKey(pkb); chk.E(err) {
-			return
-		}
-		ifc = jpk
-		var sub string
-		if sub, err = token.Claims.GetSubject(); sub != URL {
-			err = errors.Wrap(jwt.ErrTokenInvalidClaims, "subject doesn't match expected URL")
 			return
 		}
 		now := time.Now().Unix()
@@ -191,6 +192,25 @@ func VerifyJWTtoken(entry, URL string, vfn VerifyJWTFunc) (pk []byte, valid bool
 				return
 			}
 		}
+
+		var sub string
+		if sub, err = token.Claims.GetSubject(); chk.E(err) {
+			err = errors.Wrap(jwt.ErrTokenInvalidClaims, err.Error())
+			return
+		}
+		// when expiry is present the URL only needs to match on a prefix (already checked)
+		if exp != nil {
+			if !strings.HasPrefix(URL, sub) {
+				log.I.S(URL, sub)
+				err = errors.Wrap(jwt.ErrTokenInvalidClaims,
+					fmt.Sprintf("subject doesn't match expected URL prefix for an expiring token %s != %s", sub, URL))
+				return
+			}
+		} else if sub != URL {
+			err = errors.Wrap(jwt.ErrTokenInvalidClaims, "subject doesn't match expected URL")
+			return
+		}
+		ifc = jpk
 
 		return
 	}, jwt.WithoutClaimsValidation()); chk.E(err) {

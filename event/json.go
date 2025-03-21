@@ -2,6 +2,7 @@ package event
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 
 	"realy.lol/ec/schnorr"
@@ -98,6 +99,24 @@ func (ev *T) marshalWithWhitespace(dst []byte, on bool) (b []byte) {
 func Marshal(ev *T, dst []byte) (b []byte) { return ev.Marshal(dst) }
 
 func (ev *T) Unmarshal(b []byte) (r []byte, err error) {
+	// this parser does not cope with whitespaces in valid places in json, so we
+	// scan first for linebreaks, as these indicate that it is probably not gona work and fall back to json.Unmarshal
+	for _, v := range b {
+		if v == '\n' {
+			// revert to json.Unmarshal
+			var j J
+			if err = json.Unmarshal(b, &j); chk.E(err) {
+				return
+			}
+			var e *T
+			if e, err = j.ToEvent(); chk.E(err) {
+				return
+			}
+			*ev = *e
+			return
+		}
+	}
+
 	key := make([]byte, 0, 9)
 	r = b
 	for ; len(r) > 0; r = r[1:] {

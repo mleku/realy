@@ -37,7 +37,7 @@ func TestSignJWTtoken_VerifyJWTtoken(t *testing.T) {
 	}
 	spub := base64.URLEncoding.EncodeToString(spkb)
 	var tok []byte
-	if tok, err = GenerateJWTClaims(pub, "https://example.com", "1h"); chk.E(err) {
+	if tok, err = GenerateJWTClaims("https://example.com", pub, "1h"); chk.E(err) {
 		t.Fatal(err)
 	}
 	var entry string
@@ -47,7 +47,7 @@ func TestSignJWTtoken_VerifyJWTtoken(t *testing.T) {
 	vfn := func(npub string) (jwtPub string, pk []byte, err error) {
 		// pubkey in token claims must match what we just put in it
 		if npub != pub {
-			err = fmt.Errorf("invalid jwt token npub")
+			err = fmt.Errorf("invalid jwt token npub, got %s expected %s", npub, pub)
 			return
 		}
 		pk = sign.Pub()

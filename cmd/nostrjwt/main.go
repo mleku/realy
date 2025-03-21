@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	issuer    = "NOSTR_PUBLIC_KEY"
-	secEnv    = "NOSTR_SECRET_KEY"
-	jwtSecEnv = "NOSTR_JWT_SECRET"
+	jwtIssuerEnv = "NOSTR_PUBLIC_KEY"
+	secEnv       = "NOSTR_SECRET_KEY"
+	jwtSecEnv    = "NOSTR_JWT_SECRET"
 )
 
 var userAgent = fmt.Sprintf("nostrjwt/%s", realy_lol.Version)
@@ -67,7 +67,7 @@ nostrjwt bearer <request URL> [<optional expiry in 0h0m0s format for JWT token>]
 	expiry sets an amount of time after the current moment that the token 
 	will expire
 
-`, kind.JWTBinding.K, jwtSecEnv, issuer, jwtSecEnv)
+`, kind.JWTBinding.K, jwtSecEnv, jwtIssuerEnv, jwtSecEnv)
 		os.Exit(0)
 	}
 	var err error
@@ -95,7 +95,7 @@ nostrjwt bearer <request URL> [<optional expiry in 0h0m0s format for JWT token>]
 			}
 			fmt.Printf("%s\n%s\n", pemSec, pemPub)
 			fmt.Printf("export %s=%s\n", jwtSecEnv, x509sec)
-			fmt.Printf("export %s=%s\n\n", issuer, pub)
+			fmt.Printf("export %s=%s\n\n", jwtIssuerEnv, pub)
 			var ev event.T
 			httpauth.MakeJWTEvent(string(x509pub))
 			ev.Tags = tags.New(tag.New([]byte("J"), x509pub, []byte("ES256")))
@@ -104,7 +104,7 @@ nostrjwt bearer <request URL> [<optional expiry in 0h0m0s format for JWT token>]
 			if err = ev.Sign(sign); chk.E(err) {
 				fail(err.Error())
 			}
-			fmt.Printf("%s\n", ev.Serialize())
+			fmt.Printf("Nostr %s\n", ev.Serialize())
 
 		case "bearer":
 			// check args
@@ -118,6 +118,10 @@ nostrjwt bearer <request URL> [<optional expiry in 0h0m0s format for JWT token>]
 			if len(jwtSec) == 0 {
 				fail("no key found in environment variable %s", jwtSecEnv)
 			}
+			jwtIss := os.Getenv(jwtIssuerEnv)
+			if len(jwtIss) == 0 {
+				fail("no pubkey found in environment variable %s", jwtIssuerEnv)
+			}
 			if jskb, err = base64.URLEncoding.DecodeString(jwtSec); chk.E(err) {
 				fail(err.Error())
 			}
@@ -126,13 +130,14 @@ nostrjwt bearer <request URL> [<optional expiry in 0h0m0s format for JWT token>]
 				fail(err.Error())
 			}
 			var tok []byte
+			log.I.S(os.Args)
 			// generate claim
-			if len(os.Args) < 5 {
-				if tok, err = httpauth.GenerateJWTClaims(os.Args[2], os.Args[3]); chk.E(err) {
+			if len(os.Args) == 3 {
+				if tok, err = httpauth.GenerateJWTClaims(os.Args[2], jwtIss); chk.E(err) {
 					fail(err.Error())
 				}
-			} else if len(os.Args) > 4 {
-				if tok, err = httpauth.GenerateJWTClaims(os.Args[2], os.Args[3], os.Args[4]); chk.E(err) {
+			} else if len(os.Args) == 4 {
+				if tok, err = httpauth.GenerateJWTClaims(os.Args[2], jwtIss, os.Args[3]); chk.E(err) {
 					fail(err.Error())
 				}
 			}
@@ -141,7 +146,7 @@ nostrjwt bearer <request URL> [<optional expiry in 0h0m0s format for JWT token>]
 			if signed, err = httpauth.SignJWTtoken(tok, sec); chk.E(err) {
 				fail(err.Error())
 			}
-			fmt.Printf("%s", signed)
+			fmt.Printf("Bearer %s\n", signed)
 		}
 	}
 }

@@ -1,0 +1,218 @@
+package realy
+
+import (
+	"bytes"
+	"fmt"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
+
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/hex"
+	"realy.lol/httpauth"
+	"realy.lol/ints"
+	"realy.lol/kind"
+	"realy.lol/relay"
+	"realy.lol/sha256"
+	"realy.lol/tag"
+)
+
+type EventPost struct{ *Server }
+
+func NewEventPost(s *Server) (ep *EventPost) {
+	return &EventPost{Server: s}
+}
+
+type EventInput struct {
+	RawBody []byte
+	Auth    string `header:"Authorization"`
+}
+
+type EventOutput struct{ Body string }
+
+func (ep *EventPost) RegisterEventPost(api huma.API) {
+	name := "Event"
+	description := "Submit an event"
+	path := "/event"
+	scopes := []string{"write"}
+	method := http.MethodPost
+	huma.Register(api, huma.Operation{
+		OperationID: name,
+		Summary:     name,
+		Path:        path,
+		Method:      method,
+		Tags:        []string{"events"},
+		Description: generateDescription(description, scopes),
+		Security:    []map[string][]string{{"auth": scopes}},
+	}, func(ctx context.T, input *EventInput) (wgh *EventOutput, err error) {
+		log.I.S(ctx)
+		r := ctx.Value("http-request").(*http.Request)
+		w := ctx.Value("http-response").(http.ResponseWriter)
+		rr := GetRemoteFromReq(r)
+		log.I.S(r.RemoteAddr, rr)
+		ev := &event.T{}
+		if _, err = ev.Unmarshal(input.RawBody); chk.E(err) {
+			err = huma.Error406NotAcceptable(err.Error())
+			return
+		}
+		var ok bool
+		s := ep.Server
+		sto := s.relay.Storage()
+		advancedDeleter, _ := sto.(relay.AdvancedDeleter)
+		var valid bool
+		var pubkey []byte
+		if valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc); chk.E(err) {
+			return
+		}
+		if !valid {
+			// pubkey = ev.PubKey
+			err = huma.Error401Unauthorized(
+				fmt.Sprintf("invalid: %s", err.Error()))
+			return
+		}
+		c := context.Bg()
+		accept, notice, after := s.relay.AcceptEvent(c, ev, r, rr, pubkey)
+		if !accept {
+			err = huma.Error401Unauthorized(notice)
+			return
+		}
+		if !bytes.Equal(ev.GetIDBytes(), ev.ID) {
+			err = huma.Error400BadRequest("event id is computed incorrectly")
+			return
+		}
+		if ok, err = ev.Verify(); chk.T(err) {
+			err = huma.Error400BadRequest("failed to verify signature")
+			return
+		} else if !ok {
+			err = huma.Error400BadRequest("signature is invalid")
+			return
+		}
+		storage := s.relay.Storage()
+		if storage == nil {
+			panic("no event store has been set to store event")
+		}
+		if ev.Kind.K == kind.Deletion.K {
+			log.I.F("delete event\n%s", ev.Serialize())
+			for _, t := range ev.Tags.Value() {
+				var res []*event.T
+				if t.Len() >= 2 {
+					switch {
+					case bytes.Equal(t.Key(), []byte("e")):
+						evId := make([]byte, sha256.Size)
+						if _, err = hex.DecBytes(evId, t.Value()); chk.E(err) {
+							continue
+						}
+						res, err = storage.QueryEvents(c, &filter.T{IDs: tag.New(evId)})
+						if err != nil {
+							err = huma.Error500InternalServerError(err.Error())
+							return
+						}
+						for i := range res {
+							if res[i].Kind.Equal(kind.Deletion) {
+								err = huma.Error409Conflict("not processing or storing delete event containing delete event references")
+							}
+							if !bytes.Equal(res[i].PubKey, ev.PubKey) {
+								err = huma.Error409Conflict("cannot delete other users' events (delete by e tag)")
+								return
+							}
+						}
+					case bytes.Equal(t.Key(), []byte("a")):
+						split := bytes.Split(t.Value(), []byte{':'})
+						if len(split) != 3 {
+							continue
+						}
+						var pk []byte
+						if pk, err = hex.DecAppend(nil, split[1]); chk.E(err) {
+							err = huma.Error400BadRequest(fmt.Sprintf("delete event a tag pubkey value invalid: %s",
+								t.Value()))
+							return
+						}
+						kin := ints.New(uint16(0))
+						if _, err = kin.Unmarshal(split[0]); chk.E(err) {
+							err = huma.Error400BadRequest(fmt.Sprintf("delete event a tag kind value invalid: %s",
+								t.Value()))
+							return
+						}
+						kk := kind.New(kin.Uint16())
+						if kk.Equal(kind.Deletion) {
+							err = huma.Error403Forbidden("delete event kind may not be deleted")
+							return
+						}
+						if !kk.IsParameterizedReplaceable() {
+							err = huma.Error403Forbidden("delete tags with a tags containing non-parameterized-replaceable events cannot be processed")
+							return
+						}
+						if !bytes.Equal(pk, ev.PubKey) {
+							log.I.S(pk, ev.PubKey, ev)
+							err = huma.Error403Forbidden("cannot delete other users' events (delete by a tag)")
+							return
+						}
+						f := filter.New()
+						f.Kinds.K = []*kind.T{kk}
+						f.Authors.Append(pk)
+						f.Tags.AppendTags(tag.New([]byte{'#', 'd'}, split[2]))
+						res, err = storage.QueryEvents(c, f)
+						if err != nil {
+							http.Error(w, err.Error(), ERR)
+							return
+						}
+					}
+				}
+				if len(res) < 1 {
+					continue
+				}
+				var resTmp []*event.T
+				for _, v := range res {
+					if ev.CreatedAt.U64() >= v.CreatedAt.U64() {
+						resTmp = append(resTmp, v)
+					}
+				}
+				res = resTmp
+				for _, target := range res {
+					if target.Kind.K == kind.Deletion.K {
+						err = huma.Error403Forbidden(fmt.Sprintf(
+							"cannot delete delete event %s", ev.ID))
+						return
+					}
+					if target.CreatedAt.Int() > ev.CreatedAt.Int() {
+						// todo: shouldn't this be an error?
+						log.I.F("not deleting\n%d%\nbecause delete event is older\n%d",
+							target.CreatedAt.Int(), ev.CreatedAt.Int())
+						continue
+					}
+					if !bytes.Equal(target.PubKey, ev.PubKey) {
+						err = huma.Error403Forbidden("only author can delete event")
+						return
+					}
+					if advancedDeleter != nil {
+						advancedDeleter.BeforeDelete(c, t.Value(), ev.PubKey)
+					}
+					if err = sto.DeleteEvent(c, target.EventID()); chk.T(err) {
+						err = huma.Error500InternalServerError(err.Error())
+						return
+					}
+					if advancedDeleter != nil {
+						advancedDeleter.AfterDelete(t.Value(), ev.PubKey)
+					}
+				}
+				res = nil
+			}
+			return
+		}
+		var reason []byte
+		ok, reason = s.addEvent(c, s.relay, ev, r, rr, pubkey)
+		// return the response whether true or false and any reason if false
+		if ok {
+		} else {
+			err = huma.Error500InternalServerError(string(reason))
+		}
+		if after != nil {
+			// do this in the background and let the http response close
+			go after()
+		}
+		wgh = &EventOutput{"event accepted"}
+		return
+	})
+}

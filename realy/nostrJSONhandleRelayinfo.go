@@ -45,8 +45,8 @@ func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
 		sort.Sort(supportedNIPs)
 		log.T.Ln("supported NIPs", supportedNIPs)
 		info = &relayinfo.T{Name: s.relay.Name(),
-			Description: "relay powered by the realy framework",
-			Nips:        supportedNIPs, Software: "https://realy.lol", Version: realy_lol.Version,
+			Description: realy_lol.Description,
+			Nips:        supportedNIPs, Software: realy_lol.URL, Version: realy_lol.Version,
 			Limitation: relayinfo.Limits{
 				MaxLimit:         s.maxLimit,
 				AuthRequired:     s.authRequired,

@@ -9,7 +9,7 @@ import (
 )
 
 func MonitorResources(c context.T) {
-	tick := time.NewTicker(time.Minute)
+	tick := time.NewTicker(time.Minute * 15)
 	log.I.Ln("running process", os.Args[0], os.Getpid())
 	// memStats := &runtime.MemStats{}
 	for {

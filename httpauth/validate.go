@@ -18,12 +18,12 @@ import (
 // A VerifyJWTFunc should be provided in order to search the event store for a
 // kind 13004 with a JWT signer pubkey that is granted authority for the request.
 func CheckAuth(r *http.Request, vfn VerifyJWTFunc) (valid bool, pubkey []byte, err error) {
-	log.I.F("validating auth %v", vfn)
 	val := r.Header.Get(HeaderKey)
 	if val == "" {
 		err = errorf.E("'%s' key missing from request header", HeaderKey)
 		return
 	}
+	log.I.F("validating auth '%s'", val)
 	switch {
 	case strings.HasPrefix(val, NIP98Prefix):
 		split := strings.Split(val, " ")
