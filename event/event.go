@@ -8,6 +8,7 @@ import (
 	"realy.lol/kind"
 	"realy.lol/sha256"
 	"realy.lol/signer"
+	"realy.lol/tag"
 	"realy.lol/tags"
 	"realy.lol/text"
 	"realy.lol/timestamp"
@@ -51,14 +52,88 @@ func (ev *T) Serialize() (b []byte) { return ev.Marshal(nil) }
 
 func (ev *T) SerializeIndented() (b []byte) { return ev.marshalWithWhitespace(nil, true) }
 
-// stringy functions for retarded other libraries
+func (ev *T) EventID() (eid *eventid.T) { return eventid.NewWith(ev.ID) }
+
+// stringy/numbery functions for retarded other libraries
 
 func (ev *T) IDString() (s string)       { return hex.Enc(ev.ID) }
-func (ev *T) EventID() (eid *eventid.T)  { return eventid.NewWith(ev.ID) }
+func (ev *T) CreatedAtInt64() (i int64)  { return ev.CreatedAt.I64() }
+func (ev *T) KindInt32() (i int32)       { return int32(ev.Kind.K) }
 func (ev *T) PubKeyString() (s string)   { return hex.Enc(ev.PubKey) }
 func (ev *T) SigString() (s string)      { return hex.Enc(ev.Sig) }
 func (ev *T) TagStrings() (s [][]string) { return ev.Tags.ToStringSlice() }
 func (ev *T) ContentString() (s string)  { return string(ev.Content) }
+
+type J struct {
+	Id        string     `json:"id"`
+	Pubkey    string     `json:"pubkey"`
+	CreatedAt int64      `json:"created_at"`
+	Kind      int32      `json:"kind"`
+	Tags      [][]string `json:"tags"`
+	Content   string     `json:"content"`
+	Sig       string     `json:"sig"`
+}
+
+func (ev *T) IDFromString(s string) (err error) {
+	ev.ID, err = hex.Dec(s)
+	return
+}
+
+func (ev *T) CreatedAtFromInt64(i int64) {
+	ev.CreatedAt = timestamp.FromUnix(i)
+	return
+}
+
+func (ev *T) KindFromInt32(i int32) {
+	ev.Kind = &kind.T{}
+	ev.Kind.K = uint16(i)
+	return
+}
+
+func (ev *T) PubKeyFromString(s string) (err error) {
+	ev.PubKey, err = hex.Dec(s)
+	return
+}
+
+func (ev *T) SigFromString(s string) (err error) {
+	ev.Sig, err = hex.Dec(s)
+	return
+}
+
+func (ev *T) TagsFromStrings(s ...[]string) {
+	ev.Tags = tags.NewWithCap(len(s))
+	var tgs []*tag.T
+	for _, t := range s {
+		tg := tag.New(t...)
+		tgs = append(tgs, tg)
+	}
+	ev.Tags.AppendTags(tgs...)
+	return
+}
+
+func (ev *T) ContentFromString(s string) {
+	ev.Content = []byte(s)
+	return
+}
+
+// ToEvent converts this above format to the realy native form
+func (e J) ToEvent() (ev *T, err error) {
+	ev = &T{}
+	if err = ev.IDFromString(e.Id); chk.E(err) {
+		return
+	}
+	ev.CreatedAtFromInt64(e.CreatedAt)
+	ev.KindFromInt32(e.Kind)
+	if err = ev.PubKeyFromString(e.Pubkey); chk.E(err) {
+		return
+	}
+	ev.TagsFromStrings(e.Tags...)
+	ev.ContentFromString(e.Content)
+	if err = ev.SigFromString(e.Sig); chk.E(err) {
+		return
+	}
+	return
+}
 
 func Hash(in []byte) (out []byte) {
 	h := sha256.Sum256(in)
