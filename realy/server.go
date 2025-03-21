@@ -87,6 +87,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 		API:            NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version, realy_lol.Description),
 	}
 	huma.AutoRegister(srv.API, NewEventPost(srv))
+	huma.AutoRegister(srv.API, NewExport(srv))
 	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
@@ -107,7 +108,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.handleWebsocket(w, r)
 		return
 	}
-	log.I.S(r.URL)
+	log.I.F("http request: %s", r.URL.String())
 	s.mux.ServeHTTP(w, r)
 	// s.HandleHTTP(w, r)
 	// s.mux.ServeHTTP(w, r)

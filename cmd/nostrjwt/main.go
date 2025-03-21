@@ -130,7 +130,7 @@ nostrjwt bearer <request URL> [<optional expiry in 0h0m0s format for JWT token>]
 				fail(err.Error())
 			}
 			var tok []byte
-			log.I.S(os.Args)
+			// log.I.S(os.Args)
 			// generate claim
 			if len(os.Args) == 3 {
 				if tok, err = httpauth.GenerateJWTClaims(os.Args[2], jwtIss); chk.E(err) {

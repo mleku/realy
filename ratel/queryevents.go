@@ -24,7 +24,7 @@ import (
 )
 
 func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
-	log.T.F("QueryEvents %s", f.Serialize())
+	log.T.F("QueryEvents %s\n", f.Serialize())
 	evMap := make(map[string]*event.T)
 	var queries []query
 	var extraFilter *filter.T
