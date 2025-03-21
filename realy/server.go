@@ -88,6 +88,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 	}
 	huma.AutoRegister(srv.API, NewEventPost(srv))
 	huma.AutoRegister(srv.API, NewExport(srv))
+	huma.AutoRegister(srv.API, NewImport(srv))
 	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {

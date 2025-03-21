@@ -19,20 +19,20 @@ import (
 	"realy.lol/tag"
 )
 
-type EventPost struct{ *Server }
+type Event struct{ *Server }
 
-func NewEventPost(s *Server) (ep *EventPost) {
-	return &EventPost{Server: s}
+func NewEventPost(s *Server) (ep *Event) {
+	return &Event{Server: s}
 }
 
 type EventInput struct {
-	RawBody []byte
 	Auth    string `header:"Authorization"`
+	RawBody []byte
 }
 
 type EventOutput struct{ Body string }
 
-func (ep *EventPost) RegisterEventPost(api huma.API) {
+func (ep *Event) RegisterEvent(api huma.API) {
 	name := "Event"
 	description := "Submit an event"
 	path := "/event"
@@ -47,11 +47,9 @@ func (ep *EventPost) RegisterEventPost(api huma.API) {
 		Description: generateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *EventInput) (wgh *EventOutput, err error) {
-		log.I.S(ctx)
 		r := ctx.Value("http-request").(*http.Request)
 		w := ctx.Value("http-response").(http.ResponseWriter)
 		rr := GetRemoteFromReq(r)
-		log.I.S(r.RemoteAddr, rr)
 		ev := &event.T{}
 		if _, err = ev.Unmarshal(input.RawBody); chk.E(err) {
 			err = huma.Error406NotAcceptable(err.Error())

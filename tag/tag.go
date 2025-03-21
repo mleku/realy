@@ -256,7 +256,6 @@ func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 		}
 	}
 	if !openedBracket || inQuotes {
-		log.I.F("\n%v\n%s", t, r)
 		return nil, errorf.E("tag: failed to parse tag")
 	}
 	log.I.S(t.field)
