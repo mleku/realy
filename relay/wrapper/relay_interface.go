@@ -45,7 +45,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 			return fmt.Errorf("failed to query before replacing: %w", err)
 		}
 		if len(evs) > 0 {
-			log.I.F("found events %d", len(evs))
+			log.T.F("found %d possible duplicate events", len(evs))
 			for _, ev := range evs {
 				del := true
 				if bytes.Equal(ev.ID, evt.ID) {

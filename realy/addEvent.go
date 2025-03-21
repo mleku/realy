@@ -40,7 +40,7 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 		if advancedSaver != nil {
 			advancedSaver.BeforeSave(c, ev)
 		}
-		if saveErr := wrap.Publish(c, ev); chk.E(saveErr) {
+		if saveErr := wrap.Publish(c, ev); saveErr != nil {
 			if errors.Is(saveErr, store.ErrDupEvent) {
 				return false, normalize.Error.F(saveErr.Error())
 			}

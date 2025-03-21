@@ -110,6 +110,8 @@ The database is stored in `$HOME/.local/share/realy` and if need be you can stop
 
 === Simplified Nostr
 
+WARNING: the simplified protocol is a work in progress, there is now a working JWT bearer token scheme and tool to generate tokens, and a specification for them, and some of the calls are being implemented, this whole section will be updated to reflect the design that has been implemented
+
 Using websockets for everything is stupid. Only subscriptions need the capabilities that are easier accessed through sockets. So we are going to implement a simplified form for accessing nostr events that is based on the principles of RESTful interfaces.
 
 Instead of confusing authentication as in nip-42, which nobody has implemented, this will just use nip-98 in all cases for authentication, which is just a HTTP header field containing an event that references the URL and method of the query. Whether authentication is required will be designated explicitly in the `api` described below.
