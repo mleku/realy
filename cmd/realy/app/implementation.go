@@ -188,8 +188,6 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 			// check the mute list, and reject events authored by muted pubkeys, even if
 			// they come from a pubkey that is on the follow list.
 			for pk := range r.Muted {
-				r.Lock()
-				defer r.Unlock()
 				if bytes.Equal(evt.PubKey, []byte(pk)) {
 					return false, "rejecting event with pubkey " + hex.Enc(evt.PubKey) +
 						" because on owner mute list", nil
