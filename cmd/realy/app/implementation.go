@@ -275,8 +275,9 @@ func (r *Relay) AcceptFilter(c context.T, hr *http.Request, f *filter.S,
 	return
 }
 
-func (r *Relay) AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.T,
-	authedPubkey []byte) (allowed *filters.T, ok bool, modified bool) {
+func (r *Relay) AcceptReq(c context.T, hr *http.Request, id []byte,
+	ff *filters.T, authedPubkey []byte) (allowed *filters.T, ok bool, modified bool) {
+
 	if r.PublicReadable && len(r.owners) == 0 {
 		allowed = ff
 		ok = true

@@ -10,7 +10,6 @@ import (
 
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
-	"realy.lol/httpauth"
 )
 
 type Import struct{ *Server }
@@ -45,13 +44,9 @@ func (ep *Import) RegisterImport(api huma.API) {
 		r := ctx.Value("http-request").(*http.Request)
 		rr := GetRemoteFromReq(r)
 		s := ep.Server
-		var valid bool
-		var pubkey []byte
-		if valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc); chk.E(err) {
-			return
-		}
-		if !valid {
-			// pubkey = ev.PubKey
+		authed, pubkey := s.authAdmin(r)
+		if !authed {
+			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized(
 				fmt.Sprintf("invalid: %s", err.Error()))
 			return

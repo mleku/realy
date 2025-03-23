@@ -14,6 +14,8 @@ type T struct{ V int64 }
 
 func New() (t *T) { return &T{} }
 
+func NewFromUnix(unix int64) (t *T) { return &T{V: unix} }
+
 // Now returns the current UNIX timestamp of the current second.
 func Now() *T {
 	tt := T{time.Now().Unix()}

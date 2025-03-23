@@ -3,7 +3,6 @@ package realy
 import (
 	"bytes"
 	"errors"
-	"sort"
 
 	"github.com/dgraph-io/badger/v4"
 
@@ -154,9 +153,6 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 				events = tmp
 			}
 		}
-		sort.Slice(events, func(i, j int) bool {
-			return events[i].CreatedAt.Int() > events[j].CreatedAt.Int()
-		})
 		for _, ev := range events {
 			if s.options.SkipEventFunc != nil && s.options.SkipEventFunc(ev) {
 				continue

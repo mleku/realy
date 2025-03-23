@@ -49,6 +49,10 @@ type Querent interface {
 	QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error)
 }
 
+type Querier interface {
+	QueryForIds(c context.T, f *filter.T) (evids [][]byte, err error)
+}
+
 type FetchByIds interface {
 	FetchByIds(c context.T, ids [][]byte) (evs event.Ts, err error)
 }
@@ -80,6 +84,12 @@ type Exporter interface {
 	// pubkeys are present, only those with these pubkeys in the `pubkey` field and
 	// in `p` tags will be included.
 	Export(c context.T, w io.Writer, pubkeys ...[]byte)
+}
+
+type Rescanner interface {
+	// Rescan triggers the regeneration of indexes of the database to enable old
+	// records to be found with new indexes.
+	Rescan() (err error)
 }
 
 type Syncer interface {

@@ -45,9 +45,8 @@ func (s *Server) JWTVerifyFunc(npub string) (jwtPub string, pk []byte, err error
 	return
 }
 
-func (s *Server) authAdmin(r *http.Request) (authed bool) {
+func (s *Server) authAdmin(r *http.Request) (authed bool, pubkey []byte) {
 	var valid bool
-	var pubkey []byte
 	var err error
 	if valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc); chk.E(err) {
 		return
@@ -79,8 +78,8 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) {
 		"application/nostr+json": {
 			"/relayinfo": s.handleRelayInfo,
 			// methods that may need auth depending on configuration
-			"/event":  s.handleSimpleEvent,
-			"/events": s.handleEvents,
+			// "/event":  s.handleSimpleEvent,
+			// "/events": s.handleEvents,
 			// admin methods that require REALY_ADMIN_NPUBS auth
 			"/nuke":     s.handleNuke, // todo: need some kind of confirmation scheme on this endpoint, particularly
 			"/export":   s.exportHandler,

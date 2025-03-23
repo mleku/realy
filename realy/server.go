@@ -86,9 +86,11 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 		listeners:      listeners.New(),
 		API:            NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version, realy_lol.Description),
 	}
-	huma.AutoRegister(srv.API, NewEventPost(srv))
+	huma.AutoRegister(srv.API, NewEvent(srv))
 	huma.AutoRegister(srv.API, NewExport(srv))
 	huma.AutoRegister(srv.API, NewImport(srv))
+	huma.AutoRegister(srv.API, NewFilter(srv))
+	huma.AutoRegister(srv.API, NewRescan(srv))
 	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {

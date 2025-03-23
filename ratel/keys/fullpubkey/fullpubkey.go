@@ -1,16 +1,14 @@
-package fullid
+package fullpubkey
 
 import (
 	"bytes"
 	"fmt"
 
+	"realy.lol/ec/schnorr"
 	"realy.lol/ratel/keys"
-	"realy.lol/sha256"
-
-	"realy.lol/eventid"
 )
 
-const Len = sha256.Size
+const Len = schnorr.PubKeyBytesLen
 
 type T struct {
 	Val []byte
@@ -18,11 +16,11 @@ type T struct {
 
 var _ keys.Element = &T{}
 
-func New(evID ...*eventid.T) (p *T) {
-	if len(evID) < 1 {
+func New(evID ...[]byte) (p *T) {
+	if len(evID) < 1 || len(evID[0]) < 1 {
 		return &T{make([]byte, Len)}
 	}
-	return &T{Val: evID[0].Bytes()}
+	return &T{Val: evID[0]}
 }
 
 func (p *T) Write(buf *bytes.Buffer) {
@@ -43,4 +41,4 @@ func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	return p
 }
 
-func (p *T) Len() int { return Len }
+func (p *T) Len() int { return len(p.Val) }

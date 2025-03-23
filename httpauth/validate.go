@@ -2,6 +2,8 @@ package httpauth
 
 import (
 	"encoding/base64"
+	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -10,6 +12,9 @@ import (
 	"realy.lol/kind"
 	"realy.lol/tag"
 )
+
+var ErrMissingKey = errors.New(fmt.Sprintf(
+	"'%s' key missing from request header", HeaderKey))
 
 // CheckAuth verifies a received http.Request has got a valid
 // authentication event or token in it, and provides the public key that should be
@@ -20,7 +25,7 @@ import (
 func CheckAuth(r *http.Request, vfn VerifyJWTFunc) (valid bool, pubkey []byte, err error) {
 	val := r.Header.Get(HeaderKey)
 	if val == "" {
-		err = errorf.E("'%s' key missing from request header", HeaderKey)
+		err = ErrMissingKey
 		return
 	}
 	log.I.F("validating auth '%s'", val)

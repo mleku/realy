@@ -11,7 +11,7 @@ import (
 )
 
 func (s *Server) exportHandler(w http.ResponseWriter, r *http.Request) {
-	if ok := s.authAdmin(r); !ok {
+	if ok, _ := s.authAdmin(r); !ok {
 		s.unauthorized(w, r)
 		return
 	}
@@ -51,7 +51,7 @@ func (s *Server) exportHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) importHandler(w http.ResponseWriter, r *http.Request) {
-	if ok := s.authAdmin(r); !ok {
+	if ok, _ := s.authAdmin(r); !ok {
 		s.unauthorized(w, r)
 		return
 	}
@@ -66,7 +66,7 @@ func (s *Server) importHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) shutdownHandler(w http.ResponseWriter, r *http.Request) {
-	if ok := s.authAdmin(r); !ok {
+	if ok, _ := s.authAdmin(r); !ok {
 		s.unauthorized(w, r)
 		return
 	}
@@ -76,7 +76,7 @@ func (s *Server) shutdownHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleNuke(w http.ResponseWriter, r *http.Request) {
-	if ok := s.authAdmin(r); !ok {
+	if ok, _ := s.authAdmin(r); !ok {
 		s.unauthorized(w, r)
 		return
 	}

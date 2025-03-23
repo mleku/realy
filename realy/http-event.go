@@ -2,6 +2,7 @@ package realy
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -21,7 +22,7 @@ import (
 
 type Event struct{ *Server }
 
-func NewEventPost(s *Server) (ep *Event) {
+func NewEvent(s *Server) (ep *Event) {
 	return &Event{Server: s}
 }
 
@@ -48,7 +49,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *EventInput) (wgh *EventOutput, err error) {
 		r := ctx.Value("http-request").(*http.Request)
-		w := ctx.Value("http-response").(http.ResponseWriter)
+		// w := ctx.Value("http-response").(http.ResponseWriter)
 		rr := GetRemoteFromReq(r)
 		ev := &event.T{}
 		if _, err = ev.Unmarshal(input.RawBody); chk.E(err) {
@@ -61,17 +62,19 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		advancedDeleter, _ := sto.(relay.AdvancedDeleter)
 		var valid bool
 		var pubkey []byte
-		if valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc); chk.E(err) {
-			return
-		}
-		if !valid {
-			// pubkey = ev.PubKey
+		valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc)
+		missing := !errors.Is(err, httpauth.ErrMissingKey)
+		// if there is an error but not that the token is missing, or there is no error
+		// but the signature is invalid, return error that request is unauthorized.
+		if err != nil && !missing || err == nil && !valid {
 			err = huma.Error401Unauthorized(
 				fmt.Sprintf("invalid: %s", err.Error()))
 			return
 		}
-		c := context.Bg()
-		accept, notice, after := s.relay.AcceptEvent(c, ev, r, rr, pubkey)
+		// if there was auth, or no auth, check the relay policy allows accepting the
+		// event (no auth with auth required or auth not valid for action can apply
+		// here).
+		accept, notice, after := s.relay.AcceptEvent(ctx, ev, r, rr, pubkey)
 		if !accept {
 			err = huma.Error401Unauthorized(notice)
 			return
@@ -102,7 +105,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 						if _, err = hex.DecBytes(evId, t.Value()); chk.E(err) {
 							continue
 						}
-						res, err = storage.QueryEvents(c, &filter.T{IDs: tag.New(evId)})
+						res, err = storage.QueryEvents(ctx, &filter.T{IDs: tag.New(evId)})
 						if err != nil {
 							err = huma.Error500InternalServerError(err.Error())
 							return
@@ -151,9 +154,9 @@ func (ep *Event) RegisterEvent(api huma.API) {
 						f.Kinds.K = []*kind.T{kk}
 						f.Authors.Append(pk)
 						f.Tags.AppendTags(tag.New([]byte{'#', 'd'}, split[2]))
-						res, err = storage.QueryEvents(c, f)
+						res, err = storage.QueryEvents(ctx, f)
 						if err != nil {
-							http.Error(w, err.Error(), ERR)
+							err = huma.Error500InternalServerError(err.Error())
 							return
 						}
 					}
@@ -185,9 +188,9 @@ func (ep *Event) RegisterEvent(api huma.API) {
 						return
 					}
 					if advancedDeleter != nil {
-						advancedDeleter.BeforeDelete(c, t.Value(), ev.PubKey)
+						advancedDeleter.BeforeDelete(ctx, t.Value(), ev.PubKey)
 					}
-					if err = sto.DeleteEvent(c, target.EventID()); chk.T(err) {
+					if err = sto.DeleteEvent(ctx, target.EventID()); chk.T(err) {
 						err = huma.Error500InternalServerError(err.Error())
 						return
 					}
@@ -200,7 +203,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 			return
 		}
 		var reason []byte
-		ok, reason = s.addEvent(c, s.relay, ev, r, rr, pubkey)
+		ok, reason = s.addEvent(ctx, s.relay, ev, r, rr, pubkey)
 		// return the response whether true or false and any reason if false
 		if ok {
 		} else {

@@ -8,6 +8,7 @@ import (
 	"realy.lol/ratel/keys"
 	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/fullid"
+	"realy.lol/ratel/keys/fullpubkey"
 	"realy.lol/ratel/keys/id"
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/kinder"
@@ -29,6 +30,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 	K := kinder.New(ev.Kind.ToU16())
 	PK, _ := pubkey.New(ev.PubKey)
 	FID := fullid.New(eventid.NewWith(ev.ID))
+	FPK := fullpubkey.New(ev.PubKey)
 	// indexes
 	{ // ~ by id
 		k := prefixes.Id.Key(ID, ser)
@@ -99,7 +101,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		keyz = append(keyz, k)
 	}
 	{ // - full ID index - enabling retrieving the event ID without unmarshalling the data
-		k := prefixes.FullIdIndex.Key(FID, CA, ser)
+		k := prefixes.FullIndex.Key(FID, FPK, CA, ser)
 		// log.T.F("full id: %x %0x %0x", k[0], k[1:9], k[9:])
 		keyz = append(keyz, k)
 	}

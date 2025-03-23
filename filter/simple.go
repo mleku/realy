@@ -7,26 +7,25 @@ import (
 	"realy.lol/ec/schnorr"
 	"realy.lol/event"
 	"realy.lol/hex"
+	"realy.lol/ints"
 	"realy.lol/kinds"
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/tags"
 	"realy.lol/text"
+	"realy.lol/timestamp"
 )
 
 // S is a simplified filter that only covers the nip-01 REQ filter minus the
 // separate and superseding ID list. The search field is from a different NIP,
 // but it is a separate API for which reason it is also not here.
-//
-// The Since, Until and Limit fields are also omitted because the first two are
-// short values able to be found in the URL parameters and the latter is not
-// relevant because the filter API returns event IDs, not the whole events, and
-// so the cost of delivering them is also substantially reduced. Likewise, the
-// search process is simplified.
 type S struct {
-	Kinds   *kinds.T `json:"kinds,omitempty"`
-	Authors *tag.T   `json:"authors,omitempty"`
-	Tags    *tags.T  `json:"-,omitempty"`
+	Kinds   *kinds.T     `json:"kinds,omitempty"`
+	Authors *tag.T       `json:"authors,omitempty"`
+	Tags    *tags.T      `json:"-,omitempty"`
+	Since   *timestamp.T `json:"since,omitempty"`
+	Until   *timestamp.T `json:"until,omitempty"`
+	Limit   *uint        `json:"limit,omitempty"`
 }
 
 func NewSimple() (f *S) {
@@ -41,12 +40,12 @@ func NewSimple() (f *S) {
 // are immutable, basically, except setting the Limit field as 1, because it is
 // used in the subscription management code to act as a reference counter, and
 // making a clone implicitly means 1 reference.
-func (s *S) Clone() (clone *S) {
+func (f *S) Clone() (clone *S) {
 	lim := new(uint)
 	*lim = 1
-	_Kinds := *s.Kinds
-	_Authors := *s.Authors
-	_Tags := *s.Tags.Clone()
+	_Kinds := *f.Kinds
+	_Authors := *f.Authors
+	_Tags := *f.Tags.Clone()
 	return &S{
 		Kinds:   &_Kinds,
 		Authors: &_Authors,
@@ -62,9 +61,9 @@ func (s *S) Clone() (clone *S) {
 // that will match the same filter. It achieves this by making all fields sorted
 // in lexicographical order and from this a single 8 byte truncated hash can be
 // used to identify if a received filter is the same filter.
-func (s *S) Fingerprint() (fp uint64, err error) {
+func (f *S) Fingerprint() (fp uint64, err error) {
 	var b []byte
-	b = s.Marshal(b)
+	b = f.Marshal(b)
 	h := sha256.Sum256(b)
 	hb := h[:]
 	fp = binary.LittleEndian.Uint64(hb)
@@ -73,48 +72,78 @@ func (s *S) Fingerprint() (fp uint64, err error) {
 
 // Sort the fields of a filter so a fingerprint on a filter that has the same
 // set of content produces the same fingerprint.
-func (s *S) Sort() {
-	if s.Kinds != nil {
-		sort.Sort(s.Kinds)
+func (f *S) Sort() {
+	if f.Kinds != nil {
+		sort.Sort(f.Kinds)
 	}
-	if s.Authors != nil {
-		sort.Sort(s.Authors)
+	if f.Authors != nil {
+		sort.Sort(f.Authors)
 	}
-	if s.Tags != nil {
-		sort.Sort(s.Tags)
+	if f.Tags != nil {
+		sort.Sort(f.Tags)
 	}
 }
 
-func (s *S) Marshal(dst []byte) (b []byte) {
+func (f *S) Marshal(dst []byte) (b []byte) {
 	var err error
 	_ = err
 	var first bool
 	// sort the fields so they come out the same
-	s.Sort()
+	f.Sort()
 	// open parentheses
 	dst = append(dst, '{')
-	if s.Kinds.Len() > 0 {
-		first = true
-		dst = append(dst, ',')
+	if f.Kinds.Len() > 0 {
+		if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
 		dst = text.JSONKey(dst, Kinds)
-		dst = s.Kinds.Marshal(dst)
+		dst = f.Kinds.Marshal(dst)
 	}
-	if s.Authors.Len() > 0 {
+	if f.Since != nil && f.Since.U64() > 0 {
+		if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
+		dst = text.JSONKey(dst, Since)
+		dst = f.Since.Marshal(dst)
+	}
+	if f.Until != nil && f.Until.U64() > 0 {
+		if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
+		dst = text.JSONKey(dst, Until)
+		dst = f.Until.Marshal(dst)
+	}
+	if Present(f.Limit) {
+		if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
+		dst = text.JSONKey(dst, Limit)
+		dst = ints.New(*f.Limit).Marshal(dst)
+	}
+	if f.Authors.Len() > 0 {
 		if first {
 			dst = append(dst, ',')
 		} else {
 			first = true
 		}
 		dst = text.JSONKey(dst, Authors)
-		dst = text.MarshalHexArray(dst, s.Authors.ToByteSlice())
+		dst = text.MarshalHexArray(dst, f.Authors.ToByteSlice())
 	}
-	if s.Tags.Len() > 0 {
+	if f.Tags.Len() > 0 {
 		// tags are stored as tags with the initial element the "#s" and the rest the
 		// list in each element of the tags list. eg:
 		//
 		//     [["#p","<pubkey1>","<pubkey3"],["#t","hashtag","stuff"]]
 		//
-		for _, tg := range s.Tags.Value() {
+		for _, tg := range f.Tags.Value() {
 			if tg == nil {
 				// nothing here
 				continue
@@ -163,9 +192,9 @@ func (s *S) Marshal(dst []byte) (b []byte) {
 	return
 }
 
-func (s *S) Serialize() (b []byte) { return s.Marshal(nil) }
+func (f *S) Serialize() (b []byte) { return f.Marshal(nil) }
 
-func (s *S) Unmarshal(b []byte) (r []byte, err error) {
+func (f *S) Unmarshal(b []byte) (r []byte, err error) {
 	r = b[:]
 	var key []byte
 	var state int
@@ -212,7 +241,7 @@ func (s *S) Unmarshal(b []byte) (r []byte, err error) {
 						return
 					}
 					ff = append([][]byte{k}, ff...)
-					s.Tags = s.Tags.AppendTags(tag.New(ff...))
+					f.Tags = f.Tags.AppendTags(tag.New(ff...))
 					// s.Tags.T = append(s.Tags.T, tag.New(ff...))
 				default:
 					// other types of tags can be anything
@@ -221,7 +250,7 @@ func (s *S) Unmarshal(b []byte) (r []byte, err error) {
 						return
 					}
 					ff = append([][]byte{k}, ff...)
-					s.Tags = s.Tags.AppendTags(tag.New(ff...))
+					f.Tags = f.Tags.AppendTags(tag.New(ff...))
 					// s.Tags.T = append(s.Tags.T, tag.New(ff...))
 				}
 				state = betweenKV
@@ -229,8 +258,8 @@ func (s *S) Unmarshal(b []byte) (r []byte, err error) {
 				if len(key) < len(Kinds) {
 					goto invalid
 				}
-				s.Kinds = kinds.NewWithCap(0)
-				if r, err = s.Kinds.Unmarshal(r); chk.E(err) {
+				f.Kinds = kinds.NewWithCap(0)
+				if r, err = f.Kinds.Unmarshal(r); chk.E(err) {
 					return
 				}
 				state = betweenKV
@@ -242,7 +271,7 @@ func (s *S) Unmarshal(b []byte) (r []byte, err error) {
 				if ff, r, err = text.UnmarshalHexArray(r, schnorr.PubKeyBytesLen); chk.E(err) {
 					return
 				}
-				s.Authors = tag.New(ff...)
+				f.Authors = tag.New(ff...)
 				state = betweenKV
 			default:
 				goto invalid
@@ -277,30 +306,30 @@ invalid:
 	return
 }
 
-func (s *S) Matches(ev *event.T) bool {
+func (f *S) Matches(ev *event.T) bool {
 	if ev == nil {
 		// log.T.F("nil event")
 		return false
 	}
-	if s.Kinds.Len() > 0 && !s.Kinds.Contains(ev.Kind) {
+	if f.Kinds.Len() > 0 && !f.Kinds.Contains(ev.Kind) {
 		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), s.ToObject().String())
 		return false
 	}
-	if s.Authors.Len() > 0 && !s.Authors.Contains(ev.PubKey) {
+	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.PubKey) {
 		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), s.ToObject().String())
 		return false
 	}
-	if s.Tags.Len() > 0 && !ev.Tags.Intersects(s.Tags) {
+	if f.Tags.Len() > 0 && !ev.Tags.Intersects(f.Tags) {
 		return false
 	}
 	return true
 }
 
-func (s *S) Equal(b *S) bool {
-	if !s.Kinds.Equals(b.Kinds) ||
-		!s.Authors.Equal(b.Authors) ||
-		s.Tags.Len() != b.Tags.Len() ||
-		!s.Tags.Equal(b.Tags) {
+func (f *S) Equal(b *S) bool {
+	if !f.Kinds.Equals(b.Kinds) ||
+		!f.Authors.Equal(b.Authors) ||
+		f.Tags.Len() != b.Tags.Len() ||
+		!f.Tags.Equal(b.Tags) {
 		return false
 	}
 	return true

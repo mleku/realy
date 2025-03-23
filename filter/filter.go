@@ -268,9 +268,14 @@ func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 			}
 			switch key[0] {
 			case '#':
+				// tags start with # and have 1 letter
+				l := len(key)
+				if l != 2 {
+					err = errorf.E("filter tag keys can only be # and one alpha character: '%s'\n%s", key, b)
+					return
+				}
 				k := make([]byte, len(key))
 				copy(k, key)
-				// r = r[1:]
 				switch key[1] {
 				case 'e', 'p':
 					// the tags must all be 64 character hexadecimal
