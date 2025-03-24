@@ -49,8 +49,14 @@ type Querent interface {
 	QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error)
 }
 
+type IdTsPk struct {
+	Ts  int64
+	Id  []byte
+	Pub []byte
+}
+
 type Querier interface {
-	QueryForIds(c context.T, f *filter.T) (evids [][]byte, err error)
+	QueryForIds(c context.T, f *filter.T) (evs []IdTsPk, err error)
 }
 
 type FetchByIds interface {

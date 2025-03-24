@@ -1,5 +1,6 @@
 #!/usr/bin/bash
-until go run ./cmd/realy/.; do
+until false; do
     echo "Respawning.." >&2
     sleep 1
+    go run ./cmd/realy/.
 done

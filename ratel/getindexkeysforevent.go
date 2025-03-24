@@ -101,7 +101,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		keyz = append(keyz, k)
 	}
 	{ // - full ID index - enabling retrieving the event ID without unmarshalling the data
-		k := prefixes.FullIndex.Key(FID, FPK, CA, ser)
+		k := prefixes.FullIndex.Key(ser, FID, FPK, CA)
 		// log.T.F("full id: %x %0x %0x", k[0], k[1:9], k[9:])
 		keyz = append(keyz, k)
 	}

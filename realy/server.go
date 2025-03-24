@@ -91,6 +91,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 	huma.AutoRegister(srv.API, NewImport(srv))
 	huma.AutoRegister(srv.API, NewFilter(srv))
 	huma.AutoRegister(srv.API, NewRescan(srv))
+	huma.AutoRegister(srv.API, NewShutdown(srv))
 	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
@@ -111,7 +112,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.handleWebsocket(w, r)
 		return
 	}
-	log.I.F("http request: %s", r.URL.String())
+	log.I.F("http request: %s from %s", r.URL.String(), GetRemoteFromReq(r))
 	s.mux.ServeHTTP(w, r)
 	// s.HandleHTTP(w, r)
 	// s.mux.ServeHTTP(w, r)
@@ -124,7 +125,7 @@ func (s *Server) Start(host string, port int, started ...chan bool) error {
 	if err != nil {
 		return err
 	}
-	s.Addr = ln.Addr().String()
+	s.Addr = ln.Addr().String() // todo: this doesn't seem to do anything
 	s.httpServer = &http.Server{
 		Handler: cors.Default().Handler(s),
 		Addr:    addr,

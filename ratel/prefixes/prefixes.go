@@ -104,7 +104,7 @@ const (
 	// from its created_at field. The serial acts as a "first seen" ordering, then
 	// you also have the (claimed) chronological ordering.
 	//
-	//   [ 2 ][ 32 bytes eventid.T ][ 32 bytes pubkey ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
+	//   [ 2 ][ 8 bytes Serial ][ 32 bytes eventid.T ][ 32 bytes pubkey ][ 8 bytes timestamp.T ]
 	FullIndex
 )
 

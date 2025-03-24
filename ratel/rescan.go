@@ -53,6 +53,7 @@ func (r *T) Rescan() (err error) {
 				// 	add the indexes
 				var indexKeys [][]byte
 				indexKeys = GetIndexKeysForEvent(ev, ser)
+				log.I.S(indexKeys)
 				for _, k := range indexKeys {
 					var val []byte
 					if k[0] == prefixes.Counter.B() {

@@ -323,6 +323,7 @@ func (r *Relay) AcceptReq(c context.T, hr *http.Request, id []byte,
 	if len(authedPubkey) == 0 {
 		return
 	}
+	allowed = ff
 	// client is permitted, pass through the filter so request/count processing does
 	// not need logic and can just use the returned filter.
 	// check that the client is authed to a pubkey in the owner follow list

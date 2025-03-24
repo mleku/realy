@@ -1,6 +1,7 @@
 package realy
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 	"realy.lol/kind"
 	"realy.lol/kinds"
 	"realy.lol/relay"
+	"realy.lol/store"
 	"realy.lol/tag"
 	"realy.lol/tags"
 	"realy.lol/timestamp"
@@ -94,8 +96,6 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *FilterInput) (output *FilterOutput, err error) {
 		log.I.S(input)
-		err = huma.Error501NotImplemented("operation not yet implemented")
-		return
 		var f *filter.T
 		if f, err = input.ToFilter(); chk.E(err) {
 			err = huma.Error422UnprocessableEntity(err.Error())
@@ -116,6 +116,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 				fmt.Sprintf("invalid: %s", err.Error()))
 			return
 		}
+		log.I.F("processing req\n%s\n", f.Serialize())
 		allowed := filters.New(f)
 		if accepter, ok := ep.relay.(relay.ReqAcceptor); ok {
 			var accepted, modified bool
@@ -131,6 +132,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 		if allowed == nil {
 			return
 		}
+		log.I.F("allowed\n%s\n", allowed.Marshal(nil))
 		if auther, ok := ep.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 			if f.Kinds.IsPrivileged() {
 				log.T.F("privileged request\n%s", f.Serialize())
@@ -151,55 +153,64 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 				}
 			}
 		}
-		// sto := ep.relay.Storage()
-		var evs event.Ts
-		// log.D.F("query from %s %0x,%s", rr, pubkey, f.Serialize())
-		// if evs, err = sto.QueryEvents(ep.Ctx, f); err != nil {
-		// 	log.E.F("eventstore: %v", err)
-		// 	if errors.Is(err, badger.ErrDBClosed) {
-		// 		err = huma.Error500InternalServerError("shutting down", err)
-		// 		return
-		// 	}
-		// 	return
-		// }
-		// if len(pubkey) > 0 {
-		// 	// remove events from results if we find the user's mute list, that are present
-		// 	// on this list
-		// 	var mutes event.Ts
-		// 	if mutes, err = sto.QueryEvents(ep.Ctx, &filter.T{Authors: tag.New(pubkey),
-		// 		Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
-		// 		var mutePubs [][]byte
-		// 		for _, ev := range mutes {
-		// 			for _, t := range ev.Tags.F() {
-		// 				if bytes.Equal(t.Key(), []byte("p")) {
-		// 					var p []byte
-		// 					if p, err = hex.Dec(string(t.Value())); chk.E(err) {
-		// 						continue
-		// 					}
-		// 					mutePubs = append(mutePubs, p)
-		// 				}
-		// 			}
-		// 		}
-		// 		var tmp event.Ts
-		// 		for _, ev := range evs {
-		// 			for _, pk := range mutePubs {
-		// 				if bytes.Equal(ev.Pubkey, pk) {
-		// 					continue
-		// 				}
-		// 				tmp = append(tmp, ev)
-		// 			}
-		// 		}
-		// 		evs = tmp
-		// 	}
-		// }
-		if input.Sort == "asc" {
-			sort.Sort(event.Ascending(evs))
+		sto := ep.relay.Storage()
+		var ok bool
+		var quer store.Querier
+		if quer, ok = sto.(store.Querier); !ok {
+			err = huma.Error501NotImplemented("simple filter request not implemented")
+			return
 		}
-		for _, ev := range evs {
-			if ep.options.SkipEventFunc != nil && ep.options.SkipEventFunc(ev) {
-				continue
+		var evs []store.IdTsPk
+		if evs, err = quer.QueryForIds(ep.Ctx, allowed.F[0]); chk.E(err) {
+			err = huma.Error500InternalServerError("error querying for events", err)
+			return
+		}
+		switch input.Sort {
+		case "asc":
+			sort.Slice(evs, func(i, j int) bool {
+				return evs[i].Ts < evs[j].Ts
+			})
+		case "desc":
+			sort.Slice(evs, func(i, j int) bool {
+				return evs[i].Ts > evs[j].Ts
+			})
+		}
+		if len(pubkey) > 0 {
+			// remove events from results if we find the user's mute list, that are present
+			// on this list
+			var mutes event.Ts
+			if mutes, err = sto.QueryEvents(ep.Ctx, &filter.T{Authors: tag.New(pubkey),
+				Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
+				var mutePubs [][]byte
+				for _, ev := range mutes {
+					for _, t := range ev.Tags.F() {
+						if bytes.Equal(t.Key(), []byte("p")) {
+							var p []byte
+							if p, err = hex.Dec(string(t.Value())); chk.E(err) {
+								continue
+							}
+							mutePubs = append(mutePubs, p)
+						}
+					}
+				}
+				var tmp []store.IdTsPk
+			next:
+				for _, ev := range evs {
+					for _, pk := range mutePubs {
+						if bytes.Equal(ev.Pub, pk) {
+							continue next
+						}
+					}
+					tmp = append(tmp, ev)
+				}
+				log.I.F("done")
+				evs = tmp
 			}
-			output.Body = append(output.Body, hex.Enc(ev.ID))
+		}
+		log.I.S(evs)
+		output = &FilterOutput{}
+		for _, ev := range evs {
+			output.Body = append(output.Body, hex.Enc(ev.Id))
 		}
 		return
 	})

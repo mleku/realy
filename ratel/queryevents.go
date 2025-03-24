@@ -1,7 +1,6 @@
 package ratel
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"sort"
@@ -27,9 +26,9 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 	log.T.F("QueryEvents %s\n", f.Serialize())
 	evMap := make(map[string]*event.T)
 	var queries []query
-	var extraFilter *filter.T
+	var ext *filter.T
 	var since uint64
-	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
+	if queries, ext, since, err = PrepareQueries(f); chk.E(err) {
 		return
 	}
 	// log.I.S(f, queries)
@@ -111,7 +110,6 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 	accessed := make(map[string]struct{})
 	for ek := range eventKeys {
 		eventKey := []byte(ek)
-		var done bool
 		err = r.View(func(txn *badger.Txn) (err error) {
 			select {
 			case <-r.Ctx.Done():
@@ -126,9 +124,12 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 			for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 				item := it.Item()
 				if r.HasL2 && item.ValueSize() == sha256.Size {
-					// this is a stub entry that indicates an L2 needs to be accessed for
-					// it, so we populate only the event.T.ID and return the result, the
-					// caller will expect this as a signal to query the L2 event store.
+					// todo: this isn't actually calling anything right now, it should be
+					//  accumulating to propagate the query (this means response lag also)
+					//
+					// this is a stub entry that indicates an L2 needs to be accessed for it, so we
+					// populate only the event.T.ID and return the result, the caller will expect
+					// this as a signal to query the L2 event store.
 					var eventValue []byte
 					ev := &event.T{}
 					if eventValue, err = item.ValueCopy(nil); chk.E(err) {
@@ -168,48 +169,49 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 						}
 					}
 					// check if this event is replaced by one we already have in the result.
-					if ev.Kind.IsReplaceable() {
-						for i, evc := range evMap {
-							// replaceable means there should be only the newest for the
-							// pubkey and kind.
-							if bytes.Equal(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
-								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
-									// replace the event, it is newer
-									delete(evMap, i)
-									break
-								} else {
-									// we won't add it to the results slice
-									eventValue = eventValue[:0]
-									ev = nil
-									return
-								}
-							}
-						}
-					} else if ev.Kind.IsParameterizedReplaceable() &&
-						ev.Tags.GetFirst(tag.New("d")) != nil {
-						for i, evc := range evMap {
-							// parameterized replaceable means there should only be the
-							// newest for a pubkey, kind and the value field of the `d` tag.
-							if ev.Kind.Equal(evc.Kind) && bytes.Equal(ev.PubKey, evc.PubKey) &&
-								bytes.Equal(ev.Tags.GetFirst(tag.New("d")).Value(),
-									evc.Tags.GetFirst(tag.New("d")).Value()) {
-								if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
-									log.T.F("event %0x,%s\n->replaces\n%0x,%s",
-										ev.ID, ev.Serialize(),
-										evc.ID, evc.Serialize(),
-									)
-									// replace the event, it is newer
-									delete(evMap, i)
-									break
-								} else {
-									// we won't add it to the results slice
-									eventValue = eventValue[:0]
-									ev = nil
-									return
-								}
-							}
-						}
-					}
+					// todo: we actually implement replacement by deleting old versions, no need for this?
+					// if ev.Kind.IsReplaceable() {
+					// 	for i, evc := range evMap {
+					// 		// replaceable means there should be only the newest for the
+					// 		// pubkey and kind.
+					// 		if bytes.Equal(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
+					// 			if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
+					// 				// replace the event, it is newer
+					// 				delete(evMap, i)
+					// 				break
+					// 			} else {
+					// 				// we won't add it to the results slice
+					// 				eventValue = eventValue[:0]
+					// 				ev = nil
+					// 				return
+					// 			}
+					// 		}
+					// 	}
+					// } else if ev.Kind.IsParameterizedReplaceable() &&
+					// 	ev.Tags.GetFirst(tag.New("d")) != nil {
+					// 	for i, evc := range evMap {
+					// 		// parameterized replaceable means there should only be the
+					// 		// newest for a pubkey, kind and the value field of the `d` tag.
+					// 		if ev.Kind.Equal(evc.Kind) && bytes.Equal(ev.PubKey, evc.PubKey) &&
+					// 			bytes.Equal(ev.Tags.GetFirst(tag.New("d")).Value(),
+					// 				evc.Tags.GetFirst(tag.New("d")).Value()) {
+					// 			if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
+					// 				log.T.F("event %0x,%s\n->replaces\n%0x,%s",
+					// 					ev.ID, ev.Serialize(),
+					// 					evc.ID, evc.Serialize(),
+					// 				)
+					// 				// replace the event, it is newer
+					// 				delete(evMap, i)
+					// 				break
+					// 			} else {
+					// 				// we won't add it to the results slice
+					// 				eventValue = eventValue[:0]
+					// 				ev = nil
+					// 				return
+					// 			}
+					// 		}
+					// 	}
+					// }
 					return
 				}); chk.E(err) {
 					continue
@@ -217,7 +219,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 				if ev == nil {
 					continue
 				}
-				if extraFilter == nil || extraFilter.Matches(ev) {
+				if ext == nil || ext.Matches(ev) {
 					evMap[hex.Enc(ev.ID)] = ev
 					// add event counter key to accessed
 					ser := serial.FromKey(eventKey)
@@ -245,10 +247,6 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 			if errors.Is(err, badger.ErrDBClosed) {
 				return
 			}
-		}
-		if done {
-			err = nil
-			return
 		}
 		select {
 		case <-r.Ctx.Done():
