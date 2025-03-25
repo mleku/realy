@@ -26,6 +26,7 @@ func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (
 	val := r.Header.Get(HeaderKey)
 	if val == "" {
 		err = ErrMissingKey
+		valid = true
 		return
 	}
 	if len(tolerance) == 0 {

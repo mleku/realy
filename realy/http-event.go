@@ -62,13 +62,15 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		advancedDeleter, _ := sto.(relay.AdvancedDeleter)
 		var valid bool
 		var pubkey []byte
-		valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc)
-		missing := !errors.Is(err, httpauth.ErrMissingKey)
+		valid, pubkey, err = httpauth.CheckAuth(r, ep.JWTVerifyFunc)
+		// missing := !errors.Is(err, httpauth.ErrMissingKey)
 		// if there is an error but not that the token is missing, or there is no error
 		// but the signature is invalid, return error that request is unauthorized.
-		if err != nil && !missing || err == nil && !valid {
-			err = huma.Error401Unauthorized(
-				fmt.Sprintf("invalid: %s", err.Error()))
+		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
+			err = huma.Error400BadRequest(err.Error())
+		}
+		if !valid {
+			err = huma.Error401Unauthorized("Authorization header is invalid")
 			return
 		}
 		// if there was auth, or no auth, check the relay policy allows accepting the

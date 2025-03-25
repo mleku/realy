@@ -108,12 +108,14 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 		var valid bool
 		var pubkey []byte
 		valid, pubkey, err = httpauth.CheckAuth(r, ep.JWTVerifyFunc)
-		missing := !errors.Is(err, httpauth.ErrMissingKey)
+		// missing := !errors.Is(err, httpauth.ErrMissingKey)
 		// if there is an error but not that the token is missing, or there is no error
 		// but the signature is invalid, return error that request is unauthorized.
-		if err != nil && !missing || err == nil && !valid {
-			err = huma.Error401Unauthorized(
-				fmt.Sprintf("invalid: %s", err.Error()))
+		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
+			err = huma.Error400BadRequest(err.Error())
+		}
+		if !valid {
+			err = huma.Error401Unauthorized("Authorization header is invalid")
 			return
 		}
 		// log.I.F("processing req\n%s\n", f.Serialize())
@@ -122,13 +124,15 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 			var accepted, modified bool
 			allowed, accepted, modified = accepter.AcceptReq(ep.Ctx, r, nil, filters.New(f), pubkey)
 			if !accepted {
-				err = huma.Error401Unauthorized("returning results from modified filter; auth to get full access")
+				err = huma.Error401Unauthorized("auth to get access for this filter")
+				return
 			} else if modified {
 				log.D.F("filter modified %s", allowed.F[0])
 				// err = huma.Error401Unauthorized("returning results from modified filter; auth to get full access")
 			}
 		}
-		if allowed == nil {
+		if len(allowed.F) == 0 {
+			err = huma.Error401Unauthorized("all kinds in event restricted; auth to get access for this filter")
 			return
 		}
 		// log.I.F("allowed\n%s\n", allowed.Marshal(nil))
