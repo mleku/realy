@@ -2,11 +2,14 @@ package realy
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
 
+	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
+	"realy.lol/ec/schnorr"
 	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/hex"
@@ -32,7 +35,7 @@ type EventsOutput struct {
 
 func (ep *Events) RegisterEvents(api huma.API) {
 	name := "Events"
-	description := "Returns the full events from a list of event Ids as a JSON array"
+	description := "Returns the full events from a list of event Ids as a JSON array. Auth required to fetch more than 1000 events, and if not enabled, is not available"
 	path := "/events"
 	scopes := []string{"user", "read"}
 	method := http.MethodPost
@@ -47,18 +50,51 @@ func (ep *Events) RegisterEvents(api huma.API) {
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *EventsInput) (output *EventsOutput, err error) {
 		// log.I.S(input)
+		if len(input.Body) == 10000 {
+			err = huma.Error400BadRequest(
+				"cannot process more than 10000 events in a request")
+			return
+
+		}
+		var authrequired bool
+		if len(input.Body) > 1000 {
+			authrequired = true
+		}
 		r := ctx.Value("http-request").(*http.Request)
 		w := ctx.Value("http-response").(http.ResponseWriter)
 		// rr := GetRemoteFromReq(r)
-		// s := ep.Server
+		s := ep.Server
 		var valid bool
 		var pubkey []byte
 		valid, pubkey, err = httpauth.CheckAuth(r, ep.JWTVerifyFunc)
-		// missing := !errors.Is(err, httpauth.ErrMissingKey)
+		if authrequired && len(pubkey) != schnorr.PubKeyBytesLen {
+			err = huma.Error400BadRequest(
+				"cannot process more than 1000 events in a request without being authenticated")
+			return
+		}
+		if authrequired && valid {
+			if len(s.owners) < 1 {
+				err = huma.Error400BadRequest(
+					"cannot process more than 1000 events in a request without auth enabled")
+				return
+			}
+			if rl, ok := s.relay.(*app.Relay); ok {
+				rl.Lock()
+				// we only allow the first level of the allowed users this kind of access
+				if _, ok = rl.OwnersFollowed[string(pubkey)]; !ok {
+					err = huma.Error403Forbidden(
+						fmt.Sprintf(
+							"authenticated user %0x does not have permission for this request (owners can use export)",
+							pubkey))
+					return
+				}
+			}
+		}
 		// if there is an error but not that the token is missing, or there is no error
 		// but the signature is invalid, return error that request is unauthorized.
 		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
 			err = huma.Error400BadRequest(err.Error())
+			return
 		}
 		if !valid {
 			err = huma.Error401Unauthorized("Authorization header is invalid")

@@ -1,7 +1,6 @@
 package realy
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -45,8 +44,7 @@ func (ep *Rescan) RegisterRescan(api huma.API) {
 		authed, pubkey := s.authAdmin(r)
 		if !authed {
 			// pubkey = ev.Pubkey
-			err = huma.Error401Unauthorized(
-				fmt.Sprintf("invalid: %s", err.Error()))
+			err = huma.Error401Unauthorized("not authorized")
 			return
 		}
 		log.I.F("index rescan requested on admin port from %s pubkey %0x",

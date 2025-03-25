@@ -104,7 +104,7 @@ nostrjwt bearer <request URL> [<optional expiry in 0h0m0s format for JWT token>]
 			if err = ev.Sign(sign); chk.E(err) {
 				fail(err.Error())
 			}
-			fmt.Printf("Nostr %s\n", ev.Serialize())
+			fmt.Printf("%s\n", ev.Serialize())
 
 		case "bearer":
 			// check args
