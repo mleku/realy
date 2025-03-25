@@ -22,12 +22,16 @@ var ErrMissingKey = errors.New(fmt.Sprintf(
 //
 // A VerifyJWTFunc should be provided in order to search the event store for a
 // kind 13004 with a JWT signer pubkey that is granted authority for the request.
-func CheckAuth(r *http.Request, vfn VerifyJWTFunc) (valid bool, pubkey []byte, err error) {
+func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (valid bool, pubkey []byte, err error) {
 	val := r.Header.Get(HeaderKey)
 	if val == "" {
 		err = ErrMissingKey
 		return
 	}
+	if len(tolerance) == 0 {
+		tolerance = append(tolerance, time.Minute)
+	}
+	tolerate := int64(tolerance[0] / time.Second)
 	log.I.F("validating auth '%s'", val)
 	switch {
 	case strings.HasPrefix(val, NIP98Prefix):
@@ -63,9 +67,9 @@ func CheckAuth(r *http.Request, vfn VerifyJWTFunc) (valid bool, pubkey []byte, e
 		// The created_at timestamp MUST be within a reasonable time window (suggestion ~60~ 15 seconds)
 		ts := ev.CreatedAt.I64()
 		tn := time.Now().Unix()
-		if ts < tn-15 || ts > tn+15 {
-			err = errorf.E("timestamp %d is more than 15 seconds divergent from now %d",
-				ts, tn)
+		if ts < tn-tolerate || ts > tn+tolerate {
+			err = errorf.E("timestamp %d is more than %d seconds divergent from now %d",
+				ts, tolerate, tn)
 			return
 		}
 		// we are going to say anything not specified in nip-98 is invalid also, such as extra tags

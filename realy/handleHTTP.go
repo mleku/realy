@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"time"
 
 	"realy.lol/context"
 	"realy.lol/event"
@@ -45,10 +46,14 @@ func (s *Server) JWTVerifyFunc(npub string) (jwtPub string, pk []byte, err error
 	return
 }
 
-func (s *Server) authAdmin(r *http.Request) (authed bool, pubkey []byte) {
+func (s *Server) authAdmin(r *http.Request, tolerance ...time.Duration) (authed bool, pubkey []byte) {
 	var valid bool
 	var err error
-	if valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc); chk.E(err) {
+	var tolerate time.Duration
+	if len(tolerance) > 0 {
+		tolerate = tolerance[0]
+	}
+	if valid, pubkey, err = httpauth.CheckAuth(r, s.JWTVerifyFunc, tolerate); chk.E(err) {
 		return
 	}
 	if !valid {

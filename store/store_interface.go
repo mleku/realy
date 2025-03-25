@@ -15,7 +15,7 @@ type I interface {
 	Pather
 	io.Closer
 	Pather
-	Nuker
+	Nukener
 	Querent
 	Counter
 	Deleter
@@ -38,7 +38,7 @@ type Pather interface {
 	Path() (s string)
 }
 
-type Nuker interface {
+type Nukener interface {
 	// Nuke deletes everything in the database.
 	Nuke() (err error)
 }
@@ -57,10 +57,6 @@ type IdTsPk struct {
 
 type Querier interface {
 	QueryForIds(c context.T, f *filter.T) (evs []IdTsPk, err error)
-}
-
-type FetchByIds interface {
-	FetchByIds(c context.T, ids [][]byte) (evs event.Ts, err error)
 }
 
 type Counter interface {

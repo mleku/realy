@@ -116,7 +116,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 				fmt.Sprintf("invalid: %s", err.Error()))
 			return
 		}
-		log.I.F("processing req\n%s\n", f.Serialize())
+		// log.I.F("processing req\n%s\n", f.Serialize())
 		allowed := filters.New(f)
 		if accepter, ok := ep.relay.(relay.ReqAcceptor); ok {
 			var accepted, modified bool
@@ -132,7 +132,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 		if allowed == nil {
 			return
 		}
-		log.I.F("allowed\n%s\n", allowed.Marshal(nil))
+		// log.I.F("allowed\n%s\n", allowed.Marshal(nil))
 		if auther, ok := ep.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 			if f.Kinds.IsPrivileged() {
 				log.T.F("privileged request\n%s", f.Serialize())
@@ -203,11 +203,10 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 					}
 					tmp = append(tmp, ev)
 				}
-				log.I.F("done")
+				// log.I.F("done")
 				evs = tmp
 			}
 		}
-		log.I.S(evs)
 		output = &FilterOutput{}
 		for _, ev := range evs {
 			output.Body = append(output.Body, hex.Enc(ev.Id))

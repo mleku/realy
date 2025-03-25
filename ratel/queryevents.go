@@ -2,7 +2,6 @@ package ratel
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -165,53 +164,10 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 						if int64(exp) > time.Now().Unix() {
 							// this needs to be deleted
 							delEvs = append(delEvs, ev.ID)
+							ev = nil
 							return
 						}
 					}
-					// check if this event is replaced by one we already have in the result.
-					// todo: we actually implement replacement by deleting old versions, no need for this?
-					// if ev.Kind.IsReplaceable() {
-					// 	for i, evc := range evMap {
-					// 		// replaceable means there should be only the newest for the
-					// 		// pubkey and kind.
-					// 		if bytes.Equal(ev.PubKey, evc.PubKey) && ev.Kind.Equal(evc.Kind) {
-					// 			if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
-					// 				// replace the event, it is newer
-					// 				delete(evMap, i)
-					// 				break
-					// 			} else {
-					// 				// we won't add it to the results slice
-					// 				eventValue = eventValue[:0]
-					// 				ev = nil
-					// 				return
-					// 			}
-					// 		}
-					// 	}
-					// } else if ev.Kind.IsParameterizedReplaceable() &&
-					// 	ev.Tags.GetFirst(tag.New("d")) != nil {
-					// 	for i, evc := range evMap {
-					// 		// parameterized replaceable means there should only be the
-					// 		// newest for a pubkey, kind and the value field of the `d` tag.
-					// 		if ev.Kind.Equal(evc.Kind) && bytes.Equal(ev.PubKey, evc.PubKey) &&
-					// 			bytes.Equal(ev.Tags.GetFirst(tag.New("d")).Value(),
-					// 				evc.Tags.GetFirst(tag.New("d")).Value()) {
-					// 			if ev.CreatedAt.I64() > evc.CreatedAt.I64() {
-					// 				log.T.F("event %0x,%s\n->replaces\n%0x,%s",
-					// 					ev.ID, ev.Serialize(),
-					// 					evc.ID, evc.Serialize(),
-					// 				)
-					// 				// replace the event, it is newer
-					// 				delete(evMap, i)
-					// 				break
-					// 			} else {
-					// 				// we won't add it to the results slice
-					// 				eventValue = eventValue[:0]
-					// 				ev = nil
-					// 				return
-					// 			}
-					// 		}
-					// 	}
-					// }
 					return
 				}); chk.E(err) {
 					continue
@@ -268,15 +224,15 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 		if len(evs) > limit {
 			evs = evs[:limit]
 		}
-		log.T.C(func() string {
-			evIds := make([]string, len(evs))
-			for i, ev := range evs {
-				evIds[i] = hex.Enc(ev.ID)
-			}
-			heading := fmt.Sprintf("query complete,%d events found,%s", len(evs),
-				f.Serialize())
-			return fmt.Sprintf("%s\nevents,%v", heading, evIds)
-		})
+		// log.T.C(func() string {
+		// 	evIds := make([]string, len(evs))
+		// 	for i, ev := range evs {
+		// 		evIds[i] = hex.Enc(ev.ID)
+		// 	}
+		// 	heading := fmt.Sprintf("query complete,%d events found,%s", len(evs),
+		// 		f.Serialize())
+		// 	return fmt.Sprintf("%s\nevents,%v", heading, evIds)
+		// })
 		// bump the access times on all retrieved events. do this in a goroutine so the
 		// user's events are delivered immediately
 		go func() {

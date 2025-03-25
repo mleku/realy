@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 
@@ -44,11 +45,11 @@ func (ep *Import) RegisterImport(api huma.API) {
 		r := ctx.Value("http-request").(*http.Request)
 		rr := GetRemoteFromReq(r)
 		s := ep.Server
-		authed, pubkey := s.authAdmin(r)
+		authed, pubkey := s.authAdmin(r, time.Minute*10)
 		if !authed {
 			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized(
-				fmt.Sprintf("invalid: %s", err.Error()))
+				fmt.Sprintf("user %0x not authorized for action", pubkey))
 			return
 		}
 		sto := s.relay.Storage()

@@ -92,6 +92,8 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 	huma.AutoRegister(srv.API, NewFilter(srv))
 	huma.AutoRegister(srv.API, NewRescan(srv))
 	huma.AutoRegister(srv.API, NewShutdown(srv))
+	huma.AutoRegister(srv.API, NewEvents(srv))
+	huma.AutoRegister(srv.API, NewNuke(srv))
 	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {

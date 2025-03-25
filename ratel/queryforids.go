@@ -185,6 +185,6 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 			return
 		})
 	}
-	log.I.S(founds)
+	// log.I.S(founds)
 	return
 }

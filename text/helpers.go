@@ -132,7 +132,7 @@ func MarshalHexArray(dst []byte, ha [][]byte) (b []byte) {
 }
 
 // UnmarshalHexArray unpacks a JSON array containing strings with hexadecimal,
-// and checks all values have the specified byte size..
+// and checks all values have the specified byte size.
 func UnmarshalHexArray(b []byte, size int) (t [][]byte, rem []byte, err error) {
 	rem = b
 	var openBracket bool
@@ -152,7 +152,7 @@ func UnmarshalHexArray(b []byte, size int) (t [][]byte, rem []byte, err error) {
 				}
 				if len(h) != size {
 					err = errorf.E("invalid hex array size, got %d expect %d",
-						len(h), size)
+						2*len(h), 2*size)
 					return
 				}
 				t = append(t, h)

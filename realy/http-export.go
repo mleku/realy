@@ -3,13 +3,10 @@ package realy
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
-	"realy.lol/hex"
 )
 
 type Export struct{ *Server }
@@ -54,38 +51,7 @@ func (ep *Export) RegisterExport(api huma.API) {
 		log.I.F("export of event data requested on admin port from %s pubkey %0x",
 			rr, pubkey)
 		sto := s.relay.Storage()
-		if strings.Count(r.URL.Path, "/") > 1 {
-			split := strings.Split(r.URL.Path, "/")
-			if len(split) != 3 {
-				fprintf(w, "incorrectly formatted export parameter: '%s'", r.URL.Path)
-				return
-			}
-			switch split[2] {
-			case "users":
-				if rl, ok := s.relay.(*app.Relay); ok {
-					follows := make([][]byte, 0, len(rl.Followed))
-					for f := range rl.Followed {
-						follows = append(follows, []byte(f))
-					}
-					sto.Export(s.Ctx, w, follows...)
-				}
-			default:
-				var exportPubkeys [][]byte
-				pubkeys := strings.Split(split[2], "-")
-				for _, pubkey := range pubkeys {
-					var pk []byte
-					pk, err = hex.Dec(pubkey)
-					if err != nil {
-						log.E.F("invalid public key '%s' in parameters", pubkey)
-						continue
-					}
-					exportPubkeys = append(exportPubkeys, pk)
-				}
-				sto.Export(s.Ctx, w, exportPubkeys...)
-			}
-		} else {
-			sto.Export(s.Ctx, w)
-		}
+		sto.Export(s.Ctx, w)
 		return
 	})
 }
