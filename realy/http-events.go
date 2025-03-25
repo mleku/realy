@@ -27,7 +27,9 @@ type EventsInput struct {
 	Body []string `doc:"list of event Ids"`
 }
 
-type EventsOutput struct{ RawBody []byte }
+type EventsOutput struct {
+	RawBody []byte `doc:"the requested events as an array of events in JSON wire format"`
+}
 
 func (ep *Events) RegisterEvents(api huma.API) {
 	name := "Events"

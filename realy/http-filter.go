@@ -123,7 +123,6 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 			allowed, accepted, modified = accepter.AcceptReq(ep.Ctx, r, nil, filters.New(f), pubkey)
 			if !accepted {
 				err = huma.Error401Unauthorized("returning results from modified filter; auth to get full access")
-				return
 			} else if modified {
 				log.D.F("filter modified %s", allowed.F[0])
 				// err = huma.Error401Unauthorized("returning results from modified filter; auth to get full access")
@@ -133,8 +132,8 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 			return
 		}
 		// log.I.F("allowed\n%s\n", allowed.Marshal(nil))
-		if auther, ok := ep.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
-			if f.Kinds.IsPrivileged() {
+		if f.Kinds.IsPrivileged() {
+			if auther, ok := ep.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 				log.T.F("privileged request\n%s", f.Serialize())
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("#p"))
