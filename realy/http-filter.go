@@ -82,7 +82,7 @@ type FilterOutput struct {
 
 func (ep *Filter) RegisterFilter(api huma.API) {
 	name := "Filter"
-	description := "Search for events and receive a sorted list of event Ids"
+	description := "Search for events and receive a sorted list of event Ids (one of authors, kinds or tags must be present)"
 	path := "/filter"
 	scopes := []string{"user", "read"}
 	method := http.MethodPost

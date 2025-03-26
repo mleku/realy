@@ -74,6 +74,18 @@ type J struct {
 	Sig       string     `json:"sig"`
 }
 
+func (ev *T) ToEventJ() (j *J) {
+	j = &J{}
+	j.Id = ev.IDString()
+	j.Pubkey = ev.PubKeyString()
+	j.CreatedAt = ev.CreatedAt.I64()
+	j.Kind = ev.KindInt32()
+	j.Content = ev.ContentString()
+	j.Tags = ev.Tags.ToStringSlice()
+	j.Sig = ev.SigString()
+	return
+}
+
 func (ev *T) IDFromString(s string) (err error) {
 	ev.ID, err = hex.Dec(s)
 	return
