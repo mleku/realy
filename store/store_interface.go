@@ -7,6 +7,7 @@ import (
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/filter"
+	"realy.lol/tag"
 )
 
 // I is an types for a persistence layer for nostr events handled by a relay.
@@ -57,6 +58,10 @@ type IdTsPk struct {
 
 type Querier interface {
 	QueryForIds(c context.T, f *filter.T) (evs []IdTsPk, err error)
+}
+
+type GetIdsWriter interface {
+	FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error)
 }
 
 type Counter interface {

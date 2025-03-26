@@ -173,6 +173,9 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 			err = huma.Error500InternalServerError("error querying for events", err)
 			return
 		}
+		if input.Limit > 0 {
+			evs = evs[:input.Limit]
+		}
 		switch input.Sort {
 		case "asc":
 			sort.Slice(evs, func(i, j int) bool {

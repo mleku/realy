@@ -46,10 +46,10 @@ func PrepareQueries(f *filter.T) (
 	// first if there is IDs, just search for them, this overrides all other filters
 	case f.IDs.Len() > 0:
 		qs = make([]query, f.IDs.Len())
-		for i, idHex := range f.IDs.F() {
-			ih := id.New(eventid.NewWith([]byte(idHex)))
+		for i, idB := range f.IDs.F() {
+			ih := id.New(eventid.NewWith(idB))
 			if ih == nil {
-				log.E.F("failed to decode event ID: %s", idHex)
+				log.E.F("failed to decode event ID: %s", idB)
 				// just ignore it, clients will be clients
 				continue
 			}

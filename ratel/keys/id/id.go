@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"realy.lol/ratel/keys"
+	"realy.lol/sha256"
 
 	"realy.lol/eventid"
 	"realy.lol/hex"
@@ -35,6 +36,15 @@ func New(evID ...*eventid.T) (p *T) {
 		return
 	}
 	return &T{Val: b}
+}
+
+func NewFromBytes(b []byte) (p *T, err error) {
+	if len(b) != sha256.Size {
+		err = errorf.E("event ID must be 32 bytes got: %d %0x", len(b), b)
+		return
+	}
+	p = &T{Val: b[:Len]}
+	return
 }
 
 func (p *T) Write(buf *bytes.Buffer) {

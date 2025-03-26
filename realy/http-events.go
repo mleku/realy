@@ -10,11 +10,10 @@ import (
 	"realy.lol/cmd/realy/app"
 	"realy.lol/context"
 	"realy.lol/ec/schnorr"
-	"realy.lol/event"
-	"realy.lol/filter"
 	"realy.lol/hex"
 	"realy.lol/httpauth"
-	"realy.lol/json"
+	"realy.lol/sha256"
+	"realy.lol/store"
 	"realy.lol/tag"
 )
 
@@ -29,13 +28,9 @@ type EventsInput struct {
 	Body []string `doc:"list of event Ids"`
 }
 
-type EventsOutput struct {
-	RawBody []byte `doc:"the requested events as an array of events in JSON wire format"`
-}
-
 func (ep *Events) RegisterEvents(api huma.API) {
 	name := "Events"
-	description := "Returns the full events from a list of event Ids as a JSON array. Auth required to fetch more than 1000 events, and if not enabled, is not available"
+	description := "Returns the full events from a list of event Ids as a line structured JSON. Auth required to fetch more than 1000 events, and if not enabled, 1000 is the limit."
 	path := "/events"
 	scopes := []string{"user", "read"}
 	method := http.MethodPost
@@ -48,7 +43,7 @@ func (ep *Events) RegisterEvents(api huma.API) {
 		Description:   generateDescription(description, scopes),
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
-	}, func(ctx context.T, input *EventsInput) (output *EventsOutput, err error) {
+	}, func(ctx context.T, input *EventsInput) (output *huma.StreamResponse, err error) {
 		// log.I.S(input)
 		if len(input.Body) == 10000 {
 			err = huma.Error400BadRequest(
@@ -61,7 +56,7 @@ func (ep *Events) RegisterEvents(api huma.API) {
 			authrequired = true
 		}
 		r := ctx.Value("http-request").(*http.Request)
-		w := ctx.Value("http-response").(http.ResponseWriter)
+		// w := ctx.Value("http-response").(http.ResponseWriter)
 		// rr := GetRemoteFromReq(r)
 		s := ep.Server
 		var valid bool
@@ -104,32 +99,27 @@ func (ep *Events) RegisterEvents(api huma.API) {
 		sto := ep.relay.Storage()
 		var evIds [][]byte
 		for _, id := range input.Body {
-			var pk []byte
-			if pk, err = hex.Dec(id); chk.E(err) {
+			var idb []byte
+			if idb, err = hex.Dec(id); chk.E(err) {
 				err = huma.Error422UnprocessableEntity(err.Error())
 				return
 			}
-			evIds = append(evIds, pk)
+			if len(idb) != sha256.Size {
+				err = huma.Error422UnprocessableEntity(
+					fmt.Sprintf("event ID must be 64 hex characters: '%s'", id))
+			}
+			evIds = append(evIds, idb)
 		}
-		var evs event.Ts
-		f := filter.T{IDs: tag.New(evIds...)}
-		if evs, err = sto.QueryEvents(ep.Ctx, &f); chk.E(err) {
-			err = huma.Error500InternalServerError(err.Error())
-			return
+		if idsWriter, ok := sto.(store.GetIdsWriter); ok {
+			output = &huma.StreamResponse{
+				func(ctx huma.Context) {
+					if err = idsWriter.FetchIds(s.Ctx, tag.New(evIds...),
+						ctx.BodyWriter()); chk.E(err) {
+						return
+					}
+				},
+			}
 		}
-		if len(evs) == 0 {
-			// no results, the end
-			return
-		}
-		// log.I.S(evs)
-		var res json.Array
-		for _, ev := range evs {
-			res.V = append(res.V, ev)
-		}
-		resB := res.Marshal(nil)
-		_, err = w.Write(resB)
-		// output = &EventsOutput{RawBody: resB}
-		// log.I.F("%s", output.Body)
 		return
 	})
 }
