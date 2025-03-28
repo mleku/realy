@@ -69,6 +69,11 @@ node_modules/**
 !*.benc
 !*.png
 !*.adoc
+!*.js
+!*.bash
+!PATENTS
+!*.css
+!*.ts
 
 # ...even if they are in subdirectories
 !*/

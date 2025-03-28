@@ -1,6 +1,7 @@
 package realy
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -18,12 +19,33 @@ func ExposeMiddleware(ctx huma.Context, next func(huma.Context)) {
 }
 
 func NewHuma(router *ServeMux, name, version, description string) (api huma.API) {
-	apiConfig := huma.DefaultConfig(name, version)
-	apiConfig.Info.Description = description
-	// apiConfig.Security = []map[string][]string{{"auth": {}}}
-	// apiConfig.Components.SecuritySchemes = map[string]*huma.SecurityScheme{"auth": {Type: "http", Scheme: "apiKey"}} // apiKey todo:
-	apiConfig.DocsPath = "/api"
-	api = humago.New(router, apiConfig)
+	config := huma.DefaultConfig(name, version)
+	config.Info.Description = description
+	// config.Security = []map[string][]string{{"auth": {}}}
+	// config.Components.SecuritySchemes = map[string]*huma.SecurityScheme{"auth": {Type: "http", Scheme: "apiKey"}} // apiKey todo:
+	// config.DocsPath = "/api"
+	config.DocsPath = ""
+	router.ServeMux.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(`<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>API Reference</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <script
+      id="api-reference"
+      data-url="/openapi.json"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+  </body>
+</html>`))
+	})
+
+	api = humago.New(router, config)
 	api.UseMiddleware(ExposeMiddleware)
 	return
 }
