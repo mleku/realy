@@ -3,47 +3,23 @@ module realy.lol
 go 1.24.1
 
 require (
-	cloud.google.com/go/cloudtasks v1.10.0
-	cloud.google.com/go/errorreporting v0.3.0
-	cloud.google.com/go/logging v1.7.0
-	cloud.google.com/go/profiler v0.1.1
-	cloud.google.com/go/secretmanager v1.10.0
-	cloud.google.com/go/storage v1.29.0
-	contrib.go.opencensus.io/exporter/prometheus v0.1.0
-	contrib.go.opencensus.io/exporter/stackdriver v0.13.4
-	contrib.go.opencensus.io/integrations/ocsql v0.1.4
-	github.com/Masterminds/squirrel v1.5.2
 	github.com/adrg/xdg v0.5.3
 	github.com/alexflint/go-arg v1.5.1
-	github.com/alicebob/miniredis/v2 v2.17.0
 	github.com/danielgtaylor/huma/v2 v2.32.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/badger/v4 v4.5.0
-	github.com/evanw/esbuild v0.17.8
 	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.18.0
-	github.com/go-redis/redis/v8 v8.11.4
-	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/gobwas/httphead v0.1.0
 	github.com/gobwas/ws v1.4.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/golang-migrate/migrate/v4 v4.15.1
-	github.com/google/go-cmp v0.6.0
-	github.com/google/go-replayers/httpreplay v1.0.0
-	github.com/google/licensecheck v0.3.1
-	github.com/google/safehtml v0.0.3-0.20211026203422-d6f0e11a5516
-	github.com/jackc/pgconn v1.14.3
-	github.com/jackc/pgx/v4 v4.18.3
-	github.com/jba/templatecheck v0.6.0
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/klauspost/cpuid/v2 v2.2.9
-	github.com/lib/pq v1.10.9
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.7.0
 	github.com/puzpuzpuz/xsync/v3 v3.4.1
 	github.com/rs/cors v1.11.1
-	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/stretchr/testify v1.10.0
 	github.com/templexxx/xhex v0.0.0-20200614015412-aed53437177b
 	go-simpler.org/env v0.12.0
@@ -56,14 +32,10 @@ require (
 	golang.org/x/sync v0.12.0
 	golang.org/x/text v0.23.0
 	golang.org/x/tools v0.31.0
-	google.golang.org/api v0.126.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc
-	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.35.2
 	gopkg.in/yaml.v3 v3.0.1
 	honnef.co/go/tools v0.5.1
 	lukechampine.com/frand v1.5.1
-	rsc.io/markdown v0.0.0-20231214224604-88bb533a6020
 )
 
 require (

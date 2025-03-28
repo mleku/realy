@@ -30,7 +30,7 @@ func NewHuma(router *ServeMux, name, version, description string) (api huma.API)
 		w.Write([]byte(`<!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>API Reference</title>
+    <title>realy HTTP API UI</title>
     <meta charset="utf-8" />
     <meta
       name="viewport"

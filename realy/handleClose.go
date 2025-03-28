@@ -18,6 +18,6 @@ func (s *Server) handleClose(ws *web.Socket, req []byte) (note []byte) {
 	if env.ID.String() == "" {
 		return []byte("CLOSE has no <id>")
 	}
-	s.listeners.RemoveListenerId(ws, env.ID.String())
+	s.Listeners.RemoveListenerId(ws, env.ID.String())
 	return
 }

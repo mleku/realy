@@ -38,7 +38,7 @@ type Server struct {
 	maxLimit       int
 	admins         []signer.I
 	owners         [][]byte
-	listeners      *listeners.T
+	Listeners      *listeners.T
 	huma.API
 }
 
@@ -83,21 +83,24 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 		maxLimit:       sp.MaxLimit,
 		admins:         sp.Admins,
 		owners:         sp.Rl.Owners(),
-		listeners:      listeners.New(),
+		Listeners:      listeners.New(sp.Ctx),
 		API:            NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version, realy_lol.Description),
 	}
 	huma.AutoRegister(srv.API, NewEvent(srv))
+	huma.AutoRegister(srv.API, NewFilter(srv))
+	huma.AutoRegister(srv.API, NewEvents(srv))
+
 	huma.AutoRegister(srv.API, NewExport(srv))
 	huma.AutoRegister(srv.API, NewImport(srv))
-	huma.AutoRegister(srv.API, NewFilter(srv))
+
 	huma.AutoRegister(srv.API, NewRescan(srv))
 	huma.AutoRegister(srv.API, NewShutdown(srv))
-	huma.AutoRegister(srv.API, NewEvents(srv))
 	huma.AutoRegister(srv.API, NewNuke(srv))
+
 	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
-				srv.listeners.NotifyListeners(srv.authRequired, ev)
+				srv.Listeners.NotifyListeners(srv.authRequired, ev)
 			}
 		}()
 	}

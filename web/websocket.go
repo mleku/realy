@@ -39,7 +39,9 @@ func (ws *Socket) setRemoteFromReq(r *http.Request) {
 	var rr string
 	// reverse proxy should populate this field so we see the remote not the proxy
 	rem := r.Header.Get("X-Forwarded-For")
-	if rem != "" {
+	if rem == "" {
+		rr = r.RemoteAddr
+	} else {
 		splitted := strings.Split(rem, " ")
 		if len(splitted) == 1 {
 			rr = splitted[0]
@@ -50,10 +52,8 @@ func (ws *Socket) setRemoteFromReq(r *http.Request) {
 		// in case upstream doesn't set this or we are directly listening instead of
 		// via reverse proxy or just if the header field is missing, put the
 		// connection remote address into the websocket state data.
-		if rr == "" {
-			rr = r.RemoteAddr
-		}
-	} else {
+	}
+	if rr == "" {
 		// if that fails, fall back to the remote (probably the proxy, unless the realy is
 		// actually directly listening)
 		rr = ws.conn.NetConn().RemoteAddr().String()

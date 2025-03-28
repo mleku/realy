@@ -47,7 +47,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		Tags:        []string{"events"},
 		Description: generateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
-	}, func(ctx context.T, input *EventInput) (wgh *EventOutput, err error) {
+	}, func(ctx context.T, input *EventInput) (output *EventOutput, err error) {
 		r := ctx.Value("http-request").(*http.Request)
 		// w := ctx.Value("http-response").(http.ResponseWriter)
 		rr := GetRemoteFromReq(r)
@@ -215,7 +215,13 @@ func (ep *Event) RegisterEvent(api huma.API) {
 			// do this in the background and let the http response close
 			go after()
 		}
-		wgh = &EventOutput{"event accepted"}
+		output = &EventOutput{"event accepted"}
+		// notify subscribers
+		var authRequired bool
+		if ar, ok := s.relay.(relay.Authenticator); ok {
+			authRequired = ar.AuthEnabled()
+		}
+		s.Listeners.NotifyListeners(authRequired, ev)
 		return
 	})
 }

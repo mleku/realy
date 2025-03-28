@@ -12,6 +12,7 @@ import (
 	"github.com/fasthttp/websocket"
 
 	"realy.lol/bech32encoding"
+	"realy.lol/context"
 	"realy.lol/ec/bech32"
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/event"
@@ -22,11 +23,28 @@ import (
 )
 
 type (
-	L   struct{ filters *filters.T }
+	L struct{ filters *filters.T }
+
 	Map map[*web.Socket]map[string]*L
-	T   struct {
+
+	H struct {
+		// Ctx is the http.Request context of the subscriber, this enables garbage
+		// collecting the subscriptions from http.
+		Ctx context.T
+		// Receiver is a channel that the listener sends subscription events to for http
+		// subscribe endpoint.
+		Receiver event.C
+	}
+
+	HMap map[*H]struct{}
+
+	T struct {
+		Ctx context.T
 		sync.Mutex
 		Map
+		HMap
+		Hchan        chan H
+		Hlock        sync.Mutex
 		ChallengeHRP string
 		WriteWait,
 		PongWait,
@@ -53,9 +71,12 @@ var (
 		}}
 )
 
-func New() (l *T) {
-	return &T{
+func New(ctx context.T) (l *T) {
+	l = &T{
+		Ctx:             ctx,
 		Map:             make(Map),
+		HMap:            make(HMap),
+		Hchan:           make(chan H),
 		ChallengeHRP:    DefaultChallengeHRP,
 		WriteWait:       DefaultWriteWait,
 		PongWait:        DefaultPongWait,
@@ -63,6 +84,19 @@ func New() (l *T) {
 		MaxMessageSize:  DefaultMaxMessageSize,
 		ChallengeLength: DefaultChallengeLength,
 	}
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case h := <-l.Hchan:
+				l.Hlock.Lock()
+				l.HMap[&h] = struct{}{}
+				l.Hlock.Unlock()
+			}
+		}
+	}()
+	return
 }
 
 func (l *T) GetChallenge(conn *websocket.Conn, req *http.Request,
