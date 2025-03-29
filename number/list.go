@@ -1,3 +1,5 @@
+// Package number implements a simple number list, used with relayinfo package
+// for NIP support lists.
 package number
 
 import "fmt"

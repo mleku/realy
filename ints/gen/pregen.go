@@ -1,3 +1,5 @@
+// Package main is a generator for the base10000 (4 digit) encoding of the ints
+// library.
 package main
 
 import (

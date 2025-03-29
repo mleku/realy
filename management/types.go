@@ -1,4 +1,4 @@
-package nip86
+package management
 
 type Request struct {
 	Method string `json:"method"`

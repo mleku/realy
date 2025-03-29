@@ -1,3 +1,5 @@
+// Package kinds is a set of helpers for dealing with lists of kind numbers
+// including comparisons and encoding.
 package kinds
 
 import (

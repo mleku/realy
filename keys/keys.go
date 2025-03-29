@@ -1,3 +1,5 @@
+// Package keys is a set of helpers for generating and converting public/secret
+// keys to hex and back to binary.
 package keys
 
 import (

@@ -1,3 +1,4 @@
+// Package btcec implements the signer.I interface for signatures and ECDH with nostr.
 package btcec
 
 import (

@@ -1,3 +1,6 @@
+// Package interrupt is a library for providing handling for Ctrl-C/Interrupt
+// handling and triggering callbacks for such things as closing files, flushing
+// buffers, and other elements of graceful shutdowns.
 package interrupt
 
 import (

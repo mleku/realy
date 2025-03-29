@@ -1,3 +1,7 @@
+// Package layer2 is a library for building nostr event stores with two separate
+// data storage systems, primarily for creating size limited caches with larger
+// stores backing them, to enable scaling providing access to an event store to
+// more users more quickly via a caching strategy.
 package layer2
 
 import (
