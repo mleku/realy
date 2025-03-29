@@ -1,3 +1,5 @@
+// Package pointers is a set of basic nip-19 data types for generating bech32
+// encoded nostr entities.
 package pointers
 
 import (

@@ -1,3 +1,5 @@
+// Package reverse is a copy of httputil.NewSingleHostReverseProxy with addition
+// of "X-Forwarded-Proto" header.
 package reverse
 
 import (

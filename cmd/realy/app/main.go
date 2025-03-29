@@ -1,3 +1,4 @@
+// Package app implements the realy nostr relay with a simple follow/mute list authentication scheme and the new HTTP REST based protocol.
 package app
 
 import (

@@ -1,3 +1,5 @@
+// Package tcpkeepalive implements a net.TCPListener with a singleton set period
+// for a default 3 minute keep-aline.
 package tcpkeepalive
 
 import (

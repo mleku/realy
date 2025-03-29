@@ -1,3 +1,5 @@
+// Package main is a simple nostr key miner that uses the fast bitcoin secp256k1
+// C library to derive npubs with specified prefix/infix/suffix strings present.
 package main
 
 import (

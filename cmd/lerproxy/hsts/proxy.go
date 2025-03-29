@@ -1,3 +1,4 @@
+// Package hsts implements a HTTP handler that enforces HSTS.
 package hsts
 
 import "net/http"

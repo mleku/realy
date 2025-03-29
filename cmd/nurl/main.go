@@ -1,3 +1,6 @@
+// Package main is a simple implementation of a cURL like tool that can do
+// simple GET/POST operations on a HTTP server that understands NIP-98
+// authentication, with the signing key found in an environment variable.
 package main
 
 import (
