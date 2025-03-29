@@ -1,3 +1,5 @@
+// Package authenvelope defines the auth challenge (relay message) and response
+// (client message) of the NIP-42 authentication protocol.
 package authenvelope
 
 import (

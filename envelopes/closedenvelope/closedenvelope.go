@@ -1,3 +1,6 @@
+// Package closedenvelope defines the nostr message type CLOSED which is sent
+// from a relay to indicate the relay-side termination of a subscription or the
+// demand for authentication associated with a subscription.
 package closedenvelope
 
 import (

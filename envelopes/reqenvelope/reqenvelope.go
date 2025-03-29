@@ -1,3 +1,5 @@
+// Package reqenvelope is a message from a client to a relay containing a
+// subscription identifier and an array of filters to search for events.
 package reqenvelope
 
 import (

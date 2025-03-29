@@ -1,3 +1,5 @@
+// Package wire contains a set of data structure definitions for the bitcoin
+// blockchain.
 package wire
 
 // BitcoinNet represents which bitcoin network a message belongs to.

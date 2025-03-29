@@ -1,3 +1,5 @@
+// Package messages is a collection of example/common messages and
+// machine-readable prefixes to use with OK and CLOSED envelopes.
 package messages
 
 import (

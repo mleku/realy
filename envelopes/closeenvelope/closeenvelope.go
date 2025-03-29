@@ -1,3 +1,5 @@
+// Package closeenvelope provides the encoder for the client message CLOSE which
+// is a request to terminate a subscription.
 package closeenvelope
 
 import (

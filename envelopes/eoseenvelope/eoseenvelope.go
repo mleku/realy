@@ -1,3 +1,7 @@
+// Package eoseenvelope provides an encoder for the EOSE (End Of Stored
+// Events) event that signifies that a REQ has found all stored events and
+// from here on the request morphs into a subscription, until the limit, if
+// requested, or until CLOSE or CLOSED.
 package eoseenvelope
 
 import (

@@ -1,3 +1,5 @@
+// Package eventenvelope is a codec for the event Submission request EVENT envelope
+// (client) and event Result (to a REQ) from a relay.
 package eventenvelope
 
 import (

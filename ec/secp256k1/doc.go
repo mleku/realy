@@ -4,7 +4,8 @@
 // license that can be found in the LICENSE file.
 
 // Package secp256k1 implements optimized secp256k1 elliptic curve operations in
-// pure Go.
+// pure Go. This is an update that uses the Go 1.16 embed library instead of
+// generated code for the data.
 //
 // This package provides an optimized pure Go implementation of elliptic curve
 // cryptography operations over the secp256k1 curve as well as data structures and

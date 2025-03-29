@@ -1,3 +1,5 @@
+// Package countenvelope is an encoder for the COUNT request (client) and
+// response (relay) message types.
 package countenvelope
 
 import (

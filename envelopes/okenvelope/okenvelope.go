@@ -1,3 +1,6 @@
+// Package okenvelope is a codec for the OK message, which is an acknowledgement
+// for an EVENT eventenvelope.Submission, containing true/false and if false a
+// message with a machine readable error type as found in the messages package.
 package okenvelope
 
 import (

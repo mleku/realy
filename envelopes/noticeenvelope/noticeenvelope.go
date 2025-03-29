@@ -1,3 +1,6 @@
+// Package noticeenvelope is a codec for the NOTICE envelope, which is used to
+// serve (mostly ignored) messages that are supposed to be shown to a user in
+// the client.
 package noticeenvelope
 
 import (

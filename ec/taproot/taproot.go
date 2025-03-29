@@ -1,3 +1,5 @@
+// Package taproot provides a collection of tools for encoding bitcoin taproot
+// addresses.
 package taproot
 
 import (
