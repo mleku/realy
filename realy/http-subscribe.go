@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 
@@ -19,7 +20,6 @@ import (
 	"realy.lol/relay"
 	"realy.lol/tag"
 	"realy.lol/tags"
-	"realy.lol/timestamp"
 )
 
 type Subscribe struct{ *Server }
@@ -27,12 +27,8 @@ type Subscribe struct{ *Server }
 func NewSubscribe(s *Server) (ep *Subscribe) { return &Subscribe{Server: s} }
 
 type SubscribeInput struct {
-	Auth  string       `header:"Authorization" doc:"nostr nip-98 or JWT token for authentication" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
-	Since int64        `query:"since" doc:"timestamp of the oldest events to return (inclusive)"`
-	Until int64        `query:"until" doc:"timestamp of the newest events to return (inclusive)"`
-	Limit uint         `query:"limit" doc:"maximum number of results to return"`
-	Sort  string       `query:"sort" enum:"asc,desc" default:"desc" doc:"sort order by created_at timestamp"`
-	Body  SimpleFilter `body:"filter" doc:"filter criteria to match for events to return"`
+	Auth string       `header:"Authorization" doc:"nostr nip-98 or JWT token for authentication" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Body SimpleFilter `body:"filter" doc:"filter criteria to match for events to return"`
 }
 
 func (fi SubscribeInput) ToFilter() (f *filter.T, err error) {
@@ -56,21 +52,12 @@ func (fi SubscribeInput) ToFilter() (f *filter.T, err error) {
 		ts = append(ts, tag.New(t...))
 	}
 	f.Tags = tags.New(ts...)
-	if fi.Limit != 0 {
-		f.Limit = &fi.Limit
-	}
-	if fi.Since != 0 {
-		f.Since = timestamp.NewFromUnix(fi.Since)
-	}
-	if fi.Until != 0 {
-		f.Until = timestamp.NewFromUnix(fi.Until)
-	}
 	return
 }
 
 func (ep *Subscribe) RegisterSubscribe(api huma.API) {
 	name := "Subscribe"
-	description := "Search for events and receive a sorted list of event Ids (one of authors, kinds or tags must be present)"
+	description := "Subscribe for newly published events by author, kind or tags (empty also allowed)"
 	path := "/subscribe"
 	scopes := []string{"user", "read"}
 	method := http.MethodPost
@@ -97,16 +84,13 @@ func (ep *Subscribe) RegisterSubscribe(api huma.API) {
 		var valid bool
 		var pubkey []byte
 		valid, pubkey, err = httpauth.CheckAuth(r, ep.JWTVerifyFunc)
-		if len(input.Body.Authors) < 1 && len(input.Body.Kinds) < 1 && len(input.Body.Tags) < 1 {
-			err = huma.Error400BadRequest(
-				"cannot process filter with none of Authors/Kinds/Tags")
-			return
-		}
 		// if there is an error but not that the token is missing, or there is no error
 		// but the signature is invalid, return error that request is unauthorized.
 		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
 			err = huma.Error400BadRequest(err.Error())
+			return
 		}
+		err = nil
 		if !valid {
 			err = huma.Error401Unauthorized("Authorization header is invalid")
 			return
@@ -151,14 +135,24 @@ func (ep *Subscribe) RegisterSubscribe(api huma.API) {
 		}
 		// register the filter with the Listeners
 		receiver := make(event.C, 32)
-		s.Listeners.Hchan <- listeners.H{Ctx: r.Context(), Receiver: receiver}
+		s.Listeners.Hchan <- listeners.H{
+			Ctx:      r.Context(),
+			Receiver: receiver,
+			Pubkey:   pubkey,
+			Filter:   f,
+		}
 		output = &huma.StreamResponse{
 			func(ctx huma.Context) {
-				ctx.SetHeader("Content-Type", "application/x-jsonl")
+				ctx.SetHeader("Content-Type", "text/event-stream")
+				ctx.SetHeader("X-Accel-Buffering", "no")
+				ctx.SetHeader("Cache-Control", "no-cache")
 				w := ctx.BodyWriter()
+				tick := time.NewTicker(time.Second)
 			out:
 				for {
 					select {
+					case <-tick.C:
+						log.I.F("tick")
 					case <-r.Context().Done():
 						break out
 					case ev := <-receiver:

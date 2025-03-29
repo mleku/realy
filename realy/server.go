@@ -71,7 +71,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 		return nil, fmt.Errorf("realy init: %w", err)
 	}
 	serveMux := NewServeMux()
-	srv := &Server{
+	s := &Server{
 		Ctx:            sp.Ctx,
 		Cancel:         sp.Cancel,
 		relay:          sp.Rl,
@@ -86,25 +86,26 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 		Listeners:      listeners.New(sp.Ctx),
 		API:            NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version, realy_lol.Description),
 	}
-	huma.AutoRegister(srv.API, NewEvent(srv))
-	huma.AutoRegister(srv.API, NewFilter(srv))
-	huma.AutoRegister(srv.API, NewEvents(srv))
+	huma.AutoRegister(s.API, NewEvent(s))
+	huma.AutoRegister(s.API, NewFilter(s))
+	huma.AutoRegister(s.API, NewEvents(s))
+	huma.AutoRegister(s.API, NewSubscribe(s))
 
-	huma.AutoRegister(srv.API, NewExport(srv))
-	huma.AutoRegister(srv.API, NewImport(srv))
+	huma.AutoRegister(s.API, NewExport(s))
+	huma.AutoRegister(s.API, NewImport(s))
 
-	huma.AutoRegister(srv.API, NewRescan(srv))
-	huma.AutoRegister(srv.API, NewShutdown(srv))
-	huma.AutoRegister(srv.API, NewNuke(srv))
+	huma.AutoRegister(s.API, NewRescan(s))
+	huma.AutoRegister(s.API, NewShutdown(s))
+	huma.AutoRegister(s.API, NewNuke(s))
 
 	if inj, ok := sp.Rl.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
-				srv.Listeners.NotifyListeners(srv.authRequired, ev)
+				s.Listeners.NotifyListeners(s.authRequired, s.publicReadable, ev)
 			}
 		}()
 	}
-	return srv, nil
+	return s, nil
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -2,7 +2,6 @@ package httpauth
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,8 +12,8 @@ import (
 	"realy.lol/tag"
 )
 
-var ErrMissingKey = errors.New(fmt.Sprintf(
-	"'%s' key missing from request header", HeaderKey))
+var ErrMissingKey = fmt.Errorf(
+	"'%s' key missing from request header", HeaderKey)
 
 // CheckAuth verifies a received http.Request has got a valid
 // authentication event or token in it, and provides the public key that should be

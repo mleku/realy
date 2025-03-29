@@ -68,7 +68,9 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		// but the signature is invalid, return error that request is unauthorized.
 		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
 			err = huma.Error400BadRequest(err.Error())
+			return
 		}
+		err = nil
 		if !valid {
 			err = huma.Error401Unauthorized("Authorization header is invalid")
 			return
@@ -218,10 +220,11 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		output = &EventOutput{"event accepted"}
 		// notify subscribers
 		var authRequired bool
-		if ar, ok := s.relay.(relay.Authenticator); ok {
+		var ar relay.Authenticator
+		if ar, ok = s.relay.(relay.Authenticator); ok {
 			authRequired = ar.AuthEnabled()
 		}
-		s.Listeners.NotifyListeners(authRequired, ev)
+		s.Listeners.NotifyListeners(authRequired, s.publicReadable, ev)
 		return
 	})
 }

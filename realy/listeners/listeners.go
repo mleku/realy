@@ -16,6 +16,7 @@ import (
 	"realy.lol/ec/bech32"
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/event"
+	"realy.lol/filter"
 	"realy.lol/filters"
 	"realy.lol/tag"
 	"realy.lol/units"
@@ -34,15 +35,19 @@ type (
 		// Receiver is a channel that the listener sends subscription events to for http
 		// subscribe endpoint.
 		Receiver event.C
+		// Pubkey is the pubkey authed to this subscription
+		Pubkey []byte
+		// Filter is the filter associated with the http subscription
+		Filter *filter.T
 	}
 
-	HMap map[*H]struct{}
+	Subs map[*H]struct{}
 
 	T struct {
 		Ctx context.T
 		sync.Mutex
 		Map
-		HMap
+		Subs
 		Hchan        chan H
 		Hlock        sync.Mutex
 		ChallengeHRP string
@@ -75,7 +80,7 @@ func New(ctx context.T) (l *T) {
 	l = &T{
 		Ctx:             ctx,
 		Map:             make(Map),
-		HMap:            make(HMap),
+		Subs:            make(Subs),
 		Hchan:           make(chan H),
 		ChallengeHRP:    DefaultChallengeHRP,
 		WriteWait:       DefaultWriteWait,
@@ -91,7 +96,7 @@ func New(ctx context.T) (l *T) {
 				return
 			case h := <-l.Hchan:
 				l.Hlock.Lock()
-				l.HMap[&h] = struct{}{}
+				l.Subs[&h] = struct{}{}
 				l.Hlock.Unlock()
 			}
 		}
@@ -147,17 +152,18 @@ func (l *T) RemoveListener(ws *web.Socket) {
 	l.Mutex.Unlock()
 }
 
-func (l *T) NotifyListeners(authRequired bool, ev *event.T) {
+func (l *T) NotifyListeners(authRequired, publicReadable bool, ev *event.T) {
 	if ev == nil {
 		return
 	}
 	var err error
 	l.Mutex.Lock()
-	defer l.Mutex.Unlock()
 	for ws, subs := range l.Map {
 		for id, listener := range subs {
-			if authRequired && !ws.IsAuthed() {
-				continue
+			if !publicReadable {
+				if authRequired && !ws.IsAuthed() {
+					continue
+				}
 			}
 			if !listener.filters.Match(ev) {
 				continue
@@ -170,7 +176,7 @@ func (l *T) NotifyListeners(authRequired bool, ev *event.T) {
 				}
 				if !bytes.Equal(ev.PubKey, ab) || containsPubkey {
 					log.I.F("authed user %0x not privileged to receive event\n%s",
-						ws.AuthedBytes(), ev.Serialize())
+						ab, ev.Serialize())
 					continue
 				}
 			}
@@ -183,4 +189,45 @@ func (l *T) NotifyListeners(authRequired bool, ev *event.T) {
 			}
 		}
 	}
+	l.Mutex.Unlock()
+	l.Hlock.Lock()
+	var subs []*H
+	for sub := range l.Subs {
+		// check if the subscription's subscriber is still alive
+		select {
+		case <-sub.Ctx.Done():
+			subs = append(subs, sub)
+		default:
+		}
+	}
+	for _, sub := range subs {
+		delete(l.Subs, sub)
+	}
+	subs = subs[:0]
+	for sub := range l.Subs {
+		// if auth required, check the subscription pubkey matches
+		if !publicReadable {
+			if authRequired && len(sub.Pubkey) == 0 {
+				continue
+			}
+		}
+		// if the filter doesn't match, skip
+		if !sub.Filter.Matches(ev) {
+			continue
+		}
+		// if the filter is privileged and the user doesn't have matching auth, skip
+		if ev.Kind.IsPrivileged() {
+			ab := sub.Pubkey
+			var containsPubkey bool
+			if ev.Tags != nil {
+				containsPubkey = ev.Tags.ContainsAny([]byte{'p'}, tag.New(ab))
+			}
+			if !bytes.Equal(ev.PubKey, ab) || containsPubkey {
+				continue
+			}
+		}
+		// send the event to the subscriber
+		sub.Receiver <- ev
+	}
+	l.Hlock.Unlock()
 }

@@ -106,19 +106,21 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 		// w := ctx.Value("http-response").(http.ResponseWriter)
 		rr := GetRemoteFromReq(r)
 		// s := ep.Server
-		var valid bool
-		var pubkey []byte
-		valid, pubkey, err = httpauth.CheckAuth(r, ep.JWTVerifyFunc)
 		if len(input.Body.Authors) < 1 && len(input.Body.Kinds) < 1 && len(input.Body.Tags) < 1 {
 			err = huma.Error400BadRequest(
 				"cannot process filter with none of Authors/Kinds/Tags")
 			return
 		}
+		var valid bool
+		var pubkey []byte
+		valid, pubkey, err = httpauth.CheckAuth(r, ep.JWTVerifyFunc)
 		// if there is an error but not that the token is missing, or there is no error
 		// but the signature is invalid, return error that request is unauthorized.
 		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
 			err = huma.Error400BadRequest(err.Error())
+			return
 		}
+		err = nil
 		if !valid {
 			err = huma.Error401Unauthorized("Authorization header is invalid")
 			return

@@ -57,50 +57,8 @@ func (ep *Export) RegisterExport(api huma.API) {
 				} else {
 					log.W.F("error: unable to flush")
 				}
-
 			},
 		}
 		return
 	})
 }
-
-// func (ep *Export) RegisterExport(api huma.API) {
-// 	name := "Export"
-// 	description := "Export all events (only works with NIP-98/JWT capable client, will not work with UI), produces standard HTTP SSE format - event: event (new line) data: (wire format json of event) (newline)"
-// 	path := "/export"
-// 	scopes := []string{"admin", "read"}
-// 	method := http.MethodGet
-// 	sse.Register(api, huma.Operation{
-// 		OperationID:   name,
-// 		Summary:       name,
-// 		Path:          path,
-// 		Method:        method,
-// 		Tags:          []string{"admin"},
-// 		Description:   generateDescription(description, scopes),
-// 		Security:      []map[string][]string{{"auth": scopes}},
-// 		DefaultStatus: 204,
-// 	}, map[string]any{
-// 		// "event": event.J{},
-// 	}, func(ctx context.T, input *ExportInput, send sse.Sender) {
-// 		s := ep.Server
-// 		w := make(chan *event.J)
-// 		var err error
-// 		go func() {
-// 			// start up the sender
-// 			for ev := range w {
-// 				send(sse.Message{})
-// 				if err = send.Data(ev); chk.E(err) {
-// 					return
-// 				}
-// 			}
-// 		}()
-// 		sto := s.relay.Storage()
-// 		if exporter, ok := sto.(store.ConcurrentExporter); ok {
-// 			// start the exporter
-// 			exporter.ExportConcurrent(s.Ctx, w)
-// 		} else {
-// 			log.I.F("no concurrent exporter available")
-// 			return
-// 		}
-// 	})
-// }

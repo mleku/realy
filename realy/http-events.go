@@ -62,6 +62,13 @@ func (ep *Events) RegisterEvents(api huma.API) {
 		var valid bool
 		var pubkey []byte
 		valid, pubkey, err = httpauth.CheckAuth(r, ep.JWTVerifyFunc)
+		// if there is an error but not that the token is missing, or there is no error
+		// but the signature is invalid, return error that request is unauthorized.
+		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
+			err = huma.Error400BadRequest(err.Error())
+			return
+		}
+		err = nil
 		if authrequired && len(pubkey) != schnorr.PubKeyBytesLen {
 			err = huma.Error400BadRequest(
 				"cannot process more than 1000 events in a request without being authenticated")
@@ -84,12 +91,6 @@ func (ep *Events) RegisterEvents(api huma.API) {
 					return
 				}
 			}
-		}
-		// if there is an error but not that the token is missing, or there is no error
-		// but the signature is invalid, return error that request is unauthorized.
-		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
-			err = huma.Error400BadRequest(err.Error())
-			return
 		}
 		if !valid {
 			err = huma.Error401Unauthorized("Authorization header is invalid")
