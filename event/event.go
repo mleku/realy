@@ -1,3 +1,7 @@
+// Package event provides a codec for nostr events, for the wire format (with Id
+// and signature), for the canonical form, that is hashed to generate the Id,
+// and a custom format called "wirecompact" which wraps a canonical form with an
+// array and encodes the signature with base64 for a more compact size.
 package event
 
 import (

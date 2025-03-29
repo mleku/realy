@@ -1,3 +1,6 @@
+// Package main is a tester that reads in a provided JSON line structured
+// (.jsonl) document containing a set of events and attempts to parse them and
+// prints out the events that failed various steps in the encode/decode process.
 package main
 
 import (

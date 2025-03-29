@@ -1,3 +1,5 @@
+// Package eventid is a codec for managing nostr event Ids (hash of the
+// canonical form of a nostr event).
 package eventid
 
 import (
