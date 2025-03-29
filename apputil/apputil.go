@@ -5,7 +5,8 @@ import (
 	"path/filepath"
 )
 
-// EnsureDir checks a file could be written to a path, creates the directories as needed
+// EnsureDir checks a file could be written to a path, creates the directories
+// as needed
 func EnsureDir(fileName string) {
 	dirName := filepath.Dir(fileName)
 	if _, serr := os.Stat(dirName); serr != nil {

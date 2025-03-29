@@ -3,7 +3,6 @@ package bech32encoding
 import (
 	"bytes"
 	"encoding/binary"
-	"reflect"
 
 	"realy.lol/bech32encoding/pointers"
 	"realy.lol/ec/bech32"
@@ -15,28 +14,24 @@ import (
 )
 
 var (
-	NoteHRP     = []byte("note")
-	NsecHRP     = []byte("nsec")
-	NpubHRP     = []byte("npub")
+	// NoteHRP is the Human Readable Prefix (HRP) for a nostr note (kind 1)
+	NoteHRP = []byte("note")
+	// NsecHRP is the Human Readable Prefix (HRP) for a nostr secret key
+	NsecHRP = []byte("nsec")
+	// NpubHRP is the Human Readable Prefix (HRP) for a nostr public key
+	NpubHRP = []byte("npub")
+	// NprofileHRP is the Human Readable Prefix (HRP) for a nostr profile metadata
+	// event (kind 0)
 	NprofileHRP = []byte("nprofile")
-	NeventHRP   = []byte("nevent")
-	NentityHRP  = []byte("naddr")
+	// NeventHRP is the Human Readable Prefix (HRP) for a nostr event, which may
+	// include relay hints to find the event, and the author's npub.
+	NeventHRP = []byte("nevent")
+	// NentityHRP is the Human Readable Prefix (HRP) for a nostr is a generic nostr entity, which may include relay hints to find the event, and the author's npub.
+	NentityHRP = []byte("naddr")
 )
 
-func DecodeToString(bech32String []byte) (prefix, value []byte, err error) {
-	var s any
-	if prefix, s, err = Decode(bech32String); chk.D(err) {
-		return
-	}
-	var ok bool
-	if value, ok = s.([]byte); ok {
-		return
-	}
-	err = log.E.Err("value was not decoded to a string, found type %s",
-		reflect.TypeOf(s))
-	return
-}
-
+// Decode a nostr bech32 encoded entity, return the prefix, and the decoded
+// value, and any error if one occurred in the process of decoding.
 func Decode(bech32string []byte) (prefix []byte, value any, err error) {
 	var bits5 []byte
 	if prefix, bits5, err = bech32.DecodeNoLimit(bech32string); chk.D(err) {
@@ -153,6 +148,8 @@ func Decode(bech32string []byte) (prefix []byte, value any, err error) {
 	return prefix, data, errorf.E("unknown tag %s", prefix)
 }
 
+// EncodeNote encodes a standard nostr NIP-19 note entity (mostly meaning a
+// nostr kind 1 short text note)
 func EncodeNote(eventIDHex []byte) (s []byte, err error) {
 	var b []byte
 	if _, err = hex.DecBytes(b, eventIDHex); chk.D(err) {
@@ -166,6 +163,8 @@ func EncodeNote(eventIDHex []byte) (s []byte, err error) {
 	return bech32.Encode(NoteHRP, bits5)
 }
 
+// EncodeProfile encodes a pubkey and a set of relays into a bech32 encoded
+// entity.
 func EncodeProfile(publicKeyHex []byte, relays [][]byte) (s []byte, err error) {
 	buf := &bytes.Buffer{}
 	pb := make([]byte, schnorr.PubKeyBytesLen)
@@ -185,6 +184,7 @@ func EncodeProfile(publicKeyHex []byte, relays [][]byte) (s []byte, err error) {
 	return bech32.Encode(NprofileHRP, bits5)
 }
 
+// EncodeEvent encodes an event, including relay hints and author pubkey.
 func EncodeEvent(eventIDHex *eventid.T, relays [][]byte, author []byte) (s []byte, err error) {
 	buf := &bytes.Buffer{}
 	id := make([]byte, sha256.Size)
@@ -211,6 +211,7 @@ func EncodeEvent(eventIDHex *eventid.T, relays [][]byte, author []byte) (s []byt
 	return bech32.Encode(NeventHRP, bits5)
 }
 
+// EncodeEntity encodes a pubkey, kind, event Id, and relay hints.
 func EncodeEntity(pk []byte, k *kind.T, id []byte, relays [][]byte) (s []byte, err error) {
 	buf := &bytes.Buffer{}
 	writeTLVEntry(buf, TLVDefault, []byte(id))

@@ -15,7 +15,7 @@ import (
 	"realy.lol/tags"
 )
 
-const RELAY = "wss://relay.damus.io"
+const RELAY = "wss://mleku.realy.lol"
 
 // test if we can fetch a couple of random events
 func TestSubscribeBasic(t *testing.T) {
