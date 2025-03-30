@@ -1,3 +1,4 @@
+// Package options provides some option configurations for the realy relay.
 package options
 
 import (

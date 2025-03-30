@@ -1,3 +1,6 @@
+// Package prefixes provides a list of the index.P types that designate tables
+// in the ratel event store, as well as enabling a simple syntax to assemble and
+// decompose an index key into its keys.Element s.
 package prefixes
 
 import (

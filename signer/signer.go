@@ -1,3 +1,5 @@
+// Package signer defines interfaces for management of signatures, used to
+// abstract the signature algorithm from the usage.
 package signer
 
 type I interface {

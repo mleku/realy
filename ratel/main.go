@@ -1,3 +1,6 @@
+// Package ratel is a badger DB based event store with optional cache management
+// and capability to be used as a pruning cache along with a secondary larger
+// event store.
 package ratel
 
 import (

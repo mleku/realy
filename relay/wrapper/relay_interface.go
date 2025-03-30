@@ -1,3 +1,4 @@
+// Package wrapper that unifies Store and Relay under a common API.
 package wrapper
 
 import (

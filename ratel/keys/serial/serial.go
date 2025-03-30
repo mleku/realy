@@ -1,3 +1,5 @@
+// Package serial implements a keys.Element for encoding a serial (monotonic 64
+// bit counter) for stored events, used to link an index to the main data table.
 package serial
 
 import (

@@ -1,3 +1,6 @@
+// Package subscription is a set of helpers for managing nostr websocket
+// subscription Ids, used with the REQ method to maintain an association between
+// a REQ and resultant messages such as EVENT and CLOSED.
 package subscription
 
 import (

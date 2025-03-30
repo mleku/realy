@@ -1,3 +1,5 @@
+// Package tests provides a tool to generate arbitrary random events for fuzz
+// testing the encoder.
 package tests
 
 import (

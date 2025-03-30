@@ -1,3 +1,5 @@
+// Package atag implements a special, optimized handling for keeping a tags
+// (address) in a more memory efficient form while working with these tags.
 package atag
 
 import (

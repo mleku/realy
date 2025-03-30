@@ -1,3 +1,5 @@
+// Package tags provides a set of tools for composing and searching lists of
+// tag.T as well as marshal/unmarshal to JSON.
 package tags
 
 import (

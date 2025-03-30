@@ -1,3 +1,7 @@
+// Package main is a tester for a layer2 database scheme with one ratel DB with
+// cache and the second not, testing the maintenance of the cache utilization
+// and second level being accessed to fetch events that have been pruned out of
+// the cache.
 package main
 
 import (

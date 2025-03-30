@@ -1,4 +1,6 @@
-// Package listeners is a singleton package that keeps track of nostr websockets
+// Package listeners is a singleton package that keeps track of subscriptions in
+// both websockets and http SSE, including managing the authentication state of
+// a connection.
 package listeners
 
 import (

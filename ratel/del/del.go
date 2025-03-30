@@ -1,3 +1,6 @@
+// Package del is a simple sorted list for database keys, primarily used to
+// collect lists of events that need to be deleted either by expiration or for
+// the garbage collector.
 package del
 
 import "bytes"

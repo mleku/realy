@@ -1,3 +1,7 @@
+// Package store is an interface and ancillary helpers and types for defining a
+// series of API elements for abstracting the event storage from the
+// implementation. It is composed so that the top level interface can be
+// partially implemented if need be.
 package store
 
 import (

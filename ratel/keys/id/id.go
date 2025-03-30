@@ -1,3 +1,5 @@
+// Package id implements a keys.Element for a truncated event Ids containing the
+// first 8 bytes of an eventid.T.
 package id
 
 import (

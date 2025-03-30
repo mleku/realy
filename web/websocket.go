@@ -1,3 +1,4 @@
+// Package web implements nostr websockets with their authentication state.
 package web
 
 import (

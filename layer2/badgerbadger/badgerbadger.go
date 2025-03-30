@@ -1,3 +1,6 @@
+// Package badgerbadger is a test of the layer 2 that uses two instances of the
+// ratel event store, meant for testing the layer 2 protocol with two tiers of
+// the database a size limited cache and a large non-purging store.
 package badgerbadger
 
 import (

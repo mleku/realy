@@ -1,3 +1,5 @@
+// Package fullpubkey implements a keys.Element for a complete 32 byte nostr
+// pubkeys.
 package fullpubkey
 
 import (

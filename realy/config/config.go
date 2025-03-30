@@ -1,3 +1,5 @@
+// Package config provides a go-simpler.org/env configuration table and helpers
+// for working with the list of key/value lists stored in .env files.
 package config
 
 import (

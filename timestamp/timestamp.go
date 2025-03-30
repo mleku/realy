@@ -1,3 +1,5 @@
+// Package timestamp is a set of helpers for working with timestamps including
+// encoding and conversion to various integer forms, from time.Time and varints.
 package timestamp
 
 import (

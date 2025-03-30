@@ -1,3 +1,5 @@
+// Package pubkey implements an 8 byte truncated public key implementation of a
+// keys.Element.
 package pubkey
 
 import (
