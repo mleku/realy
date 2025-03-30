@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 
 	"realy.lol/bech32encoding/pointers"
+	"realy.lol/bech32encoding/tlv"
 	"realy.lol/ec/bech32"
 	"realy.lol/ec/schnorr"
 	"realy.lol/eventid"
@@ -16,16 +17,21 @@ import (
 var (
 	// NoteHRP is the Human Readable Prefix (HRP) for a nostr note (kind 1)
 	NoteHRP = []byte("note")
+
 	// NsecHRP is the Human Readable Prefix (HRP) for a nostr secret key
 	NsecHRP = []byte("nsec")
+
 	// NpubHRP is the Human Readable Prefix (HRP) for a nostr public key
 	NpubHRP = []byte("npub")
+
 	// NprofileHRP is the Human Readable Prefix (HRP) for a nostr profile metadata
 	// event (kind 0)
 	NprofileHRP = []byte("nprofile")
+
 	// NeventHRP is the Human Readable Prefix (HRP) for a nostr event, which may
 	// include relay hints to find the event, and the author's npub.
 	NeventHRP = []byte("nevent")
+
 	// NentityHRP is the Human Readable Prefix (HRP) for a nostr is a generic nostr entity, which may include relay hints to find the event, and the author's npub.
 	NentityHRP = []byte("naddr")
 )
@@ -41,6 +47,7 @@ func Decode(bech32string []byte) (prefix []byte, value any, err error) {
 	if data, err = bech32.ConvertBits(bits5, 5, 8, false); chk.D(err) {
 		return prefix, nil, errorf.E("failed translating data into 8 bits: %s", err.Error())
 	}
+	buf := bytes.NewBuffer(data)
 	switch {
 	case bytes.Equal(prefix, NpubHRP) ||
 		bytes.Equal(prefix, NsecHRP) ||
@@ -53,10 +60,9 @@ func Decode(bech32string []byte) (prefix []byte, value any, err error) {
 		return prefix, b, nil
 	case bytes.Equal(prefix, NprofileHRP):
 		var result pointers.Profile
-		curr := 0
 		for {
-			t, v := readTLVEntry(data[curr:])
-			if v == nil {
+			t, v := tlv.ReadEntry(buf)
+			if len(v) == 0 {
 				// end here
 				if len(result.PublicKey) < 1 {
 					return prefix, result, errorf.E("no pubkey found for nprofile")
@@ -64,24 +70,22 @@ func Decode(bech32string []byte) (prefix []byte, value any, err error) {
 				return prefix, result, nil
 			}
 			switch t {
-			case TLVDefault:
+			case tlv.Default:
 				if len(v) < 32 {
 					return prefix, nil, errorf.E("pubkey is less than 32 bytes (%d)", len(v))
 				}
 				result.PublicKey = make([]byte, schnorr.PubKeyBytesLen*2)
 				hex.EncBytes(result.PublicKey, v)
-			case TLVRelay:
+			case tlv.Relay:
 				result.Relays = append(result.Relays, v)
 			default:
 				// ignore
 			}
-			curr = curr + 2 + len(v)
 		}
 	case bytes.Equal(prefix, NeventHRP):
 		var result pointers.Event
-		curr := 0
 		for {
-			t, v := readTLVEntry(data[curr:])
+			t, v := tlv.ReadEntry(buf)
 			if v == nil {
 				// end here
 				if result.ID.Len() == 0 {
@@ -90,31 +94,29 @@ func Decode(bech32string []byte) (prefix []byte, value any, err error) {
 				return prefix, result, nil
 			}
 			switch t {
-			case TLVDefault:
+			case tlv.Default:
 				if len(v) < 32 {
 					return prefix, nil, errorf.E("id is less than 32 bytes (%d)", len(v))
 				}
 				result.ID = eventid.NewWith(v)
-			case TLVRelay:
+			case tlv.Relay:
 				result.Relays = append(result.Relays, v)
-			case TLVAuthor:
+			case tlv.Author:
 				if len(v) < 32 {
 					return prefix, nil, errorf.E("author is less than 32 bytes (%d)", len(v))
 				}
 				result.Author = make([]byte, schnorr.PubKeyBytesLen*2)
 				hex.EncBytes(result.Author, v)
-			case TLVKind:
+			case tlv.Kind:
 				result.Kind = kind.New(binary.BigEndian.Uint32(v))
 			default:
 				// ignore
 			}
-			curr = curr + 2 + len(v)
 		}
 	case bytes.Equal(prefix, NentityHRP):
 		var result pointers.Entity
-		curr := 0
 		for {
-			t, v := readTLVEntry(data[curr:])
+			t, v := tlv.ReadEntry(buf)
 			if v == nil {
 				// end here
 				if result.Kind.ToU16() == 0 ||
@@ -126,23 +128,22 @@ func Decode(bech32string []byte) (prefix []byte, value any, err error) {
 				return prefix, result, nil
 			}
 			switch t {
-			case TLVDefault:
+			case tlv.Default:
 				result.Identifier = v
-			case TLVRelay:
+			case tlv.Relay:
 				result.Relays = append(result.Relays, v)
-			case TLVAuthor:
+			case tlv.Author:
 				if len(v) < 32 {
 					return prefix, nil, errorf.E("author is less than 32 bytes (%d)", len(v))
 				}
 				result.PublicKey = make([]byte, schnorr.PubKeyBytesLen*2)
 				hex.EncBytes(result.PublicKey, v)
-			case TLVKind:
+			case tlv.Kind:
 				result.Kind = kind.New(binary.BigEndian.Uint32(v))
 			default:
 				log.D.Ln("got a bogus TLV type code", t)
 				// ignore
 			}
-			curr = curr + 2 + len(v)
 		}
 	}
 	return prefix, data, errorf.E("unknown tag %s", prefix)
@@ -172,9 +173,9 @@ func EncodeProfile(publicKeyHex []byte, relays [][]byte) (s []byte, err error) {
 		err = log.E.Err("invalid pubkey '%s': %w", publicKeyHex, err)
 		return
 	}
-	writeTLVEntry(buf, TLVDefault, pb)
+	tlv.WriteEntry(buf, tlv.Default, pb)
 	for _, url := range relays {
-		writeTLVEntry(buf, TLVRelay, []byte(url))
+		tlv.WriteEntry(buf, tlv.Relay, []byte(url))
 	}
 	var bits5 []byte
 	if bits5, err = bech32.ConvertBits(buf.Bytes(), 8, 5, true); chk.D(err) {
@@ -194,13 +195,13 @@ func EncodeEvent(eventIDHex *eventid.T, relays [][]byte, author []byte) (s []byt
 		return nil, errorf.E("invalid id %d '%s': %v", len(id), eventIDHex,
 			err)
 	}
-	writeTLVEntry(buf, TLVDefault, id)
+	tlv.WriteEntry(buf, tlv.Default, id)
 	for _, url := range relays {
-		writeTLVEntry(buf, TLVRelay, []byte(url))
+		tlv.WriteEntry(buf, tlv.Relay, []byte(url))
 	}
 	pubkey := make([]byte, schnorr.PubKeyBytesLen)
 	if _, err = hex.DecBytes(pubkey, author); len(pubkey) == 32 {
-		writeTLVEntry(buf, TLVAuthor, pubkey)
+		tlv.WriteEntry(buf, tlv.Author, pubkey)
 	}
 	var bits5 []byte
 	if bits5, err = bech32.ConvertBits(buf.Bytes(), 8, 5, true); chk.D(err) {
@@ -214,18 +215,18 @@ func EncodeEvent(eventIDHex *eventid.T, relays [][]byte, author []byte) (s []byt
 // EncodeEntity encodes a pubkey, kind, event Id, and relay hints.
 func EncodeEntity(pk []byte, k *kind.T, id []byte, relays [][]byte) (s []byte, err error) {
 	buf := &bytes.Buffer{}
-	writeTLVEntry(buf, TLVDefault, []byte(id))
+	tlv.WriteEntry(buf, tlv.Default, []byte(id))
 	for _, url := range relays {
-		writeTLVEntry(buf, TLVRelay, []byte(url))
+		tlv.WriteEntry(buf, tlv.Relay, []byte(url))
 	}
 	pb := make([]byte, schnorr.PubKeyBytesLen)
 	if _, err = hex.DecBytes(pb, pk); chk.D(err) {
 		return nil, errorf.E("invalid pubkey '%s': %w", pb, err)
 	}
-	writeTLVEntry(buf, TLVAuthor, pb)
+	tlv.WriteEntry(buf, tlv.Author, pb)
 	kindBytes := make([]byte, 4)
 	binary.BigEndian.PutUint32(kindBytes, uint32(k.ToU16()))
-	writeTLVEntry(buf, TLVKind, kindBytes)
+	tlv.WriteEntry(buf, tlv.Kind, kindBytes)
 	var bits5 []byte
 	if bits5, err = bech32.ConvertBits(buf.Bytes(), 8, 5, true); chk.D(err) {
 		return nil, errorf.E("failed to convert bits: %w", err)

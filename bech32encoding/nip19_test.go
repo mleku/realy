@@ -58,7 +58,7 @@ func TestDecodeNprofile(t *testing.T) {
 	prefix, data, err := Decode([]byte(
 		"nprofile1qqsrhuxx8l9ex335q7he0f09aej04zpazpl0ne2cgukyawd24mayt8gpp4mhxue69uhhytnc9e3k7mgpz4mhxue69uhkg6nzv9ejuumpv34kytnrdaksjlyr9p"))
 	if err != nil {
-		t.Error("failed to decode nprofile")
+		t.Errorf("failed to decode nprofile: %s", err.Error())
 	}
 	if !bytes.Equal(prefix, []byte("nprofile")) {
 		t.Error("what")
