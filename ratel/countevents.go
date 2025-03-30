@@ -116,7 +116,7 @@ func (r *T) CountEvents(c context.T, f *filter.T) (count int, approx bool, err e
 							}
 							if int64(exp) > time.Now().Unix() {
 								// this needs to be deleted
-								delEvs = append(delEvs, ev.ID)
+								delEvs = append(delEvs, ev.Id)
 								return
 							}
 						}

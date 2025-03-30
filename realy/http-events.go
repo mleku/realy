@@ -107,7 +107,7 @@ func (ep *Events) RegisterEvents(api huma.API) {
 			}
 			if len(idb) != sha256.Size {
 				err = huma.Error422UnprocessableEntity(
-					fmt.Sprintf("event ID must be 64 hex characters: '%s'", id))
+					fmt.Sprintf("event Id must be 64 hex characters: '%s'", id))
 			}
 			evIds = append(evIds, idb)
 		}

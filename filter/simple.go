@@ -17,7 +17,7 @@ import (
 )
 
 // S is a simplified filter that only covers the nip-01 REQ filter minus the
-// separate and superseding ID list. The search field is from a different NIP,
+// separate and superseding Id list. The search field is from a different NIP,
 // but it is a separate API for which reason it is also not here.
 type S struct {
 	Kinds   *kinds.T     `json:"kinds,omitempty"`
@@ -315,7 +315,7 @@ func (f *S) Matches(ev *event.T) bool {
 		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), s.ToObject().String())
 		return false
 	}
-	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.PubKey) {
+	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.Pubkey) {
 		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), s.ToObject().String())
 		return false
 	}

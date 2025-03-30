@@ -15,34 +15,34 @@ import (
 // L is the label associated with this type of codec.Envelope.
 const L = "EOSE"
 
-// T is an EOSE envelope, that signals the end of events that are stored and the
-// beginning of a subscription. This is necessitated by the confusing
-// multiplexing of websockets for multiple requests, and an ugly merging of two
-// distinct API calls, filter and subscribe.
+// T is an EOSE envelope (End of Stored Events), that signals the end of events
+// that are stored and the beginning of a subscription. This is necessitated by
+// the confusing multiplexing of websockets for multiple requests, and an ugly
+// merging of two distinct API calls, filter and subscribe.
 type T struct {
 	Subscription *subscription.Id
 }
 
 var _ codec.Envelope = (*T)(nil)
 
-// New creates a new EOSE T with a standard form subscription.Id.
+// New creates a new eoseenvelope.T with a standard form subscription.Id.
 func New() *T {
 	return &T{Subscription: subscription.NewStd()}
 }
 
-// NewFrom creates a new EOSE T using a provided subscription.Id.
+// NewFrom creates a new  eoseenvelope.T using a provided subscription.Id.
 func NewFrom(id *subscription.Id) *T { return &T{Subscription: id} }
 
 // Label returns the label of a EOSE envelope.
 func (en *T) Label() string { return L }
 
-// Write the EOSE T to a provided io.Writer.
+// Write the  eoseenvelope.T to a provided io.Writer.
 func (en *T) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
-// Marshal a EOSE T envelope in minified JSON, appending to a provided
+// Marshal a eoseenvelope.T envelope in minified JSON, appending to a provided
 // destination slice.
 func (en *T) Marshal(dst []byte) (b []byte) {
 	var err error
@@ -58,8 +58,8 @@ func (en *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
-// Unmarshal a EOSE T from minified JSON, returning the remainder after the
-// end of the envelope.
+// Unmarshal a eoseenvelope.T from minified JSON, returning the remainder after
+// the end of the envelope.
 func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	if en.Subscription, err = subscription.NewId([]byte{0}); chk.E(err) {
@@ -74,7 +74,8 @@ func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
-// Parse reads a EOSE T in minified JSON into a newly allocated T.
+// Parse reads a EOSE envelope in minified JSON into a newly allocated
+// eoseenvelope.T.
 func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {

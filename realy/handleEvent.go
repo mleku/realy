@@ -38,7 +38,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 		ws.RealRemote(), ws.AuthedBytes())
 	if !accept {
 		if strings.Contains(notice, "mute") {
-			if err = okenvelope.NewFrom(env.ID, false,
+			if err = okenvelope.NewFrom(env.Id, false,
 				normalize.Blocked.F(notice)).Write(ws); chk.T(err) {
 			}
 		} else {
@@ -47,7 +47,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 				if !ws.AuthRequested() {
 					ws.RequestAuth()
-					if err = okenvelope.NewFrom(env.ID, false,
+					if err = okenvelope.NewFrom(env.Id, false,
 						normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
 					}
 					log.I.F("requesting auth from client %s", ws.RealRemote())
@@ -56,7 +56,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 					}
 					return
 				} else {
-					if err = okenvelope.NewFrom(env.ID, false,
+					if err = okenvelope.NewFrom(env.Id, false,
 						normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
 					}
 					log.I.F("requesting auth again from client %s", ws.RealRemote())
@@ -69,25 +69,25 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 				log.W.F("didn't find authentication method")
 			}
 		}
-		if err = okenvelope.NewFrom(env.ID, false,
+		if err = okenvelope.NewFrom(env.Id, false,
 			normalize.Invalid.F(notice)).Write(ws); chk.T(err) {
 		}
 		return
 	}
-	if !bytes.Equal(env.GetIDBytes(), env.ID) {
-		if err = okenvelope.NewFrom(env.ID, false,
+	if !bytes.Equal(env.GetIDBytes(), env.Id) {
+		if err = okenvelope.NewFrom(env.Id, false,
 			normalize.Invalid.F("event id is computed incorrectly")).Write(ws); chk.E(err) {
 			return
 		}
 		return
 	}
 	if ok, err = env.Verify(); chk.T(err) {
-		if err = okenvelope.NewFrom(env.ID, false,
+		if err = okenvelope.NewFrom(env.Id, false,
 			normalize.Error.F("failed to verify signature")).Write(ws); chk.E(err) {
 			return
 		}
 	} else if !ok {
-		if err = okenvelope.NewFrom(env.ID, false,
+		if err = okenvelope.NewFrom(env.Id, false,
 			normalize.Error.F("signature is invalid")).Write(ws); chk.E(err) {
 			return
 		}
@@ -110,7 +110,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 					}
 					res, err = storage.QueryEvents(c, &filter.T{IDs: tag.New(evId)})
 					if err != nil {
-						if err = okenvelope.NewFrom(env.ID, false,
+						if err = okenvelope.NewFrom(env.Id, false,
 							normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {
 							return
 						}
@@ -118,14 +118,14 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 					}
 					for i := range res {
 						if res[i].Kind.Equal(kind.Deletion) {
-							if err = okenvelope.NewFrom(env.ID, false,
+							if err = okenvelope.NewFrom(env.Id, false,
 								normalize.Blocked.F("not processing or storing delete event containing delete event references")).Write(ws); chk.E(err) {
 								return
 							}
 							return
 						}
-						if !bytes.Equal(res[i].PubKey, env.T.PubKey) {
-							if err = okenvelope.NewFrom(env.ID, false,
+						if !bytes.Equal(res[i].Pubkey, env.T.Pubkey) {
+							if err = okenvelope.NewFrom(env.Id, false,
 								normalize.Blocked.F("cannot delete other users' events (delete by e tag)")).Write(ws); chk.E(err) {
 								return
 							}
@@ -139,7 +139,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 					}
 					var pk []byte
 					if pk, err = hex.DecAppend(nil, split[1]); chk.E(err) {
-						if err = okenvelope.NewFrom(env.ID, false,
+						if err = okenvelope.NewFrom(env.Id, false,
 							normalize.Invalid.F("delete event a tag pubkey value invalid: %s",
 								t.Value())).Write(ws); chk.E(err) {
 							return
@@ -148,7 +148,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 					}
 					kin := ints.New(uint16(0))
 					if _, err = kin.Unmarshal(split[0]); chk.E(err) {
-						if err = okenvelope.NewFrom(env.ID, false,
+						if err = okenvelope.NewFrom(env.Id, false,
 							normalize.Invalid.F("delete event a tag kind value invalid: %s",
 								t.Value())).Write(ws); chk.E(err) {
 							return
@@ -157,22 +157,22 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 					}
 					kk := kind.New(kin.Uint16())
 					if kk.Equal(kind.Deletion) {
-						if err = okenvelope.NewFrom(env.ID, false,
+						if err = okenvelope.NewFrom(env.Id, false,
 							normalize.Blocked.F("delete event kind may not be deleted")).Write(ws); chk.E(err) {
 							return
 						}
 						return
 					}
 					if !kk.IsParameterizedReplaceable() {
-						if err = okenvelope.NewFrom(env.ID, false,
+						if err = okenvelope.NewFrom(env.Id, false,
 							normalize.Error.F("delete tags with a tags containing non-parameterized-replaceable events cannot be processed")).Write(ws); chk.E(err) {
 							return
 						}
 						return
 					}
-					if !bytes.Equal(pk, env.T.PubKey) {
-						log.I.S(pk, env.T.PubKey, env.T)
-						if err = okenvelope.NewFrom(env.ID, false,
+					if !bytes.Equal(pk, env.T.Pubkey) {
+						log.I.S(pk, env.T.Pubkey, env.T)
+						if err = okenvelope.NewFrom(env.Id, false,
 							normalize.Blocked.F("cannot delete other users' events (delete by a tag)")).Write(ws); chk.E(err) {
 							return
 						}
@@ -188,7 +188,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 					f.Tags.AppendTags(tag.New([]byte{'#', 'd'}, split[2]))
 					res, err = storage.QueryEvents(c, f)
 					if err != nil {
-						if err = okenvelope.NewFrom(env.ID, false,
+						if err = okenvelope.NewFrom(env.Id, false,
 							normalize.Error.F("failed to query for target event")).Write(ws); chk.E(err) {
 							return
 						}
@@ -208,9 +208,9 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 			res = resTmp
 			for _, target := range res {
 				if target.Kind.K == kind.Deletion.K {
-					if err = okenvelope.NewFrom(env.ID, false,
+					if err = okenvelope.NewFrom(env.Id, false,
 						normalize.Error.F("cannot delete delete event %s",
-							env.ID)).Write(ws); chk.E(err) {
+							env.Id)).Write(ws); chk.E(err) {
 						return
 					}
 				}
@@ -219,37 +219,37 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 						target.CreatedAt.Int(), env.T.CreatedAt.Int())
 					continue
 				}
-				if !bytes.Equal(target.PubKey, env.PubKey) {
-					if err = okenvelope.NewFrom(env.ID, false,
+				if !bytes.Equal(target.Pubkey, env.Pubkey) {
+					if err = okenvelope.NewFrom(env.Id, false,
 						normalize.Error.F("only author can delete event")).Write(ws); chk.E(err) {
 						return
 					}
 					return
 				}
 				if advancedDeleter != nil {
-					advancedDeleter.BeforeDelete(c, t.Value(), env.PubKey)
+					advancedDeleter.BeforeDelete(c, t.Value(), env.Pubkey)
 				}
-				if err = sto.DeleteEvent(c, target.EventID()); chk.T(err) {
-					if err = okenvelope.NewFrom(env.ID, false,
+				if err = sto.DeleteEvent(c, target.EventId()); chk.T(err) {
+					if err = okenvelope.NewFrom(env.Id, false,
 						normalize.Error.F(err.Error())).Write(ws); chk.E(err) {
 						return
 					}
 					return
 				}
 				if advancedDeleter != nil {
-					advancedDeleter.AfterDelete(t.Value(), env.PubKey)
+					advancedDeleter.AfterDelete(t.Value(), env.Pubkey)
 				}
 			}
 			res = nil
 		}
-		if err = okenvelope.NewFrom(env.ID, true).Write(ws); chk.E(err) {
+		if err = okenvelope.NewFrom(env.Id, true).Write(ws); chk.E(err) {
 			return
 		}
 	}
 	var reason []byte
 	ok, reason = s.addEvent(c, s.relay, env.T, ws.Req(), ws.RealRemote(), ws.AuthedBytes())
 	log.I.F("event added %v, %s", ok, reason)
-	if err = okenvelope.NewFrom(env.ID, ok, reason).Write(ws); chk.E(err) {
+	if err = okenvelope.NewFrom(env.Id, ok, reason).Write(ws); chk.E(err) {
 		return
 	}
 	if after != nil {

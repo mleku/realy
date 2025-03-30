@@ -39,7 +39,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 		// replaceable event, delete before storing
 		var evs []*event.T
 		f := filter.New()
-		f.Authors = tag.New(evt.PubKey)
+		f.Authors = tag.New(evt.Pubkey)
 		f.Kinds = kinds.New(evt.Kind)
 		evs, err = w.I.QueryEvents(c, f)
 		if err != nil {
@@ -49,7 +49,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 			log.T.F("found %d possible duplicate events", len(evs))
 			for _, ev := range evs {
 				del := true
-				if bytes.Equal(ev.ID, evt.ID) {
+				if bytes.Equal(ev.Id, evt.Id) {
 					continue
 				}
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
@@ -74,7 +74,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 						})
 						// replaceable events we don't tombstone when replacing, so if deleted, old
 						// versions can be restored
-						if err = w.I.DeleteEvent(c, ev.EventID(), true); chk.E(err) {
+						if err = w.I.DeleteEvent(c, ev.EventId(), true); chk.E(err) {
 							return
 						}
 					}()
@@ -86,7 +86,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 		// parameterized replaceable event, delete before storing
 		var evs []*event.T
 		f := filter.New()
-		f.Authors = tag.New(evt.PubKey)
+		f.Authors = tag.New(evt.Pubkey)
 		f.Kinds = kinds.New(evt.Kind)
 		log.I.F("filter for parameterized replaceable %v %s", f.Tags.ToStringSlice(),
 			f.Serialize())
@@ -125,7 +125,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 						})
 						// replaceable events we don't tombstone when replacing, so if deleted, old
 						// versions can be restored
-						if err = w.I.DeleteEvent(c, ev.EventID(), true); chk.E(err) {
+						if err = w.I.DeleteEvent(c, ev.EventId(), true); chk.E(err) {
 							return
 						}
 					}()

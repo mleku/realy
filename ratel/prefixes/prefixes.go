@@ -35,7 +35,7 @@ const (
 	//   [ 1 ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
 	CreatedAt
 
-	// Id contains the first 8 bytes of the ID of the event and the 8
+	// Id contains the first 8 bytes of the Id of the event and the 8
 	// byte Serial of the event record.
 	//
 	//   [ 2 ][ 8 bytes eventid.T prefix ][ 8 bytes Serial ]
@@ -79,13 +79,13 @@ const (
 	//   [ 9 ][ 8 bytes Serial ] : value: [ 8 bytes timestamp ]
 	Counter
 
-	// Tombstone is an index that contains the left half of an event ID that has
+	// Tombstone is an index that contains the left half of an event Id that has
 	// been deleted. The purpose of this event is to stop the event being
 	// republished, as a delete event may not be respected by other relays and
 	// eventually lead to a republication. The timestamp is added at the end to
 	// enable pruning the oldest tombstones.
 	//
-	// [ 10 ][ 16 bytes first/left half of event ID ][ 8 bytes timestamp ]
+	// [ 10 ][ 16 bytes first/left half of event Id ][ 8 bytes timestamp ]
 	Tombstone
 
 	// PubkeyIndex is the prefix for an index that stores a mapping between pubkeys
@@ -103,7 +103,7 @@ const (
 	// ultimately be deprecated in favor of this because returning event Ids and
 	// letting the client handle pagination reduces relay complexity.
 	//
-	// In addition, as a mechanism of sorting, the event ID bears also a timestamp
+	// In addition, as a mechanism of sorting, the event Id bears also a timestamp
 	// from its created_at field. The serial acts as a "first seen" ordering, then
 	// you also have the (claimed) chronological ordering.
 	//

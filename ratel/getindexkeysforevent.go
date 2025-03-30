@@ -25,12 +25,12 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 
 	var err error
 	keyz = make([][]byte, 0, 18)
-	ID := id.New(eventid.NewWith(ev.ID))
+	ID := id.New(eventid.NewWith(ev.Id))
 	CA := createdat.New(ev.CreatedAt)
 	K := kinder.New(ev.Kind.ToU16())
-	PK, _ := pubkey.New(ev.PubKey)
-	FID := fullid.New(eventid.NewWith(ev.ID))
-	FPK := fullpubkey.New(ev.PubKey)
+	PK, _ := pubkey.New(ev.Pubkey)
+	FID := fullid.New(eventid.NewWith(ev.Id))
+	FPK := fullpubkey.New(ev.Pubkey)
 	// indexes
 	{ // ~ by id
 		k := prefixes.Id.Key(ID, ser)
@@ -100,7 +100,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		k := GetCounterKey(ser)
 		keyz = append(keyz, k)
 	}
-	{ // - full ID index - enabling retrieving the event ID without unmarshalling the data
+	{ // - full Id index - enabling retrieving the event Id without unmarshalling the data
 		k := prefixes.FullIndex.Key(ser, FID, FPK, CA)
 		// log.T.F("full id: %x %0x %0x", k[0], k[1:9], k[9:])
 		keyz = append(keyz, k)

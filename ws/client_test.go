@@ -38,7 +38,7 @@ func TestPublish(t *testing.T) {
 		Content:   []byte("hello"),
 		CreatedAt: timestamp.FromUnix(1672068534), // random fixed timestamp
 		Tags:      tags.New(tag.New("foo", "bar")),
-		PubKey:    signer.Pub(),
+		Pubkey:    signer.Pub(),
 	}
 	if err = textNote.Sign(signer); chk.E(err) {
 		t.Fatalf("textNote.Sign: %v", err)
@@ -69,7 +69,7 @@ func TestPublish(t *testing.T) {
 		}
 		// send back an ok nip-20 command result
 		var res []byte
-		if res = okenvelope.NewFrom(textNote.ID, true, nil).Marshal(res); chk.E(err) {
+		if res = okenvelope.NewFrom(textNote.Id, true, nil).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {
@@ -99,7 +99,7 @@ func TestPublishBlocked(t *testing.T) {
 		Kind:      kind.TextNote,
 		Content:   []byte("hello"),
 		CreatedAt: timestamp.FromUnix(1672068534), // random fixed timestamp
-		PubKey:    signer.Pub(),
+		Pubkey:    signer.Pub(),
 	}
 	if err = textNote.Sign(signer); chk.E(err) {
 		t.Fatalf("textNote.Sign: %v", err)
@@ -113,14 +113,14 @@ func TestPublishBlocked(t *testing.T) {
 		}
 		// send back a not ok nip-20 command result
 		var res []byte
-		if res = okenvelope.NewFrom(textNote.ID, false,
+		if res = okenvelope.NewFrom(textNote.Id, false,
 			normalize.Msg(normalize.Blocked, "no reason")).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {
 			t.Errorf("websocket.JSON.Send: %v", err)
 		}
-		// res := []any{"OK", textNote.ID, false, "blocked"}
+		// res := []any{"OK", textNote.Id, false, "blocked"}
 		chk.E(websocket.JSON.Send(conn, res))
 	})
 	defer ws.Close()
@@ -143,7 +143,7 @@ func TestPublishWriteFailed(t *testing.T) {
 		Kind:      kind.TextNote,
 		Content:   []byte("hello"),
 		CreatedAt: timestamp.FromUnix(1672068534), // random fixed timestamp
-		PubKey:    signer.Pub(),
+		Pubkey:    signer.Pub(),
 	}
 	if err = textNote.Sign(signer); chk.E(err) {
 		t.Fatalf("textNote.Sign: %v", err)

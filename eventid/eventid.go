@@ -33,7 +33,7 @@ func (ei *T) Set(b []byte) (err error) {
 		return
 	}
 	if len(b) != sha256.Size {
-		err = errorf.E("ID bytes incorrect size, got %d require %d", len(b), sha256.Size)
+		err = errorf.E("Id bytes incorrect size, got %d require %d", len(b), sha256.Size)
 		return
 	}
 	copy(ei[:], b)
@@ -90,7 +90,7 @@ func (ei *T) Unmarshal(b []byte) (rem []byte, err error) {
 	// trim off the quotes.
 	b = b[1 : 2*sha256.Size+1]
 	if len(b) != 2*sha256.Size {
-		err = errorf.E("event ID hex incorrect size, got %d require %d",
+		err = errorf.E("event Id hex incorrect size, got %d require %d",
 			len(b), 2*sha256.Size)
 		log.E.Ln(string(b))
 		return
@@ -107,7 +107,7 @@ func (ei *T) Unmarshal(b []byte) (rem []byte, err error) {
 // hexadecimal string, returns the string coerced to the type.
 func NewFromString(s string) (ei *T, err error) {
 	if len(s) != 2*sha256.Size {
-		return nil, errorf.E("event ID hex wrong size, got %d require %d",
+		return nil, errorf.E("event Id hex wrong size, got %d require %d",
 			len(s), 2*sha256.Size)
 	}
 	ei = &T{}
@@ -117,7 +117,7 @@ func NewFromString(s string) (ei *T, err error) {
 	return
 }
 
-// Gen creates a fake pseudorandom generated event ID for tests.
+// Gen creates a fake pseudorandom generated event Id for tests.
 func Gen() (ei *T) {
 	b := frand.Bytes(sha256.Size)
 	ei = &T{}

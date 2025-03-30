@@ -144,7 +144,7 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 				var tmp event.Ts
 				for _, ev := range events {
 					for _, pk := range mutePubs {
-						if bytes.Equal(ev.PubKey, pk) {
+						if bytes.Equal(ev.Pubkey, pk) {
 							continue
 						}
 						tmp = append(tmp, ev)

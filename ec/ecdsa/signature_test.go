@@ -549,7 +549,7 @@ type signTest struct {
 // 		}
 //
 // 		// Ensure the produced signature verifies.
-// 		pubKey := secKey.PubKey()
+// 		pubKey := secKey.Pubkey()
 // 		if !gotSig.Verify(hash, pubKey) {
 // 			t.Errorf("%s: signature failed to verify", test.name)
 // 			continue
@@ -771,7 +771,7 @@ func TestSignatureIsEqual(t *testing.T) {
 //
 // 		// Parse test data.
 // 		secKey := secp256k1.NewSecretKey(hexToModNScalar(test.key))
-// 		pubKey := secKey.PubKey()
+// 		pubKey := secKey.Pubkey()
 // 		hash := hexToBytes(test.hash)
 // 		wantSig := hexToBytes("00" + test.wantSigR + test.wantSigS)
 //

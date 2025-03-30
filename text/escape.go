@@ -4,7 +4,7 @@ package text
 //
 // This is the efficient implementation based on the NIP-01 specification:
 //
-// To prevent implementation differences from creating a different event ID for
+// To prevent implementation differences from creating a different event Id for
 // the same event, the following rules MUST be followed while serializing:
 //
 //	No whitespace, line breaks or other unnecessary formatting should be included
@@ -90,7 +90,7 @@ func NostrUnescape(dst []byte) (b []byte) {
 				dst[w] = '\r'
 				w++
 
-				// special cases for non-nip-01 specified json escapes (must be preserved for ID
+				// special cases for non-nip-01 specified json escapes (must be preserved for Id
 				// generation).
 			case c == 'u':
 				dst[w] = '\\'
@@ -103,7 +103,7 @@ func NostrUnescape(dst []byte) (b []byte) {
 				dst[w] = '/'
 				w++
 
-			// special case for octal escapes (must be preserved for ID generation).
+			// special case for octal escapes (must be preserved for Id generation).
 			case c >= '0' && c <= '9':
 				dst[w] = '\\'
 				w++

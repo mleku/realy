@@ -30,16 +30,16 @@ func New() *T {
 	return &T{Subscription: subscription.NewStd()}
 }
 
-// NewFrom creates a new T populated with subscription Id and Reason.
+// NewFrom creates a new closedenvelope.T populated with subscription Id and Reason.
 func NewFrom(id *subscription.Id, msg []byte) *T { return &T{Subscription: id, Reason: msg} }
 
-// Label returns the label of a CLOSED envelope.
+// Label returns the label of a closedenvelope.T.
 func (en *T) Label() string { return L }
 
 // ReasonString returns the Reason in the form of a string.
 func (en *T) ReasonString() string { return string(en.Reason) }
 
-// Write the CLOSED T to a provided io.Writer.
+// Write the closedenvelope.T to a provided io.Writer.
 func (en *T) Write(w io.Writer) (err error) {
 	var b []byte
 	b = en.Marshal(b)
@@ -47,7 +47,7 @@ func (en *T) Write(w io.Writer) (err error) {
 	return
 }
 
-// Marshal a CLOSED T envelope in minified JSON, appending to a provided
+// Marshal a closedenvelope.T envelope in minified JSON, appending to a provided
 // destination slice. Note that this ensures correct string escaping on the
 // Reason field.
 func (en *T) Marshal(dst []byte) (b []byte) {
@@ -65,7 +65,7 @@ func (en *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
-// Unmarshal a CLOSED T from minified JSON, returning the remainder after the end
+// Unmarshal a closedenvelope.T from minified JSON, returning the remainder after the end
 // of the envelope. Note that this ensures the Reason string is correctly
 // unescaped by NIP-01 escaping rules.
 func (en *T) Unmarshal(b []byte) (r []byte, err error) {
@@ -85,7 +85,7 @@ func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
-// Parse reads a CLOSED T from minified JSON into a newly allocated T.
+// Parse reads a closedenvelope.T from minified JSON into a newly allocated closedenvelope.T.
 func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {

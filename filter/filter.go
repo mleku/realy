@@ -420,7 +420,7 @@ func (f *T) Matches(ev *event.T) bool {
 		// log.T.F("nil event")
 		return false
 	}
-	if f.IDs.Len() > 0 && !f.IDs.Contains(ev.ID) {
+	if f.IDs.Len() > 0 && !f.IDs.Contains(ev.Id) {
 		// log.T.F("no ids in filter match event\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
@@ -428,7 +428,7 @@ func (f *T) Matches(ev *event.T) bool {
 		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.PubKey) {
+	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.Pubkey) {
 		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}

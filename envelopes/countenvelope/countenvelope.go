@@ -108,11 +108,11 @@ type Response struct {
 
 var _ codec.Envelope = (*Response)(nil)
 
-// NewResponse creates a new empty COUNT Response with a standard formatted
+// NewResponse creates a new empty countenvelope.Response with a standard formatted
 // subscription.Id.
 func NewResponse() *Response { return &Response{ID: subscription.NewStd()} }
 
-// NewResponseFrom creates a new response with provided string for the
+// NewResponseFrom creates a new countenvelope.Response with provided string for the
 // subscription.Id, a count and optional variadic approximate flag, which is
 // otherwise false and does not get rendered into the JSON.
 func NewResponseFrom[V string | []byte](s V, cnt int,
@@ -138,8 +138,8 @@ func (en *Response) Write(w io.Writer) (err error) {
 	return
 }
 
-// Marshal a COUNT Response envelope in minified JSON, appending to a provided
-// destination slice.
+// Marshal a countenvelope.Response envelope in minified JSON, appending to a
+// provided destination slice.
 func (en *Response) Marshal(dst []byte) (b []byte) {
 	var err error
 	b = dst
@@ -166,7 +166,7 @@ func (en *Response) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	var inID, inCount bool
 	for ; len(r) > 0; r = r[1:] {
-		// first we should be finding a subscription ID
+		// first we should be finding a subscription Id
 		if !inID && r[0] == '"' {
 			r = r[1:]
 			// so we don't do this twice
@@ -222,7 +222,7 @@ func (en *Response) Unmarshal(b []byte) (r []byte, err error) {
 }
 
 // Parse reads a Count Response in minified JSON into a newly allocated
-// Response.
+// countenvelope.Response.
 func Parse(b []byte) (t *Response, rem []byte, err error) {
 	t = NewResponse()
 	if rem, err = t.Unmarshal(b); chk.E(err) {

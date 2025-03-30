@@ -171,7 +171,7 @@ end:
 				return
 			}
 			mx.Lock()
-			counter = append(counter, Counter{id: ev.ID, size: bs, requested: 1})
+			counter = append(counter, Counter{id: ev.Id, size: bs, requested: 1})
 			total += bs
 			if total > TotalSize*10*units.Gb {
 				log.I.Ln(total, TotalSize*units.Gb)

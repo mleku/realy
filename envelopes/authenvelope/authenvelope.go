@@ -22,18 +22,18 @@ type Challenge struct {
 
 var _ codec.Envelope = (*Challenge)(nil)
 
-// NewChallenge creates a new empty Challenge.
+// NewChallenge creates a new empty authenvelope.Challenge.
 func NewChallenge() *Challenge { return &Challenge{} }
 
-// NewChallengeWith creates a new Challenge with provided bytes.
+// NewChallengeWith creates a new authenvelope.Challenge with provided bytes.
 func NewChallengeWith[V string | []byte](challenge V) *Challenge {
 	return &Challenge{[]byte(challenge)}
 }
 
-// Label returns the label of a Challenge envelope.
+// Label returns the label of a authenvelope.Challenge.
 func (en *Challenge) Label() string { return L }
 
-// Write the Challenge to a provided io.Writer.
+// Write the authenvelope.Challenge to a provided io.Writer.
 func (en *Challenge) Write(w io.Writer) (err error) {
 	var b []byte
 	b = en.Marshal(b)
@@ -42,7 +42,7 @@ func (en *Challenge) Write(w io.Writer) (err error) {
 	return
 }
 
-// Marshal a Challenge to minified JSON, appending to a provided destination
+// Marshal a authenvelope.Challenge to minified JSON, appending to a provided destination
 // slice. Note that this ensures correct string escaping on the challenge field.
 func (en *Challenge) Marshal(dst []byte) (b []byte) {
 	b = dst
@@ -59,7 +59,7 @@ func (en *Challenge) Marshal(dst []byte) (b []byte) {
 	return
 }
 
-// Unmarshal a Challenge from minified JSON, returning the remainder after the
+// Unmarshal a authenvelope.Challenge from minified JSON, returning the remainder after the
 // end of the envelope. Note that this ensures the challenge string was
 // correctly escaped by NIP-01 escaping rules.
 func (en *Challenge) Unmarshal(b []byte) (r []byte, err error) {
@@ -76,7 +76,7 @@ func (en *Challenge) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
-// ParseChallenge reads a Challenge encoded in minified JSON and unpacks it to
+// ParseChallenge reads a authenvelope.Challenge encoded in minified JSON and unpacks it to
 // the runtime format.
 func ParseChallenge(b []byte) (t *Challenge, rem []byte, err error) {
 	t = NewChallenge()

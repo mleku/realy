@@ -99,7 +99,7 @@ func main() {
 		}
 		can := ev.ToCanonical(nil)
 		eh := event.Hash(can)
-		eq := bytes.Equal(ev.ID, eh)
+		eq := bytes.Equal(ev.Id, eh)
 		if !eq {
 			_, err = fmt.Fprintf(ids, "%s\n", ev.Serialize())
 			if chk.E(err) {

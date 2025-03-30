@@ -4,15 +4,15 @@ import (
 	"io"
 )
 
-// Marshaler is a function signature the same as the codec.JSON Marshal but
+// Marshaller is a function signature the same as the codec.JSON Marshal but
 // without the requirement of there being a full implementation or declared
 // receiver variable of this interface. Used here to encapsulate one or more
 // other data structures into an envelope.
-type Marshaler func(dst []byte) (b []byte)
+type Marshaller func(dst []byte) (b []byte)
 
 // Marshal is a parser for dynamic typed arrays like nosttr codec.Envelope
 // types.
-func Marshal(dst []byte, label string, m Marshaler) (b []byte) {
+func Marshal(dst []byte, label string, m Marshaller) (b []byte) {
 	b = dst
 	b = append(b, '[', '"')
 	b = append(b, label...)

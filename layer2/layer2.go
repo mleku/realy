@@ -131,14 +131,14 @@ func (b *Backend) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error
 	if evs, err = b.L1.QueryEvents(c, f); chk.E(err) {
 		return
 	}
-	// if there is pruned events (have only ID, no pubkey), they will also be in the
+	// if there is pruned events (have only Id, no pubkey), they will also be in the
 	// L2 result, save these to the L1.
 	var revives [][]byte
 	var founds event.Ts
 	for _, ev := range evs {
-		if len(ev.PubKey) == 0 {
-			// note the event ID to fetch
-			revives = append(revives, ev.ID)
+		if len(ev.Pubkey) == 0 {
+			// note the event Id to fetch
+			revives = append(revives, ev.Id)
 		} else {
 			founds = append(founds, ev)
 		}

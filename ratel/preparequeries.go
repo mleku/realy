@@ -49,7 +49,7 @@ func PrepareQueries(f *filter.T) (
 		for i, idB := range f.IDs.F() {
 			ih := id.New(eventid.NewWith(idB))
 			if ih == nil {
-				log.E.F("failed to decode event ID: %s", idB)
+				log.E.F("failed to decode event Id: %s", idB)
 				// just ignore it, clients will be clients
 				continue
 			}

@@ -57,17 +57,17 @@ func TestSignerVerify(t *testing.T) {
 			t.Errorf("id should be 32 bytes, got %d", len(id))
 			continue
 		}
-		if err = signer.InitPub(ev.PubKey); chk.T(err) {
-			t.Errorf("failed to init pub key: %s\n%0x", err, ev.PubKey)
+		if err = signer.InitPub(ev.Pubkey); chk.T(err) {
+			t.Errorf("failed to init pub key: %s\n%0x", err, ev.Pubkey)
 			continue
 		}
 		if valid, err = signer.Verify(id, ev.Sig); chk.E(err) {
-			t.Errorf("failed to verify: %s\n%0x", err, ev.ID)
+			t.Errorf("failed to verify: %s\n%0x", err, ev.Id)
 			continue
 		}
 		if !valid {
 			t.Errorf("invalid signature for\npub %0x\neid %0x\nsig %0x\n%s",
-				ev.PubKey, id, ev.Sig, bc)
+				ev.Pubkey, id, ev.Sig, bc)
 			continue
 		}
 		// fmt.Printf("%s\n", bc)
@@ -105,7 +105,7 @@ func TestSignerSign(t *testing.T) {
 	var valid bool
 	sig := make([]byte, schnorr.SignatureSize)
 	for _, ev := range evs {
-		ev.PubKey = pkb
+		ev.Pubkey = pkb
 		id := ev.GetIDBytes()
 		if sig, err = signer.Sign(id); chk.E(err) {
 			t.Errorf("failed to sign: %s\n%0x", err, id)

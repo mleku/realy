@@ -52,7 +52,7 @@ type T struct {
 	// triggered by running an import
 	Flatten bool
 	// UseCompact uses a compact encoding based on the canonical format (generate
-	// hash of it to get ID field with the signature in raw binary after.
+	// hash of it to get Id field with the signature in raw binary after.
 	UseCompact bool
 	// Compression sets the compression to use, none/snappy/zstd
 	Compression string

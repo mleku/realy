@@ -80,7 +80,7 @@ func TestNestedSubscriptions(t *testing.T) {
 			var lim uint = 1
 			sub, err := rl.Subscribe(context.Bg(),
 				filters.New(&filter.T{Kinds: kinds.New(kind.ProfileMetadata),
-					Authors: tag.New(event.PubKey), Limit: &lim}))
+					Authors: tag.New(event.Pubkey), Limit: &lim}))
 			if err != nil {
 				t.Fatalf("subscription 2 failed: %v", err)
 				return

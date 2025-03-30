@@ -58,7 +58,7 @@ func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 			if item.ValueSize() == sha256.Size {
 				return
 			}
-			// if there is L2 we are only pruning (replacing event with the ID hash)
+			// if there is L2 we are only pruning (replacing event with the Id hash)
 			var evb []byte
 			if evb, err = item.ValueCopy(nil); chk.E(err) {
 				return
@@ -75,7 +75,7 @@ func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 			if err = batch.Delete(key); chk.E(err) {
 				return
 			}
-			if err = batch.Set(key, ev.ID); chk.E(err) {
+			if err = batch.Set(key, ev.Id); chk.E(err) {
 				return
 			}
 			return

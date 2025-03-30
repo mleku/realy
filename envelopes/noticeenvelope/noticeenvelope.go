@@ -23,10 +23,10 @@ type T struct {
 
 var _ codec.Envelope = (*T)(nil)
 
-// New creates a new empty NOTICE T.
+// New creates a new empty NOTICE noticeenvelope.T.
 func New() *T { return &T{} }
 
-// NewFrom creates a new NOTICE T with a provided message.
+// NewFrom creates a new noticeenvelope.T with a provided message.
 func NewFrom[V string | []byte](msg V) *T { return &T{Message: []byte(msg)} }
 
 // Label returns the label of a NOTICE envelope.
@@ -38,9 +38,9 @@ func (en *T) Write(w io.Writer) (err error) {
 	return
 }
 
-// Marshal a NOTICE T envelope in minified JSON, appending to a provided
-// destination slice. Note that this ensures correct string escaping on the
-// Reason field.
+// Marshal a NOTICE envelope in minified JSON into an noticeenvelope.T,
+// appending to a provided destination slice. Note that this ensures correct
+// string escaping on the Reason field.
 func (en *T) Marshal(dst []byte) (b []byte) {
 	var err error
 	_ = err
@@ -56,9 +56,9 @@ func (en *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
-// Unmarshal a NOTICE T from minified JSON, returning the remainder after the
-// end of the envelope. Note that this ensures the Reason string is correctly
-// unescaped by NIP-01 escaping rules.
+// Unmarshal a noticeenvelope.T from minified JSON, returning the remainder
+// after the end of the envelope. Note that this ensures the Reason string is
+// correctly unescaped by NIP-01 escaping rules.
 func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	if en.Message, r, err = text.UnmarshalQuoted(r); chk.E(err) {
@@ -70,7 +70,8 @@ func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
-// Parse reads a NOTICE T in minified JSON into a newly allocated T.
+// Parse reads a NOTICE envelope in minified JSON into a newly allocated
+// noticeenvelope.T.
 func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {

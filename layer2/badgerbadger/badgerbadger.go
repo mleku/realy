@@ -35,7 +35,7 @@ func GetBackend(c context.T, wg *sync.WaitGroup, L1, L2 *ratel.T) (es store.I) {
 // Init sets up the badger event store and connects to the configured IC
 // canister.
 //
-// required params are address, canister ID and the badger event store size
+// required params are address, canister Id and the badger event store size
 // limit (which can be 0)
 func (b *Backend) Init(path string) (err error) { return b.Backend.Init(path) }
 

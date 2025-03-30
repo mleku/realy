@@ -27,7 +27,7 @@ func GenerateChallenge() (b []byte) {
 // If the authentication succeeds, the user will be authenticated as pubkey.
 func CreateUnsigned(pubkey, challenge []byte, relayURL string) (ev *event.T) {
 	return &event.T{
-		PubKey:    pubkey,
+		Pubkey:    pubkey,
 		CreatedAt: timestamp.Now(),
 		Kind:      kind.ClientAuthentication,
 		Tags: tags.New(tag.New("relay", relayURL),

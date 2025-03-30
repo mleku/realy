@@ -123,7 +123,7 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 			// followed can access the relay and upload DM events and such for owner
 			// followed users.
 			for o := range r.OwnersFollowed {
-				if bytes.Equal([]byte(o), evt.PubKey) {
+				if bytes.Equal([]byte(o), evt.Pubkey) {
 					return true, "", func() {
 						r.ZeroLists()
 						r.CheckOwnerLists(context.Bg())
@@ -134,7 +134,7 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 		if evt.Kind.Equal(kind.MuteList) {
 			// only owners control the mute list
 			for _, o := range r.owners {
-				if bytes.Equal(o, evt.PubKey) {
+				if bytes.Equal(o, evt.Pubkey) {
 					return true, "", func() {
 						r.ZeroLists()
 						r.CheckOwnerLists(context.Bg())
@@ -143,8 +143,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 			}
 		}
 		for _, o := range r.owners {
-			log.T.F("%0x,%0x", o, evt.PubKey)
-			if bytes.Equal(o, evt.PubKey) {
+			log.T.F("%0x,%0x", o, evt.Pubkey)
+			if bytes.Equal(o, evt.Pubkey) {
 				// prevent owners from deleting their own mute/follow lists in case of bad
 				// client implementation
 				if evt.Kind.Equal(kind.Deletion) {
@@ -189,8 +189,8 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 			// check the mute list, and reject events authored by muted pubkeys, even if
 			// they come from a pubkey that is on the follow list.
 			for pk := range r.Muted {
-				if bytes.Equal(evt.PubKey, []byte(pk)) {
-					return false, "rejecting event with pubkey " + hex.Enc(evt.PubKey) +
+				if bytes.Equal(evt.Pubkey, []byte(pk)) {
+					return false, "rejecting event with pubkey " + hex.Enc(evt.Pubkey) +
 						" because on owner mute list", nil
 				}
 			}
@@ -199,7 +199,7 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 				// allow all events from follows of owners
 				if bytes.Equal(authedPubkey, []byte(pk)) {
 					log.I.F("accepting event %0x because %0x on owner follow list",
-						evt.ID, []byte(pk))
+						evt.Id, []byte(pk))
 					return true, "", nil
 				}
 			}
@@ -367,7 +367,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 					Kinds: kinds.New(kind.FollowList)}); chk.E(err) {
 			}
 			for _, ev := range evs {
-				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.ID)
+				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.Id)
 				for _, t := range ev.Tags.F() {
 					if bytes.Equal(t.Key(), []byte("p")) {
 						var p []byte
@@ -393,7 +393,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			for _, ev := range evs {
 				// we want to protect the follow lists of users as well so they also cannot be
 				// deleted, only replaced.
-				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.ID)
+				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.Id)
 				for _, t := range ev.Tags.F() {
 					if bytes.Equal(t.Key(), []byte("p")) {
 						var p []byte
@@ -414,7 +414,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 					Kinds: kinds.New(kind.MuteList)}); chk.E(err) {
 			}
 			for _, ev := range evs {
-				r.OwnersMuteLists = append(r.OwnersMuteLists, ev.ID)
+				r.OwnersMuteLists = append(r.OwnersMuteLists, ev.Id)
 				for _, t := range ev.Tags.F() {
 					if bytes.Equal(t.Key(), []byte("p")) {
 						var p []byte

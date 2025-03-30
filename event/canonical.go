@@ -13,11 +13,11 @@ import (
 )
 
 // ToCanonical converts the event to the canonical encoding used to derive the
-// event ID.
+// event Id.
 func (ev *T) ToCanonical(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, "[0,\""...)
-	b = hex.EncAppend(b, ev.PubKey)
+	b = hex.EncAppend(b, ev.Pubkey)
 	b = append(b, "\","...)
 	b = ev.CreatedAt.Marshal(b)
 	b = append(b, ',')
@@ -30,9 +30,10 @@ func (ev *T) ToCanonical(dst []byte) (b []byte) {
 	return
 }
 
-// GetIDBytes returns the raw SHA256 hash of the canonical form of an T.
+// GetIDBytes returns the raw SHA256 hash of the canonical form of an event.T.
 func (ev *T) GetIDBytes() []byte { return Hash(ev.ToCanonical(nil)) }
 
+// New
 func NewCanonical() (a *json.Array) {
 	a = &json.Array{
 		V: []codec.JSON{
@@ -48,10 +49,11 @@ func NewCanonical() (a *json.Array) {
 }
 
 // this is an absolute minimum length canonical encoded event
-var minimal = len(`[0,"0123456789abcdef0123456789abcdef",1733739427,0,[],""]`)
+var minimal = len(`[0,"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",1733739427,0,[],""]`)
 
-// FromCanonical reverses the process of creating the canonical encoding, note that the signature is missing in this
-// form. Allocate an event.T before calling this.
+// FromCanonical reverses the process of creating the canonical encoding, note
+// that the signature is missing in this form. Allocate an event.T before
+// calling this.
 func (ev *T) FromCanonical(b []byte) (rem []byte, err error) {
 	rem = b
 	id := Hash(rem)
@@ -71,14 +73,14 @@ func (ev *T) FromCanonical(b []byte) (rem []byte, err error) {
 			return
 		}
 	}
-	// create the event, use the ID hash to populate the ID
-	ev.ID = id
+	// create the event, use the Id hash to populate the Id
+	ev.Id = id
 	// unwrap the pubkey
 	if v, ok := x[1].(*json.Hex); !ok {
 		err = errorf.E("failed to decode pubkey from canonical form of event %s", b)
 		return
 	} else {
-		ev.PubKey = v.V
+		ev.Pubkey = v.V
 	}
 	// populate the timestamp field
 	if v, ok := x[2].(*timestamp.T); !ok {
@@ -108,6 +110,5 @@ func (ev *T) FromCanonical(b []byte) (rem []byte, err error) {
 	} else {
 		ev.Content = v.V
 	}
-
 	return
 }

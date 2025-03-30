@@ -42,7 +42,7 @@ func New(evID ...*eventid.T) (p *T) {
 
 func NewFromBytes(b []byte) (p *T, err error) {
 	if len(b) != sha256.Size {
-		err = errorf.E("event ID must be 32 bytes got: %d %0x", len(b), b)
+		err = errorf.E("event Id must be 32 bytes got: %d %0x", len(b), b)
 		return
 	}
 	p = &T{Val: b[:Len]}
