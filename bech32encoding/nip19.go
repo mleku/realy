@@ -32,7 +32,9 @@ var (
 	// include relay hints to find the event, and the author's npub.
 	NeventHRP = []byte("nevent")
 
-	// NentityHRP is the Human Readable Prefix (HRP) for a nostr is a generic nostr entity, which may include relay hints to find the event, and the author's npub.
+	// NentityHRP is the Human Readable Prefix (HRP) for a nostr is a generic nostr
+	// entity, which may include relay hints to find the event, and the author's
+	// npub.
 	NentityHRP = []byte("naddr")
 )
 

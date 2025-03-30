@@ -13,10 +13,11 @@ import (
 	"realy.lol/text"
 )
 
-const (
-	L = "OK"
-)
+// L is the label associated with this type of codec.Envelope.
+const L = "OK"
 
+// T is an OK envelope, used to signal acceptance or rejection, with a reason,
+// to an eventenvelope.Submission.
 type T struct {
 	EventID *eventid.T
 	OK      bool
@@ -25,11 +26,15 @@ type T struct {
 
 var _ codec.Envelope = (*T)(nil)
 
+// New creates a new empty OK T.
 func New() *T { return &T{} }
-func NewFrom[V string | []byte](eid V, ok bool, msg ...[]byte) *T {
+
+// NewFrom creates a new OK T with a string for the subscription.Id and the
+// Reason.
+func NewFrom[V string | []byte](eid V, ok bool, msg ...V) *T {
 	var m []byte
 	if len(msg) > 0 {
-		m = msg[0]
+		m = []byte(msg[0])
 	}
 	if len(eid) != sha256.Size {
 		log.W.F("event ID unexpected length, expect %d got %d",
@@ -37,14 +42,22 @@ func NewFrom[V string | []byte](eid V, ok bool, msg ...[]byte) *T {
 	}
 	return &T{EventID: eventid.NewWith(eid), OK: ok, Reason: m}
 }
-func (en *T) Label() string        { return L }
+
+// Label returns the label of an OK envelope.
+func (en *T) Label() string { return L }
+
+// ReasonString returns the Reason in the form of a string.
 func (en *T) ReasonString() string { return string(en.Reason) }
 
+// Write the OK T to a provided io.Writer.
 func (en *T) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
+// Marshal a CLOSED T envelope in minified JSON, appending to a provided
+// destination slice. Note that this ensures correct string escaping on the
+// subscription.Id and Reason fields.
 func (en *T) Marshal(dst []byte) (b []byte) {
 	var err error
 	_ = err
@@ -66,6 +79,9 @@ func (en *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a CLOSED T from minified JSON, returning the remainder after the
+// end of the envelope. Note that this ensures the Reason and subscription.Id
+// strings are correctly unescaped by NIP-01 escaping rules.
 func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	var idHex []byte
@@ -95,6 +111,7 @@ func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
+// Parse reads a OK T in minified JSON into a newly allocated T.
 func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {

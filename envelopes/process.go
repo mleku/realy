@@ -4,8 +4,14 @@ import (
 	"io"
 )
 
+// Marshaler is a function signature the same as the codec.JSON Marshal but
+// without the requirement of there being a full implementation or declared
+// receiver variable of this interface. Used here to encapsulate one or more
+// other data structures into an envelope.
 type Marshaler func(dst []byte) (b []byte)
 
+// Marshal is a parser for dynamic typed arrays like nosttr codec.Envelope
+// types.
 func Marshal(dst []byte, label string, m Marshaler) (b []byte) {
 	b = dst
 	b = append(b, '[', '"')
@@ -16,6 +22,8 @@ func Marshal(dst []byte, label string, m Marshaler) (b []byte) {
 	return
 }
 
+// SkipToTheEnd scans forward after all fields in an envelope have been read to
+// find the closing bracket.
 func SkipToTheEnd(dst []byte) (rem []byte, err error) {
 	if len(dst) == 0 {
 		return

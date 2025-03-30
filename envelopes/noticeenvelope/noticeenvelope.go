@@ -11,23 +11,36 @@ import (
 	"realy.lol/text"
 )
 
+// L is the label associated with this type of codec.Envelope.
 const L = "NOTICE"
 
+// T is a NOTICE envelope, intended to convey information to the user about the
+// state of the relay connection. This thing is rarely displayed on clients
+// except sometimes in event logs.
 type T struct {
 	Message []byte
 }
 
 var _ codec.Envelope = (*T)(nil)
 
-func New() *T                             { return &T{} }
-func NewFrom[V string | []byte](msg V) *T { return &T{Message: []byte(msg)} }
-func (en *T) Label() string               { return L }
+// New creates a new empty NOTICE T.
+func New() *T { return &T{} }
 
+// NewFrom creates a new NOTICE T with a provided message.
+func NewFrom[V string | []byte](msg V) *T { return &T{Message: []byte(msg)} }
+
+// Label returns the label of a NOTICE envelope.
+func (en *T) Label() string { return L }
+
+// Write the NOTICE T to a provided io.Writer.
 func (en *T) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
+// Marshal a NOTICE T envelope in minified JSON, appending to a provided
+// destination slice. Note that this ensures correct string escaping on the
+// Reason field.
 func (en *T) Marshal(dst []byte) (b []byte) {
 	var err error
 	_ = err
@@ -43,6 +56,9 @@ func (en *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a NOTICE T from minified JSON, returning the remainder after the
+// end of the envelope. Note that this ensures the Reason string is correctly
+// unescaped by NIP-01 escaping rules.
 func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	if en.Message, r, err = text.UnmarshalQuoted(r); chk.E(err) {
@@ -54,6 +70,7 @@ func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
+// Parse reads a NOTICE T in minified JSON into a newly allocated T.
 func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {

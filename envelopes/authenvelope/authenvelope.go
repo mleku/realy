@@ -11,6 +11,7 @@ import (
 	"realy.lol/text"
 )
 
+// L is the label associated with this type of codec.Envelope.
 const L = "AUTH"
 
 // Challenge is the relay-sent message containing a relay-chosen random string
@@ -41,8 +42,8 @@ func (en *Challenge) Write(w io.Writer) (err error) {
 	return
 }
 
-// Marshal a Challenge to minified JSON. Note that this ensures correct string
-// escaping on the challenge field.
+// Marshal a Challenge to minified JSON, appending to a provided destination
+// slice. Note that this ensures correct string escaping on the challenge field.
 func (en *Challenge) Marshal(dst []byte) (b []byte) {
 	b = dst
 	var err error
@@ -58,8 +59,9 @@ func (en *Challenge) Marshal(dst []byte) (b []byte) {
 	return
 }
 
-// Unmarshal a Challenge from minified JSON. Note that this ensures the
-// challenge string was correctly escaped by NIP-01 escaping rules.
+// Unmarshal a Challenge from minified JSON, returning the remainder after the
+// end of the envelope. Note that this ensures the challenge string was
+// correctly escaped by NIP-01 escaping rules.
 func (en *Challenge) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	if en.Challenge, r, err = text.UnmarshalQuoted(r); chk.E(err) {
@@ -109,8 +111,8 @@ func (en *Response) Write(w io.Writer) (err error) {
 	return
 }
 
-// Marshal a Response to minified JSON. Note that this ensures correct string
-// escaping on the challenge field.
+// Marshal a Response to minified JSON, appending to a provided destination
+// slice. Note that this ensures correct string escaping on the challenge field.
 func (en *Response) Marshal(dst []byte) (b []byte) {
 	var err error
 	if en == nil {
@@ -127,8 +129,9 @@ func (en *Response) Marshal(dst []byte) (b []byte) {
 	return
 }
 
-// Unmarshal a Response from minified JSON. Note that this ensures the
-// challenge string was correctly escaped by NIP-01 escaping rules.
+// Unmarshal a Response from minified JSON, returning the remainder after the en
+// of the envelope. Note that this ensures the challenge string was correctly
+// escaped by NIP-01 escaping rules.
 func (en *Response) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	// literally just unmarshal the event

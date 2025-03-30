@@ -10,22 +10,34 @@ import (
 	"realy.lol/subscription"
 )
 
+// L is the label associated with this type of codec.Envelope.
 const L = "CLOSE"
 
+// T is a CLOSE envelope, which is a signal from client to relay to stop a
+// specified subscription.
 type T struct {
 	ID *subscription.Id
 }
 
 var _ codec.Envelope = (*T)(nil)
 
-func New() *T                        { return &T{ID: subscription.NewStd()} }
+// New creates an empty new standard formatted T.
+func New() *T { return &T{ID: subscription.NewStd()} }
+
+// NewFrom creates a new T populated with subscription Id.
 func NewFrom(id *subscription.Id) *T { return &T{ID: id} }
-func (en *T) Label() string          { return L }
+
+// Label returns the label of a CLOSE envelope.
+func (en *T) Label() string { return L }
+
+// Write the CLOSE T to a provided io.Writer.
 func (en *T) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
+// Marshal a CLOSE T envelope in minified JSON, appending to a provided
+// destination slice.
 func (en *T) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = envelopes.Marshal(b, L,
@@ -37,6 +49,8 @@ func (en *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a CLOSE T from minified JSON, returning the remainder after the end
+// of the envelope.
 func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	if en.ID, err = subscription.NewId([]byte{0}); chk.E(err) {
@@ -51,6 +65,7 @@ func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
+// Parse reads a CLOSE T in minified JSON into a newly allocated T.
 func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {

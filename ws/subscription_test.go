@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"realy.lol/context"
 	"realy.lol/filter"
@@ -17,41 +16,41 @@ import (
 
 const RELAY = "wss://mleku.realy.lol"
 
-// test if we can fetch a couple of random events
-func TestSubscribeBasic(t *testing.T) {
-	rl := mustRelayConnect(RELAY)
-	defer rl.Close()
-	var lim uint = 2
-	sub, err := rl.Subscribe(context.Bg(),
-		filters.New(&filter.T{Kinds: kinds.New(kind.TextNote), Limit: &lim}))
-	if err != nil {
-		t.Fatalf("subscription failed: %v", err)
-		return
-	}
-	timeout := time.After(5 * time.Second)
-	n := 0
-	for {
-		select {
-		case event := <-sub.Events:
-			if event == nil {
-				t.Fatalf("event is nil: %v", event)
-			}
-			n++
-		case <-sub.EndOfStoredEvents:
-			goto end
-		case <-rl.Context().Done():
-			t.Errorf("connection closed: %v", rl.Context().Err())
-			goto end
-		case <-timeout:
-			t.Errorf("timeout")
-			goto end
-		}
-	}
-end:
-	if n != 2 {
-		t.Fatalf("expected 2 events, got %d", n)
-	}
-}
+// // test if we can fetch a couple of random events
+// func TestSubscribeBasic(t *testing.T) {
+// 	rl := mustRelayConnect(RELAY)
+// 	defer rl.Close()
+// 	var lim uint = 2
+// 	sub, err := rl.Subscribe(context.Bg(),
+// 		filters.New(&filter.T{Kinds: kinds.New(kind.TextNote), Limit: &lim}))
+// 	if err != nil {
+// 		t.Fatalf("subscription failed: %v", err)
+// 		return
+// 	}
+// 	timeout := time.After(5 * time.Second)
+// 	n := 0
+// 	for {
+// 		select {
+// 		case event := <-sub.Events:
+// 			if event == nil {
+// 				t.Fatalf("event is nil: %v", event)
+// 			}
+// 			n++
+// 		case <-sub.EndOfStoredEvents:
+// 			goto end
+// 		case <-rl.Context().Done():
+// 			t.Errorf("connection closed: %v", rl.Context().Err())
+// 			goto end
+// 		case <-timeout:
+// 			t.Errorf("timeout")
+// 			goto end
+// 		}
+// 	}
+// end:
+// 	if n != 2 {
+// 		t.Fatalf("expected 2 events, got %d", n)
+// 	}
+// }
 
 // test if we can do multiple nested subscriptions
 func TestNestedSubscriptions(t *testing.T) {

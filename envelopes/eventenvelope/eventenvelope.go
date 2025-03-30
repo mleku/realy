@@ -11,6 +11,7 @@ import (
 	"realy.lol/subscription"
 )
 
+// L is the label associated with this type of codec.Envelope.
 const L = "EVENT"
 
 // Submission is a request from a client for a realy to store an event.
@@ -20,15 +21,23 @@ type Submission struct {
 
 var _ codec.Envelope = (*Submission)(nil)
 
-func NewSubmission() *Submission                { return &Submission{T: &event.T{}} }
-func NewSubmissionWith(ev *event.T) *Submission { return &Submission{T: ev} }
-func (en *Submission) Label() string            { return L }
+// NewSubmission creates an empty new Submission.
+func NewSubmission() *Submission { return &Submission{T: &event.T{}} }
 
+// NewSubmissionWith creates a new Submission with a provided event.T.
+func NewSubmissionWith(ev *event.T) *Submission { return &Submission{T: ev} }
+
+// Label returns the label of a event Submission envelope.
+func (en *Submission) Label() string { return L }
+
+// Write the Submission to a provided io.Writer.
 func (en *Submission) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
+// Marshal a event Submission T envelope in minified JSON, appending to a provided
+// destination slice.
 func (en *Submission) Marshal(dst []byte) (b []byte) {
 	var err error
 	b = dst
@@ -42,6 +51,8 @@ func (en *Submission) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal an event Submission from minified JSON, returning the remainder
+// after the end of the envelope.
 func (en *Submission) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	en.T = event.New()
@@ -55,6 +66,8 @@ func (en *Submission) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
+// ParseSubmission reads an event Submission from minified JSON into a newly
+// allocated Submission.
 func ParseSubmission(b []byte) (t *Submission, rem []byte, err error) {
 	t = NewSubmission()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
@@ -71,7 +84,11 @@ type Result struct {
 
 var _ codec.Envelope = (*Result)(nil)
 
+// NewResult creates a new empty event Result.
 func NewResult() *Result { return &Result{} }
+
+// NewResultWith creates a new Result with a provided subscription.Id string and
+// event.T.
 func NewResultWith[V string | []byte](s V, ev *event.T) (res *Result, err error) {
 	if len(s) < 0 || len(s) > 64 {
 		err = errorf.E("subscription id must be length > 0 and <= 64")
@@ -79,13 +96,18 @@ func NewResultWith[V string | []byte](s V, ev *event.T) (res *Result, err error)
 	}
 	return &Result{subscription.MustNew(s), ev}, nil
 }
+
+// Label returns the label of a event Result envelope.
 func (en *Result) Label() string { return L }
 
+// Write the event Result T to a provided io.Writer.
 func (en *Result) Write(w io.Writer) (err error) {
 	_, err = w.Write(en.Marshal(nil))
 	return
 }
 
+// Marshal a event Result envelope in minified JSON, appending to a provided
+// destination slice.
 func (en *Result) Marshal(dst []byte) (b []byte) {
 	var err error
 	b = dst
@@ -101,6 +123,8 @@ func (en *Result) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a event Result from minified JSON, returning the remainder after
+// the end of the envelope.
 func (en *Result) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	if en.Subscription, err = subscription.NewId([]byte{0}); chk.E(err) {

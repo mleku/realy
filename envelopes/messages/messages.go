@@ -7,16 +7,36 @@ import (
 )
 
 const (
-	Duplicate   = "duplicate"
-	Pow         = "pow"
-	Blocked     = "blocked"
+	// Duplicate is a machine readable prefix for OK envelopes indicating that the
+	// submitted event is already in the relay,s event store.
+	Duplicate = "duplicate"
+
+	// Pow is a machine readable prefix for OK envelopes indicating that the
+	// eventid.T lacks sufficient zeros at the front.
+	Pow = "pow"
+
+	// Blocked is a machine readable prefix for OK envelopes indicating the event
+	// submission or REQ has been rejected.
+	Blocked = "blocked"
+
+	// RateLimited is a machine readable prefix for CLOSED and OK envelopes
+	// indicating the relay is now slowing down processing of requests from the
+	// client.
 	RateLimited = "rate-limited"
-	Invalid     = "invalid"
-	Error       = "error"
+
+	// Invalid is a machine readable prefix for OK envelopes indicating
+	// that the submitted event or other request is not correctly formatted, and may
+	// mean a signature does not verify.
+	Invalid = "invalid"
+
+	// Error is a machine readable prefix for CLOSED and OK envelopes indicating
+	// there was some kind of error in processing the request.
+	Error = "error"
 )
 
+// Examples are some examples of the use of the prefixes above with appropriate
+// human-readable suffixes.
 var Examples = [][]byte{
-	[]byte(""),
 	[]byte("pow: difficulty 25>=24"),
 	[]byte("duplicate: already have this event"),
 	[]byte("blocked: you are banned from posting here"),
@@ -28,6 +48,7 @@ var Examples = [][]byte{
 	[]byte("error: could not connect to the database"),
 }
 
+// RandomMessage generates a random message out of the above list of Examples.
 func RandomMessage() []byte {
 	return Examples[frand.Intn(len(Examples)-1)]
 }
