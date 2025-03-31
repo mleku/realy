@@ -57,6 +57,7 @@ func (ev *T) FromCanonical(b []byte) (rem []byte, err error) {
 	id := Hash(rem)
 	c := NewCanonical()
 	if rem, err = c.Unmarshal(rem); chk.E(err) {
+		log.I.S(b)
 		return
 	}
 	// unwrap the array
@@ -67,7 +68,8 @@ func (ev *T) FromCanonical(b []byte) (rem []byte, err error) {
 		return
 	} else {
 		if v.V != 0 {
-			err = errorf.E("unexpected value %d in first field of canonical event, expect 0", v.V)
+			err = errorf.E("unexpected value %d in first field of canonical event, expect 0",
+				v.V)
 			return
 		}
 	}

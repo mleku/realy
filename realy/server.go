@@ -84,7 +84,8 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 		admins:         sp.Admins,
 		owners:         sp.Rl.Owners(),
 		Listeners:      listeners.New(sp.Ctx),
-		API:            NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version, realy_lol.Description),
+		API: NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version,
+			realy_lol.Description),
 	}
 	huma.AutoRegister(s.API, NewEvent(s))
 	huma.AutoRegister(s.API, NewFilter(s))
@@ -96,6 +97,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 
 	huma.AutoRegister(s.API, NewRescan(s))
 	huma.AutoRegister(s.API, NewShutdown(s))
+	huma.AutoRegister(s.API, NewDisconnect(s))
 	huma.AutoRegister(s.API, NewNuke(s))
 
 	if inj, ok := sp.Rl.(relay.Injector); ok {
