@@ -1,3 +1,5 @@
+// Package tombstone is a 16 byte truncated event Id for keys.Element used to
+// mark an event as being deleted so it isn't saved again.
 package tombstone
 
 import (

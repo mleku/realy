@@ -1,3 +1,6 @@
+// Package index implements the single byte prefix of the database keys. This
+// means a limit of 256 tables but is plenty for a single purpose nostr event
+// store.
 package index
 
 import (

@@ -1,3 +1,7 @@
+// Package lol (log of location) is a simple logging library that prints a high
+// precision unix timestamp and the source location of a log print to make
+// tracing errors simpler. Includes a set of logging levels and the ability to
+// filter out higher log levels for a more quiet output.
 package lol
 
 import (

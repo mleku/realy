@@ -1,6 +1,7 @@
 package event
 
-// Ascending is a slice of events that sorts in ascending chronological order
+// Ascending is a slice of events that sorts in chronological order (oldest
+// first.
 type Ascending []*T
 
 func (ev Ascending) Len() int           { return len(ev) }

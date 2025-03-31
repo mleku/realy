@@ -5,7 +5,7 @@ import (
 )
 
 // MarshalWireCompact encodes an event as the canonical form wrapped in an array
-// with the signature encoded in raw Base64 URL
+// with the signature encoded in raw Base64 URL (86 bytes instead of 128 of hex).
 func (ev *T) MarshalWireCompact(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, '[')
@@ -18,6 +18,9 @@ func (ev *T) MarshalWireCompact(dst []byte) (b []byte) {
 	return
 }
 
+// UnmarshalWireCompact decodes an event encoded in minified Wire Compact form -
+// with an enclosing array around the canonical form of the event with the
+// signature encoded in Base64 URL (86 bytes instead of 128 of hex).
 func (ev *T) UnmarshalWireCompact(b []byte) (rem []byte, err error) {
 	startEv := 1
 	endSig := len(b) - 2
@@ -31,6 +34,6 @@ func (ev *T) UnmarshalWireCompact(b []byte) (rem []byte, err error) {
 	sigB := make([]byte, 64)
 	_, err = base64.RawURLEncoding.Decode(sigB, b[startSig:endSig])
 	ev.Sig = sigB
-	ev.ID = id
+	ev.Id = id
 	return
 }

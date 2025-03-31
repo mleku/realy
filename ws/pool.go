@@ -214,7 +214,7 @@ func (pool *SimplePool) subMany(c context.T, urls []string, ff *filters.T,
 							mh(ie)
 						}
 						if unique {
-							if _, seen := seenAlready.LoadOrStore(evt.EventID().String(),
+							if _, seen := seenAlready.LoadOrStore(evt.EventId().String(),
 								evt.CreatedAt); seen {
 								continue
 							}
@@ -334,7 +334,7 @@ func (pool *SimplePool) subManyEose(c context.T, urls []string, ff *filters.T,
 					}
 
 					if unique {
-						if _, seen := seenAlready.LoadOrStore(evt.EventID().String(),
+						if _, seen := seenAlready.LoadOrStore(evt.EventId().String(),
 							true); seen {
 							continue
 						}

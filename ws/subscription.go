@@ -67,7 +67,7 @@ func (_ WithLabel) IsSubscriptionOption() {}
 
 var _ SubscriptionOption = (WithLabel)("")
 
-// GetID return the Nostr subscription ID as given to the Client
+// GetID return the Nostr subscription Id as given to the Client
 // it is a concatenation of the label and a serial number.
 func (sub *Subscription) GetID() (id *subscription.Id) {
 	var err error

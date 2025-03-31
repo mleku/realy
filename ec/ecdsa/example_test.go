@@ -28,7 +28,7 @@ package ecdsa_test
 // 	fmt.Printf("Serialized Signature: %x\n", signature.Serialize())
 //
 // 	// Verify the signature for the message using the public key.
-// 	pubKey := secKey.PubKey()
+// 	pubKey := secKey.Pubkey()
 // 	verified := signature.Verify(messageHash[:], pubKey)
 // 	fmt.Printf("Signature Verified? %v\n", verified)
 //

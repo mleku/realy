@@ -1,3 +1,0 @@
-= openapi spec and generated code
-
-here is a http spec in yaml, json and the generated code built using oapi-codegen, will use link:https://github.com/swaggest/swgui[swgui] to serve the swagger UI.

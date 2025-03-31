@@ -257,7 +257,7 @@ func (r *Client) ConnectWithTLS(ctx context.T, tlsConfig *tls.Config) error {
 					// check signature, ignore invalid, except from trusted (AssumeValid) relays
 					if !r.AssumeValid {
 						if ok = r.signatureChecker(env.Event); !ok {
-							log.E.F("{%s} bad signature on %s\n", r.URL, env.Event.ID)
+							log.E.F("{%s} bad signature on %s\n", r.URL, env.Event.Id)
 							continue
 						}
 					}
@@ -343,7 +343,7 @@ func (r *Client) publish(ctx context.T, ev *event.T) (err error) {
 	}
 	// listen for an OK callback
 	gotOk := false
-	id := ev.IDString()
+	id := ev.IdString()
 	r.okCallbacks.Store(id, func(ok bool, reason string) {
 		gotOk = true
 		if !ok {

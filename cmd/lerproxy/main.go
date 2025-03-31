@@ -1,5 +1,6 @@
 // Command lerproxy implements https reverse proxy with automatic LetsEncrypt
-// usage for multiple hostnames/backends, and URL rewriting capability.
+// usage for multiple hostnames/backends,your own SSL certificates, nostr NIP-05
+// DNS verification hosting and Go vanity redirects.
 package main
 
 import (

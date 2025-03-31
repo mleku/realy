@@ -52,14 +52,14 @@ func TestBTCECSignerVerify(t *testing.T) {
 			t.Errorf("id should be 32 bytes, got %d", len(id))
 			continue
 		}
-		if err = signer.InitPub(ev.PubKey); chk.E(err) {
+		if err = signer.InitPub(ev.Pubkey); chk.E(err) {
 			t.Errorf("failed to init pub key: %s\n%0x", err, b)
 		}
 		if valid, err = signer.Verify(id, ev.Sig); chk.E(err) {
 			t.Errorf("failed to verify: %s\n%0x", err, b)
 		}
 		if !valid {
-			t.Errorf("invalid signature for pub %0x %0x %0x", ev.PubKey, id,
+			t.Errorf("invalid signature for pub %0x %0x %0x", ev.Pubkey, id,
 				ev.Sig)
 		}
 		evs = append(evs, ev)
@@ -97,7 +97,7 @@ func TestBTCECSignerSign(t *testing.T) {
 	var valid bool
 	sig := make([]byte, schnorr.SignatureSize)
 	for _, ev := range evs {
-		ev.PubKey = pkb
+		ev.Pubkey = pkb
 		id := ev.GetIDBytes()
 		if sig, err = signer.Sign(id); chk.E(err) {
 			t.Errorf("failed to sign: %s\n%0x", err, id)

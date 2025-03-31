@@ -1,3 +1,5 @@
+// Package examples is an embeded jsonl format of a collection of events
+// intended to be used to test an event codec.
 package examples
 
 import (

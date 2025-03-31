@@ -1,3 +1,4 @@
+// Package btcec implements the signer.I interface for signatures and ECDH with nostr.
 package btcec
 
 import (
@@ -66,7 +67,7 @@ func (s *Signer) Sign(msg []byte) (sig []byte, err error) {
 
 func (s *Signer) Verify(msg, sig []byte) (valid bool, err error) {
 	if s.PublicKey == nil {
-		err = errorf.E("btcec: PubKey not initialized")
+		err = errorf.E("btcec: Pubkey not initialized")
 		return
 	}
 	var si *schnorr.Signature

@@ -1,3 +1,5 @@
+// Package count contains a series of data types for managing lists of indexes
+// for garbage collection.
 package count
 
 import (

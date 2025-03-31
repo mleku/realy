@@ -1,3 +1,6 @@
+// Package subscription is a set of helpers for managing nostr websocket
+// subscription Ids, used with the REQ method to maintain an association between
+// a REQ and resultant messages such as EVENT and CLOSED.
 package subscription
 
 import (
@@ -27,13 +30,13 @@ func NewId[V string | []byte](s V) (*Id, error) {
 		// remove invalid return value
 		si.T = si.T[:0]
 		return si, errorf.E(
-			"invalid subscription ID - length %d < 1 or > 64", len(si.T))
+			"invalid subscription Id - length %d < 1 or > 64", len(si.T))
 	}
 }
 
 // MustNew is the same as NewId except it doesn't check if you feed it rubbish.
 //
-// DO NOT USE WITHOUT CHECKING THE ID IS NOT NIL AND > 0 AND <= 64
+// DO NOT USE WITHOUT CHECKING THE Id IS NOT NIL AND > 0 AND <= 64
 func MustNew[V string | []byte](s V) *Id {
 	return &Id{T: []byte(s)}
 }
@@ -67,7 +70,7 @@ func NewStd() (t *Id) {
 func (si *Id) Marshal(dst []byte) (b []byte) {
 	ue := text.NostrEscape(nil, si.T)
 	if len(ue) < 1 || len(ue) > 64 {
-		log.E.F("invalid subscription ID, must be between 1 and 64 "+
+		log.E.F("invalid subscription Id, must be between 1 and 64 "+
 			"characters, got %d (possibly due to escaping)", len(ue))
 		return
 	}

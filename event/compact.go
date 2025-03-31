@@ -5,7 +5,7 @@ import (
 )
 
 // MarshalCompact encodes an event as the canonical form followed by the raw binary
-// signature (64 bytes) which hashes to form the ID, thus a compact form for the
+// signature (64 bytes) which hashes to form the Id, thus a compact form for the
 // database that is smaller and fast to decode.
 func (ev *T) MarshalCompact(dst []byte) (b []byte) {
 	b = dst
@@ -14,6 +14,8 @@ func (ev *T) MarshalCompact(dst []byte) (b []byte) {
 	return
 }
 
+// UnmarshalCompact decodes an event encoded as the canonical form followed by
+// 64 bytes of binary for the signature.
 func (ev *T) UnmarshalCompact(b []byte) (rem []byte, err error) {
 	rem = b
 	end := len(rem) - schnorr.SignatureSize
@@ -22,7 +24,7 @@ func (ev *T) UnmarshalCompact(b []byte) (rem []byte, err error) {
 		return
 	}
 	ev.Sig = rem[:schnorr.SignatureSize]
-	ev.ID = id
+	ev.Id = id
 	rem = rem[schnorr.SignatureSize:]
 	return
 }

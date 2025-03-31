@@ -120,7 +120,7 @@ func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (
 		if !valid {
 			return
 		}
-		pubkey = ev.PubKey
+		pubkey = ev.Pubkey
 	case strings.HasPrefix(val, JWTPrefix):
 		if vfn == nil {
 			err = errorf.E("JWT bearer header found but no JWT verifier function provided")

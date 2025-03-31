@@ -83,7 +83,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 			err = huma.Error401Unauthorized(notice)
 			return
 		}
-		if !bytes.Equal(ev.GetIDBytes(), ev.ID) {
+		if !bytes.Equal(ev.GetIDBytes(), ev.Id) {
 			err = huma.Error400BadRequest("event id is computed incorrectly")
 			return
 		}
@@ -118,7 +118,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 							if res[i].Kind.Equal(kind.Deletion) {
 								err = huma.Error409Conflict("not processing or storing delete event containing delete event references")
 							}
-							if !bytes.Equal(res[i].PubKey, ev.PubKey) {
+							if !bytes.Equal(res[i].Pubkey, ev.Pubkey) {
 								err = huma.Error409Conflict("cannot delete other users' events (delete by e tag)")
 								return
 							}
@@ -149,8 +149,8 @@ func (ep *Event) RegisterEvent(api huma.API) {
 							err = huma.Error403Forbidden("delete tags with a tags containing non-parameterized-replaceable events cannot be processed")
 							return
 						}
-						if !bytes.Equal(pk, ev.PubKey) {
-							log.I.S(pk, ev.PubKey, ev)
+						if !bytes.Equal(pk, ev.Pubkey) {
+							log.I.S(pk, ev.Pubkey, ev)
 							err = huma.Error403Forbidden("cannot delete other users' events (delete by a tag)")
 							return
 						}
@@ -178,7 +178,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 				for _, target := range res {
 					if target.Kind.K == kind.Deletion.K {
 						err = huma.Error403Forbidden(fmt.Sprintf(
-							"cannot delete delete event %s", ev.ID))
+							"cannot delete delete event %s", ev.Id))
 						return
 					}
 					if target.CreatedAt.Int() > ev.CreatedAt.Int() {
@@ -187,19 +187,19 @@ func (ep *Event) RegisterEvent(api huma.API) {
 							target.CreatedAt.Int(), ev.CreatedAt.Int())
 						continue
 					}
-					if !bytes.Equal(target.PubKey, ev.PubKey) {
+					if !bytes.Equal(target.Pubkey, ev.Pubkey) {
 						err = huma.Error403Forbidden("only author can delete event")
 						return
 					}
 					if advancedDeleter != nil {
-						advancedDeleter.BeforeDelete(ctx, t.Value(), ev.PubKey)
+						advancedDeleter.BeforeDelete(ctx, t.Value(), ev.Pubkey)
 					}
-					if err = sto.DeleteEvent(ctx, target.EventID()); chk.T(err) {
+					if err = sto.DeleteEvent(ctx, target.EventId()); chk.T(err) {
 						err = huma.Error500InternalServerError(err.Error())
 						return
 					}
 					if advancedDeleter != nil {
-						advancedDeleter.AfterDelete(t.Value(), ev.PubKey)
+						advancedDeleter.AfterDelete(t.Value(), ev.Pubkey)
 					}
 				}
 				res = nil

@@ -1,3 +1,4 @@
+// Package fullid implements a keys.Element for a complete 32 byte event Ids.
 package fullid
 
 import (

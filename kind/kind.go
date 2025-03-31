@@ -1,3 +1,6 @@
+// Package kind includes a type for convenient handling of event kinds, and a
+// kind database with reverse lookup for human-readable information about event
+// kinds.
 package kind
 
 import (

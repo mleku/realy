@@ -1,3 +1,6 @@
+// Package arb implements arbitrary length byte keys.Element. In any construction
+// there can only be one with arbitrary length. Custom lengths can be created by
+// calling New with the custom length in it, both for Read and Write operations.
 package arb
 
 import (

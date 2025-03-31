@@ -1,3 +1,5 @@
+// Package hex is a set of aliases and helpers for using the templexxx SIMD hex
+// encoder.
 package hex
 
 import (

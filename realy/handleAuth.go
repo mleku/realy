@@ -28,23 +28,23 @@ func (s *Server) handleAuth(ws *web.Socket, req []byte) (msg []byte) {
 		var valid bool
 		if valid, err = auth.Validate(env.Event, []byte(ws.Challenge()), svcUrl); chk.E(err) {
 			e := err.Error()
-			if err = okenvelope.NewFrom(env.Event.ID, false,
+			if err = okenvelope.NewFrom(env.Event.Id, false,
 				normalize.Error.F(err.Error())).Write(ws); chk.E(err) {
 				return []byte(err.Error())
 			}
 			return normalize.Error.F(e)
 		} else if !valid {
-			if err = okenvelope.NewFrom(env.Event.ID, false,
+			if err = okenvelope.NewFrom(env.Event.Id, false,
 				normalize.Error.F("failed to authenticate")).Write(ws); chk.E(err) {
 				return []byte(err.Error())
 			}
 			return normalize.Restricted.F("auth response does not validate")
 		} else {
-			if err = okenvelope.NewFrom(env.Event.ID, true, []byte{}).Write(ws); chk.E(err) {
+			if err = okenvelope.NewFrom(env.Event.Id, true, []byte{}).Write(ws); chk.E(err) {
 				return
 			}
-			log.D.F("%s authed to pubkey,%0x", ws.RealRemote(), env.Event.PubKey)
-			ws.SetAuthed(string(env.Event.PubKey))
+			log.D.F("%s authed to pubkey,%0x", ws.RealRemote(), env.Event.Pubkey)
+			ws.SetAuthed(string(env.Event.Pubkey))
 		}
 	}
 	return

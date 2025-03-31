@@ -1,3 +1,6 @@
+// Package tag provides an implementation of a nostr tag list, an array of
+// strings with a usually single letter first "key" field, including methods to
+// compare, marshal/unmarshal and access elements with their proper semantics.
 package tag
 
 import (
@@ -7,7 +10,7 @@ import (
 	"realy.lol/text"
 )
 
-// The tag position meanings so they are clear when reading.
+// The tag position meanings, so they are clear when reading.
 const (
 	Key = iota
 	Value
@@ -47,7 +50,7 @@ func (t *T) B(i int) (b []byte) {
 	if t.Len() <= i {
 		return
 	}
-	return []byte(t.field[i])
+	return t.field[i]
 }
 
 func (t *T) BS() (bs [][]byte) {

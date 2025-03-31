@@ -28,11 +28,11 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 	advancedSaver, _ := sto.(relay.AdvancedSaver)
 	// don't allow storing event with protected marker as per nip-70 with auth enabled.
 	if (s.authRequired || !s.publicReadable) && ev.Tags.ContainsProtectedMarker() {
-		if len(authedPubkey) == 0 || !bytes.Equal(ev.PubKey, authedPubkey) {
+		if len(authedPubkey) == 0 || !bytes.Equal(ev.Pubkey, authedPubkey) {
 			return false,
 				[]byte(fmt.Sprintf("event with relay marker tag '-' (nip-70 protected event) "+
 					"may only be published by matching npub: %0x is not %0x",
-					authedPubkey, ev.PubKey))
+					authedPubkey, ev.Pubkey))
 		}
 	}
 	if ev.Kind.IsEphemeral() {
@@ -67,6 +67,6 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 	}
 	s.Listeners.NotifyListeners(authRequired, s.publicReadable, ev)
 	accepted = true
-	log.I.F("event id %0x stored", ev.ID)
+	log.I.F("event id %0x stored", ev.Id)
 	return
 }

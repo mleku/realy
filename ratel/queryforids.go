@@ -100,7 +100,7 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 					item := it.Item()
 					if r.HasL2 && item.ValueSize() == sha256.Size {
 						// this is a stub entry that indicates an L2 needs to be accessed for
-						// it, so we populate only the event.T.ID and return the result, the
+						// it, so we populate only the event.T.Id and return the result, the
 						// caller will expect this as a signal to query the L2 event store.
 						var eventValue []byte
 						ev := &event.T{}
@@ -108,8 +108,8 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 							continue
 						}
 						log.T.F("found event stub %0x must seek in L2", eventValue)
-						ev.ID = eventValue
-						l2Map[hex.Enc(ev.ID)] = ev
+						ev.Id = eventValue
+						l2Map[hex.Enc(ev.Id)] = ev
 						return
 					}
 					ev := &event.T{}
@@ -128,7 +128,7 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 							}
 							if int64(exp) > time.Now().Unix() {
 								// this needs to be deleted
-								delEvs = append(delEvs, ev.ID)
+								delEvs = append(delEvs, ev.Id)
 								return
 							}
 						}

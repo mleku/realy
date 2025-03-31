@@ -1,3 +1,7 @@
+// Package main is a tester for a layer2 database scheme with one ratel DB with
+// cache and the second not, testing the maintenance of the cache utilization
+// and second level being accessed to fetch events that have been pruned out of
+// the cache.
 package main
 
 import (
@@ -167,7 +171,7 @@ end:
 				return
 			}
 			mx.Lock()
-			counter = append(counter, Counter{id: ev.ID, size: bs, requested: 1})
+			counter = append(counter, Counter{id: ev.Id, size: bs, requested: 1})
 			total += bs
 			if total > TotalSize*10*units.Gb {
 				log.I.Ln(total, TotalSize*units.Gb)

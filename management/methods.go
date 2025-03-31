@@ -1,4 +1,4 @@
-package nip86
+package management
 
 import (
 	"math"

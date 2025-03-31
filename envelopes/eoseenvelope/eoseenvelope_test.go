@@ -18,7 +18,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 		}
 		req := NewFrom(s)
 		rb = req.Marshal(rb)
-		// log.I.Ln(req.ID)
+		// log.I.Ln(req.Id)
 		rb1 = rb1[:len(rb)]
 		copy(rb1, rb)
 		var rem []byte
@@ -33,7 +33,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 		if rem, err = req2.Unmarshal(rb); chk.E(err) {
 			t.Fatal(err)
 		}
-		// log.I.Ln(req2.ID)
+		// log.I.Ln(req2.Id)
 		if len(rem) > 0 {
 			t.Fatalf("unmarshal failed, remainder\n%d %s",
 				len(rem), rem)

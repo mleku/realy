@@ -1,4 +1,4 @@
-package nip86
+package management
 
 type IDReason struct {
 	ID     string `json:"id"`

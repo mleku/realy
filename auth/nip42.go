@@ -27,7 +27,7 @@ func GenerateChallenge() (b []byte) {
 // If the authentication succeeds, the user will be authenticated as pubkey.
 func CreateUnsigned(pubkey, challenge []byte, relayURL string) (ev *event.T) {
 	return &event.T{
-		PubKey:    pubkey,
+		Pubkey:    pubkey,
 		CreatedAt: timestamp.Now(),
 		Kind:      kind.ClientAuthentication,
 		Tags: tags.New(tag.New("relay", relayURL),
@@ -44,8 +44,12 @@ func parseURL(input string) (*url.URL, error) {
 	)
 }
 
-var ChallengeTag = []byte("challenge")
-var RelayTag = []byte("relay")
+var (
+	// ChallengeTag is the tag for the challenge in a NIP-42 auth event (prevents relay attacks).
+	ChallengeTag = []byte("challenge")
+	// RelayTag is is the relay tag for a NIP-42 auth event (prevents cross-server attacks).
+	RelayTag = []byte("relay")
+)
 
 // Validate checks whether event is a valid NIP-42 event for given challenge and relayURL.
 // The result of the validation is encoded in the ok bool.

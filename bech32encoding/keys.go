@@ -14,12 +14,16 @@ const (
 	// MinKeyStringLen is 56 because Bech32 needs 52 characters plus 4 for the HRP,
 	// any string shorter than this cannot be a nostr key.
 	MinKeyStringLen = 56
-	HexKeyLen       = 64
-	Bech32HRPLen    = 4
+	// HexKeyLen is the length of a nostr key in hexadecimal.
+	HexKeyLen = 64
+	// Bech32HRPLen is the length of the standard nostr keys, nsec and npub.
+	Bech32HRPLen = 4
 )
 
 var (
+	// SecHRP is the standard Human Readable Prefix (HRP) for a nostr secret key in bech32 encoding - nsec
 	SecHRP = []byte("nsec")
+	// PubHRP is the standard Human Readable Prefix (HRP) for a nostr public key in bech32 encoding - nsec
 	PubHRP = []byte("npub")
 )
 
@@ -59,6 +63,7 @@ func NsecToSecretKey(encoded []byte) (sk *secp256k1.SecretKey, err error) {
 	return
 }
 
+// NsecToBytes converts a nostr bech32 encoded secret key to raw bytes.
 func NsecToBytes(encoded []byte) (sk []byte, err error) {
 	var b5, hrp []byte
 	if hrp, b5, err = bech32.Decode(encoded); chk.E(err) {
@@ -76,6 +81,7 @@ func NsecToBytes(encoded []byte) (sk []byte, err error) {
 	return
 }
 
+// NpubToBytes converts a bech32 encoded public key to raw bytes.
 func NpubToBytes(encoded []byte) (pk []byte, err error) {
 	var b5, hrp []byte
 	if hrp, b5, err = bech32.Decode(encoded); chk.E(err) {
@@ -151,6 +157,8 @@ func HexToSecretKey(sk []byte) (s *btcec.SecretKey, err error) {
 	return
 }
 
+// HexToNpub converts a raw 64 character hex encoded public key (as used in
+// standard nostr json events) to a bech32 encoded npub.
 func HexToNpub(publicKeyHex []byte) (s []byte, err error) {
 	b := make([]byte, schnorr.PubKeyBytesLen)
 	if _, err = hex.DecBytes(b, publicKeyHex); chk.D(err) {
@@ -164,6 +172,7 @@ func HexToNpub(publicKeyHex []byte) (s []byte, err error) {
 	return bech32.Encode(NpubHRP, bits5)
 }
 
+// BinToNpub converts a raw 32 byte public key to nostr bech32 encoded npub.
 func BinToNpub(b []byte) (s []byte, err error) {
 	var bits5 []byte
 	if bits5, err = bech32.ConvertBits(b, 8, 5, true); chk.D(err) {
@@ -200,6 +209,8 @@ func SecretKeyToHex(sk *btcec.SecretKey) (hexSec []byte) {
 	return
 }
 
+// NsecToHex converts a bech32 encoded nostr secret key to a raw hexadecimal
+// string.
 func NsecToHex(nsec []byte) (hexSec []byte, err error) {
 	var sk *secp256k1.SecretKey
 	if sk, err = NsecToSecretKey(nsec); chk.E(err) {

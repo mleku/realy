@@ -127,7 +127,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 					//  accumulating to propagate the query (this means response lag also)
 					//
 					// this is a stub entry that indicates an L2 needs to be accessed for it, so we
-					// populate only the event.T.ID and return the result, the caller will expect
+					// populate only the event.T.Id and return the result, the caller will expect
 					// this as a signal to query the L2 event store.
 					var eventValue []byte
 					ev := &event.T{}
@@ -135,7 +135,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 						continue
 					}
 					log.T.F("found event stub %0x must seek in L2", eventValue)
-					ev.ID = eventValue
+					ev.Id = eventValue
 					select {
 					case <-c.Done():
 						return
@@ -144,7 +144,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 						return
 					default:
 					}
-					evMap[hex.Enc(ev.ID)] = ev
+					evMap[hex.Enc(ev.Id)] = ev
 					return
 				}
 				ev := &event.T{}
@@ -163,7 +163,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 						}
 						if int64(exp) > time.Now().Unix() {
 							// this needs to be deleted
-							delEvs = append(delEvs, ev.ID)
+							delEvs = append(delEvs, ev.Id)
 							ev = nil
 							return
 						}
@@ -176,7 +176,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 					continue
 				}
 				if ext == nil || ext.Matches(ev) {
-					evMap[hex.Enc(ev.ID)] = ev
+					evMap[hex.Enc(ev.Id)] = ev
 					// add event counter key to accessed
 					ser := serial.FromKey(eventKey)
 					accessed[string(ser.Val)] = struct{}{}
@@ -214,7 +214,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 	}
 	if len(evMap) > 0 {
 		for i := range evMap {
-			if len(evMap[i].PubKey) == 0 {
+			if len(evMap[i].Pubkey) == 0 {
 				log.I.S(evMap[i])
 				continue
 			}
@@ -227,7 +227,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 		// log.T.C(func() string {
 		// 	evIds := make([]string, len(evs))
 		// 	for i, ev := range evs {
-		// 		evIds[i] = hex.Enc(ev.ID)
+		// 		evIds[i] = hex.Enc(ev.Id)
 		// 	}
 		// 	heading := fmt.Sprintf("query complete,%d events found,%s", len(evs),
 		// 		f.Serialize())

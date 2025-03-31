@@ -28,7 +28,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 		if rem, err = req2.Unmarshal(rb); chk.E(err) {
 			t.Fatal(err)
 		}
-		// log.I.Ln(req2.ID)
+		// log.I.Ln(req2.Id)
 		if len(rem) > 0 {
 			t.Fatalf("unmarshal failed, remainder\n%d %s",
 				len(rem), rem)

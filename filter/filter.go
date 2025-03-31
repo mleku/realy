@@ -1,3 +1,7 @@
+// Package filter is a codec for nostr filters (queries) and includes tools for
+// matching them to events, a canonical format scheme to enable compactly
+// identifying subscription filters, and a simplified filter that leavse out the
+// IDs and Search fields for use in the HTTP API.
 package filter
 
 import (
@@ -25,13 +29,14 @@ func Present(i *uint) bool { return i != nil }
 
 // T is the primary query form for requesting events from a nostr relay.
 //
-// The ordering of fields of filters is not specified as in the protocol there is no requirement
-// to generate a hash for fast recognition of identical filters. However, for internal use in a
-// relay, by applying a consistent sort order, this library will produce an identical JSON from
-// the same *set* of fields no matter what order they were provided.
+// The ordering of fields of filters is not specified as in the protocol there
+// is no requirement to generate a hash for fast recognition of identical
+// filters. However, for internal use in a relay, by applying a consistent sort
+// order, this library will produce an identical JSON from the same *set* of
+// fields no matter what order they were provided.
 //
-// This is to facilitate the deduplication of filters so an effective identical match is not
-// performed on an identical filter.
+// This is to facilitate the deduplication of filters so an effective identical
+// match is not performed on an identical filter.
 type T struct {
 	IDs     *tag.T       `json:"ids,omitempty"`
 	Kinds   *kinds.T     `json:"kinds,omitempty"`
@@ -55,10 +60,10 @@ func New() (f *T) {
 	}
 }
 
-// Clone creates a new filter with all the same elements in them, because they are immutable,
-// basically, except setting the Limit field as 1, because it is used in the subscription
-// management code to act as a reference counter, and making a clone implicitly means 1
-// reference.
+// Clone creates a new filter with all the same elements in them, because they
+// are immutable, basically, except setting the Limit field as 1, because it is
+// used in the subscription management code to act as a reference counter, and
+// making a clone implicitly means 1 reference.
 func (f *T) Clone() (clone *T) {
 	lim := new(uint)
 	*lim = 1
@@ -415,7 +420,7 @@ func (f *T) Matches(ev *event.T) bool {
 		// log.T.F("nil event")
 		return false
 	}
-	if f.IDs.Len() > 0 && !f.IDs.Contains(ev.ID) {
+	if f.IDs.Len() > 0 && !f.IDs.Contains(ev.Id) {
 		// log.T.F("no ids in filter match event\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
@@ -423,7 +428,7 @@ func (f *T) Matches(ev *event.T) bool {
 		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.PubKey) {
+	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.Pubkey) {
 		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}

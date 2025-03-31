@@ -1,3 +1,6 @@
+// Package qu is a library for making handling signal (chan struct{}) channels
+// simpler, as well as monitoring the state of the signal channels in an
+// application.
 package qu
 
 import (

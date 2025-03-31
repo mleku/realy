@@ -37,7 +37,7 @@ func TestVerify(t *testing.T) {
 			t.Errorf("id should be 32 bytes, got %d", len(id))
 			continue
 		}
-		if err = p256k.VerifyFromBytes(id, ev.Sig, ev.PubKey); chk.E(err) {
+		if err = p256k.VerifyFromBytes(id, ev.Sig, ev.Pubkey); chk.E(err) {
 			t.Error(err)
 			continue
 		}
@@ -67,7 +67,7 @@ func TestSign(t *testing.T) {
 	}
 	sig := make([]byte, schnorr.SignatureSize)
 	for _, ev := range evs {
-		ev.PubKey = pb
+		ev.Pubkey = pb
 		var uid *p256k.Uchar
 		if uid, err = p256k.Msg(ev.GetIDBytes()); chk.E(err) {
 			t.Fatal(err)

@@ -1,3 +1,5 @@
+// Package authenvelope defines the auth challenge (relay message) and response
+// (client message) of the NIP-42 authentication protocol.
 package authenvelope
 
 import (
@@ -9,18 +11,29 @@ import (
 	"realy.lol/text"
 )
 
+// L is the label associated with this type of codec.Envelope.
 const L = "AUTH"
 
+// Challenge is the relay-sent message containing a relay-chosen random string
+// to prevent replay attacks on NIP-42 authentication.
 type Challenge struct {
 	Challenge []byte
 }
 
+var _ codec.Envelope = (*Challenge)(nil)
+
+// NewChallenge creates a new empty authenvelope.Challenge.
 func NewChallenge() *Challenge { return &Challenge{} }
+
+// NewChallengeWith creates a new authenvelope.Challenge with provided bytes.
 func NewChallengeWith[V string | []byte](challenge V) *Challenge {
 	return &Challenge{[]byte(challenge)}
 }
+
+// Label returns the label of a authenvelope.Challenge.
 func (en *Challenge) Label() string { return L }
 
+// Write the authenvelope.Challenge to a provided io.Writer.
 func (en *Challenge) Write(w io.Writer) (err error) {
 	var b []byte
 	b = en.Marshal(b)
@@ -29,6 +42,8 @@ func (en *Challenge) Write(w io.Writer) (err error) {
 	return
 }
 
+// Marshal a authenvelope.Challenge to minified JSON, appending to a provided destination
+// slice. Note that this ensures correct string escaping on the challenge field.
 func (en *Challenge) Marshal(dst []byte) (b []byte) {
 	b = dst
 	var err error
@@ -44,6 +59,9 @@ func (en *Challenge) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a authenvelope.Challenge from minified JSON, returning the remainder after the
+// end of the envelope. Note that this ensures the challenge string was
+// correctly escaped by NIP-01 escaping rules.
 func (en *Challenge) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	if en.Challenge, r, err = text.UnmarshalQuoted(r); chk.E(err) {
@@ -58,6 +76,8 @@ func (en *Challenge) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
+// ParseChallenge reads a authenvelope.Challenge encoded in minified JSON and unpacks it to
+// the runtime format.
 func ParseChallenge(b []byte) (t *Challenge, rem []byte, err error) {
 	t = NewChallenge()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
@@ -66,16 +86,24 @@ func ParseChallenge(b []byte) (t *Challenge, rem []byte, err error) {
 	return
 }
 
+// Response is a client-side envelope containing the signed event bearing the
+// relay's URL and Challenge string.
 type Response struct {
 	Event *event.T
 }
 
 var _ codec.Envelope = (*Response)(nil)
 
-func NewResponse() *Response                   { return &Response{} }
-func NewResponseWith(event *event.T) *Response { return &Response{Event: event} }
-func (en *Response) Label() string             { return L }
+// NewResponse creates a new empty Response.
+func NewResponse() *Response { return &Response{} }
 
+// NewResponseWith creates a new Response with a provided event.T.
+func NewResponseWith(event *event.T) *Response { return &Response{Event: event} }
+
+// Label returns the label of a auth Response envelope.
+func (en *Response) Label() string { return L }
+
+// Write the Response to a provided io.Writer.
 func (en *Response) Write(w io.Writer) (err error) {
 	var b []byte
 	b = en.Marshal(b)
@@ -83,6 +111,8 @@ func (en *Response) Write(w io.Writer) (err error) {
 	return
 }
 
+// Marshal a Response to minified JSON, appending to a provided destination
+// slice. Note that this ensures correct string escaping on the challenge field.
 func (en *Response) Marshal(dst []byte) (b []byte) {
 	var err error
 	if en == nil {
@@ -99,6 +129,9 @@ func (en *Response) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a Response from minified JSON, returning the remainder after the en
+// of the envelope. Note that this ensures the challenge string was correctly
+// escaped by NIP-01 escaping rules.
 func (en *Response) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	// literally just unmarshal the event
@@ -112,6 +145,8 @@ func (en *Response) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
+// ParseResponse reads a Response encoded in minified JSON and unpacks it to
+// the runtime format.
 func ParseResponse(b []byte) (t *Response, rem []byte, err error) {
 	t = NewResponse()
 	if rem, err = t.Unmarshal(b); chk.E(err) {

@@ -1,3 +1,6 @@
+// Package badgerbadger is a test of the layer 2 that uses two instances of the
+// ratel event store, meant for testing the layer 2 protocol with two tiers of
+// the database a size limited cache and a large non-purging store.
 package badgerbadger
 
 import (
@@ -32,7 +35,7 @@ func GetBackend(c context.T, wg *sync.WaitGroup, L1, L2 *ratel.T) (es store.I) {
 // Init sets up the badger event store and connects to the configured IC
 // canister.
 //
-// required params are address, canister ID and the badger event store size
+// required params are address, canister Id and the badger event store size
 // limit (which can be 0)
 func (b *Backend) Init(path string) (err error) { return b.Backend.Init(path) }
 

@@ -1,3 +1,5 @@
+// Package normalize is a set of tools for cleaning up URL s and formatting
+// nostr OK and CLOSED messages.
 package normalize
 
 import (

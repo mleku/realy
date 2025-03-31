@@ -1,3 +1,4 @@
+// Package filters is a set of tools for working with multiple nostr filters.
 package filters
 
 import (

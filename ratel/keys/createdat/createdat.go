@@ -1,3 +1,4 @@
+// Package createdat implements a badger key index keys.Element for timestamps.
 package createdat
 
 import (

@@ -69,7 +69,7 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 			// we don't make tombstones for replacements, but it is better to shift that
 			// logic outside of this closure.
 			if len(noTombstone) > 0 && !noTombstone[0] {
-				ts := tombstone.NewWith(ev.EventID())
+				ts := tombstone.NewWith(ev.EventId())
 				tombstoneKey = prefixes.Tombstone.Key(ts, createdat.New(timestamp.Now()))
 			}
 			return
@@ -88,7 +88,7 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 		}
 		if len(tombstoneKey) > 0 {
 			// write tombstone
-			log.W.F("writing tombstone %0x for event %0x", tombstoneKey, ev.ID)
+			log.W.F("writing tombstone %0x for event %0x", tombstoneKey, ev.Id)
 			if err = txn.Set(tombstoneKey, nil); chk.E(err) {
 				return
 			}

@@ -24,65 +24,61 @@ var (
 	jSig       = []byte("sig")
 )
 
+// Marshal appends an event.T to a provided destination slice.
 func (ev *T) Marshal(dst []byte) (b []byte) {
 	b = ev.marshalWithWhitespace(dst, false)
 	return
 }
 
+// marshalWithWhitespace adds tabs and newlines to make the JSON more readable
+// for humans, if the on flag is set to true.
 func (ev *T) marshalWithWhitespace(dst []byte, on bool) (b []byte) {
 	// open parentheses
 	dst = append(dst, '{')
-	// ID
+	// Id
 	if on {
-		dst = append(dst, '\n')
-		dst = append(dst, '\t')
+		dst = append(dst, '\n', '\t')
 	}
 	dst = text.JSONKey(dst, jId)
-	dst = text.AppendQuote(dst, ev.ID, hex.EncAppend)
+	dst = text.AppendQuote(dst, ev.Id, hex.EncAppend)
 	dst = append(dst, ',')
-	// PubKey
+	// Pubkey
 	if on {
-		dst = append(dst, '\n')
-		dst = append(dst, '\t')
+		dst = append(dst, '\n', '\t')
 	}
 	dst = text.JSONKey(dst, jPubkey)
-	dst = text.AppendQuote(dst, ev.PubKey, hex.EncAppend)
+	dst = text.AppendQuote(dst, ev.Pubkey, hex.EncAppend)
 	dst = append(dst, ',')
 	if on {
-		dst = append(dst, '\n')
-		dst = append(dst, '\t')
+		dst = append(dst, '\n', '\t')
 	}
 	// CreatedAt
 	dst = text.JSONKey(dst, jCreatedAt)
 	dst = ev.CreatedAt.Marshal(dst)
 	dst = append(dst, ',')
 	if on {
-		dst = append(dst, '\n')
-		dst = append(dst, '\t')
+		dst = append(dst, '\n', '\t')
 	}
 	// Kind
 	dst = text.JSONKey(dst, jKind)
 	dst = ev.Kind.Marshal(dst)
 	dst = append(dst, ',')
 	if on {
-		dst = append(dst, '\n')
-		dst = append(dst, '\t')
+		dst = append(dst, '\n', '\t')
 	}
 	// Tags
 	dst = text.JSONKey(dst, jTags)
 	dst = ev.Tags.Marshal(dst)
 	dst = append(dst, ',')
 	if on {
-		dst = append(dst, '\n')
-		dst = append(dst, '\t')
+		dst = append(dst, '\n', '\t')
 	}
 	// Content
 	dst = text.JSONKey(dst, jContent)
 	dst = text.AppendQuote(dst, ev.Content, text.NostrEscape)
 	dst = append(dst, ',')
 	if on {
-		dst = append(dst, '\n')
-		dst = append(dst, '\t')
+		dst = append(dst, '\n', '\t')
 	}
 	// jSig
 	dst = text.JSONKey(dst, jSig)
@@ -96,8 +92,11 @@ func (ev *T) marshalWithWhitespace(dst []byte, on bool) (b []byte) {
 	return
 }
 
+// Marshal is a normal function that is the same as event.T Marshal method
+// except you explicitly specify the receiver.
 func Marshal(ev *T, dst []byte) (b []byte) { return ev.Marshal(dst) }
 
+// Unmarshal an event from minified JSON into an event.T.
 func (ev *T) Unmarshal(b []byte) (r []byte, err error) {
 	// this parser does not cope with whitespaces in valid places in json, so we
 	// scan first for linebreaks, as these indicate that it is probably not gona work and fall back to json.Unmarshal
@@ -162,11 +161,11 @@ InVal:
 			return
 		}
 		if len(id) != sha256.Size {
-			err = errorf.E("invalid ID, require %d got %d", sha256.Size,
+			err = errorf.E("invalid Id, require %d got %d", sha256.Size,
 				len(id))
 			return
 		}
-		ev.ID = id
+		ev.Id = id
 		goto BetweenKV
 	case jPubkey[0]:
 		if !bytes.Equal(jPubkey, key) {
@@ -181,7 +180,7 @@ InVal:
 				schnorr.PubKeyBytesLen, len(pk))
 			return
 		}
-		ev.PubKey = pk
+		ev.Pubkey = pk
 		goto BetweenKV
 	case jKind[0]:
 		if !bytes.Equal(jKind, key) {
@@ -269,4 +268,6 @@ eof:
 	return
 }
 
+// Unmarshal is the same as the event.T Unmarshal method except you give it the
+// event to marshal into instead of call it as a method of the type.
 func Unmarshal(ev *T, b []byte) (r []byte, err error) { return ev.Unmarshal(b) }

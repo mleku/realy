@@ -1,3 +1,6 @@
+// Package main is a nostr relay with a simple follow/mute list authentication
+// scheme and the new HTTP REST based protocol. Configuration is via environment
+// variables or an optional .env file.
 package main
 
 import (

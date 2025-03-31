@@ -1,3 +1,7 @@
+// Package ints is an optimised encoder for decimal numbers in ASCII format,
+// that simplifies and accelerates encoding and decoding decimal strings. It is
+// faster than strconv in part because it uses a base of 10000 and a lookup
+// table.
 package ints
 
 import (

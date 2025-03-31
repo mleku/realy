@@ -1,3 +1,7 @@
+// Package main is a tool for generating new JWT key pairs and a kind 13004 JWT
+// delegation event that allows authentication against a pubkey while using
+// non-nostr-native tools such as cURL and Postman and minimalistic HTTP browser
+// implementations as found in some e-book readers.
 package main
 
 import (

@@ -29,6 +29,8 @@ type Opts struct {
 // Deprecated: use WithCustomNonce instead of WithCustomSalt, so the naming is less confusing
 var WithCustomSalt = WithCustomNonce
 
+// WithCustomNonce enables using a custom nonce (salt) instead of using the
+// system crypto/rand entropy source.
 func WithCustomNonce(salt []byte) func(opts *Opts) {
 	return func(opts *Opts) {
 		if len(salt) != 32 {
@@ -38,9 +40,12 @@ func WithCustomNonce(salt []byte) func(opts *Opts) {
 	}
 }
 
+// Encrypt data using a provided symmetric conversation key using NIP-44
+// encryption (chacha20 cipher stream and sha256 HMAC).
 func Encrypt(plaintext string, conversationKey []byte,
 	applyOptions ...func(opts *Opts)) (cipherString string,
 	err error) {
+
 	var o Opts
 	for _, apply := range applyOptions {
 		apply(&o)
@@ -65,7 +70,7 @@ func Encrypt(plaintext string, conversationKey []byte,
 		err = errorf.E("plaintext should be between 1b and 64kB")
 		return
 	}
-	padding := calcPadding(size)
+	padding := CalcPadding(size)
 	padded := make([]byte, 2+padding)
 	binary.BigEndian.PutUint16(padded, uint16(size))
 	copy(padded[2:], plain)
@@ -86,13 +91,15 @@ func Encrypt(plaintext string, conversationKey []byte,
 	return
 }
 
+// Decrypt data that has been encoded using a provided symmetric conversation
+// key using NIP-44 encryption (chacha20 cipher stream and sha256 HMAC).
 func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (plaintext string, err error) {
 	cLen := len(b64ciphertextWrapped)
 	if cLen < 132 || cLen > 87472 {
 		err = errorf.E("invalid payload length: %d", cLen)
 		return
 	}
-	if b64ciphertextWrapped[0:1] == "#" {
+	if b64ciphertextWrapped[:1] == "#" {
 		err = errorf.E("unknown version")
 		return
 	}
@@ -128,7 +135,7 @@ func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (plaintext str
 	}
 	unpaddedLen := binary.BigEndian.Uint16(padded[0:2])
 	if unpaddedLen < uint16(MinPlaintextSize) || unpaddedLen > uint16(MaxPlaintextSize) ||
-		len(padded) != 2+calcPadding(int(unpaddedLen)) {
+		len(padded) != 2+CalcPadding(int(unpaddedLen)) {
 		err = errorf.E("invalid padding")
 		return
 	}
@@ -141,6 +148,7 @@ func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (plaintext str
 	return
 }
 
+// GenerateConversationKey performs an ECDH key generation hashed with the nip-44-v2 using hkdf.
 func GenerateConversationKey(pkh, skh string) (ck []byte, err error) {
 	if skh >= "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141" ||
 		skh == "0000000000000000000000000000000000000000000000000000000000000000" {
@@ -203,7 +211,11 @@ func getKeys(conversationKey, nonce []byte) (enc, cc20nonce, auth []byte, err er
 	return
 }
 
-func calcPadding(sLen int) (l int) {
+// CalcPadding creates padding for the message payload that is precisely a power
+// of two in order to reduce the chances of plaintext attack. This is plainly
+// retarded because it could blow out the message size a lot when just a random few
+// dozen bytes and a length prefix would achieve the same result.
+func CalcPadding(sLen int) (l int) {
 	if sLen <= 32 {
 		return 32
 	}

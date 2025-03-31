@@ -25,14 +25,14 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 	// make sure Close waits for this to complete
 	r.WG.Add(1)
 	defer r.WG.Done()
-	// first, search to see if the event ID already exists.
+	// first, search to see if the event Id already exists.
 	var foundSerial []byte
 	var deleted bool
 	seri := serial.New(nil)
 	var ts []byte
 	err = r.View(func(txn *badger.Txn) (err error) {
 		// query event by id to ensure we don't try to save duplicates
-		prf := prefixes.Id.Key(id.New(eventid.NewWith(ev.ID)))
+		prf := prefixes.Id.Key(id.New(eventid.NewWith(ev.Id)))
 		it := txn.NewIterator(badger.IteratorOptions{})
 		defer it.Close()
 		it.Seek(prf)
@@ -46,7 +46,7 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 			foundSerial = seri.Val
 		}
 		// if the event was deleted we don't want to save it again
-		ts = prefixes.Tombstone.Key(id.New(eventid.NewWith(ev.ID)))
+		ts = prefixes.Tombstone.Key(id.New(eventid.NewWith(ev.Id)))
 		it.Seek(ts)
 		if it.ValidForPrefix(ts) {
 			deleted = true
@@ -70,7 +70,7 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 			if it.ValidForPrefix(evKey) {
 				if it.Item().ValueSize() != sha256.Size {
 					// not a stub, we already have it
-					// log.D.F("duplicate event %0x", ev.ID)
+					// log.D.F("duplicate event %0x", ev.Id)
 					return eventstore.ErrDupEvent
 				}
 				// we only need to restore the event binary and write the access counter key

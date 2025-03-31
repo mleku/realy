@@ -1,3 +1,4 @@
+// Package chaincfg provides basic parameters for bitcoin chain and testnets.
 package chaincfg
 
 import (

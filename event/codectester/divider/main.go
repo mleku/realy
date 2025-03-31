@@ -1,3 +1,6 @@
+// Package main is a tester that reads in a provided JSON line structured
+// (.jsonl) document containing a set of events and attempts to parse them and
+// prints out the events that failed various steps in the encode/decode process.
 package main
 
 import (
@@ -96,7 +99,7 @@ func main() {
 		}
 		can := ev.ToCanonical(nil)
 		eh := event.Hash(can)
-		eq := bytes.Equal(ev.ID, eh)
+		eq := bytes.Equal(ev.Id, eh)
 		if !eq {
 			_, err = fmt.Fprintf(ids, "%s\n", ev.Serialize())
 			if chk.E(err) {

@@ -1,4 +1,6 @@
-// Package listeners is a singleton package that keeps track of nostr websockets
+// Package listeners is a singleton package that keeps track of subscriptions in
+// both websockets and http SSE, including managing the authentication state of
+// a connection.
 package listeners
 
 import (
@@ -174,7 +176,7 @@ func (l *T) NotifyListeners(authRequired, publicReadable bool, ev *event.T) {
 				if ev.Tags != nil {
 					containsPubkey = ev.Tags.ContainsAny([]byte{'p'}, tag.New(ab))
 				}
-				if !bytes.Equal(ev.PubKey, ab) || containsPubkey {
+				if !bytes.Equal(ev.Pubkey, ab) || containsPubkey {
 					log.I.F("authed user %0x not privileged to receive event\n%s",
 						ab, ev.Serialize())
 					continue
@@ -222,7 +224,7 @@ func (l *T) NotifyListeners(authRequired, publicReadable bool, ev *event.T) {
 			if ev.Tags != nil {
 				containsPubkey = ev.Tags.ContainsAny([]byte{'p'}, tag.New(ab))
 			}
-			if !bytes.Equal(ev.PubKey, ab) || containsPubkey {
+			if !bytes.Equal(ev.Pubkey, ab) || containsPubkey {
 				continue
 			}
 		}
