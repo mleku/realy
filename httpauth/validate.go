@@ -21,7 +21,8 @@ var ErrMissingKey = fmt.Errorf(
 //
 // A VerifyJWTFunc should be provided in order to search the event store for a
 // kind 13004 with a JWT signer pubkey that is granted authority for the request.
-func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (valid bool, pubkey []byte, err error) {
+func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (valid bool,
+	pubkey []byte, err error) {
 	val := r.Header.Get(HeaderKey)
 	if val == "" {
 		err = ErrMissingKey
@@ -30,6 +31,10 @@ func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (
 	}
 	if len(tolerance) == 0 {
 		tolerance = append(tolerance, time.Minute)
+	}
+	log.I.S(tolerance)
+	if tolerance[0] == 0 {
+		tolerance[0] = time.Minute
 	}
 	tolerate := int64(tolerance[0] / time.Second)
 	log.I.F("validating auth '%s'", val)
