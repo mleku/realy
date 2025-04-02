@@ -125,8 +125,9 @@ func CheckAuth(r *http.Request, tolerance ...time.Duration) (valid bool,
 			// if it is expiring, the URL only needs to be the same prefix to allow its use with
 			// multiple endpoints.
 			if !strings.HasPrefix(fullUrl, evUrl) {
-				err = errorf.E("request URL %s does not start with the u tag URL %s",
+				err = errorf.E("request URL %s is not prefixed with the u tag URL %s",
 					fullUrl, evUrl)
+				return
 			}
 		} else if fullUrl != evUrl {
 			err = errorf.E("request has URL %s but signed nip-98 event has url %s",

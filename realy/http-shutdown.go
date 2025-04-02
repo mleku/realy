@@ -2,6 +2,7 @@ package realy
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 
@@ -46,7 +47,11 @@ func (x *Shutdown) RegisterShutdown(api huma.API) {
 			err = huma.Error401Unauthorized("authorization required")
 			return
 		}
-		x.Server.Shutdown()
+		go func() {
+			time.Sleep(time.Second)
+			x.Server.Shutdown()
+		}()
+
 		return
 	})
 }
