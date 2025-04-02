@@ -42,7 +42,7 @@ type Server struct {
 	owners         [][]byte
 	Listeners      *listeners.T
 	huma.API
-	*store.Configuration
+	Configuration *store.Configuration
 }
 
 type ServerParams struct {
@@ -127,6 +127,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, a := range s.Configuration.BlockList {
 		if strings.HasPrefix(remote, a) {
 			log.I.F("rejecting request from %s because on blocklist", remote)
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
 	}
