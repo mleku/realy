@@ -113,7 +113,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 		}
 		var valid bool
 		var pubkey []byte
-		valid, pubkey, err = httpauth.CheckAuth(r, ep.JWTVerifyFunc)
+		valid, pubkey, err = httpauth.CheckAuth(r)
 		// if there is an error but not that the token is missing, or there is no error
 		// but the signature is invalid, return error that request is unauthorized.
 		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
@@ -129,7 +129,8 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 		allowed := filters.New(f)
 		if accepter, ok := ep.relay.(relay.ReqAcceptor); ok {
 			var accepted, modified bool
-			allowed, accepted, modified = accepter.AcceptReq(ep.Ctx, r, nil, filters.New(f), pubkey)
+			allowed, accepted, modified = accepter.AcceptReq(ep.Ctx, r, nil, filters.New(f),
+				pubkey)
 			if !accepted {
 				err = huma.Error401Unauthorized("auth to get access for this filter")
 				return

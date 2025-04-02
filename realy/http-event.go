@@ -62,7 +62,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		advancedDeleter, _ := sto.(relay.AdvancedDeleter)
 		var valid bool
 		var pubkey []byte
-		valid, pubkey, err = httpauth.CheckAuth(r, ep.JWTVerifyFunc)
+		valid, pubkey, err = httpauth.CheckAuth(r)
 		// missing := !errors.Is(err, httpauth.ErrMissingKey)
 		// if there is an error but not that the token is missing, or there is no error
 		// but the signature is invalid, return error that request is unauthorized.
