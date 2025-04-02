@@ -101,7 +101,7 @@ func Get(ur *url.URL, sign signer.I) (err error) {
 	r.Header.Add("User-Agent", userAgent)
 	r.Header.Add("Accept", "application/nostr+json")
 	if sign != nil {
-		if err = httpauth.AddNIP98Header(r, ur, "GET", "", sign); chk.E(err) {
+		if err = httpauth.AddNIP98Header(r, ur, "GET", "", sign, 0); chk.E(err) {
 			fail(err.Error())
 		}
 	}
@@ -159,7 +159,7 @@ func Post(f string, ur *url.URL, sign signer.I) (err error) {
 	r.Header.Add("User-Agent", userAgent)
 	r.Header.Add("Accept", "application/nostr+json")
 	if sign != nil {
-		if err = httpauth.AddNIP98Header(r, ur, "POST", h, sign); chk.E(err) {
+		if err = httpauth.AddNIP98Header(r, ur, "POST", h, sign, 0); chk.E(err) {
 			fail(err.Error())
 		}
 	}

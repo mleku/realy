@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"realy.lol/event"
+	"realy.lol/ints"
 	"realy.lol/kind"
 	"realy.lol/tag"
 )
@@ -21,7 +22,7 @@ var ErrMissingKey = fmt.Errorf(
 //
 // A VerifyJWTFunc should be provided in order to search the event store for a
 // kind 13004 with a JWT signer pubkey that is granted authority for the request.
-func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (valid bool,
+func CheckAuth(r *http.Request, tolerance ...time.Duration) (valid bool,
 	pubkey []byte, err error) {
 	val := r.Header.Get(HeaderKey)
 	if val == "" {
@@ -69,27 +70,45 @@ func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (
 				ev.Kind.K, ev.Kind.Name(), kind.HTTPAuth.K, kind.HTTPAuth.Name())
 			return
 		}
-		// The created_at timestamp MUST be within a reasonable time window (suggestion ~60~ 15 seconds)
-		ts := ev.CreatedAt.I64()
-		tn := time.Now().Unix()
-		if ts < tn-tolerate || ts > tn+tolerate {
-			err = errorf.E("timestamp %d is more than %d seconds divergent from now %d",
-				ts, tolerate, tn)
+		// if there is an expiration timestamp it supersedes the created_at for validity.
+		exp := ev.Tags.GetAll(tag.New("expiration"))
+		if exp.Len() > 1 {
+			err = errorf.E("more than one \"expiration\" tag found: '%s'", exp.MarshalTo(nil))
 			return
 		}
-		// we are going to say anything not specified in nip-98 is invalid also, such as extra tags
-		if ev.Tags.Len() < 2 {
-			err = errorf.E("other than exactly 2 tags found in event\n%s",
-				ev.Tags.MarshalTo(nil))
-			return
+		var expiring bool
+		if exp.Len() == 1 {
+			ex := ints.New(0)
+			exp1 := exp.F()[0]
+			if rem, err = ex.Unmarshal(exp1.Value()); chk.E(err) {
+				return
+			}
+			tn := time.Now().Unix()
+			if tn > ex.Int64()+tolerate {
+				err = errorf.E("HTTP auth event is expired %d time now %d",
+					tn, ex.Int64()+tolerate)
+				return
+			}
+			expiring = true
+		} else {
+			// The created_at timestamp MUST be within a reasonable time window (suggestion 60
+			// seconds)
+			ts := ev.CreatedAt.I64()
+			tn := time.Now().Unix()
+			if ts < tn-tolerate || ts > tn+tolerate {
+				err = errorf.E("timestamp %d is more than %d seconds divergent from now %d",
+					ts, tolerate, tn)
+				return
+			}
 		}
 		ut := ev.Tags.GetAll(tag.New("u"))
-		if ut.Len() != 1 {
+		if ut.Len() > 1 {
 			err = errorf.E("more than one \"u\" tag found: '%s'", ut.MarshalTo(nil))
 			return
 		}
 		uts := ut.Value()
-		// The u tag MUST be exactly the same as the absolute request URL (including query parameters).
+		// The u tag MUST be exactly the same as the absolute request URL (including query
+		// parameters).
 		proto := r.URL.Scheme
 		// if this came through a proxy we need to get the protocol to match the event
 		if p := r.Header.Get("X-Forwarded-Proto"); p != "" {
@@ -102,22 +121,31 @@ func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (
 		evUrl := string(uts[0].Value())
 		// log.I.S(r)
 		log.T.F("full URL: %s event u tag value: %s", fullUrl, evUrl)
-		if fullUrl != evUrl {
+		if expiring {
+			// if it is expiring, the URL only needs to be the same prefix to allow its use with
+			// multiple endpoints.
+			if !strings.HasPrefix(fullUrl, evUrl) {
+				err = errorf.E("request URL %s does not start with the u tag URL %s",
+					fullUrl, evUrl)
+			}
+		} else if fullUrl != evUrl {
 			err = errorf.E("request has URL %s but signed nip-98 event has url %s",
 				fullUrl, string(uts[0].Value()))
 			return
 		}
-		// The method tag MUST be the same HTTP method used for the requested resource.
-		mt := ev.Tags.GetAll(tag.New("method"))
-		if mt.Len() != 1 {
-			err = errorf.E("more than one \"method\" tag found: '%s'", mt.MarshalTo(nil))
-			return
-		}
-		mts := mt.Value()
-		if strings.ToLower(string(mts[0].Value())) != strings.ToLower(r.Method) {
-			err = errorf.E("request has method %s but event has method %s",
-				string(mts[0].Value()), r.Method)
-			return
+		if !expiring {
+			// The method tag MUST be the same HTTP method used for the requested resource.
+			mt := ev.Tags.GetAll(tag.New("method"))
+			if mt.Len() != 1 {
+				err = errorf.E("more than one \"method\" tag found: '%s'", mt.MarshalTo(nil))
+				return
+			}
+			mts := mt.Value()
+			if strings.ToLower(string(mts[0].Value())) != strings.ToLower(r.Method) {
+				err = errorf.E("request has method %s but event has method %s",
+					string(mts[0].Value()), r.Method)
+				return
+			}
 		}
 		if valid, err = ev.Verify(); chk.E(err) {
 			return
@@ -126,34 +154,6 @@ func CheckAuth(r *http.Request, vfn VerifyJWTFunc, tolerance ...time.Duration) (
 			return
 		}
 		pubkey = ev.Pubkey
-	case strings.HasPrefix(val, JWTPrefix):
-		if vfn == nil {
-			err = errorf.E("JWT bearer header found but no JWT verifier function provided")
-			return
-		}
-		split := strings.Split(val, " ")
-		if len(split) == 1 {
-			err = errorf.E("missing JWT auth token from '%s' http header key: '%s'",
-				HeaderKey, val)
-		}
-		if len(split) > 2 {
-			err = errorf.E("extraneous content after second field space separated: %s", val)
-			return
-		}
-		// The u tag MUST be exactly the same as the absolute request URL (including query parameters).
-		proto := r.URL.Scheme
-		// if this came through a proxy we need to get the protocol to match the event
-		if p := r.Header.Get("X-Forwarded-Proto"); p != "" {
-			proto = p
-		}
-		if proto == "" {
-			proto = "http"
-		}
-		fullUrl := proto + "://" + r.Host + r.URL.RequestURI()
-		if pubkey, valid, err = VerifyJWTtoken(split[1], fullUrl, vfn); chk.E(err) {
-			return
-		}
-
 	default:
 		err = errorf.E("invalid '%s' value: '%s'", HeaderKey, val)
 		return

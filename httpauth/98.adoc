@@ -49,6 +49,14 @@ If one of the checks was to fail the server SHOULD respond with a 401 Unauthoriz
 
 Servers MAY perform additional implementation-specific validation checks.
 
+== Expiration Variant
+
+For cases where an authorization is needed for a more extended duration, and primarily for working with standard HTTP REST tooling and low-spec browsers, a variant of the foregoing specification with the following changes:
+
+1. The method tag is not present.
+2. The URL is the prefix instead of the exact URL, and the verification ensures the request matches the same prefix.
+3. There is an `expiration` tag, same as the link:https://github.com/nostr-protocol/nips/blob/8f676dc0a55e75564b54d96bcadf787b61654219/40.md[NIP-40] with the expiration as a unix timestamp encoded as the string in the second, value field, and to be valid must be in the future when the server receives it.
+
 == Request Flow
 
 Using the `Authorization` HTTP header, the `kind 27235` event MUST be `base64` encoded and use the Authorization scheme `Nostr`

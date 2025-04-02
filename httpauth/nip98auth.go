@@ -19,30 +19,30 @@ const (
 	NIP98Prefix = "Nostr"
 )
 
-func MakeNIP98Event(u, method, hash string) (ev *event.T) {
-	if hash != "" {
-		ev = &event.T{
-			CreatedAt: timestamp.Now(),
-			Kind:      kind.HTTPAuth,
-			Tags: tags.New(
-				tag.New("u", u),
-				tag.New("method", strings.ToUpper(method)),
-				tag.New("payload", hash),
-			),
-		}
+func MakeNIP98Event(u, method, hash string, expiry int64) (ev *event.T) {
+	var t []*tag.T
+	t = append(t, tag.New("u", u))
+	if expiry > 0 {
+		t = append(t,
+			tag.New("expiration", timestamp.FromUnix(expiry).String()))
 	} else {
-		ev = &event.T{
-			CreatedAt: timestamp.Now(),
-			Kind:      kind.HTTPAuth,
-			Tags: tags.New(tag.New("u", u),
-				tag.New("method", strings.ToUpper(method))),
-		}
+		t = append(t,
+			tag.New("method", strings.ToUpper(method)))
+	}
+	if hash != "" {
+		t = append(t, tag.New("payload", hash))
+	}
+	ev = &event.T{
+		CreatedAt: timestamp.Now(),
+		Kind:      kind.HTTPAuth,
+		Tags:      tags.New(t...),
 	}
 	return
 }
 
-func AddNIP98Header(r *http.Request, ur *url.URL, method, hash string, sign signer.I) (err error) {
-	ev := MakeNIP98Event(ur.String(), method, hash)
+func AddNIP98Header(r *http.Request, ur *url.URL, method, hash string,
+	sign signer.I, expiry int64) (err error) {
+	ev := MakeNIP98Event(ur.String(), method, hash, expiry)
 	if err = ev.Sign(sign); chk.E(err) {
 		return
 	}
