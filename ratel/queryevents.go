@@ -158,7 +158,8 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 					}
 					if et := ev.Tags.GetFirst(tag.New("expiration")); et != nil {
 						var exp uint64
-						if exp, err = strconv.ParseUint(string(et.Value()), 10, 64); chk.E(err) {
+						if exp, err = strconv.ParseUint(string(et.Value()), 10,
+							64); chk.E(err) {
 							return
 						}
 						if int64(exp) > time.Now().Unix() {

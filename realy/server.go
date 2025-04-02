@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -21,6 +22,7 @@ import (
 	"realy.lol/realy/options"
 	"realy.lol/relay"
 	"realy.lol/signer"
+	"realy.lol/store"
 )
 
 type Server struct {
@@ -40,6 +42,7 @@ type Server struct {
 	owners         [][]byte
 	Listeners      *listeners.T
 	huma.API
+	*store.Configuration
 }
 
 type ServerParams struct {
@@ -53,7 +56,7 @@ type ServerParams struct {
 	PublicReadable bool
 }
 
-func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
+func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	op := options.Default()
 	for _, opt := range opts {
 		opt(op)
@@ -67,11 +70,8 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
 	}
-	if err := sp.Rl.Init(); chk.T(err) {
-		return nil, fmt.Errorf("realy init: %w", err)
-	}
 	serveMux := NewServeMux()
-	s := &Server{
+	s = &Server{
 		Ctx:            sp.Ctx,
 		Cancel:         sp.Cancel,
 		relay:          sp.Rl,
@@ -98,9 +98,21 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 	huma.AutoRegister(s.API, NewRescan(s))
 	huma.AutoRegister(s.API, NewShutdown(s))
 	huma.AutoRegister(s.API, NewDisconnect(s))
+	huma.AutoRegister(s.API, NewConfiguration(s))
 	huma.AutoRegister(s.API, NewNuke(s))
 
-	if inj, ok := sp.Rl.(relay.Injector); ok {
+	// load configuration if it has been set
+	if c, ok := s.relay.Storage().(store.Configurationer); ok {
+		if s.Configuration, err = c.GetConfiguration(); chk.E(err) {
+		}
+	}
+
+	go func() {
+		if err := s.relay.Init(); chk.E(err) {
+			s.Shutdown()
+		}
+	}()
+	if inj, ok := s.relay.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
 				s.Listeners.NotifyListeners(s.authRequired, s.publicReadable, ev)
@@ -111,6 +123,13 @@ func NewServer(sp *ServerParams, opts ...options.O) (*Server, error) {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	remote := GetRemoteFromReq(r)
+	for _, a := range s.Configuration.BlockList {
+		if strings.HasPrefix(remote, a) {
+			log.I.F("rejecting request from %s because on blocklist", remote)
+			return
+		}
+	}
 	// standard nostr protocol only governs the "root" path of the relay and websockets
 	if r.URL.Path == "/" && r.Header.Get("Accept") == "application/nostr+json" {
 		s.handleRelayInfo(w, r)

@@ -26,57 +26,57 @@ const (
 	// provide conflict-free 8 byte 64-bit unique keys for event records, which
 	// follows the prefix.
 	//
-	//   [ 0 ][ 8 bytes Serial ]
+	//   [ 1 ][ 8 bytes Serial ]
 	Event index.P = iota
 
 	// CreatedAt creates an index key that contains the unix
 	// timestamp of the event record serial.
 	//
-	//   [ 1 ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
+	//   [ 2 ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
 	CreatedAt
 
 	// Id contains the first 8 bytes of the Id of the event and the 8
 	// byte Serial of the event record.
 	//
-	//   [ 2 ][ 8 bytes eventid.T prefix ][ 8 bytes Serial ]
+	//   [ 3 ][ 8 bytes eventid.T prefix ][ 8 bytes Serial ]
 	Id
 
 	// Kind contains the kind and datestamp.
 	//
-	//   [ 3 ][ 2 bytes kind.T ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
+	//   [ 4 ][ 2 bytes kind.T ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
 	Kind
 
 	// Pubkey contains pubkey prefix and timestamp.
 	//
-	//   [ 4 ][ 8 bytes pubkey prefix ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
+	//   [ 5 ][ 8 bytes pubkey prefix ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
 	Pubkey
 
 	// PubkeyKind contains pubkey prefix, kind and timestamp.
 	//
-	//   [ 5 ][ 8 bytes pubkey prefix ][ 2 bytes kind.T ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
+	//   [ 6 ][ 8 bytes pubkey prefix ][ 2 bytes kind.T ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
 	PubkeyKind
 
 	// Tag is for miscellaneous arbitrary length tags, with timestamp and event
 	// serial after.
 	//
-	//   [ 6 ][ tag string 1 <= 100 bytes ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
+	//   [ 7 ][ tag string 1 <= 100 bytes ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
 	Tag
 
 	// Tag32 contains the 8 byte pubkey prefix, timestamp and serial.
 	//
-	//   [ 7 ][ 8 bytes pubkey prefix ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
+	//   [ 8 ][ 8 bytes pubkey prefix ][ 8 bytes timestamp.T ][ 8 bytes Serial ]
 	Tag32
 
 	// TagAddr contains the kind, pubkey prefix, value (index 2) of address tag (eg
 	// relay address), followed by timestamp and serial.
 	//
-	//   [ 8 ][ 2 byte kind.T][ 8 byte pubkey prefix ][ network address ][ 8 byte timestamp.T ][ 8 byte Serial ]
+	//   [ 9 ][ 2 byte kind.T][ 8 byte pubkey prefix ][ network address ][ 8 byte timestamp.T ][ 8 byte Serial ]
 	TagAddr
 
 	// Counter is the eventid.T prefix, value stores the average time of access
 	// (average of all access timestamps) and the size of the record.
 	//
-	//   [ 9 ][ 8 bytes Serial ] : value: [ 8 bytes timestamp ]
+	//   [ 10 ][ 8 bytes Serial ] : value: [ 8 bytes timestamp ]
 	Counter
 
 	// Tombstone is an index that contains the left half of an event Id that has
@@ -85,7 +85,7 @@ const (
 	// eventually lead to a republication. The timestamp is added at the end to
 	// enable pruning the oldest tombstones.
 	//
-	// [ 10 ][ 16 bytes first/left half of event Id ][ 8 bytes timestamp ]
+	// [ 11 ][ 16 bytes first/left half of event Id ][ 8 bytes timestamp ]
 	Tombstone
 
 	// PubkeyIndex is the prefix for an index that stores a mapping between pubkeys
@@ -95,7 +95,7 @@ const (
 	//       events might have a more useful place in some kind of search API. eg just
 	//       want pubkey from event id, combined with FullIndex.
 	//
-	// [ 11 ][ 32 bytes pubkey ][ 8 bytes pubkey serial ]
+	// [ 12 ][ 32 bytes pubkey ][ 8 bytes pubkey serial ]
 	PubkeyIndex
 
 	// FullIndex is a secondary table for IDs that is used to fetch the full Id
@@ -107,8 +107,14 @@ const (
 	// from its created_at field. The serial acts as a "first seen" ordering, then
 	// you also have the (claimed) chronological ordering.
 	//
-	//   [ 2 ][ 8 bytes Serial ][ 32 bytes eventid.T ][ 32 bytes pubkey ][ 8 bytes timestamp.T ]
+	//   [ 13 ][ 8 bytes Serial ][ 32 bytes eventid.T ][ 32 bytes pubkey ][ 8 bytes timestamp.T ]
 	FullIndex
+
+	// Configuration is a free-form minified JSON object that contains a collection of
+	// configuration items.
+	//
+	// [ 14 ]
+	Configuration
 )
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop

@@ -177,6 +177,9 @@ func (l *T) NotifyListeners(authRequired, publicReadable bool, ev *event.T) {
 					containsPubkey = ev.Tags.ContainsAny([]byte{'p'}, tag.New(ab))
 				}
 				if !bytes.Equal(ev.Pubkey, ab) || containsPubkey {
+					if ab == nil {
+						continue
+					}
 					log.I.F("authed user %0x not privileged to receive event\n%s",
 						ab, ev.Serialize())
 					continue

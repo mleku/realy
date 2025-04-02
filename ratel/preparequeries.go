@@ -151,7 +151,7 @@ func PrepareQueries(f *filter.T) (
 			}
 		}
 		// log.T.S("kinds", qs)
-	default:
+	default: // todo: this is appearing on queries with only since/until
 		log.I.S("nothing in filter, returning latest events")
 		// if len(qs) > 0 {
 		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: []byte{1},

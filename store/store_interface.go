@@ -107,3 +107,12 @@ type Syncer interface {
 	// Sync signals the event store to flush its buffers.
 	Sync() (err error)
 }
+
+type Configuration struct {
+	BlockList []string `json:"block_list" doc:"list of IP addresses that will be ignored"`
+}
+
+type Configurationer interface {
+	GetConfiguration() (c *Configuration, err error)
+	SetConfiguration(c *Configuration) (err error)
+}

@@ -33,7 +33,7 @@ func (ev *T) ToCanonical(dst []byte) (b []byte) {
 // GetIDBytes returns the raw SHA256 hash of the canonical form of an event.T.
 func (ev *T) GetIDBytes() []byte { return Hash(ev.ToCanonical(nil)) }
 
-// New
+// NewCanonical builds a new canonical encoder.
 func NewCanonical() (a *json.Array) {
 	a = &json.Array{
 		V: []codec.JSON{
@@ -59,7 +59,7 @@ func (ev *T) FromCanonical(b []byte) (rem []byte, err error) {
 	id := Hash(rem)
 	c := NewCanonical()
 	if rem, err = c.Unmarshal(rem); chk.E(err) {
-		log.I.S(b)
+		log.I.F("%s", b)
 		return
 	}
 	// unwrap the array
