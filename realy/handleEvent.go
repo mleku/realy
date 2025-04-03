@@ -21,7 +21,8 @@ import (
 	"realy.lol/web"
 )
 
-func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.I) (msg []byte) {
+func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte,
+	sto store.I) (msg []byte) {
 	log.T.F("handleEvent %s %s", ws.RealRemote(), req)
 	var err error
 	var ok bool
@@ -47,21 +48,21 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte, sto store.
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 				if !ws.AuthRequested() {
 					ws.RequestAuth()
-					if err = okenvelope.NewFrom(env.Id, false,
-						normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
-					}
 					log.I.F("requesting auth from client %s", ws.RealRemote())
 					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
 						return
 					}
-					return
-				} else {
 					if err = okenvelope.NewFrom(env.Id, false,
 						normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
 					}
+					return
+				} else {
 					log.I.F("requesting auth again from client %s", ws.RealRemote())
 					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.T(err) {
 						return
+					}
+					if err = okenvelope.NewFrom(env.Id, false,
+						normalize.AuthRequired.F("auth required for storing events")).Write(ws); chk.T(err) {
 					}
 					return
 				}
