@@ -15,6 +15,7 @@ type KeyValue struct {
 	Value codec.JSON
 }
 
+// Marshal a KeyValue - ie, a JSON object key, from the provided byte string.
 func (k *KeyValue) Marshal(dst []byte) (b []byte) {
 	b = (&String{k.Key}).Marshal(dst)
 	b = append(b, ':')
@@ -22,6 +23,7 @@ func (k *KeyValue) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a JSON object key from a provided byte string.
 func (k *KeyValue) Unmarshal(dst []byte) (rem []byte, err error) {
 	rem = dst
 	s := &String{}

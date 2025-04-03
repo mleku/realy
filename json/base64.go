@@ -10,6 +10,7 @@ import (
 // Base64 is a string representing binary data encoded as base64.
 type Base64 struct{ V []byte }
 
+// Marshal encodes a byte string into base64. This uses standard encoding, not URL encoding.
 func (b2 *Base64) Marshal(dst []byte) (b []byte) {
 	b = dst
 	buf := &bytes.Buffer{}
@@ -24,6 +25,7 @@ func (b2 *Base64) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a base64 standard encoded string into a byte string.
 func (b2 *Base64) Unmarshal(dst []byte) (rem []byte, err error) {
 	var c []byte
 	if c, rem, err = text.UnmarshalQuoted(dst); chk.E(err) {

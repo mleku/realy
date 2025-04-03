@@ -6,9 +6,12 @@ import (
 	"realy.lol/codec"
 )
 
-// An Array is an ordered list of values.
+// An Array is an ordered list of values. Each field is typed, to deal with the javascript
+// dynamic typing. This means the array is essentially static typed, so it won't work if the
+// data is not in a predictable format.
 type Array struct{ V []codec.JSON }
 
+// Marshal a list of values
 func (a *Array) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, '[')
@@ -23,6 +26,8 @@ func (a *Array) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal decodes a byte string into an array, and returns the remainder after the end of the
+// array.
 func (a *Array) Unmarshal(dst []byte) (rem []byte, err error) {
 	rem = dst
 	var openBracket bool

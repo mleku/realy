@@ -7,6 +7,8 @@ package ints
 import (
 	_ "embed"
 	"io"
+
+	"golang.org/x/exp/constraints"
 )
 
 // run this to regenerate (pointlessly) the base 10 array of 4 places per entry
@@ -17,16 +19,22 @@ var base10k []byte
 
 const base = 10000
 
+// T is an integer with a fast codec to decimal ASCII.
 type T struct {
 	N uint64
 }
 
-func New[V uint | int | uint64 | uint32 | uint16 | uint8 | int64 | int32 | int16 | int8](n V) *T {
+func New[V constraints.Integer](n V) *T {
 	return &T{uint64(n)}
 }
 
+// Uint64 returns the int.T as a uint64 (the base type)
 func (n *T) Uint64() uint64 { return n.N }
-func (n *T) Int64() int64   { return int64(n.N) }
+
+// Int64 returns an int64 from the base number (may cause truncation)
+func (n *T) Int64() int64 { return int64(n.N) }
+
+// Uint16 returns an uint16 from the base number (may cause truncation)
 func (n *T) Uint16() uint16 { return uint16(n.N) }
 
 var powers = []*T{
@@ -40,6 +48,7 @@ var powers = []*T{
 const zero = '0'
 const nine = '9'
 
+// Marshal the int.T into a byte string.
 func (n *T) Marshal(dst []byte) (b []byte) {
 	nn := n.N
 	b = dst

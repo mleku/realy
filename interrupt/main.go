@@ -13,12 +13,15 @@ import (
 	"realy.lol/qu"
 )
 
+// HandlerWithSource is an interrupt handling closure and the source location that it was sent
+// from.
 type HandlerWithSource struct {
 	Source string
 	Fn     func()
 }
 
 var (
+	// RestartRequested is set true after restart is requested.
 	RestartRequested bool // = true
 	requested        atomic.Bool
 

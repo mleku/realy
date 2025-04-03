@@ -20,17 +20,20 @@ var Bools = map[bool][]byte{
 	false: []byte(F),
 }
 
+// Marshal a Bool into JSON text (ie true/false)
 func (b2 *Bool) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, Bools[b2.V]...)
 	return
 }
 
+// Unmarshal a byte string that should be containing a boolean true/false.
+//
+// this is a shortcut evaluation because any text not in quotes in JSON is invalid so if
+// it is something other than the exact correct, the next value will not match and the
+// larger structure being unmarshalled will fail with an error.
 func (b2 *Bool) Unmarshal(dst []byte) (rem []byte, err error) {
 	rem = dst
-	// this is a shortcut evaluation because any text not in quotes in JSON is invalid so if
-	// it is something other than the exact correct, the next value will not match and the
-	// larger structure being unmarshalled will fail with an error.
 	if rem[0] == Bools[true][0] {
 		if len(rem) < len(T) {
 			err = io.EOF

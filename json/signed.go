@@ -1,6 +1,8 @@
 package json
 
 import (
+	"golang.org/x/exp/constraints"
+
 	"realy.lol/ints"
 )
 
@@ -21,8 +23,10 @@ import (
 // automatically converts it to the biggest type that is used in runtime.
 type Signed struct{ V int64 }
 
-func NewSigned[V int64 | int32 | int16 | int8](i V) *Signed { return &Signed{int64(i)} }
+// NewSigned creates a new Signed integer value.
+func NewSigned[V constraints.Signed](i V) *Signed { return &Signed{int64(i)} }
 
+// Marshal the Signed into a byte string in standard JSON formatting.
 func (s *Signed) Marshal(dst []byte) (b []byte) {
 	b = dst
 	v := s.V
@@ -35,6 +39,7 @@ func (s *Signed) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a Signed in JSON form into its value.
 func (s *Signed) Unmarshal(dst []byte) (rem []byte, err error) {
 	rem = dst
 	var neg bool

@@ -17,6 +17,7 @@ import (
 // encoded, it returns an error.
 type Bech32 struct{ HRP, V []byte }
 
+// Marshal a byte slice, with a given HRP prefix into a Bech32 string.
 func (b2 *Bech32) Marshal(dst []byte) (b []byte) {
 	var err error
 	var b5 []byte
@@ -33,6 +34,7 @@ func (b2 *Bech32) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a Bech32 string into raw bytes, and extract the HRP prefix.
 func (b2 *Bech32) Unmarshal(dst []byte) (rem []byte, err error) {
 	var c []byte
 	if c, rem, err = text.UnmarshalQuoted(dst); chk.E(err) {

@@ -1,6 +1,8 @@
 package json
 
 import (
+	"golang.org/x/exp/constraints"
+
 	"realy.lol/ints"
 )
 
@@ -16,14 +18,15 @@ import (
 // the internal uint64 type, saving the caller from needing to cast it in their code.
 type Unsigned struct{ V uint64 }
 
-func NewUnsigned[V int64 | int32 | int16 | int8 | uint64 | uint32 | uint16 |
-	uint8](i V) *Signed {
-
-	return &Signed{int64(i)}
+// NewUnsigned creates a new Unsigned from any unsigned integer.
+func NewUnsigned[V constraints.Unsigned](i V) *Unsigned {
+	return &Unsigned{uint64(i)}
 }
 
+// Marshal an Unsigned into a byte string.
 func (u *Unsigned) Marshal(dst []byte) (b []byte) { return ints.New(u.V).Marshal(dst) }
 
+// Unmarshal renders a number in ASCII into an Unsigned.
 func (u *Unsigned) Unmarshal(dst []byte) (rem []byte, err error) {
 	rem = dst
 	n := ints.New(u.V)
