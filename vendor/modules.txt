@@ -1,17 +1,3 @@
-# cloud.google.com/go v0.110.2
-## explicit; go 1.19
-# cloud.google.com/go/compute/metadata v0.3.0
-## explicit; go 1.19
-# cloud.google.com/go/container v1.15.0
-## explicit; go 1.19
-# cloud.google.com/go/iam v0.13.0
-## explicit; go 1.19
-# cloud.google.com/go/longrunning v0.4.1
-## explicit; go 1.19
-# cloud.google.com/go/monitoring v1.13.0
-## explicit; go 1.19
-# cloud.google.com/go/trace v1.9.0
-## explicit; go 1.19
 # github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 ## explicit; go 1.18
 github.com/BurntSushi/toml
@@ -27,21 +13,10 @@ github.com/alexflint/go-arg
 # github.com/alexflint/go-scalar v1.2.0
 ## explicit; go 1.15
 github.com/alexflint/go-scalar
-# github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a
-## explicit
 # github.com/andybalholm/brotli v1.1.1
 ## explicit; go 1.13
 github.com/andybalholm/brotli
 github.com/andybalholm/brotli/matchfinder
-# github.com/apapsch/go-jsonmerge/v2 v2.0.0
-## explicit; go 1.12
-github.com/apapsch/go-jsonmerge/v2
-# github.com/aws/aws-sdk-go v1.34.29
-## explicit; go 1.11
-# github.com/beorn7/perks v1.0.1
-## explicit; go 1.11
-# github.com/census-instrumentation/opencensus-proto v0.4.1
-## explicit; go 1.18
 # github.com/cespare/xxhash/v2 v2.3.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
@@ -52,6 +27,7 @@ github.com/danielgtaylor/huma/v2/adapters/humago
 github.com/danielgtaylor/huma/v2/casing
 github.com/danielgtaylor/huma/v2/negotiation
 github.com/danielgtaylor/huma/v2/queryparam
+github.com/danielgtaylor/huma/v2/sse
 github.com/danielgtaylor/huma/v2/validation
 github.com/danielgtaylor/huma/v2/yaml
 # github.com/davecgh/go-spew v1.1.1
@@ -72,8 +48,6 @@ github.com/dgraph-io/badger/v4/y
 github.com/dgraph-io/ristretto/v2
 github.com/dgraph-io/ristretto/v2/z
 github.com/dgraph-io/ristretto/v2/z/simd
-# github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f
-## explicit
 # github.com/dustin/go-humanize v1.0.1
 ## explicit; go 1.16
 github.com/dustin/go-humanize
@@ -100,49 +74,15 @@ github.com/gobwas/pool/pbytes
 github.com/gobwas/ws
 github.com/gobwas/ws/wsflate
 github.com/gobwas/ws/wsutil
-# github.com/golang-jwt/jwt/v5 v5.2.1
-## explicit; go 1.18
-github.com/golang-jwt/jwt/v5
 # github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
 ## explicit; go 1.20
 github.com/golang/groupcache/lru
-# github.com/golang/protobuf v1.5.4
-## explicit; go 1.17
 # github.com/google/flatbuffers v24.3.25+incompatible
 ## explicit
 github.com/google/flatbuffers/go
-# github.com/google/martian v2.1.0+incompatible
-## explicit
 # github.com/google/pprof v0.0.0-20250121033306-997b0b79cac0
 ## explicit; go 1.22
 github.com/google/pprof/profile
-# github.com/google/s2a-go v0.1.4
-## explicit; go 1.16
-# github.com/google/uuid v1.6.0
-## explicit
-github.com/google/uuid
-# github.com/googleapis/enterprise-certificate-proxy v0.2.3
-## explicit; go 1.19
-# github.com/googleapis/gax-go/v2 v2.11.0
-## explicit; go 1.19
-# github.com/hashicorp/errwrap v1.0.0
-## explicit
-# github.com/hashicorp/go-multierror v1.1.0
-## explicit; go 1.14
-# github.com/jackc/chunkreader/v2 v2.0.1
-## explicit; go 1.12
-# github.com/jackc/pgio v1.0.0
-## explicit; go 1.12
-# github.com/jackc/pgpassfile v1.0.0
-## explicit; go 1.12
-# github.com/jackc/pgproto3/v2 v2.3.3
-## explicit; go 1.12
-# github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a
-## explicit; go 1.14
-# github.com/jackc/pgtype v1.14.0
-## explicit; go 1.13
-# github.com/jmespath/go-jmespath v0.4.0
-## explicit; go 1.14
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 ## explicit
 github.com/kardianos/osext
@@ -166,22 +106,12 @@ github.com/klauspost/compress/zstd/internal/xxhash
 github.com/klauspost/cpuid/v2
 # github.com/kr/text v0.2.0
 ## explicit
-# github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
-## explicit
-# github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0
-## explicit
 # github.com/mattn/go-colorable v0.1.14
 ## explicit; go 1.18
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
-# github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369
-## explicit; go 1.9
-# github.com/oapi-codegen/runtime v1.1.1
-## explicit; go 1.20
-github.com/oapi-codegen/runtime
-github.com/oapi-codegen/runtime/types
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -191,14 +121,6 @@ github.com/pkg/profile
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/prometheus/client_golang v1.11.1
-## explicit; go 1.13
-# github.com/prometheus/client_model v0.3.0
-## explicit; go 1.9
-# github.com/prometheus/common v0.26.0
-## explicit; go 1.11
-# github.com/prometheus/procfs v0.6.0
-## explicit; go 1.13
 # github.com/puzpuzpuz/xsync/v3 v3.4.1
 ## explicit; go 1.18
 github.com/puzpuzpuz/xsync/v3
@@ -230,8 +152,6 @@ github.com/valyala/bytebufferpool
 github.com/valyala/fasthttp
 github.com/valyala/fasthttp/fasthttputil
 github.com/valyala/fasthttp/stackless
-# github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da
-## explicit; go 1.14
 # go-simpler.org/env v0.12.0
 ## explicit; go 1.20
 go-simpler.org/env
@@ -242,8 +162,6 @@ go.opencensus.io/internal
 go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/tracestate
-# go.uber.org/atomic v1.6.0
-## explicit; go 1.13
 # golang.org/x/crypto v0.36.0
 ## explicit; go 1.23.0
 golang.org/x/crypto/acme
@@ -272,8 +190,6 @@ golang.org/x/net/internal/timeseries
 golang.org/x/net/proxy
 golang.org/x/net/trace
 golang.org/x/net/websocket
-# golang.org/x/oauth2 v0.28.0
-## explicit; go 1.23.0
 # golang.org/x/sync v0.12.0
 ## explicit; go 1.23.0
 golang.org/x/sync/errgroup
@@ -315,14 +231,6 @@ golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
-# golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
-## explicit; go 1.17
-# google.golang.org/appengine v1.6.7
-## explicit; go 1.11
-# google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc
-## explicit; go 1.19
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc
-## explicit; go 1.19
 # google.golang.org/protobuf v1.35.2
 ## explicit; go 1.21
 google.golang.org/protobuf/encoding/prototext
@@ -351,6 +259,8 @@ google.golang.org/protobuf/reflect/protoreflect
 google.golang.org/protobuf/reflect/protoregistry
 google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
+# gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15
+## explicit
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3

@@ -35,12 +35,14 @@ type Filter struct{ *Server }
 func NewFilter(s *Server) (ep *Filter) { return &Filter{Server: s} }
 
 type FilterInput struct {
-	Auth  string       `header:"Authorization" doc:"nostr nip-98 or JWT token for authentication" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
-	Since int64        `query:"since" doc:"timestamp of the oldest events to return (inclusive)"`
-	Until int64        `query:"until" doc:"timestamp of the newest events to return (inclusive)"`
-	Limit uint         `query:"limit" doc:"maximum number of results to return"`
-	Sort  string       `query:"sort" enum:"asc,desc" default:"desc" doc:"sort order by created_at timestamp"`
-	Body  SimpleFilter `body:"filter" doc:"filter criteria to match for events to return"`
+	Auth        string       `header:"Authorization" doc:"nostr nip-98 or JWT token for authentication" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Accept      string       `header:"Accept" default:"application/json" enum:"application/json" required:"true"`
+	ContentType string       `header:"Content-Type" default:"application/json" enum:"application/json" required:"true"`
+	Since       int64        `query:"since" doc:"timestamp of the oldest events to return (inclusive)"`
+	Until       int64        `query:"until" doc:"timestamp of the newest events to return (inclusive)"`
+	Limit       uint         `query:"limit" doc:"maximum number of results to return"`
+	Sort        string       `query:"sort" enum:"asc,desc" default:"desc" doc:"sort order by created_at timestamp"`
+	Body        SimpleFilter `body:"filter" doc:"filter criteria to match for events to return"`
 }
 
 func (fi FilterInput) ToFilter() (f *filter.T, err error) {

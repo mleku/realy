@@ -126,7 +126,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	remote := GetRemoteFromReq(r)
 	for _, a := range s.Configuration.BlockList {
 		if strings.HasPrefix(remote, a) {
-			log.I.F("rejecting request from %s because on blocklist", remote)
+			log.W.F("rejecting request from %s because on blocklist", remote)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
