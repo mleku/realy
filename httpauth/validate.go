@@ -16,12 +16,9 @@ import (
 var ErrMissingKey = fmt.Errorf(
 	"'%s' key missing from request header", HeaderKey)
 
-// CheckAuth verifies a received http.Request has got a valid
-// authentication event or token in it, and provides the public key that should be
-// verified to be authorized to access the resource associated with the request.
-//
-// A VerifyJWTFunc should be provided in order to search the event store for a
-// kind 13004 with a JWT signer pubkey that is granted authority for the request.
+// CheckAuth verifies a received http.Request has got a valid authentication event in it, withan
+// optional specification for tolerance of before and after, and provides the public key that
+// should be verified to be authorized to access the resource associated with the request.
 func CheckAuth(r *http.Request, tolerance ...time.Duration) (valid bool,
 	pubkey []byte, err error) {
 	val := r.Header.Get(HeaderKey)
