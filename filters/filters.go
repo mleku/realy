@@ -6,12 +6,15 @@ import (
 	"realy.lol/filter"
 )
 
+// T is a wrapper around an array of pointers to filter.T.
 type T struct {
 	F []*filter.T
 }
 
+// Make a new filters.T.
 func Make(l int) *T { return &T{F: make([]*filter.T, l)} }
 
+// GetFingerprints returns a collection of fingerprints (64 bit digest) of a set of filters.T.
 func (f *T) GetFingerprints() (fps []uint64, err error) {
 	for _, ff := range f.F {
 		var fp uint64
@@ -23,10 +26,13 @@ func (f *T) GetFingerprints() (fps []uint64, err error) {
 	return
 }
 
+// Len returns the number of elements in a filters.T.
 func (f *T) Len() int { return len(f.F) }
 
+// New creates a new filters.T out of a variadic list of filter.T.
 func New(ff ...*filter.T) (f *T) { return &T{F: ff} }
 
+// Match checks if a set of filters.T matches on an event.T.
 func (f *T) Match(event *event.T) bool {
 	for _, f := range f.F {
 		if f.Matches(event) {
@@ -36,8 +42,12 @@ func (f *T) Match(event *event.T) bool {
 	return false
 }
 
-func (f *T) String() (s string) { return string(f.Marshal(nil)) }
+// String returns a canonical sorted string of a slice of filters.T.
+func (f *T) String() (s string) {
+	return string(f.Marshal(nil))
+}
 
+// Marshal a filters.T into raw bytes, and append it to a provided slice, and return the result.
 func (f *T) Marshal(dst []byte) (b []byte) {
 	var err error
 	_ = err
@@ -54,6 +64,7 @@ func (f *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a filters.T in JSON (minified) form and store it in the provided filters.T.
 func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b[:]
 	if len(r) < 1 {
@@ -95,6 +106,7 @@ func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
+// GenFilters creates an arbitrary number of fake filters for tests.
 func GenFilters(n int) (ff *T, err error) {
 	ff = &T{}
 	for _ = range n {
