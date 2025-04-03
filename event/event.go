@@ -17,6 +17,7 @@ import (
 	"realy.lol/tags"
 	"realy.lol/text"
 	"realy.lol/timestamp"
+	"realy.lol/unix"
 )
 
 // T is the primary datatype of nostr. This is the form of the structure that
@@ -108,7 +109,7 @@ func (ev *T) ContentString() (s string) { return string(ev.Content) }
 type J struct {
 	Id        string     `json:"id"`
 	Pubkey    string     `json:"pubkey"`
-	CreatedAt int64      `json:"created_at"`
+	CreatedAt unix.Time  `json:"created_at"`
 	Kind      int32      `json:"kind"`
 	Tags      [][]string `json:"tags"`
 	Content   string     `json:"content"`
@@ -120,7 +121,7 @@ func (ev *T) ToEventJ() (j *J) {
 	j = &J{}
 	j.Id = ev.IdString()
 	j.Pubkey = ev.PubKeyString()
-	j.CreatedAt = ev.CreatedAt.I64()
+	j.CreatedAt = unix.Time{ev.CreatedAt.Time()}
 	j.Kind = ev.KindInt32()
 	j.Content = ev.ContentString()
 	j.Tags = ev.Tags.ToStringSlice()
@@ -193,7 +194,7 @@ func (e J) ToEvent() (ev *T, err error) {
 	if err = ev.IdFromString(e.Id); chk.E(err) {
 		return
 	}
-	ev.CreatedAtFromInt64(e.CreatedAt)
+	ev.CreatedAtFromInt64(e.CreatedAt.Unix())
 	ev.KindFromInt32(e.Kind)
 	if err = ev.PubKeyFromString(e.Pubkey); chk.E(err) {
 		return

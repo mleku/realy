@@ -16,6 +16,7 @@ import (
 	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/prefixes"
+	"realy.lol/realy/pointers"
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/timestamp"
@@ -181,7 +182,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 					// add event counter key to accessed
 					ser := serial.FromKey(eventKey)
 					accessed[string(ser.Val)] = struct{}{}
-					if filter.Present(f.Limit) {
+					if pointers.Present(f.Limit) {
 						*f.Limit--
 						if *f.Limit <= 0 {
 							log.I.F("found events: %d", len(evMap))

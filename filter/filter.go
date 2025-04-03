@@ -18,14 +18,13 @@ import (
 	"realy.lol/ints"
 	"realy.lol/kind"
 	"realy.lol/kinds"
+	"realy.lol/realy/pointers"
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/tags"
 	"realy.lol/text"
 	"realy.lol/timestamp"
 )
-
-func Present(i *uint) bool { return i != nil }
 
 // T is the primary query form for requesting events from a nostr relay.
 //
@@ -48,6 +47,8 @@ type T struct {
 	Limit   *uint        `json:"limit,omitempty"`
 }
 
+// New creates a new, reasonably initialized filter that will be ready for most uses without
+// further allocations.
 func New() (f *T) {
 	return &T{
 		IDs:     tag.NewWithCap(10),
@@ -88,15 +89,25 @@ func (f *T) Clone() (clone *T) {
 }
 
 var (
-	IDs     = []byte("ids")
-	Kinds   = []byte("kinds")
+
+	// IDs is the JSON object key for IDs.
+	IDs = []byte("ids")
+	// Kinds is the JSON object key for Kinds.
+	Kinds = []byte("kinds")
+	// Authors is the JSON object key for Authors.
 	Authors = []byte("authors")
-	Since   = []byte("since")
-	Until   = []byte("until")
-	Limit   = []byte("limit")
-	Search  = []byte("search")
+	// Since is the JSON object key for Since.
+	Since = []byte("since")
+	// Until is the JSON object key for Until.
+	Until = []byte("until")
+	// Limit is the JSON object key for Limit.
+	Limit = []byte("limit")
+	// Search is the JSON object key for Search.
+	Search = []byte("search")
 )
 
+// Marshal a filter into raw JSON bytes, minified. The field ordering and sort of fields is
+// canonicalized so that a hash can identify the same filter.
 func (f *T) Marshal(dst []byte) (b []byte) {
 	var err error
 	_ = err
@@ -210,7 +221,7 @@ func (f *T) Marshal(dst []byte) (b []byte) {
 		dst = text.JSONKey(dst, Search)
 		dst = text.AppendQuote(dst, f.Search, text.NostrEscape)
 	}
-	if Present(f.Limit) {
+	if pointers.Present(f.Limit) {
 		if first {
 			dst = append(dst, ',')
 		} else {
@@ -225,6 +236,7 @@ func (f *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Serialize a filter.T into raw minified JSON bytes.
 func (f *T) Serialize() (b []byte) { return f.Marshal(nil) }
 
 // states of the unmarshaler
@@ -238,6 +250,9 @@ const (
 	afterClose
 )
 
+// Unmarshal a filter from raw (minified) JSON bytes into the runtime format.
+//
+// todo: this may tolerate whitespace, not certain currently.
 func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b[:]
 	var key []byte
@@ -276,7 +291,8 @@ func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 				// tags start with # and have 1 letter
 				l := len(key)
 				if l != 2 {
-					err = errorf.E("filter tag keys can only be # and one alpha character: '%s'\n%s", key, b)
+					err = errorf.E("filter tag keys can only be # and one alpha character: '%s'\n%s",
+						key, b)
 					return
 				}
 				k := make([]byte, len(key))
@@ -415,6 +431,7 @@ invalid:
 	return
 }
 
+// Matches checks a filter against an event and determines if the event matches the filter.
 func (f *T) Matches(ev *event.T) bool {
 	if ev == nil {
 		// log.T.F("nil event")
@@ -491,7 +508,10 @@ func arePointerValuesEqual[V comparable](a *V, b *V) bool {
 	return false
 }
 
+// Equal checks a filter against another filter to see if they are the same filter.
 func (f *T) Equal(b *T) bool {
+	// sort the fields so they come out the same
+	f.Sort()
 	if !f.Kinds.Equals(b.Kinds) ||
 		!f.IDs.Equal(b.IDs) ||
 		!f.Authors.Equal(b.Authors) ||
@@ -505,6 +525,7 @@ func (f *T) Equal(b *T) bool {
 	return true
 }
 
+// GenFilter is a testing tool to create random arbitrary filters for tests.
 func GenFilter() (f *T, err error) {
 	f = New()
 	n := frand.Intn(16)

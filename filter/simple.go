@@ -9,6 +9,7 @@ import (
 	"realy.lol/hex"
 	"realy.lol/ints"
 	"realy.lol/kinds"
+	"realy.lol/realy/pointers"
 	"realy.lol/sha256"
 	"realy.lol/tag"
 	"realy.lol/tags"
@@ -28,6 +29,7 @@ type S struct {
 	Limit   *uint        `json:"limit,omitempty"`
 }
 
+// NewSimple creates a new, reasonably pre-allocated filter.S.
 func NewSimple() (f *S) {
 	return &S{
 		Kinds:   kinds.NewWithCap(10),
@@ -84,6 +86,7 @@ func (f *S) Sort() {
 	}
 }
 
+// Marshal a filter.S in canonical form with sorted fields.
 func (f *S) Marshal(dst []byte) (b []byte) {
 	var err error
 	_ = err
@@ -119,7 +122,7 @@ func (f *S) Marshal(dst []byte) (b []byte) {
 		dst = text.JSONKey(dst, Until)
 		dst = f.Until.Marshal(dst)
 	}
-	if Present(f.Limit) {
+	if pointers.Present(f.Limit) {
 		if first {
 			dst = append(dst, ',')
 		} else {
@@ -192,8 +195,12 @@ func (f *S) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Serialize a filter directly to raw bytes.
 func (f *S) Serialize() (b []byte) { return f.Marshal(nil) }
 
+// Unmarshal a filter from JSON (minified) form.
+//
+// todo: maybe this tolerates whitespace?
 func (f *S) Unmarshal(b []byte) (r []byte, err error) {
 	r = b[:]
 	var key []byte
@@ -306,6 +313,7 @@ invalid:
 	return
 }
 
+// Matches checks if a filter.S matches an event.
 func (f *S) Matches(ev *event.T) bool {
 	if ev == nil {
 		// log.T.F("nil event")
@@ -325,7 +333,10 @@ func (f *S) Matches(ev *event.T) bool {
 	return true
 }
 
+// Equal checks if two filters are the same filter.
 func (f *S) Equal(b *S) bool {
+	f.Sort()
+	b.Sort()
 	if !f.Kinds.Equals(b.Kinds) ||
 		!f.Authors.Equal(b.Authors) ||
 		f.Tags.Len() != b.Tags.Len() ||

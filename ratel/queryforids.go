@@ -19,6 +19,7 @@ import (
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/prefixes"
+	"realy.lol/realy/pointers"
 	"realy.lol/sha256"
 	"realy.lol/store"
 	"realy.lol/tag"
@@ -123,7 +124,8 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 						}
 						if et := ev.Tags.GetFirst(tag.New("expiration")); et != nil {
 							var exp uint64
-							if exp, err = strconv.ParseUint(string(et.Value()), 10, 64); chk.E(err) {
+							if exp, err = strconv.ParseUint(string(et.Value()), 10,
+								64); chk.E(err) {
 								return
 							}
 							if int64(exp) > time.Now().Unix() {
@@ -144,7 +146,7 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 						ser := serial.FromKey(eventKey)
 						serials = append(serials, ser)
 						accessed[string(ser.Val)] = struct{}{}
-						if filter.Present(f.Limit) {
+						if pointers.Present(f.Limit) {
 							if *f.Limit < uint(len(serials)) {
 								// done
 								break done

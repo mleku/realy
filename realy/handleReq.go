@@ -18,6 +18,7 @@ import (
 	"realy.lol/kind"
 	"realy.lol/kinds"
 	"realy.lol/normalize"
+	"realy.lol/realy/pointers"
 	"realy.lol/relay"
 	"realy.lol/store"
 	"realy.lol/tag"
@@ -37,7 +38,8 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 	allowed := env.Filters
 	if accepter, ok := s.relay.(relay.ReqAcceptor); ok {
 		var accepted, modified bool
-		allowed, accepted, modified = accepter.AcceptReq(c, ws.Req(), env.Subscription.T, env.Filters,
+		allowed, accepted, modified = accepter.AcceptReq(c, ws.Req(), env.Subscription.T,
+			env.Filters,
 			[]byte(ws.Authed()))
 		if !accepted || allowed == nil || modified {
 			var auther relay.Authenticator
@@ -68,7 +70,8 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.E(err) {
 				}
-				log.T.F("requesting auth from client from %s, challenge '%s'", ws.RealRemote(), ws.Challenge())
+				log.T.F("requesting auth from client from %s, challenge '%s'", ws.RealRemote(),
+					ws.Challenge())
 				if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 					return
 				}
@@ -81,7 +84,7 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 	}
 	for _, f := range allowed.F {
 		var i uint
-		if filter.Present(f.Limit) {
+		if pointers.Present(f.Limit) {
 			if *f.Limit == 0 {
 				continue
 			}
