@@ -7,13 +7,18 @@ import (
 	"realy.lol/kind"
 )
 
+// T is an array of kind.T, used in filter.T and filter.S for searches.
 type T struct {
 	K []*kind.T
 }
 
+// New creates a new kinds.T, if no parameter is given it just creates an empty zero kinds.T.
 func New(k ...*kind.T) *T { return &T{k} }
+
+// NewWithCap creates a new empty kinds.T with a given slice capacity.
 func NewWithCap(c int) *T { return &T{make([]*kind.T, 0, c)} }
 
+// FromIntSlice converts a []int into a kinds.T.
 func FromIntSlice(is []int) (k *T) {
 	k = &T{}
 	for i := range is {
@@ -22,6 +27,7 @@ func FromIntSlice(is []int) (k *T) {
 	return
 }
 
+// Len returns the number of elements in a kinds.T.
 func (k *T) Len() (l int) {
 	if k == nil {
 		return
@@ -29,12 +35,15 @@ func (k *T) Len() (l int) {
 	return len(k.K)
 }
 
+// Less returns which of two elements of a kinds.T is lower.
 func (k *T) Less(i, j int) bool { return k.K[i].K < k.K[j].K }
 
+// Swap switches the position of two kinds.T elements.
 func (k *T) Swap(i, j int) {
 	k.K[i].K, k.K[j].K = k.K[j].K, k.K[i].K
 }
 
+// ToUint16 returns a []uint16 version of the kinds.T.
 func (k *T) ToUint16() (o []uint16) {
 	for i := range k.K {
 		o = append(o, k.K[i].ToU16())
@@ -79,6 +88,7 @@ func (k *T) Equals(t1 *T) bool {
 	return true
 }
 
+// Marshal renders the kinds.T into a JSON array of integers.
 func (k *T) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, '[')
@@ -92,6 +102,7 @@ func (k *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal decodes a provided JSON array of integers into a kinds.T.
 func (k *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b
 	var openedBracket bool
@@ -125,6 +136,8 @@ func (k *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
+// IsPrivileged returns true if any of the elements of a kinds.T are privileged (ie, they should
+// be privacy protected).
 func (k *T) IsPrivileged() (priv bool) {
 	for i := range k.K {
 		if k.K[i].IsPrivileged() {

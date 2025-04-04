@@ -18,34 +18,52 @@ type T struct {
 	K uint16
 }
 
+// New creates a new kind.T with a provided integer value. Note that anything larger than 2^16
+// will be truncated.
 func New[V constraints.Integer](k V) (ki *T) { return &T{uint16(k)} }
 
+// ToInt returns the value of the kind.T as an int.
 func (k *T) ToInt() int {
 	if k == nil {
 		return 0
 	}
 	return int(k.K)
 }
+
+// ToU16 returns the value of the kind.T as an uint16 (the native form).
 func (k *T) ToU16() uint16 {
 	if k == nil {
 		return 0
 	}
 	return k.K
 }
+
+// ToI32 returns the value of the kind.T as an int32.
 func (k *T) ToI32() int32 {
 	if k == nil {
 		return 0
 	}
 	return int32(k.K)
 }
+
+// ToU64 returns the value of the kind.T as an uint64.
 func (k *T) ToU64() uint64 {
 	if k == nil {
 		return 0
 	}
 	return uint64(k.K)
 }
-func (k *T) Name() string     { return GetString(k) }
-func (k *T) Equal(k2 *T) bool { return *k == *k2 }
+
+// Name returns the human readable string describing the semantics of the kind.T.
+func (k *T) Name() string { return GetString(k) }
+
+// Equal checks if
+func (k *T) Equal(k2 *T) bool {
+	if k == nil || k2 == nil {
+		return false
+	}
+	return k.K == k2.K
+}
 
 var Privileged = []*T{
 	EncryptedDirectMessage,
@@ -55,6 +73,8 @@ var Privileged = []*T{
 	ApplicationSpecificData,
 }
 
+// IsPrivileged returns true if the type is the kind of message nobody else than the pubkeys in
+// the event and p tags of the event are party to.
 func (k *T) IsPrivileged() (is bool) {
 	for i := range Privileged {
 		if k.Equal(Privileged[i]) {
@@ -64,19 +84,10 @@ func (k *T) IsPrivileged() (is bool) {
 	return
 }
 
-func IsPrivileged(k ...*T) (is bool) {
-	for _, kk := range k {
-		for _, priv := range Privileged {
-			if kk.Equal(priv) {
-				return true
-			}
-		}
-	}
-	return
-}
-
+// Marshal renders the kind.T into bytes containing the ASCII string form of the kind number.
 func (k *T) Marshal(dst []byte) (b []byte) { return ints.New(k.ToU64()).Marshal(dst) }
 
+// Unmarshal decodes a byte string into a kind.T.
 func (k *T) Unmarshal(b []byte) (r []byte, err error) {
 	n := ints.New(0)
 	if r, err = n.Unmarshal(b); chk.T(err) {
