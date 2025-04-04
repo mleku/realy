@@ -54,7 +54,9 @@ type (
 	Chk func(e error) bool
 	// Err is a pass-through function that uses fmt.Errorf to construct an error
 	// and returns the error after printing it to the log
-	Err          func(format string, a ...any) error
+	Err func(format string, a ...any) error
+
+	// LevelPrinter is the set of log printers on each log level.
 	LevelPrinter struct {
 		Ln
 		F
@@ -63,6 +65,8 @@ type (
 		Chk
 		Err
 	}
+
+	// LevelSpec is the name, ID and Colorizer for a log level.
 	LevelSpec struct {
 		ID        int
 		Name      string
@@ -82,9 +86,11 @@ type (
 var (
 	// sep is just a convenient shortcut for this very longwinded expression
 	sep = string(os.PathSeparator)
+
 	// writer can be swapped out for any io.*writer* that you want to use instead of
 	// stdout.
 	writer io.Writer = os.Stderr
+
 	// LevelSpecs specifies the id, string name and color-printing function
 	LevelSpecs = []LevelSpec{
 		{Off, "", NoSprint},
@@ -98,6 +104,7 @@ var (
 	NoTimeStomp atomic.Bool
 )
 
+// NoSprint is a noop for sprint (it returns nothing no matter what is given to it).
 func NoSprint(a ...any) string { return "" }
 
 // Log is a set of log printers for the various Level items.
@@ -105,20 +112,28 @@ type Log struct {
 	F, E, W, I, D, T LevelPrinter
 }
 
+// Check is the set of log levels for a Check operation (prints an error if the error is not
+// nil).
 type Check struct {
 	F, E, W, I, D, T Chk
 }
+
+// Errorf prints an error that is also returned as an error, so the error is logged at the site.
 type Errorf struct {
 	F, E, W, I, D, T Err
 }
 
+// Logger is a collection of things that creates a logger, including levels.
 type Logger struct {
 	*Log
 	*Check
 	*Errorf
 }
 
+// Level is the level that the logger is printing at.
 var Level atomic.Int32
+
+// Main is the main logger.
 var Main = &Logger{}
 
 func init() {
@@ -127,11 +142,13 @@ func init() {
 	SetLoggers(Info)
 }
 
+// SetLoggers configures a log level.
 func SetLoggers(level int) {
 	Main.Log.T.F("log level %s", LevelSpecs[level].Colorizer(LevelNames[level]))
 	Level.Store(int32(level))
 }
 
+// GetLogLevel returns the log level number of a string log level.
 func GetLogLevel(level string) (i int) {
 	for i = range LevelNames {
 		if level == LevelNames[i] {
@@ -141,6 +158,7 @@ func GetLogLevel(level string) (i int) {
 	return Info
 }
 
+// SetLogLevel sets the log level of the logger.
 func SetLogLevel(level string) {
 	for i := range LevelNames {
 		if level == LevelNames[i] {
@@ -150,6 +168,7 @@ func SetLogLevel(level string) {
 	}
 }
 
+// JoinStrings joins together anything into a set of strings with space separating the items.
 func JoinStrings(a ...any) (s string) {
 	for i := range a {
 		s += fmt.Sprint(a[i])
@@ -162,6 +181,7 @@ func JoinStrings(a ...any) (s string) {
 
 var msgCol = color.New(color.FgBlue).Sprint
 
+// GetPrinter returns a full logger that writes to the provided io.Writer.
 func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 	return LevelPrinter{
 		Ln: func(a ...interface{}) {
@@ -170,7 +190,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			fmt.Fprintf(writer,
 				"%s%s %s %s\n",
-				msgCol(Timestamper()),
+				msgCol(TimeStamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				JoinStrings(a...),
 				msgCol(GetLoc(2)),
@@ -182,7 +202,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			fmt.Fprintf(writer,
 				"%s%s %s %s\n",
-				msgCol(Timestamper()),
+				msgCol(TimeStamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				fmt.Sprintf(format, a...),
 				msgCol(GetLoc(2)),
@@ -194,7 +214,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			fmt.Fprintf(writer,
 				"%s%s %s %s\n",
-				msgCol(Timestamper()),
+				msgCol(TimeStamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				spew.Sdump(a...),
 				msgCol(GetLoc(2)),
@@ -206,7 +226,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			fmt.Fprintf(writer,
 				"%s%s %s %s\n",
-				msgCol(Timestamper()),
+				msgCol(TimeStamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				closure(),
 				msgCol(GetLoc(2)),
@@ -219,7 +239,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			if e != nil {
 				fmt.Fprintf(writer,
 					"%s%s %s %s\n",
-					msgCol(Timestamper()),
+					msgCol(TimeStamper()),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 					e.Error(),
 					msgCol(GetLoc(2)),
@@ -232,7 +252,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			if Level.Load() < l {
 				fmt.Fprintf(writer,
 					"%s%s %s %s\n",
-					msgCol(Timestamper()),
+					msgCol(TimeStamper()),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name, " "),
 					fmt.Sprintf(format, a...),
 					msgCol(GetLoc(2)),
@@ -243,6 +263,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 	}
 }
 
+// GetNullPrinter is a logger that doesn't log.
 func GetNullPrinter() LevelPrinter {
 	return LevelPrinter{
 		Ln:  func(a ...interface{}) {},
@@ -254,6 +275,7 @@ func GetNullPrinter() LevelPrinter {
 	}
 }
 
+// New creates a new logger with all the levels and things.
 func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 	l = &Log{
 		T: GetPrinter(Trace, writer),
@@ -282,8 +304,8 @@ func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 	return
 }
 
-// Timestamper e
-func Timestamper() (s string) {
+// TimeStamper generates the timestamp for logs.
+func TimeStamper() (s string) {
 	if NoTimeStomp.Load() {
 		return
 	}
@@ -301,6 +323,7 @@ func Timestamper() (s string) {
 
 // var wd, _ = os.Getwd()
 
+// GetNLoc returns multiple levels of depth of code location from the current.
 func GetNLoc(n int) (output string) {
 	for ; n > 1; n-- {
 		output += fmt.Sprintf("%s\n", GetLoc(n))
@@ -308,6 +331,7 @@ func GetNLoc(n int) (output string) {
 	return
 }
 
+// GetLoc returns the code location of the caller.
 func GetLoc(skip int) (output string) {
 	_, file, line, _ := runtime.Caller(skip)
 	// split := strings.Split(file, wd+string(os.PathSeparator))

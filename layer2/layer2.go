@@ -20,6 +20,10 @@ import (
 	"realy.lol/timestamp"
 )
 
+// Backend is a two level nostr event store. The first level is assumed to have a subset of all
+// events that the second level has. This is a mechanism for sharding nostr event data across
+// multiple relays which can then be failovers for each other or shards by geography or subject
+// matter.
 type Backend struct {
 	Ctx  context.T
 	WG   *sync.WaitGroup
@@ -43,6 +47,8 @@ type Backend struct {
 	EventSignal event.C
 }
 
+// Init a layer2.Backend setting up their configurations and polling frequencies and other
+// similar things.
 func (b *Backend) Init(path string) (err error) {
 	b.path = path
 	// each backend will have configuration files living in a subfolder of the same
@@ -91,8 +97,10 @@ func (b *Backend) Init(path string) (err error) {
 	return
 }
 
+// Path returns the filesystem path root of the layer2.Backend.
 func (b *Backend) Path() (s string) { return b.path }
 
+// Close the two layers of a layer2.Backend.
 func (b *Backend) Close() (err error) {
 	var e1, e2 error
 	if e1 = b.L1.Close(); chk.E(e1) {
@@ -108,6 +116,7 @@ func (b *Backend) Close() (err error) {
 	return
 }
 
+// Nuke wipes the both of the event stores in parallel and returns when both are complete.
 func (b *Backend) Nuke() (err error) {
 	var wg sync.WaitGroup
 	var err1, err2 error
@@ -127,6 +136,9 @@ func (b *Backend) Nuke() (err error) {
 	return
 }
 
+// QueryEvents processes a filter.T search on the event store. The events found in the second
+// level will be saved into the first level so they become available from the first layer next
+// time they match.
 func (b *Backend) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 	if evs, err = b.L1.QueryEvents(c, f); chk.E(err) {
 		return
@@ -180,6 +192,8 @@ func (b *Backend) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error
 	return
 }
 
+// CountEvents counts how many events match on a filter, providing an approximate flag if either
+// of the layers return this, and the result is the maximum of the two layers results.
 func (b *Backend) CountEvents(c context.T, f *filter.T) (count int, approx bool, err error) {
 	var wg sync.WaitGroup
 	var count1, count2 int
@@ -210,12 +224,15 @@ func (b *Backend) CountEvents(c context.T, f *filter.T) (count int, approx bool,
 	return
 }
 
+// DeleteEvent deletes an event on both the layer1 and layer2.
 func (b *Backend) DeleteEvent(c context.T, ev *eventid.T, noTombstone ...bool) (err error) {
 	// delete the events from both stores.
-	err = errors.Join(b.L1.DeleteEvent(c, ev, noTombstone...), b.L2.DeleteEvent(c, ev, noTombstone...))
+	err = errors.Join(b.L1.DeleteEvent(c, ev, noTombstone...),
+		b.L2.DeleteEvent(c, ev, noTombstone...))
 	return
 }
 
+// SaveEvent stores an event on both layer1 and layer2.
 func (b *Backend) SaveEvent(c context.T, ev *event.T) (err error) {
 	// save to both event stores
 	err = errors.Join(
@@ -224,12 +241,16 @@ func (b *Backend) SaveEvent(c context.T, ev *event.T) (err error) {
 	return
 }
 
+// Import events to the layer2, if the events come up in searches they will be propagated down
+// to the layer1.
 func (b *Backend) Import(r io.Reader) {
 	// we import up to the L2 directly, demanded data will be fetched from it by
 	// later queries.
 	b.L2.Import(r)
 }
 
+// Export from the layer2, which is assumed to be the most authoritative (and large) store of
+// events available to the relay.
 func (b *Backend) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 	// export only from the L2 as it is considered to be the authoritative event
 	// store of the two, and this is generally an administrative or infrequent action
@@ -237,6 +258,7 @@ func (b *Backend) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 	b.L2.Export(c, w, pubkeys...)
 }
 
+// Sync triggers both layer1 and layer2 to flush their buffers and store any events in caches.
 func (b *Backend) Sync() (err error) {
 	err1 := b.L1.Sync()
 	// more than likely L2 sync is a noop.
