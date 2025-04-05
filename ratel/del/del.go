@@ -5,6 +5,7 @@ package del
 
 import "bytes"
 
+// Items is an array of bytes used for sorting and collating database index keys.
 type Items [][]byte
 
 func (c Items) Len() int           { return len(c) }

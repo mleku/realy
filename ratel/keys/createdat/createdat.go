@@ -2,8 +2,8 @@
 package createdat
 
 import (
-	"bytes"
 	"encoding/binary"
+	"io"
 
 	"realy.lol/ratel/keys"
 	"realy.lol/ratel/keys/serial"
@@ -20,9 +20,9 @@ var _ keys.Element = &T{}
 
 func New(c *timestamp.T) (p *T) { return &T{Val: c} }
 
-func (c *T) Write(buf *bytes.Buffer) { buf.Write(c.Val.Bytes()) }
+func (c *T) Write(buf io.Writer) { buf.Write(c.Val.Bytes()) }
 
-func (c *T) Read(buf *bytes.Buffer) (el keys.Element) {
+func (c *T) Read(buf io.Reader) (el keys.Element) {
 	b := make([]byte, Len)
 	if n, err := buf.Read(b); chk.E(err) || n != Len {
 		return nil

@@ -3,7 +3,7 @@
 package tombstone
 
 import (
-	"bytes"
+	"io"
 
 	"realy.lol/eventid"
 	"realy.lol/ratel/keys"
@@ -30,11 +30,11 @@ func NewWith(eid *eventid.T) (t *T) {
 	return
 }
 
-func (t *T) Write(buf *bytes.Buffer) {
+func (t *T) Write(buf io.Writer) {
 	buf.Write(t.val)
 }
 
-func (t *T) Read(buf *bytes.Buffer) (el keys.Element) {
+func (t *T) Read(buf io.Reader) (el keys.Element) {
 	b := make([]byte, Len)
 	if n, err := buf.Read(b); chk.E(err) || n < Len {
 		log.I.S(n, err)

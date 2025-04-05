@@ -3,8 +3,8 @@
 package pubkey
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 
 	"realy.lol/ec/schnorr"
 	"realy.lol/ratel/keys"
@@ -27,14 +27,10 @@ func New(pk ...[]byte) (p *T, err error) {
 		return &T{make([]byte, Len)}, nil
 	}
 	// // only the first pubkey will be used
-	// if len(pk[0]) != schnorr.PubKeyBytesLen*2 {
-	// 	err = log.E.Err("pubkey hex must be 64 chars, got", len(pk[0]))
-	// 	return
-	// }
-	// b, err := hex.Dec(pk[0][:Len*2])
-	// if chk.E(err) {
-	// 	return
-	// }
+	if len(pk[0]) != schnorr.PubKeyBytesLen {
+		err = log.E.Err("pubkey hex must be 32 chars, got", len(pk[0]))
+		return
+	}
 	return &T{Val: pk[0][:Len]}, nil
 }
 
@@ -51,7 +47,7 @@ func NewFromBytes(pkb []byte) (p *T, err error) {
 	return
 }
 
-func (p *T) Write(buf *bytes.Buffer) {
+func (p *T) Write(buf io.Writer) {
 	if p == nil {
 		panic("nil pubkey")
 	}
@@ -61,7 +57,7 @@ func (p *T) Write(buf *bytes.Buffer) {
 	buf.Write(p.Val)
 }
 
-func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
+func (p *T) Read(buf io.Reader) (el keys.Element) {
 	// allow uninitialized struct
 	if len(p.Val) != Len {
 		p.Val = make([]byte, Len)

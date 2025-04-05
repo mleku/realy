@@ -4,14 +4,15 @@ package keys
 
 import (
 	"bytes"
+	"io"
 )
 
 // Element is an enveloper for a type that can Read and Write its binary form.
 type Element interface {
 	// Write the binary form of the field into the given bytes.Buffer.
-	Write(buf *bytes.Buffer)
+	Write(buf io.Writer)
 	// Read accepts a bytes.Buffer and decodes a field from it.
-	Read(buf *bytes.Buffer) Element
+	Read(buf io.Reader) Element
 	// Len gives the length of the bytes output by the type.
 	Len() int
 }

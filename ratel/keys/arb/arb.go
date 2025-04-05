@@ -5,6 +5,7 @@ package arb
 
 import (
 	"bytes"
+	"io"
 
 	"realy.lol/ratel/keys"
 )
@@ -30,9 +31,11 @@ func New[V []byte | string](s V) (p *T) {
 	return &T{Val: b}
 }
 
+// NewWithLen creates a new arb.T of a given size.
 func NewWithLen(l int) (p *T) { return &T{Val: make([]byte, l)} }
 
-func (p *T) Write(buf *bytes.Buffer) {
+// Write the contents of a bytes.Buffer
+func (p *T) Write(buf io.Writer) {
 	if len(p.Val) == 0 {
 		log.T.Ln("empty slice has no effect")
 		return
@@ -40,7 +43,7 @@ func (p *T) Write(buf *bytes.Buffer) {
 	buf.Write(p.Val)
 }
 
-func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
+func (p *T) Read(buf io.Reader) (el keys.Element) {
 	if len(p.Val) < 1 {
 		log.T.Ln("empty slice has no effect")
 		return

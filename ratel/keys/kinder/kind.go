@@ -3,8 +3,8 @@
 package kinder
 
 import (
-	"bytes"
 	"encoding/binary"
+	"io"
 
 	"realy.lol/kind"
 	"realy.lol/ratel/keys"
@@ -27,11 +27,11 @@ func Make(c *kind.T) (v []byte) {
 	return
 }
 
-func (c *T) Write(buf *bytes.Buffer) {
+func (c *T) Write(buf io.Writer) {
 	buf.Write(Make(c.Val))
 }
 
-func (c *T) Read(buf *bytes.Buffer) (el keys.Element) {
+func (c *T) Read(buf io.Reader) (el keys.Element) {
 	b := make([]byte, Len)
 	if n, err := buf.Read(b); chk.E(err) || n != Len {
 		return nil

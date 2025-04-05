@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
 
 	"realy.lol/ratel/keys"
 )
@@ -50,14 +51,14 @@ func Make(s uint64) (ser []byte) {
 	return
 }
 
-func (p *T) Write(buf *bytes.Buffer) {
+func (p *T) Write(buf io.Writer) {
 	if len(p.Val) != Len {
 		panic(fmt.Sprintln("must use New or initialize Val with len", Len))
 	}
 	buf.Write(p.Val)
 }
 
-func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
+func (p *T) Read(buf io.Reader) (el keys.Element) {
 	// allow uninitialized struct
 	if len(p.Val) != Len {
 		p.Val = make([]byte, Len)
