@@ -195,6 +195,7 @@ func Generate() (
 	return
 }
 
+// Negate inverts a secret key so an odd prefix bit becomes even and vice versa.
 func Negate(uskb []byte) { C.secp256k1_ec_seckey_negate(ctx, ToUchar(uskb)) }
 
 type ECPub struct {
@@ -234,10 +235,12 @@ func ECPubFromSchnorrBytes(xkb []byte) (pub *ECPub, err error) {
 // 	return
 // }
 
+// Pub is a schnorr BIP-340 public key.
 type Pub struct {
 	Key PubKey
 }
 
+// PubFromBytes creates a public key from raw bytes.
 func PubFromBytes(pk []byte) (pub *Pub, err error) {
 	if err = AssertLen(pk, schnorr.PubKeyBytesLen, "pubkey"); chk.E(err) {
 		return
@@ -250,14 +253,17 @@ func PubFromBytes(pk []byte) (pub *Pub, err error) {
 	return
 }
 
+// PubB returns the contained public key as bytes.
 func (p *Pub) PubB() (b []byte) {
 	b = make([]byte, schnorr.PubKeyBytesLen)
 	C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(b), &p.Key)
 	return
 }
 
+// Pub returns the public key as a PubKey.
 func (p *Pub) Pub() *PubKey { return &p.Key }
 
+// ToBytes returns the contained public key as bytes.
 func (p *Pub) ToBytes() (b []byte, err error) {
 	b = make([]byte, schnorr.PubKeyBytesLen)
 	if C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(b), p.Pub()) != 1 {
@@ -267,6 +273,7 @@ func (p *Pub) ToBytes() (b []byte, err error) {
 	return
 }
 
+// Sign a message and return a schnorr BIP-340 64 byte signature.
 func Sign(msg *Uchar, sk *SecKey) (sig []byte, err error) {
 	sig = make([]byte, schnorr.SignatureSize)
 	c := CreateRandomContext()
@@ -278,6 +285,7 @@ func Sign(msg *Uchar, sk *SecKey) (sig []byte, err error) {
 	return
 }
 
+// SignFromBytes Signs a message using a provided secret key and message as raw bytes.
 func SignFromBytes(msg, sk []byte) (sig []byte, err error) {
 	var umsg *Uchar
 	if umsg, err = Msg(msg); chk.E(err) {
@@ -290,6 +298,7 @@ func SignFromBytes(msg, sk []byte) (sig []byte, err error) {
 	return Sign(umsg, sec.Sec())
 }
 
+// Msg checks that a message hash is correct, and converts it for use with a Signer.
 func Msg(b []byte) (id *Uchar, err error) {
 	if err = AssertLen(b, sha256.Size, "id"); chk.E(err) {
 		return
@@ -298,6 +307,7 @@ func Msg(b []byte) (id *Uchar, err error) {
 	return
 }
 
+// Sig checks that a signature bytes is correct, and converts it for use with a Signer.
 func Sig(b []byte) (sig *Uchar, err error) {
 	if err = AssertLen(b, schnorr.SignatureSize, "sig"); chk.E(err) {
 		return
@@ -306,10 +316,12 @@ func Sig(b []byte) (sig *Uchar, err error) {
 	return
 }
 
+// Verify a message signature matches the provided PubKey.
 func Verify(msg, sig *Uchar, pk *PubKey) (valid bool) {
 	return C.secp256k1_schnorrsig_verify(ctx, sig, msg, 32, pk) == 1
 }
 
+// VerifyFromBytes a signature from the raw bytes of the message hash, signature and public key
 func VerifyFromBytes(msg, sig, pk []byte) (err error) {
 	var umsg, usig *Uchar
 	if umsg, err = Msg(msg); chk.E(err) {
@@ -329,6 +341,8 @@ func VerifyFromBytes(msg, sig, pk []byte) (err error) {
 	return
 }
 
+// Zero wipes the memory of a SecKey by overwriting it three times with random data and then
+// zeroing it.
 func Zero(sk *SecKey) {
 	b := (*[96]byte)(unsafe.Pointer(sk))[:96]
 	for range 3 {

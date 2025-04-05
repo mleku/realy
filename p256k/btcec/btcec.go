@@ -8,6 +8,7 @@ import (
 	"realy.lol/signer"
 )
 
+// Signer is an implementation of signer.I that uses the btcec library.
 type Signer struct {
 	SecretKey *secp256k1.SecretKey
 	PublicKey *secp256k1.PublicKey
@@ -17,6 +18,7 @@ type Signer struct {
 
 var _ signer.I = &Signer{}
 
+// Generate creates a new Signer.
 func (s *Signer) Generate() (err error) {
 	if s.SecretKey, err = ec.NewSecretKey(); chk.E(err) {
 		return
@@ -28,6 +30,7 @@ func (s *Signer) Generate() (err error) {
 	return
 }
 
+// InitSec initialises a Signer using raw secret key bytes.
 func (s *Signer) InitSec(sec []byte) (err error) {
 	if len(sec) != secp256k1.SecKeyBytesLen {
 		err = errorf.E("sec key must be %d bytes", secp256k1.SecKeyBytesLen)
@@ -40,6 +43,7 @@ func (s *Signer) InitSec(sec []byte) (err error) {
 	return
 }
 
+// InitPub initializes a signature verifier Signer from raw public key bytes.
 func (s *Signer) InitPub(pub []byte) (err error) {
 	if s.PublicKey, err = schnorr.ParsePubKey(pub); chk.E(err) {
 		return
@@ -48,10 +52,13 @@ func (s *Signer) InitPub(pub []byte) (err error) {
 	return
 }
 
-func (s *Signer) Sec() (b []byte)   { return s.skb }
-func (s *Signer) Pub() (b []byte)   { return s.pkb }
-func (s *Signer) ECPub() (b []byte) { return s.pkb }
+// Sec returns the raw secret key bytes.
+func (s *Signer) Sec() (b []byte) { return s.skb }
 
+// Pub returns the raw BIP-340 schnorr public key bytes.
+func (s *Signer) Pub() (b []byte) { return s.pkb }
+
+// Sign a message with the Signer. Requires an initialised secret key.
 func (s *Signer) Sign(msg []byte) (sig []byte, err error) {
 	if s.SecretKey == nil {
 		err = errorf.E("btcec: Signer not initialized")
@@ -65,6 +72,7 @@ func (s *Signer) Sign(msg []byte) (sig []byte, err error) {
 	return
 }
 
+// Verify a message signature, only requires the public key is initialised.
 func (s *Signer) Verify(msg, sig []byte) (valid bool, err error) {
 	if s.PublicKey == nil {
 		err = errorf.E("btcec: Pubkey not initialized")
@@ -80,8 +88,11 @@ func (s *Signer) Verify(msg, sig []byte) (valid bool, err error) {
 	return
 }
 
+// Zero wipes the bytes of the secret key.
 func (s *Signer) Zero() { s.SecretKey.Key.Zero() }
 
+// ECDH creates a shared secret from a secret key and a provided public key bytes. It is advised
+// to hash this result for security reasons.
 func (s *Signer) ECDH(pubkeyBytes []byte) (secret []byte, err error) {
 	var pub *secp256k1.PublicKey
 	if pub, err = secp256k1.ParsePubKey(append([]byte{0x02}, pubkeyBytes...)); chk.E(err) {
@@ -91,10 +102,13 @@ func (s *Signer) ECDH(pubkeyBytes []byte) (secret []byte, err error) {
 	return
 }
 
+// Keygen implements a key generator. Used for such things as vanity npub mining.
 type Keygen struct {
 	Signer
 }
 
+// Generate a new key pair. If the result is suitable, the embedded Signer can have its contents
+// extracted.
 func (k *Keygen) Generate() (pubBytes []byte, err error) {
 	if k.Signer.SecretKey, err = ec.NewSecretKey(); chk.E(err) {
 		return
@@ -105,6 +119,7 @@ func (k *Keygen) Generate() (pubBytes []byte, err error) {
 	return
 }
 
+// KeyPairBytes returns the raw bytes of the embedded Signer.
 func (k *Keygen) KeyPairBytes() (secBytes, cmprPubBytes []byte) {
 	return k.Signer.SecretKey.Serialize(), k.Signer.PublicKey.SerializeCompressed()
 }

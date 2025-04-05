@@ -21,25 +21,26 @@ func init() {
 // When using this library only for verification, a constructor that converts
 // from bytes to PubKey is needed prior to calling Verify.
 type Signer struct {
+	// SecretKey is the secret key.
 	SecretKey *SecKey
+	// PublicKey is the public key.
 	PublicKey *PubKey
-	// ECPublicKey *ECPubKey // not sure what this is useful for yet.
+	// BTCECSec is needed for ECDH as currently the CGO bindings don't include it
 	BTCECSec *btcec.SecretKey
 	skb, pkb []byte
 }
 
 var _ realy.I = &Signer{}
 
+// Generate a new Signer key pair using the CGO bindings to libsecp256k1
 func (s *Signer) Generate() (err error) {
 	var cs *Sec
 	var cx *XPublicKey
-	// var cp *PublicKey
 	if s.skb, s.pkb, cs, cx, err = Generate(); chk.E(err) {
 		return
 	}
 	s.SecretKey = &cs.Key
 	s.PublicKey = cx.Key
-	// s.ECPublicKey = cp.Key
 	s.BTCECSec, _ = btcec.PrivKeyFromBytes(s.skb)
 	return
 }

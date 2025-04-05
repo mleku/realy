@@ -99,6 +99,8 @@ func Msg(prefix Reason, format string, params ...any) []byte {
 	return []byte(fmt.Sprintf(prefix.S()+": "+format, params...))
 }
 
+// Reason is the machine-readable prefix before the colon in an OK or CLOSED envelope message.
+// Below are the most common kinds that are mentioned in NIP-01.
 type Reason []byte
 
 var (
@@ -113,7 +115,14 @@ var (
 	Restricted   = Reason("restricted")
 )
 
-func (r Reason) S() string                             { return string(r) }
-func (r Reason) B() []byte                             { return []byte(r) }
-func (r Reason) IsPrefix(reason []byte) bool           { return bytes.HasPrefix(reason, r.B()) }
+// S returns the Reason as a string
+func (r Reason) S() string { return string(r) }
+
+// B returns the Reason as a byte slice.
+func (r Reason) B() []byte { return r }
+
+// IsPrefix returns whether a text contains the same Reason prefix.
+func (r Reason) IsPrefix(reason []byte) bool { return bytes.HasPrefix(reason, r.B()) }
+
+// F allows creation of a full Reason text with a printf style format.
 func (r Reason) F(format string, params ...any) []byte { return Msg(r, format, params...) }

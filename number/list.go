@@ -4,6 +4,7 @@ package number
 
 import "fmt"
 
+// List is a simple list of numbers with a sort implementation and number match.
 type List []int
 
 func (l List) Len() int           { return len(l) }
@@ -21,6 +22,7 @@ func (l List) HasNumber(n int) (idx int, has bool) {
 	return
 }
 
+// String outputs a number.List as a minified JSON array.
 func (l List) String() (s string) {
 	s += "["
 	for i := range l {
