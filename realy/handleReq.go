@@ -90,7 +90,9 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 			}
 			i = *f.Limit
 		}
-		if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+		var auther relay.Authenticator
+		var ok bool
+		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 			if f.Kinds.IsPrivileged() {
 				log.T.F("privileged request\n%s", f.Serialize())
 				senders := f.Authors
@@ -109,8 +111,8 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 						"to unauthenticated users or to npubs not found in the event tags or author fields, does your " +
 						"client implement NIP-42?")
 					return notice
-				case senders.Contains(ws.AuthedBytes()) || receivers.ContainsAny([]byte("#p"),
-					tag.New(ws.AuthedBytes())):
+				case senders.Contains(ws.AuthedBytes()) ||
+					receivers.ContainsAny([]byte("#p"), tag.New(ws.AuthedBytes())):
 					log.T.F("user %0x from %s allowed to query for privileged event",
 						ws.AuthedBytes(), ws.RealRemote())
 				default:
@@ -128,7 +130,9 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 			}
 			continue
 		}
-		if aut := ws.Authed(); ws.IsAuthed() {
+		aut := ws.AuthedBytes()
+		// remove events from muted authors if we have the authed user's mute list.
+		if ws.IsAuthed() {
 			var mutes event.Ts
 			if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),
 				Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
@@ -153,9 +157,56 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 						tmp = append(tmp, ev)
 					}
 				}
+				// remove privileged events
 				events = tmp
 			}
 		}
+		// remove privileged events as they come through in scrape queries
+		var tmp event.Ts
+		for _, ev := range events {
+			receivers := f.Tags.GetAll(tag.New("#p"))
+			// if auth is required, kind is privileged and there is no authed pubkey, skip
+			if s.authRequired && ev.Kind.IsPrivileged() && len(aut) == 0 {
+				// log.I.F("skipping event because event kind is %d and no auth", ev.Kind.K)
+				if auther != nil {
+					if err = closedenvelope.NewFrom(env.Subscription,
+						normalize.AuthRequired.F("auth required for processing request due to presence of privileged kinds (DMs, app specific data)")).Write(ws); chk.E(err) {
+					}
+					log.I.F("requesting auth from client from %s", ws.RealRemote())
+					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+						return
+					}
+					notice := normalize.Restricted.F("this realy does not serve DMs or Application Specific Data " +
+						"to unauthenticated users or to npubs not found in the event tags or author fields, does your " +
+						"client implement NIP-42?")
+					return notice
+				}
+				continue
+			}
+			// if the authed pubkey is not present in the pubkey or p tags, skip
+			if ev.Kind.IsPrivileged() && (!bytes.Equal(ev.Pubkey, aut) ||
+				!receivers.ContainsAny([]byte("#p"), tag.New(ws.AuthedBytes()))) {
+				// log.I.F("skipping event %0x because authed key %0x is in neither pubkey or p tag",
+				// 	ev.Id, aut)
+				if auther != nil {
+					if err = closedenvelope.NewFrom(env.Subscription,
+						normalize.AuthRequired.F("auth required for processing request due to presence of privileged kinds (DMs, app specific data)")).Write(ws); chk.E(err) {
+					}
+					log.I.F("requesting auth from client from %s", ws.RealRemote())
+					if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+						return
+					}
+					notice := normalize.Restricted.F("this realy does not serve DMs or Application Specific Data " +
+						"to unauthenticated users or to npubs not found in the event tags or author fields, does your " +
+						"client implement NIP-42?")
+					return notice
+				}
+				continue
+			}
+			tmp = append(tmp, ev)
+		}
+		events = tmp
+		// write out the events to the socket
 		for _, ev := range events {
 			if s.options.SkipEventFunc != nil && s.options.SkipEventFunc(ev) {
 				continue
