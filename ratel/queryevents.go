@@ -79,7 +79,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 				total++
 				// some queries just produce stupid amounts of matches, they are a resource
 				// exhaustion attack vector and only spiders make them
-				if total > 5000 {
+				if total >= limit {
 					return
 				}
 			}
