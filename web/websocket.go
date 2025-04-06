@@ -68,6 +68,10 @@ func (ws *Socket) Write(p []byte) (n int, err error) {
 	err = ws.conn.WriteMessage(websocket.TextMessage, p)
 	if err != nil {
 		n = len(p)
+		if strings.Contains(err.Error(), "close sent") {
+			ws.Close()
+			return
+		}
 	}
 	return
 }
@@ -94,3 +98,4 @@ func (ws *Socket) SetAuthed(s string) {
 	ws.authed.Store(s)
 }
 func (ws *Socket) Req() *http.Request { return ws.req }
+func (ws *Socket) Close() (err error) { return ws.conn.Close() }
