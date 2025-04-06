@@ -1,5 +1,7 @@
 package ratel
 
+// Close the database. If the Flatten flag was set, then trigger the flattening of tables before
+// shutting down.
 func (r *T) Close() (err error) {
 	// chk.E(r.DB.Sync())
 	r.WG.Wait()

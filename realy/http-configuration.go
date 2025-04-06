@@ -61,7 +61,9 @@ func (x *Configuration) RegisterConfigurationSet(api huma.API) {
 			if err = c.SetConfiguration(input.Body); chk.E(err) {
 				return
 			}
+			x.ConfigurationMx.Lock()
 			s.Configuration = input.Body
+			x.ConfigurationMx.Unlock()
 		}
 		return
 	})
@@ -99,7 +101,9 @@ func (x *Configuration) RegisterConfigurationGet(api huma.API) {
 		// 	if cfg, err = c.GetConfiguration(); chk.E(err) {
 		// 		return
 		// 	}
+		x.ConfigurationMx.Lock()
 		output = &ConfigurationOutput{Body: s.Configuration}
+		x.ConfigurationMx.Unlock()
 		// }
 		return
 	})

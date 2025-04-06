@@ -11,6 +11,7 @@ import (
 	"realy.lol/sha256"
 )
 
+// GCSweep runs the delete on all of the items that GCMark has determined should be deleted.
 func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 	// first we must gather all the indexes of the relevant events
 	started := time.Now()

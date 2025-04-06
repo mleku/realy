@@ -9,6 +9,7 @@ import (
 	"realy.lol/store"
 )
 
+// SetConfiguration stores the store.Configuration value to a provided setting.
 func (r *T) SetConfiguration(c *store.Configuration) (err error) {
 	var b []byte
 	if b, err = json.Marshal(c); chk.E(err) {
@@ -24,6 +25,7 @@ func (r *T) SetConfiguration(c *store.Configuration) (err error) {
 	return
 }
 
+// GetConfiguration returns the current store.Configuration stored in the database.
 func (r *T) GetConfiguration() (c *store.Configuration, err error) {
 	err = r.View(func(txn *badger.Txn) (err error) {
 		c = &store.Configuration{BlockList: make([]string, 0)}

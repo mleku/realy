@@ -131,6 +131,7 @@ var FilterPrefixes = [][]byte{
 	{FullIndex.B()},
 }
 
+// AllPrefixes is used to do a full database nuke.
 var AllPrefixes = [][]byte{
 	{Event.B()},
 	{CreatedAt.B()},

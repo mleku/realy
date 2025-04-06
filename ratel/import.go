@@ -9,7 +9,7 @@ import (
 
 const maxLen = 500000000
 
-// Import accepts an event
+// Import a collection of events in line structured minified JSON format (JSONL).
 func (r *T) Import(rr io.Reader) {
 	r.Flatten = true
 	var err error

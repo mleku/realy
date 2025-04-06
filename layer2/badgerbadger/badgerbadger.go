@@ -43,10 +43,10 @@ func (b *Backend) Init(path string) (err error) { return b.Backend.Init(path) }
 // IC is a request/response API authing at each request.
 func (b *Backend) Close() (err error) { return b.Backend.Close() }
 
-// CountEvents returns the number of events found matching the filter.
-func (b *Backend) CountEvents(c context.T, f *filter.T) (count int, approx bool, err error) {
-	return b.Backend.CountEvents(c, f)
-}
+// // CountEvents returns the number of events found matching the filter.
+// func (b *Backend) CountEvents(c context.T, f *filter.T) (count int, approx bool, err error) {
+// 	return b.Backend.CountEvents(c, f)
+// }
 
 // DeleteEvent removes an event from the event store.
 func (b *Backend) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err error) {

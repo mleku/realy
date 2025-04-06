@@ -19,6 +19,7 @@ import (
 
 const DefaultMaxLimit = 512
 
+// T is a badger event store database with layer2 and garbage collection.
 type T struct {
 	Ctx     context.T
 	WG      *sync.WaitGroup
@@ -60,6 +61,7 @@ type T struct {
 
 var _ store.I = (*T)(nil)
 
+// BackendParams is the configurations used in creating a new ratel.T.
 type BackendParams struct {
 	Ctx                                context.T
 	WG                                 *sync.WaitGroup
@@ -69,8 +71,10 @@ type BackendParams struct {
 	Extra                              []int
 }
 
+// New configures a a new ratel.T event store.
 func New(p BackendParams, params ...int) *T {
-	return GetBackend(p.Ctx, p.WG, p.HasL2, p.UseCompact, p.BlockCacheSize, p.LogLevel, p.MaxLimit,
+	return GetBackend(p.Ctx, p.WG, p.HasL2, p.UseCompact, p.BlockCacheSize, p.LogLevel,
+		p.MaxLimit,
 		p.Compression, params...)
 }
 
@@ -120,6 +124,7 @@ func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2, useCompact bool,
 	return
 }
 
+// Path returns the path where the database files are stored.
 func (r *T) Path() string { return r.dataDir }
 
 // SerialKey returns a key used for storing events, and the raw serial counter

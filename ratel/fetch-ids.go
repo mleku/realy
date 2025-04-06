@@ -13,6 +13,7 @@ import (
 	"realy.lol/tag"
 )
 
+// FetchIds retrieves events based on a list of event Ids that have been provided.
 func (r *T) FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error) {
 	// create an ample buffer for decoding events, 100kb should usually be enough, if
 	// it needs to get bigger it will be reallocated.

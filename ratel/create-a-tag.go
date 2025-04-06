@@ -16,9 +16,9 @@ import (
 	"realy.lol/tag/atag"
 )
 
-// GetTagKeyElements generates tag indexes from a tag key, tag value, created_at
+// Create_a_Tag generates tag indexes from a tag key, tag value, created_at
 // timestamp and the event serial.
-func GetTagKeyElements(tagKey, tagValue string, CA *createdat.T,
+func Create_a_Tag(tagKey, tagValue string, CA *createdat.T,
 	ser *serial.T) (prf index.P, elems []keys.Element, err error) {
 
 	var pkb []byte
@@ -38,7 +38,7 @@ func GetTagKeyElements(tagKey, tagValue string, CA *createdat.T,
 			err = nil
 		}
 	}
-	// check for a tag
+	// check for `a` tag
 	if tagKey == "a" && strings.Count(tagValue, ":") == 2 {
 		a := &atag.T{}
 		var rem []byte

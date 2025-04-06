@@ -19,6 +19,8 @@ import (
 	"realy.lol/tags"
 )
 
+// Export the complete database of stored events to an io.Writer in line structured minified
+// JSON.
 func (r *T) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 	var counter int
 	var err error

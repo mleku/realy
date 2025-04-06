@@ -12,6 +12,7 @@ import (
 	"realy.lol/units"
 )
 
+// Init sets up the database with the loaded configuration.
 func (r *T) Init(path string) (err error) {
 	r.dataDir = path
 	log.I.Ln("opening ratel event store at", r.Path())

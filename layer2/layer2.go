@@ -192,37 +192,37 @@ func (b *Backend) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error
 	return
 }
 
-// CountEvents counts how many events match on a filter, providing an approximate flag if either
-// of the layers return this, and the result is the maximum of the two layers results.
-func (b *Backend) CountEvents(c context.T, f *filter.T) (count int, approx bool, err error) {
-	var wg sync.WaitGroup
-	var count1, count2 int
-	var approx1, approx2 bool
-	var err1, err2 error
-	go func() {
-		count1, approx1, err1 = b.L1.CountEvents(c, f)
-		wg.Done()
-	}()
-	// because this is a low-data query we will wait until the L2 also gets a count,
-	// which should be under a few hundred ms in most cases
-	go func() {
-		wg.Add(1)
-		count2, approx2, err2 = b.L2.CountEvents(c, f)
-	}()
-	wg.Wait()
-	// we return the maximum, it is assumed the L2 is authoritative, but it could be
-	// the L1 has more for whatever reason, so return the maximum of the two.
-	count = count1
-	approx = approx1
-	if count2 > count {
-		count = count2
-		// the approximate flag probably will be false if the L2 got more, and it is a
-		// very large, non GC store.
-		approx = approx2
-	}
-	err = errors.Join(err1, err2)
-	return
-}
+// // CountEvents counts how many events match on a filter, providing an approximate flag if either
+// // of the layers return this, and the result is the maximum of the two layers results.
+// func (b *Backend) CountEvents(c context.T, f *filter.T) (count int, approx bool, err error) {
+// 	var wg sync.WaitGroup
+// 	var count1, count2 int
+// 	var approx1, approx2 bool
+// 	var err1, err2 error
+// 	go func() {
+// 		count1, approx1, err1 = b.L1.CountEvents(c, f)
+// 		wg.Done()
+// 	}()
+// 	// because this is a low-data query we will wait until the L2 also gets a count,
+// 	// which should be under a few hundred ms in most cases
+// 	go func() {
+// 		wg.Add(1)
+// 		count2, approx2, err2 = b.L2.CountEvents(c, f)
+// 	}()
+// 	wg.Wait()
+// 	// we return the maximum, it is assumed the L2 is authoritative, but it could be
+// 	// the L1 has more for whatever reason, so return the maximum of the two.
+// 	count = count1
+// 	approx = approx1
+// 	if count2 > count {
+// 		count = count2
+// 		// the approximate flag probably will be false if the L2 got more, and it is a
+// 		// very large, non GC store.
+// 		approx = approx2
+// 	}
+// 	err = errors.Join(err1, err2)
+// 	return
+// }
 
 // DeleteEvent deletes an event on both the layer1 and layer2.
 func (b *Backend) DeleteEvent(c context.T, ev *eventid.T, noTombstone ...bool) (err error) {

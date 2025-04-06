@@ -16,6 +16,8 @@ import (
 	"realy.lol/timestamp"
 )
 
+// DeleteEvent deletes an event if it exists, and writes a tombstone for the event unless
+// requested not to, so that the event can't be saved again.
 func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err error) {
 	var foundSerial []byte
 	seri := serial.New(nil)

@@ -22,7 +22,6 @@ type I interface {
 	Pather
 	Nukener
 	Querent
-	Counter
 	Deleter
 	Saver
 	Importer
@@ -68,11 +67,11 @@ type GetIdsWriter interface {
 	FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error)
 }
 
-type Counter interface {
-	// CountEvents performs the same work as QueryEvents but instead of delivering
-	// the events that were found it just returns the count of events
-	CountEvents(c context.T, f *filter.T) (count int, approx bool, err error)
-}
+// type Counter interface {
+// 	// CountEvents performs the same work as QueryEvents but instead of delivering
+// 	// the events that were found it just returns the count of events
+// 	CountEvents(c context.T, f *filter.T) (count int, approx bool, err error)
+// }
 
 type Deleter interface {
 	// DeleteEvent is used to handle deletion events, as per NIP-09.

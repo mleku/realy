@@ -42,7 +42,8 @@ type Server struct {
 	owners         [][]byte
 	Listeners      *listeners.T
 	huma.API
-	Configuration *store.Configuration
+	ConfigurationMx sync.Mutex
+	Configuration   *store.Configuration
 }
 
 type ServerParams struct {
@@ -103,8 +104,10 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 
 	// load configuration if it has been set
 	if c, ok := s.relay.Storage().(store.Configurationer); ok {
+		s.ConfigurationMx.Lock()
 		if s.Configuration, err = c.GetConfiguration(); chk.E(err) {
 		}
+		s.ConfigurationMx.Unlock()
 	}
 
 	go func() {

@@ -11,7 +11,6 @@ import (
 	"realy.lol/envelopes"
 	"realy.lol/envelopes/authenvelope"
 	"realy.lol/envelopes/closeenvelope"
-	"realy.lol/envelopes/countenvelope"
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/envelopes/noticeenvelope"
 	"realy.lol/envelopes/reqenvelope"
@@ -97,7 +96,8 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	go s.pinger(ctx, ws, conn, ticker, cancel)
 }
 
-func (s *Server) pinger(ctx context.T, ws *web.Socket, conn *websocket.Conn, ticker *time.Ticker, cancel context.F) {
+func (s *Server) pinger(ctx context.T, ws *web.Socket, conn *websocket.Conn,
+	ticker *time.Ticker, cancel context.F) {
 	defer func() {
 		cancel()
 		ticker.Stop()
@@ -131,8 +131,8 @@ func (s *Server) handleMessage(c context.T, ws *web.Socket, msg []byte, sto stor
 	switch t {
 	case eventenvelope.L:
 		notice = s.handleEvent(c, ws, rem, sto)
-	case countenvelope.L:
-		notice = s.handleCount(c, ws, rem, sto)
+	// case countenvelope.L:
+	// 	notice = s.handleCount(c, ws, rem, sto)
 	case reqenvelope.L:
 		notice = s.handleReq(c, ws, rem, sto)
 	case closeenvelope.L:

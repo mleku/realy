@@ -1,8 +1,9 @@
 package ratel
 
 import (
-	"realy.lol/units"
 	"time"
+
+	"realy.lol/units"
 )
 
 // GarbageCollector starts up a ticker that runs a check on space utilisation
@@ -10,6 +11,9 @@ import (
 //
 // This function should be invoked as a goroutine, and will terminate when the
 // backend context is canceled.
+//
+// TODO: this needs to be updated and set to actually run by default specifically just for
+// TODO: pruning tombstones after they are a year or more old.
 func (r *T) GarbageCollector() {
 	log.D.F("starting ratel back-end garbage collector,"+
 		"max size %0.3fGb,"+
