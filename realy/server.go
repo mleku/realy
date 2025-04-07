@@ -18,8 +18,8 @@ import (
 
 	realy_lol "realy.lol"
 	"realy.lol/context"
-	"realy.lol/realy/listeners"
 	"realy.lol/realy/options"
+	"realy.lol/realy/subscribers"
 	"realy.lol/relay"
 	"realy.lol/signer"
 	"realy.lol/store"
@@ -40,7 +40,7 @@ type Server struct {
 	maxLimit       int
 	admins         []signer.I
 	owners         [][]byte
-	Listeners      *listeners.T
+	Listeners      *subscribers.S
 	huma.API
 	ConfigurationMx sync.Mutex
 	Configuration   *store.Configuration
@@ -84,7 +84,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 		maxLimit:       sp.MaxLimit,
 		admins:         sp.Admins,
 		owners:         sp.Rl.Owners(),
-		Listeners:      listeners.New(sp.Ctx),
+		Listeners:      subscribers.New(sp.Ctx),
 		API: NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version,
 			realy_lol.Description),
 	}
@@ -118,7 +118,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	if inj, ok := s.relay.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
-				s.Listeners.NotifyListeners(s.authRequired, s.publicReadable, ev)
+				s.Listeners.NotifySubscribers(s.authRequired, s.publicReadable, ev)
 			}
 		}()
 	}

@@ -10,7 +10,7 @@ import (
 	"realy.lol/context"
 	"realy.lol/event"
 	"realy.lol/normalize"
-	"realy.lol/realy/listeners"
+	"realy.lol/realy/subscribers"
 	"realy.lol/relay"
 	"realy.lol/relay/wrapper"
 	"realy.lol/store"
@@ -45,7 +45,7 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 				return false, normalize.Error.F(saveErr.Error())
 			}
 			errmsg := saveErr.Error()
-			if listeners.NIP20prefixmatcher.MatchString(errmsg) {
+			if subscribers.NIP20prefixmatcher.MatchString(errmsg) {
 				if strings.Contains(errmsg, "tombstone") {
 					return false, normalize.Blocked.F("event was deleted, not storing it again")
 				}
@@ -65,7 +65,7 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 	if ar, ok := rl.(relay.Authenticator); ok {
 		authRequired = ar.AuthEnabled()
 	}
-	s.Listeners.NotifyListeners(authRequired, s.publicReadable, ev)
+	s.Listeners.NotifySubscribers(authRequired, s.publicReadable, ev)
 	accepted = true
 	log.I.F("event id %0x stored", ev.Id)
 	return

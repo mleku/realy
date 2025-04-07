@@ -10,19 +10,23 @@ import (
 	"realy.lol/store"
 )
 
+// Nuke is the HTTP API method to wipe the event store of a relay.
 type Nuke struct{ *Server }
 
-func NewNuke(s *Server) (ep *Nuke) {
-	return &Nuke{Server: s}
-}
+// NewNuke creates a new Nuke.
+func NewNuke(s *Server) (ep *Nuke) { return &Nuke{Server: s} }
 
+// NukeInput is the parameters for the HTTP API method nuke. Note that it has a confirmation
+// header that must be provided to prevent accidental invocation of this method.
 type NukeInput struct {
-	Auth    string `header:"Authorization" doc:"nostr nip-98 or JWT token for authentication" required:"true" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Auth    string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
 	Confirm string `header:"X-Confirm" doc:"must put 'Yes I Am Sure' in this field as confirmation"`
 }
 
+// NukeOutput is basically nothing, a 200 or 204 HTTP status response is normal.
 type NukeOutput struct{}
 
+// RegisterNuke is the implementation of the Nuke HTTP API method.
 func (ep *Nuke) RegisterNuke(api huma.API) {
 	name := "Nuke"
 	description := "Nuke all events in the database"

@@ -16,7 +16,7 @@ import (
 	"realy.lol/httpauth"
 	"realy.lol/kind"
 	"realy.lol/kinds"
-	"realy.lol/realy/listeners"
+	"realy.lol/realy/subscribers"
 	"realy.lol/relay"
 	"realy.lol/tag"
 	"realy.lol/tags"
@@ -27,7 +27,7 @@ type Subscribe struct{ *Server }
 func NewSubscribe(s *Server) (ep *Subscribe) { return &Subscribe{Server: s} }
 
 type SubscribeInput struct {
-	Auth   string `header:"Authorization" doc:"nostr nip-98 or JWT token for authentication" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Auth   string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
 	Accept string `header:"Accept" default:"text/event-stream" enum:"text/event-stream" required:"true"`
 	// ContentType string       `header:"Content-Type" default:"text/event-stream" enum:"text/event-stream" required:"true"`
 	Body SimpleFilter `body:"filter" doc:"filter criteria to match for events to return"`
@@ -143,7 +143,7 @@ func (ep *Subscribe) RegisterSubscribe(api huma.API) {
 			}
 			// register the filter with the Listeners
 			receiver := make(event.C, 32)
-			s.Listeners.Hchan <- listeners.H{
+			s.Listeners.Hchan <- subscribers.H{
 				Ctx:      r.Context(),
 				Receiver: receiver,
 				Pubkey:   pubkey,

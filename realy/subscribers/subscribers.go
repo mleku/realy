@@ -1,7 +1,7 @@
-// Package listeners is a singleton package that keeps track of subscriptions in
+// Package subscribers is a singleton package that keeps track of subscriptions in
 // both websockets and http SSE, including managing the authentication state of
 // a connection.
-package listeners
+package subscribers
 
 import (
 	"bytes"
@@ -26,10 +26,14 @@ import (
 )
 
 type (
+	// L is a collection of filters.
 	L struct{ filters *filters.T }
 
+	// Map is a map of filters associated with a collection of web.Socket..
 	Map map[*web.Socket]map[string]*L
 
+	// H is the control structure for a HTTP SSE subscription, including the filter, authed
+	// pubkey and a channel to send the events to.
 	H struct {
 		// Ctx is the http.Request context of the subscriber, this enables garbage
 		// collecting the subscriptions from http.
@@ -43,9 +47,11 @@ type (
 		Filter *filter.T
 	}
 
+	// Subs is a collection of H TTP subscriptions.
 	Subs map[*H]struct{}
 
-	T struct {
+	// S is the control structure for the subscription management scheme.
+	S struct {
 		Ctx context.T
 		sync.Mutex
 		Map
@@ -78,8 +84,9 @@ var (
 		}}
 )
 
-func New(ctx context.T) (l *T) {
-	l = &T{
+// New creates a new subscribers.S.
+func New(ctx context.T) (l *S) {
+	l = &S{
 		Ctx:             ctx,
 		Map:             make(Map),
 		Subs:            make(Subs),
@@ -106,10 +113,11 @@ func New(ctx context.T) (l *T) {
 	return
 }
 
-func (l *T) GetChallenge(conn *websocket.Conn, req *http.Request,
+// GetChallenge generates a new challenge for a subscriber.
+func (s *S) GetChallenge(conn *websocket.Conn, req *http.Request,
 	addr string) (ws *web.Socket) {
 	var err error
-	cb := make([]byte, l.ChallengeLength)
+	cb := make([]byte, s.ChallengeLength)
 	if _, err = rand.Read(cb); chk.E(err) {
 		panic(err)
 	}
@@ -118,49 +126,53 @@ func (l *T) GetChallenge(conn *websocket.Conn, req *http.Request,
 		return
 	}
 	var encoded []byte
-	if encoded, err = bech32.Encode([]byte(l.ChallengeHRP), b5); chk.E(err) {
+	if encoded, err = bech32.Encode([]byte(s.ChallengeHRP), b5); chk.E(err) {
 		return
 	}
 	ws = web.NewSocket(conn, req, encoded)
 	return
 }
 
-func (l *T) SetListener(id string, ws *web.Socket, ff *filters.T) {
-	l.Mutex.Lock()
-	subs, ok := l.Map[ws]
+// Set a new subscriber with its collection of filters.
+func (s *S) Set(id string, ws *web.Socket, ff *filters.T) {
+	s.Mutex.Lock()
+	subs, ok := s.Map[ws]
 	if !ok {
 		subs = make(map[string]*L)
-		l.Map[ws] = subs
+		s.Map[ws] = subs
 	}
 	subs[id] = &L{filters: ff}
-	l.Mutex.Unlock()
+	s.Mutex.Unlock()
 }
 
-func (l *T) RemoveListenerId(ws *web.Socket, id string) {
-	l.Mutex.Lock()
-	if subs, ok := l.Map[ws]; ok {
-		delete(l.Map[ws], id)
+// RemoveSubscriberId removes a specific subscription from a subscriber websocket.
+func (s *S) RemoveSubscriberId(ws *web.Socket, id string) {
+	s.Mutex.Lock()
+	if subs, ok := s.Map[ws]; ok {
+		delete(s.Map[ws], id)
 		if len(subs) == 0 {
-			delete(l.Map, ws)
+			delete(s.Map, ws)
 		}
 	}
-	l.Mutex.Unlock()
+	s.Mutex.Unlock()
 }
 
-func (l *T) RemoveListener(ws *web.Socket) {
-	l.Mutex.Lock()
-	clear(l.Map[ws])
-	delete(l.Map, ws)
-	l.Mutex.Unlock()
+// RemoveSubscriber removes a websocket from the subscribers.S collection.
+func (s *S) RemoveSubscriber(ws *web.Socket) {
+	s.Mutex.Lock()
+	clear(s.Map[ws])
+	delete(s.Map, ws)
+	s.Mutex.Unlock()
 }
 
-func (l *T) NotifyListeners(authRequired, publicReadable bool, ev *event.T) {
+// NotifySubscribers processes a new event and determines whether to send it to subscribers.
+func (s *S) NotifySubscribers(authRequired, publicReadable bool, ev *event.T) {
 	if ev == nil {
 		return
 	}
 	var err error
-	l.Mutex.Lock()
-	for ws, subs := range l.Map {
+	s.Mutex.Lock()
+	for ws, subs := range s.Map {
 		for id, listener := range subs {
 			if !publicReadable {
 				if authRequired && !ws.IsAuthed() {
@@ -194,10 +206,10 @@ func (l *T) NotifyListeners(authRequired, publicReadable bool, ev *event.T) {
 			}
 		}
 	}
-	l.Mutex.Unlock()
-	l.Hlock.Lock()
+	s.Mutex.Unlock()
+	s.Hlock.Lock()
 	var subs []*H
-	for sub := range l.Subs {
+	for sub := range s.Subs {
 		// check if the subscription's subscriber is still alive
 		select {
 		case <-sub.Ctx.Done():
@@ -206,10 +218,10 @@ func (l *T) NotifyListeners(authRequired, publicReadable bool, ev *event.T) {
 		}
 	}
 	for _, sub := range subs {
-		delete(l.Subs, sub)
+		delete(s.Subs, sub)
 	}
 	subs = subs[:0]
-	for sub := range l.Subs {
+	for sub := range s.Subs {
 		// if auth required, check the subscription pubkey matches
 		if !publicReadable {
 			if authRequired && len(sub.Pubkey) == 0 {
@@ -234,5 +246,5 @@ func (l *T) NotifyListeners(authRequired, publicReadable bool, ev *event.T) {
 		// send the event to the subscriber
 		sub.Receiver <- ev
 	}
-	l.Hlock.Unlock()
+	s.Hlock.Unlock()
 }

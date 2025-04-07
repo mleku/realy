@@ -17,19 +17,21 @@ import (
 	"realy.lol/tag"
 )
 
+// Events is a HTTP API method to retrieve a number of events from their event Ids.
 type Events struct{ *Server }
 
+// NewEvents creates a new Events with a provided Server.
 func NewEvents(s *Server) (ep *Events) {
 	return &Events{Server: s}
 }
 
+// EventsInput is the parameters for an Events HTTP API method. Basically an array of eventid.T.
 type EventsInput struct {
-	Auth        string   `header:"Authorization" doc:"nostr nip-98 or JWT token for authentication" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
-	Accept      string   `header:"Accept" default:"application/json" enum:"application/json" required:"true"`
-	ContentType string   `header:"Content-Type" default:"application/json" enum:"application/json" required:"true"`
-	Body        []string `doc:"list of event Ids"`
+	Auth string   `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Body []string `doc:"list of event Ids"`
 }
 
+// RegisterEvents is the implementation of the HTTP API for Events.
 func (ep *Events) RegisterEvents(api huma.API) {
 	name := "Events"
 	description := "Returns the full events from a list of event Ids as a line structured JSON. Auth required to fetch more than 1000 events, and if not enabled, 1000 is the limit."

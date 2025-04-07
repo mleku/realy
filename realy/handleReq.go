@@ -230,6 +230,6 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 	if env.Filters != allowed {
 		return
 	}
-	s.Listeners.SetListener(env.Subscription.String(), ws, env.Filters)
+	s.Listeners.Set(env.Subscription.String(), ws, env.Filters)
 	return
 }

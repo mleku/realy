@@ -1,4 +1,4 @@
-package listeners
+package subscribers
 
 import (
 	"realy.lol/lol"

@@ -13,21 +13,25 @@ import (
 	"realy.lol/context"
 )
 
+// Import is a HTTP API method that accepts events as minified, line structured JSON.
 type Import struct{ *Server }
 
+// NewImport creates a new Import.
 func NewImport(s *Server) (ep *Import) {
 	return &Import{Server: s}
 }
 
+// ImportInput is the parameters of an import operation, authentication and the stream of line
+// structured JSON events.
 type ImportInput struct {
-	Auth        string `header:"Authorization" doc:"nostr nip-98 token for authentication" required:"true" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
-	Accept      string `header:"Accept" default:"application/nostr+jsonl" enum:"application/nostr+jsonl" required:"false"`
-	ContentType string `header:"Content-Type" default:"application/nostr+jsonl" enum:"application/nostr+jsonl" required:"false"`
-	RawBody     []byte
+	Auth    string `header:"Authorization" doc:"nostr nip-98 token for authentication" required:"true" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	RawBody []byte
 }
 
+// ImportOutput is nothing, basically, a 204 or 200 status is expected.
 type ImportOutput struct{}
 
+// RegisterImport is the implementation of the Import operation.
 func (ep *Import) RegisterImport(api huma.API) {
 	name := "Import"
 	description := "Import events from line structured JSON (jsonl)"

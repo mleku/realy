@@ -14,14 +14,14 @@ import (
 	"realy.lol/envelopes/eventenvelope"
 	"realy.lol/envelopes/noticeenvelope"
 	"realy.lol/envelopes/reqenvelope"
-	"realy.lol/realy/listeners"
+	"realy.lol/realy/subscribers"
 	"realy.lol/relay"
 	"realy.lol/store"
 	"realy.lol/web"
 )
 
 func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := listeners.Upgrader.Upgrade(w, r, nil)
+	conn, err := subscribers.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.E.F("failed to upgrade websocket: %v", err)
 		return
@@ -49,7 +49,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 			if _, ok := s.clients[conn]; ok {
 				chk.E(conn.Close())
 				delete(s.clients, conn)
-				s.Listeners.RemoveListener(ws)
+				s.Listeners.RemoveSubscriber(ws)
 			}
 			s.clientsMu.Unlock()
 		}()
@@ -101,7 +101,7 @@ func (s *Server) pinger(ctx context.T, ws *web.Socket, conn *websocket.Conn,
 	defer func() {
 		cancel()
 		ticker.Stop()
-		conn.Close()
+		_ = conn.Close()
 	}()
 	var err error
 	for {

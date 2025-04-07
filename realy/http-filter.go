@@ -24,27 +24,31 @@ import (
 	"realy.lol/timestamp"
 )
 
+// SimpleFilter is the main parts of a filter.T that relate to event store indexes.
 type SimpleFilter struct {
 	Kinds   []int      `json:"kinds,omitempty" doc:"array of kind numbers to match on"`
 	Authors []string   `json:"authors,omitempty" doc:"array of author pubkeys to match on (hex encoded)"`
 	Tags    [][]string `json:"tags,omitempty" doc:"array of tags to match on (first key of each '#x' and terms to match from the second field of the event tag)"`
 }
 
+// Filter is a HTTP API method for performing a filter search for events based on kind, author
+// and tags.
 type Filter struct{ *Server }
 
+// NewFilter creates a new Filter.
 func NewFilter(s *Server) (ep *Filter) { return &Filter{Server: s} }
 
+// FilterInput is the parameters for a Filter HTTP API call.
 type FilterInput struct {
-	Auth        string       `header:"Authorization" doc:"nostr nip-98 or JWT token for authentication" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
-	Accept      string       `header:"Accept" default:"application/json" enum:"application/json" required:"true"`
-	ContentType string       `header:"Content-Type" default:"application/json" enum:"application/json" required:"true"`
-	Since       int64        `query:"since" doc:"timestamp of the oldest events to return (inclusive)"`
-	Until       int64        `query:"until" doc:"timestamp of the newest events to return (inclusive)"`
-	Limit       uint         `query:"limit" doc:"maximum number of results to return"`
-	Sort        string       `query:"sort" enum:"asc,desc" default:"desc" doc:"sort order by created_at timestamp"`
-	Body        SimpleFilter `body:"filter" doc:"filter criteria to match for events to return"`
+	Auth  string       `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Since int64        `query:"since" doc:"timestamp of the oldest events to return (inclusive)"`
+	Until int64        `query:"until" doc:"timestamp of the newest events to return (inclusive)"`
+	Limit uint         `query:"limit" doc:"maximum number of results to return"`
+	Sort  string       `query:"sort" enum:"asc,desc" default:"desc" doc:"sort order by created_at timestamp"`
+	Body  SimpleFilter `body:"filter" doc:"filter criteria to match for events to return"`
 }
 
+// ToFilter converts a SimpleFilter input to a regular nostr filter.T.
 func (fi FilterInput) ToFilter() (f *filter.T, err error) {
 	f = filter.New()
 	var ks []*kind.T
@@ -78,10 +82,12 @@ func (fi FilterInput) ToFilter() (f *filter.T, err error) {
 	return
 }
 
+// FilterOutput is a list of event Ids that match the query in the sort order requested.
 type FilterOutput struct {
 	Body []string `doc:"list of event Ids that mach the query in the sort order requested"`
 }
 
+// RegisterFilter is the implementation of the HTTP API Filter method.
 func (ep *Filter) RegisterFilter(api huma.API) {
 	name := "Filter"
 	description := "Search for events and receive a sorted list of event Ids (one of authors, kinds or tags must be present)"

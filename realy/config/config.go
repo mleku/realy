@@ -20,6 +20,8 @@ import (
 	"realy.lol/config"
 )
 
+// C is the configuration for realy relay. These are read from the environment if present, or if
+// a .env file is found in ~/.config/realy/ that is read instead and overrides anything else.
 type C struct {
 	AppName        string   `env:"REALY_APP_NAME" default:"realy"`
 	Config         string   `env:"REALY_CONFIG_DIR" usage:"location for configuration file, which has the name '.env' to make it harder to delete, and is a standard environment KEY=value<newline>... style"`
@@ -44,6 +46,7 @@ type C struct {
 	// NWC          st   `env:"NWC" usage:"NWC connection string for relay to interact with an NWC enabled wallet"` // todo
 }
 
+// New creates a new config.C.
 func New() (cfg *C, err error) {
 	cfg = &C{}
 	if err = env.Load(cfg, &env.Options{SliceSep: ","}); chk.T(err) {
@@ -92,6 +95,8 @@ func HelpRequested() (help bool) {
 	return
 }
 
+// GetEnv processes os.Args to detect a request for printing the current settings as a list of
+// environment variable key/values.
 func GetEnv() (requested bool) {
 	if len(os.Args) > 1 {
 		switch strings.ToLower(os.Args[1]) {
@@ -102,8 +107,10 @@ func GetEnv() (requested bool) {
 	return
 }
 
+// KV is a key/value pair.
 type KV struct{ Key, Value string }
 
+// KVSlice is a collection of key/value pairs.
 type KVSlice []KV
 
 func (kv KVSlice) Len() int           { return len(kv) }
@@ -163,6 +170,7 @@ func EnvKV(cfg any) (m KVSlice) {
 	return
 }
 
+// PrintEnv renders the key/values of a config.C to a provided io.Writer.
 func PrintEnv(cfg *C, printer io.Writer) {
 	kvs := EnvKV(*cfg)
 	sort.Sort(kvs)
@@ -188,7 +196,8 @@ func PrintHelp(cfg *C, printer io.Writer) {
 			" this file will be created on first startup.\nenvironment overrides it and "+
 			"you can also edit the file to set configuration options\n\n"+
 			"use the parameter 'env' to print out the current configuration to the terminal\n\n"+
-			"set the environment using\n\n\t%s env > %s/.env\n", os.Args[0], cfg.Config, cfg.Config)
+			"set the environment using\n\n\t%s env > %s/.env\n", os.Args[0], cfg.Config,
+		cfg.Config)
 
 	fmt.Fprintf(printer, "\ncurrent configuration:\n\n")
 	PrintEnv(cfg, printer)

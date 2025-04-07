@@ -18,6 +18,8 @@ func ExposeMiddleware(ctx huma.Context, next func(huma.Context)) {
 	next(ctx)
 }
 
+// NewHuma creates a new huma.API with a Scalar docs UI, and a middleware that allows methods to
+// access the http.Request and http.ResponseWriter.
 func NewHuma(router *ServeMux, name, version, description string) (api huma.API) {
 	config := huma.DefaultConfig(name, version)
 	config.Info.Description = description
