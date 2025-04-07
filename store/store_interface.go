@@ -1,7 +1,6 @@
-// Package store is an interface and ancillary helpers and types for defining a
-// series of API elements for abstracting the event storage from the
-// implementation. It is composed so that the top level interface can be
-// partially implemented if need be.
+// Package store is an interface and ancillary helpers and types for defining a series of API
+// elements for abstracting the event storage from the implementation. It is composed so that
+// the top level interface can be partially implemented if need be.
 package store
 
 import (
@@ -30,10 +29,10 @@ type I interface {
 }
 
 type Initer interface {
-	// Init is called at the very beginning by [Server.Start], after [Relay.Init],
-	// allowing a storage to initialize its internal resources. The parameters can be
-	// used by the database implementations to set custom parameters such as cache
-	// management and other relevant parameters to the specific implementation.
+	// Init is called at the very beginning by [Server.Start], after [Relay.Init], allowing a
+	// storage to initialize its internal resources. The parameters can be used by the database
+	// implementations to set custom parameters such as cache management and other relevant
+	// parameters to the specific implementation.
 	Init(path string) (err error)
 }
 
@@ -48,8 +47,8 @@ type Nukener interface {
 }
 
 type Querent interface {
-	// QueryEvents is invoked upon a client's REQ as described in NIP-01. It returns
-	// the matching events in reverse chronological order in a slice.
+	// QueryEvents is invoked upon a client's REQ as described in NIP-01. It returns the
+	// matching events in reverse chronological order in a slice.
 	QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error)
 }
 
@@ -66,12 +65,6 @@ type Querier interface {
 type GetIdsWriter interface {
 	FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error)
 }
-
-// type Counter interface {
-// 	// CountEvents performs the same work as QueryEvents but instead of delivering
-// 	// the events that were found it just returns the count of events
-// 	CountEvents(c context.T, f *filter.T) (count int, approx bool, err error)
-// }
 
 type Deleter interface {
 	// DeleteEvent is used to handle deletion events, as per NIP-09.
@@ -90,15 +83,15 @@ type Importer interface {
 }
 
 type Exporter interface {
-	// Export writes a stream of line structured JSON of all events in the store. If
-	// pubkeys are present, only those with these pubkeys in the `pubkey` field and
-	// in `p` tags will be included.
+	// Export writes a stream of line structured JSON of all events in the store. If pubkeys are
+	// present, only those with these pubkeys in the `pubkey` field and in `p` tags will be
+	// included.
 	Export(c context.T, w io.Writer, pubkeys ...[]byte)
 }
 
 type Rescanner interface {
-	// Rescan triggers the regeneration of indexes of the database to enable old
-	// records to be found with new indexes.
+	// Rescan triggers the regeneration of indexes of the database to enable old records to be
+	// found with new indexes.
 	Rescan() (err error)
 }
 

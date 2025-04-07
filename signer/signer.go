@@ -2,6 +2,8 @@
 // abstract the signature algorithm from the usage.
 package signer
 
+// I is an interface for a key pair for signing, created to abstract between a CGO fast BIP-340
+// signature library and the slower btcec library.
 type I interface {
 	// Generate creates a fresh new key pair from system entropy, and ensures it is even (so
 	// ECDH works).
