@@ -12,7 +12,6 @@ import (
 	"realy.lol/normalize"
 	"realy.lol/realy/subscribers"
 	"realy.lol/relay"
-	"realy.lol/relay/wrapper"
 	"realy.lol/store"
 )
 
@@ -24,7 +23,6 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 		return false, normalize.Invalid.F("empty event")
 	}
 	sto := rl.Storage()
-	wrap := &wrapper.Relay{I: sto}
 	advancedSaver, _ := sto.(relay.AdvancedSaver)
 	// don't allow storing event with protected marker as per nip-70 with auth enabled.
 	if (s.authRequired || !s.publicReadable) && ev.Tags.ContainsProtectedMarker() {
@@ -40,7 +38,7 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 		if advancedSaver != nil {
 			advancedSaver.BeforeSave(c, ev)
 		}
-		if saveErr := wrap.Publish(c, ev); saveErr != nil {
+		if saveErr := s.Publish(c, ev); saveErr != nil {
 			if errors.Is(saveErr, store.ErrDupEvent) {
 				return false, normalize.Error.F(saveErr.Error())
 			}

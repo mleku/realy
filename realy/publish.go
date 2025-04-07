@@ -1,11 +1,9 @@
-// Package wrapper that unifies Store and Relay under a common API.
-package wrapper
+package realy
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
-	"sort"
 
 	"realy.lol/context"
 	"realy.lol/event"
@@ -14,23 +12,10 @@ import (
 	"realy.lol/normalize"
 	"realy.lol/store"
 	"realy.lol/tag"
-	"realy.lol/ws"
 )
 
-// RelayInterface is a wrapper thing that unifies Store and Relay under a common
-// API.
-type RelayInterface interface {
-	Publish(c context.T, evt *event.T) error
-	QuerySync(c context.T, f *filter.T, opts ...ws.SubscriptionOption) ([]*event.T, error)
-}
-
-type Relay struct {
-	store.I
-}
-
-var _ RelayInterface = (*Relay)(nil)
-
-func (w Relay) Publish(c context.T, evt *event.T) (err error) {
+func (s *Server) Publish(c context.T, evt *event.T) (err error) {
+	sto := s.relay.Storage()
 	if evt.Kind.IsEphemeral() {
 		// do not store ephemeral events
 		return nil
@@ -41,7 +26,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 		f := filter.New()
 		f.Authors = tag.New(evt.Pubkey)
 		f.Kinds = kinds.New(evt.Kind)
-		evs, err = w.I.QueryEvents(c, f)
+		evs, err = sto.QueryEvents(c, f)
 		if err != nil {
 			return fmt.Errorf("failed to query before replacing: %w", err)
 		}
@@ -74,7 +59,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 						})
 						// replaceable events we don't tombstone when replacing, so if deleted, old
 						// versions can be restored
-						if err = w.I.DeleteEvent(c, ev.EventId(), true); chk.E(err) {
+						if err = sto.DeleteEvent(c, ev.EventId(), true); chk.E(err) {
 							return
 						}
 					}()
@@ -90,7 +75,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 		f.Kinds = kinds.New(evt.Kind)
 		log.I.F("filter for parameterized replaceable %v %s", f.Tags.ToStringSlice(),
 			f.Serialize())
-		if evs, err = w.I.QueryEvents(c, f); err != nil {
+		if evs, err = sto.QueryEvents(c, f); err != nil {
 			return errorf.E("failed to query before replacing: %w", err)
 		}
 		if len(evs) > 0 {
@@ -125,7 +110,7 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 						})
 						// replaceable events we don't tombstone when replacing, so if deleted, old
 						// versions can be restored
-						if err = w.I.DeleteEvent(c, ev.EventId(), true); chk.E(err) {
+						if err = sto.DeleteEvent(c, ev.EventId(), true); chk.E(err) {
 							return
 						}
 					}()
@@ -133,27 +118,8 @@ func (w Relay) Publish(c context.T, evt *event.T) (err error) {
 			}
 		}
 	}
-	if err = w.SaveEvent(c, evt); chk.E(err) && !errors.Is(err, store.ErrDupEvent) {
+	if err = sto.SaveEvent(c, evt); chk.E(err) && !errors.Is(err, store.ErrDupEvent) {
 		return errorf.E("failed to save: %w", err)
 	}
 	return
-}
-
-func (w Relay) QuerySync(c context.T, f *filter.T,
-	opts ...ws.SubscriptionOption) ([]*event.T, error) {
-
-	evs, err := w.I.QueryEvents(c, f)
-	if chk.E(err) {
-		return nil, fmt.Errorf("failed to query: %w", err)
-	}
-
-	if f.Limit != nil && *f.Limit > 0 {
-		results := make(event.Descending, 0, *f.Limit)
-		for _, ev := range evs {
-			results = append(results, ev)
-		}
-		sort.Sort(results)
-		return results, nil
-	}
-	return nil, nil
 }
