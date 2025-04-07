@@ -11,17 +11,20 @@ func (ri *T) AddSupportedNIP(n int) {
 	ri.Nips[idx] = n
 }
 
+// Admission is the cost of opening an account with a relay.
 type Admission struct {
 	Amount int    `json:"amount"`
 	Unit   string `json:"unit"`
 }
 
+// Subscription is the cost of keeping an account open for a specified period of time.
 type Subscription struct {
 	Amount int    `json:"amount"`
 	Unit   string `json:"unit"`
 	Period int    `json:"period"`
 }
 
+// Publication is the cost and restrictions on storing events on a relay.
 type Publication []struct {
 	Kinds  []int  `json:"kinds"`
 	Amount int    `json:"amount"`
