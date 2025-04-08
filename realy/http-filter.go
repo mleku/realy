@@ -74,10 +74,10 @@ func (fi FilterInput) ToFilter() (f *filter.T, err error) {
 		f.Limit = &fi.Limit
 	}
 	if fi.Since != 0 {
-		f.Since = timestamp.NewFromUnix(fi.Since)
+		f.Since = timestamp.New(fi.Since)
 	}
 	if fi.Until != 0 {
-		f.Until = timestamp.NewFromUnix(fi.Until)
+		f.Until = timestamp.New(fi.Until)
 	}
 	return
 }

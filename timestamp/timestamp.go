@@ -14,9 +14,15 @@ import (
 // precision.
 type T struct{ V int64 }
 
-func New() (t *T) { return &T{} }
-
-func NewFromUnix(unix int64) (t *T) { return &T{V: unix} }
+// New creates a new timestamp.T, as zero or optionally from teh first variadic parameter as
+// int64.
+func New(x ...int64) (t *T) {
+	t = &T{}
+	if len(x) > 0 {
+		t.V = x[0]
+	}
+	return
+}
 
 // Now returns the current UNIX timestamp of the current second.
 func Now() *T {
@@ -52,6 +58,7 @@ func (t *T) Int() int {
 	return int(t.V)
 }
 
+// Bytes returns a timestamp as an 8 byte thing.
 func (t *T) Bytes() (b []byte) {
 	b = make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(t.V))
@@ -69,6 +76,8 @@ func (t *T) FromInt(i int) { *t = T{int64(i)} }
 // FromBytes converts from a string of raw bytes.
 func FromBytes(b []byte) *T { return &T{int64(binary.BigEndian.Uint64(b))} }
 
+// FromVarint decodes a varint and returns the remainder of the bytes and the encoded
+// timestamp.T.
 func FromVarint(b []byte) (t *T, rem []byte, err error) {
 	n, read := binary.Varint(b)
 	if read < 1 {
@@ -80,10 +89,7 @@ func FromVarint(b []byte) (t *T, rem []byte, err error) {
 	return
 }
 
-func ToVarint(dst []byte, t *T) []byte { return binary.AppendVarint(dst, t.V) }
-
-func (t *T) FromVarint(dst []byte) (b []byte) { return ToVarint(dst, t) }
-
+// String renders a timestamp.T as a string.
 func (t *T) String() (s string) {
 	b := make([]byte, 0, 20)
 	tt := ints.New(t.U64())
@@ -91,8 +97,11 @@ func (t *T) String() (s string) {
 	return unsafe.String(&b[0], len(b))
 }
 
+// Marshal a timestamp.T into bytes and append to a provided byte slice.
 func (t *T) Marshal(dst []byte) (b []byte) { return ints.New(t.U64()).Marshal(dst) }
 
+// Unmarshal a byte slice with an encoded timestamp.T value and append it to a provided byte
+// slice.
 func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 	n := ints.New(0)
 	if r, err = n.Unmarshal(b); chk.E(err) {
@@ -102,6 +111,7 @@ func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
+// MarshalJSON marshals a timestamp.T using the json MarshalJSON interface.
 func (t *T) MarshalJSON() ([]byte, error) {
 	return ints.New(t.U64()).Marshal(nil), nil
 }
