@@ -4,6 +4,7 @@ import (
 	"realy.lol/hex"
 )
 
+// AppendHexFromBinary appends to a hex output from binary input.
 func AppendHexFromBinary(dst, src []byte, quote bool) (b []byte) {
 	if quote {
 		dst = AppendQuote(dst, src, hex.EncAppend)
@@ -14,6 +15,7 @@ func AppendHexFromBinary(dst, src []byte, quote bool) (b []byte) {
 	return
 }
 
+// AppendBinaryFromHex encodes binary input as hex and appends it to the output.
 func AppendBinaryFromHex(dst, src []byte, unquote bool) (b []byte,
 	err error) {
 	if unquote {

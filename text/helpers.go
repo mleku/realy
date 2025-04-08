@@ -7,13 +7,9 @@ import (
 	"github.com/templexxx/xhex"
 
 	"realy.lol/hex"
-	"realy.lol/ints"
-	"realy.lol/kind"
-	"realy.lol/kinds"
 )
 
-// JSONKey generates the JSON format for an object key and terminates with the
-// semicolon.
+// JSONKey generates the JSON format for an object key and terminates with the semicolon.
 func JSONKey(dst, k []byte) (b []byte) {
 	dst = append(dst, '"')
 	dst = append(dst, k...)
@@ -22,10 +18,9 @@ func JSONKey(dst, k []byte) (b []byte) {
 	return
 }
 
-// UnmarshalHex takes a byte string that should contain a quoted hexadecimal
-// encoded value, decodes it in-place using a SIMD hex codec and returns the
-// decoded truncated bytes (the other half will be as it was but no allocation
-// is required).
+// UnmarshalHex takes a byte string that should contain a quoted hexadecimal encoded value,
+// decodes it in-place using a SIMD hex codec and returns the decoded truncated bytes (the other
+// half will be as it was but no allocation is required).
 func UnmarshalHex(b []byte) (h []byte, rem []byte, err error) {
 	rem = b[:]
 	var inQuote bool
@@ -131,8 +126,8 @@ func MarshalHexArray(dst []byte, ha [][]byte) (b []byte) {
 	return
 }
 
-// UnmarshalHexArray unpacks a JSON array containing strings with hexadecimal,
-// and checks all values have the specified byte size.
+// UnmarshalHexArray unpacks a JSON array containing strings with hexadecimal, and checks all
+// values have the specified byte size.
 func UnmarshalHexArray(b []byte, size int) (t [][]byte, rem []byte, err error) {
 	rem = b
 	var openBracket bool
@@ -193,53 +188,6 @@ func UnmarshalStringArray(b []byte) (t [][]byte, rem []byte, err error) {
 				}
 			}
 		}
-	}
-	return
-}
-
-func MarshalKindsArray(dst []byte, ka *kinds.T) (b []byte) {
-	dst = append(dst, '[')
-	for i := range ka.K {
-		dst = ka.K[i].Marshal(dst)
-		if i != len(ka.K)-1 {
-			dst = append(dst, ',')
-		}
-	}
-	dst = append(dst, ']')
-	b = dst
-	return
-}
-
-func UnmarshalKindsArray(b []byte) (k *kinds.T, rem []byte, err error) {
-	rem = b
-	k = &kinds.T{}
-	var openedBracket bool
-	for ; len(rem) > 0; rem = rem[1:] {
-		if !openedBracket && rem[0] == '[' {
-			openedBracket = true
-			continue
-		} else if openedBracket {
-			if rem[0] == ']' {
-				// done
-				return
-			} else if rem[0] == ',' {
-				continue
-			}
-			kk := ints.New(0)
-			if rem, err = kk.Unmarshal(rem); chk.E(err) {
-				return
-			}
-			k.K = append(k.K, kind.New(kk.Uint16()))
-			if rem[0] == ']' {
-				rem = rem[1:]
-				return
-			}
-		}
-	}
-	if !openedBracket {
-		log.I.F("\n%v\n%s", k, rem)
-		return nil, nil, errorf.E("kinds: failed to unmarshal\n%s\n%s\n%s", k,
-			b, rem)
 	}
 	return
 }

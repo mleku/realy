@@ -13,6 +13,7 @@ import (
 	"realy.lol/timestamp"
 )
 
+// GenerateEvent creates events full of random kinds and content data.
 func GenerateEvent(maxSize int) (ev *event.T, binSize int, err error) {
 	l := frand.Intn(maxSize * 6 / 8) // account for base64 expansion
 	ev = &event.T{

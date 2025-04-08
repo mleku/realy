@@ -1,11 +1,11 @@
-package text
+package bin
 
 import (
 	"encoding/binary"
 )
 
-// AppendBinary is a straight append with length prefix.
-func AppendBinary(dst, src []byte) (b []byte) {
+// Append is a straight append with length prefix.
+func Append(dst, src []byte) (b []byte) {
 	// if an allocation or two may occur, do it all in one immediately.
 	minLen := len(src) + len(dst) + binary.MaxVarintLen32
 	if cap(dst) < minLen {
@@ -18,9 +18,9 @@ func AppendBinary(dst, src []byte) (b []byte) {
 	return
 }
 
-// ExtractBinary decodes the data based on the length prefix and returns a the the
+// Extract decodes the data based on the length prefix and returns a the the
 // remaining data from the provided slice.
-func ExtractBinary(b []byte) (str, rem []byte, err error) {
+func Extract(b []byte) (str, rem []byte, err error) {
 	l, read := binary.Uvarint(b)
 	if read < 1 {
 		err = errorf.E("failed to read uvarint length prefix")
