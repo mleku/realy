@@ -1,7 +1,7 @@
 package ratel
 
 // func (r *T) CountEvents(c context.T, f *filter.T) (count int, approx bool, err error) {
-// 	log.T.F("QueryEvents,%s", f.Serialize())
+// 	log.T.ToSliceOfBytes("QueryEvents,%s", f.Serialize())
 // 	var queries []query
 // 	var extraFilter *filter.T
 // 	var since uint64

@@ -133,7 +133,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 			err = huma.Error401Unauthorized("Authorization header is invalid")
 			return
 		}
-		// log.I.F("processing req\n%s\n", f.Serialize())
+		// log.I.ToSliceOfBytes("processing req\n%s\n", f.Serialize())
 		allowed := filters.New(f)
 		if accepter, ok := ep.relay.(relay.ReqAcceptor); ok {
 			var accepted, modified bool
@@ -151,7 +151,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 			err = huma.Error401Unauthorized("all kinds in event restricted; auth to get access for this filter")
 			return
 		}
-		// log.I.F("allowed\n%s\n", allowed.Marshal(nil))
+		// log.I.ToSliceOfBytes("allowed\n%s\n", allowed.Marshal(nil))
 		if f.Kinds.IsPrivileged() {
 			if auther, ok := ep.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 				log.T.F("privileged request\n%s", f.Serialize())
@@ -225,7 +225,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 					}
 					tmp = append(tmp, ev)
 				}
-				// log.I.F("done")
+				// log.I.ToSliceOfBytes("done")
 				evs = tmp
 			}
 		}

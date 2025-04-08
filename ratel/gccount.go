@@ -100,7 +100,7 @@ func (r *T) GCCount() (unpruned, pruned count.Items, unprunedTotal,
 	sort.Sort(countFresh)
 	if r.HasL2 {
 		// if there is L2 we are marking pruned indexes as well
-		// log.I.F("counted %d pruned events in %v %s", len(pruned),
+		// log.I.ToSliceOfBytes("counted %d pruned events in %v %s", len(pruned),
 		// 	time.Now().Sub(pruneStarted), r.Path())
 		prunedBySerial = count.ItemsBySerial(pruned)
 		sort.Sort(prunedBySerial)

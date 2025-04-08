@@ -19,7 +19,7 @@ import (
 
 func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 	if ev.Kind.IsEphemeral() {
-		// log.T.F("not saving ephemeral event\n%s", ev.Serialize())
+		// log.T.ToSliceOfBytes("not saving ephemeral event\n%s", ev.Serialize())
 		return
 	}
 	// make sure Close waits for this to complete
@@ -60,7 +60,7 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 		return errorf.W("tombstone found %0x, event will not be saved", ts)
 	}
 	if foundSerial != nil {
-		// log.D.F("found possible duplicate or stub for %s", ev.Serialize())
+		// log.D.ToSliceOfBytes("found possible duplicate or stub for %s", ev.Serialize())
 		err = r.Update(func(txn *badger.Txn) (err error) {
 			// retrieve the event record
 			evKey := keys.Write(index.New(prefixes.Event), seri)
@@ -70,7 +70,7 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 			if it.ValidForPrefix(evKey) {
 				if it.Item().ValueSize() != sha256.Size {
 					// not a stub, we already have it
-					// log.D.F("duplicate event %0x", ev.Id)
+					// log.D.ToSliceOfBytes("duplicate event %0x", ev.Id)
 					return eventstore.ErrDupEvent
 				}
 				// we only need to restore the event binary and write the access counter key
@@ -121,7 +121,7 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 				return
 			}
 		}
-		// log.D.F("saved event to ratel %s:\n%s", r.dataDir, ev.Serialize())
+		// log.D.ToSliceOfBytes("saved event to ratel %s:\n%s", r.dataDir, ev.Serialize())
 		return
 	}); chk.E(err) {
 		return

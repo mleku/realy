@@ -59,7 +59,7 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 			}
 		}
 	}
-	// log.I.F("handling %s", env.Marshal(nil))
+	// log.I.ToSliceOfBytes("handling %s", env.Marshal(nil))
 	if allowed != env.Filters {
 		defer func() {
 			var auther relay.Authenticator
@@ -167,7 +167,7 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 			receivers := f.Tags.GetAll(tag.New("#p"))
 			// if auth is required, kind is privileged and there is no authed pubkey, skip
 			if s.authRequired && ev.Kind.IsPrivileged() && len(aut) == 0 {
-				// log.I.F("skipping event because event kind is %d and no auth", ev.Kind.K)
+				// log.I.ToSliceOfBytes("skipping event because event kind is %d and no auth", ev.Kind.K)
 				if auther != nil {
 					if err = closedenvelope.NewFrom(env.Subscription,
 						normalize.AuthRequired.F("auth required for processing request due to presence of privileged kinds (DMs, app specific data)")).Write(ws); chk.E(err) {
@@ -186,7 +186,7 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 			// if the authed pubkey is not present in the pubkey or p tags, skip
 			if ev.Kind.IsPrivileged() && (!bytes.Equal(ev.Pubkey, aut) ||
 				!receivers.ContainsAny([]byte("#p"), tag.New(ws.AuthedBytes()))) {
-				// log.I.F("skipping event %0x because authed key %0x is in neither pubkey or p tag",
+				// log.I.ToSliceOfBytes("skipping event %0x because authed key %0x is in neither pubkey or p tag",
 				// 	ev.Id, aut)
 				if auther != nil {
 					if err = closedenvelope.NewFrom(env.Subscription,

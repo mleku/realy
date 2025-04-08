@@ -145,7 +145,7 @@ func (r *T) SerialKey() (idx []byte, ser *serial.T) {
 func (r *T) Serial() (ser uint64, err error) {
 	if ser, err = r.seq.Next(); chk.E(err) {
 	}
-	// log.T.F("serial %x", ser)
+	// log.T.ToSliceOfBytes("serial %x", ser)
 	return
 }
 

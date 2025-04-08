@@ -119,7 +119,7 @@ func (f *T) Marshal(dst []byte) (b []byte) {
 	if f.IDs != nil && f.IDs.Len() > 0 {
 		first = true
 		dst = text.JSONKey(dst, IDs)
-		dst = text.MarshalHexArray(dst, f.IDs.ToByteSlice())
+		dst = text.MarshalHexArray(dst, f.IDs.ToSliceOfBytes())
 	}
 	if f.Kinds.Len() > 0 {
 		if first {
@@ -137,7 +137,7 @@ func (f *T) Marshal(dst []byte) (b []byte) {
 			first = true
 		}
 		dst = text.JSONKey(dst, Authors)
-		dst = text.MarshalHexArray(dst, f.Authors.ToByteSlice())
+		dst = text.MarshalHexArray(dst, f.Authors.ToSliceOfBytes())
 	}
 	if f.Tags.Len() > 0 {
 		// log.I.S(f.Tags)
@@ -160,13 +160,13 @@ func (f *T) Marshal(dst []byte) (b []byte) {
 				// if there is no values, skip; the "key" field must be 2 characters long,
 				continue
 			}
-			tKey := tg.F()[0]
+			tKey := tg.ToSliceOfBytes()[0]
 			if tKey[0] != '#' &&
 				(tKey[1] < 'a' && tKey[1] > 'z' || tKey[1] < 'A' && tKey[1] > 'Z') {
 				// first "key" field must begin with '#' and second be alpha
 				continue
 			}
-			values := tg.F()[1:]
+			values := tg.ToSliceOfBytes()[1:]
 			if len(values) == 0 {
 				continue
 			}
@@ -258,7 +258,7 @@ func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 	var key []byte
 	var state int
 	for ; len(r) >= 0; r = r[1:] {
-		// log.I.F("%c", rem[0])
+		// log.I.ToSliceOfBytes("%c", rem[0])
 		switch state {
 		case beforeOpen:
 			if r[0] == '{' {
@@ -383,7 +383,7 @@ func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 						return
 					}
 					f.Search = txt
-					// log.I.F("\n%s\n%s", txt, rem)
+					// log.I.ToSliceOfBytes("\n%s\n%s", txt, rem)
 					state = betweenKV
 					// log.I.Ln("betweenKV")
 				case Since[1]:
@@ -434,30 +434,30 @@ invalid:
 // Matches checks a filter against an event and determines if the event matches the filter.
 func (f *T) Matches(ev *event.T) bool {
 	if ev == nil {
-		// log.T.F("nil event")
+		// log.T.ToSliceOfBytes("nil event")
 		return false
 	}
 	if f.IDs.Len() > 0 && !f.IDs.Contains(ev.Id) {
-		// log.T.F("no ids in filter match event\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		// log.T.ToSliceOfBytes("no ids in filter match event\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	if f.Kinds.Len() > 0 && !f.Kinds.Contains(ev.Kind) {
-		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		// log.T.ToSliceOfBytes("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.Pubkey) {
-		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		// log.T.ToSliceOfBytes("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	if f.Tags.Len() > 0 && !ev.Tags.Intersects(f.Tags) {
 		return false
 	}
 	if f.Since.Int() != 0 && ev.CreatedAt.I64() < f.Since.I64() {
-		// log.T.F("event is older than since\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		// log.T.ToSliceOfBytes("event is older than since\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	if f.Until.Int() != 0 && ev.CreatedAt.I64() > f.Until.I64() {
-		// log.T.F("event is newer than until\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		// log.T.ToSliceOfBytes("event is newer than until\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	return true

@@ -193,7 +193,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 					// intent or the client is erroneous, if any limit greater is
 					// requested this will be used instead as the previous clause.
 					if len(evMap) >= r.MaxLimit {
-						// log.T.F("found MaxLimit events: %d", len(evMap))
+						// log.T.ToSliceOfBytes("found MaxLimit events: %d", len(evMap))
 						return
 					}
 				}

@@ -10,6 +10,6 @@ import (
 // GetIndexKeysForEvent function.
 func GetCounterKey(ser *serial.T) (key []byte) {
 	key = prefixes.Counter.Key(ser)
-	// log.T.F("counter key %d %d", index.Counter, ser.Uint64())
+	// log.T.ToSliceOfBytes("counter key %d %d", index.Counter, ser.Uint64())
 	return
 }

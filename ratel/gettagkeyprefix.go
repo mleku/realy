@@ -1,13 +1,13 @@
 package ratel
 
 import (
+	eventstore "realy.lol/addresstag"
 	"realy.lol/hex"
 	"realy.lol/ratel/keys"
 	"realy.lol/ratel/keys/arb"
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/prefixes"
-	eventstore "realy.lol/store"
 )
 
 // GetTagKeyPrefix returns tag index prefixes based on the initial field of a
@@ -23,7 +23,7 @@ import (
 //
 // This function produces the initial bytes without the index.
 func GetTagKeyPrefix(tagValue string) (key []byte, err error) {
-	if k, pkb, d := eventstore.GetAddrTagElements(tagValue); len(pkb) == 32 {
+	if k, pkb, d := eventstore.DecodeAddressTag(tagValue); len(pkb) == 32 {
 		// store value in the new special "a" tag index
 		var pk *pubkey.T
 		if pk, err = pubkey.NewFromBytes(pkb); chk.E(err) {

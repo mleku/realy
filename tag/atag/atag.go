@@ -10,12 +10,14 @@ import (
 	"realy.lol/kind"
 )
 
+// T is a data structure for what is found in an `a` tag: kind:pubkey:arbitrary data
 type T struct {
 	Kind   *kind.T
 	PubKey []byte
 	DTag   []byte
 }
 
+// Marshal an atag.T into raw bytes.
 func (t T) Marshal(dst []byte) (b []byte) {
 	b = t.Kind.Marshal(dst)
 	b = append(b, ':')
@@ -25,6 +27,7 @@ func (t T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal an atag.T from its ascii encoding.
 func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 	split := bytes.Split(b, []byte{':'})
 	if len(split) != 3 {

@@ -324,7 +324,7 @@ func (ri *T) Load(filename string) (err error) {
 	if b, err = os.ReadFile(filename); chk.E(err) {
 		return
 	}
-	// log.T.F("realy information document\n%s", string(b))
+	// log.T.ToSliceOfBytes("realy information document\n%s", string(b))
 	if err = json.Unmarshal(b, ri); chk.E(err) {
 		return
 	}

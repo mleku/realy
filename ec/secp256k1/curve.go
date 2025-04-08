@@ -225,8 +225,8 @@ func addZ1EqualsZ2(p1, p2, result *JacobianPoint) {
 	// https://hyperelliptic.org/EFD/g1p/auto-shortw-jacobian-0.html#addition-zadd-2007-m
 	//
 	// In particular it performs the calculations using the following:
-	// A = X2-X1, B = A^2, C=Y2-Y1, D = C^2, E = X1*B, F = X2*B
-	// X3 = D-E-F, Y3 = C*(E-X3)-Y1*(F-E), Z3 = Z1*A
+	// A = X2-X1, B = A^2, C=Y2-Y1, D = C^2, E = X1*B, ToSliceOfBytes = X2*B
+	// X3 = D-E-ToSliceOfBytes, Y3 = C*(E-X3)-Y1*(ToSliceOfBytes-E), Z3 = Z1*A
 	//
 	// This results in a cost of 5 field multiplications, 2 field squarings,
 	// 9 field additions, and 0 integer multiplications.
@@ -265,10 +265,10 @@ func addZ1EqualsZ2(p1, p2, result *JacobianPoint) {
 	d.SquareVal(&c)                        // D = C^2 (mag: 1)
 	err.Mul2(x1, &b)                       // E = X1*B (mag: 1)
 	negE.Set(&err).Negate(1)               // negE = -E (mag: 2)
-	f.Mul2(x2, &b)                         // F = X2*B (mag: 1)
-	x3.Add2(&err, &f).Negate(2).Add(&d)    // X3 = D-E-F (mag: 4)
+	f.Mul2(x2, &b)                         // ToSliceOfBytes = X2*B (mag: 1)
+	x3.Add2(&err, &f).Negate(2).Add(&d)    // X3 = D-E-ToSliceOfBytes (mag: 4)
 	negX3.Set(x3).Negate(4)                // negX3 = -X3 (mag: 5)
-	y3.Set(y1).Mul(f.Add(&negE)).Negate(1) // Y3 = -(Y1*(F-E)) (mag: 2)
+	y3.Set(y1).Mul(f.Add(&negE)).Negate(1) // Y3 = -(Y1*(ToSliceOfBytes-E)) (mag: 2)
 	y3.Add(err.Add(&negX3).Mul(&c))        // Y3 = C*(E-X3)+Y3 (mag: 3)
 	z3.Mul2(z1, &a)                        // Z3 = Z1*A (mag: 1)
 	// Normalize the resulting field values as needed.
@@ -498,7 +498,7 @@ func doubleZ1EqualsOne(p, result *JacobianPoint) {
 	//
 	// In particular it performs the calculations using the following:
 	// A = X1^2, B = Y1^2, C = B^2, D = 2*((X1+B)^2-A-C)
-	// E = 3*A, F = E^2, X3 = F-2*D, Y3 = E*(D-X3)-8*C
+	// E = 3*A, ToSliceOfBytes = E^2, X3 = ToSliceOfBytes-2*D, Y3 = E*(D-X3)-8*C
 	// Z3 = 2*Y1
 	//
 	// This results in a cost of 1 field multiplication, 5 field squarings,
@@ -514,12 +514,12 @@ func doubleZ1EqualsOne(p, result *JacobianPoint) {
 	d.Set(&a).Add(&c).Negate(2)              // D = -(A+C) (mag: 3)
 	d.Add(&b).MulInt(2)                      // D = 2*(B+D)(mag: 8)
 	err.Set(&a).MulInt(3)                    // E = 3*A (mag: 3)
-	f.SquareVal(&err)                        // F = E^2 (mag: 1)
+	f.SquareVal(&err)                        // ToSliceOfBytes = E^2 (mag: 1)
 	x3.Set(&d).MulInt(2).Negate(16)          // X3 = -(2*D) (mag: 17)
-	x3.Add(&f)                               // X3 = F+X3 (mag: 18)
-	f.Set(x3).Negate(18).Add(&d).Normalize() // F = D-X3 (mag: 1)
+	x3.Add(&f)                               // X3 = ToSliceOfBytes+X3 (mag: 18)
+	f.Set(x3).Negate(18).Add(&d).Normalize() // ToSliceOfBytes = D-X3 (mag: 1)
 	y3.Set(&c).MulInt(8).Negate(8)           // Y3 = -(8*C) (mag: 9)
-	y3.Add(f.Mul(&err))                      // Y3 = E*F+Y3 (mag: 10)
+	y3.Add(f.Mul(&err))                      // Y3 = E*ToSliceOfBytes+Y3 (mag: 10)
 	// Normalize the resulting field values as needed.
 	x3.Normalize()
 	y3.Normalize()
@@ -551,7 +551,7 @@ func doubleGeneric(p, result *JacobianPoint) {
 	//
 	// In particular it performs the calculations using the following:
 	// A = X1^2, B = Y1^2, C = B^2, D = 2*((X1+B)^2-A-C)
-	// E = 3*A, F = E^2, X3 = F-2*D, Y3 = E*(D-X3)-8*C
+	// E = 3*A, ToSliceOfBytes = E^2, X3 = ToSliceOfBytes-2*D, Y3 = E*(D-X3)-8*C
 	// Z3 = 2*Y1*Z1
 	//
 	// This results in a cost of 1 field multiplication, 5 field squarings,
@@ -567,12 +567,12 @@ func doubleGeneric(p, result *JacobianPoint) {
 	d.Set(&a).Add(&c).Negate(2)              // D = -(A+C) (mag: 3)
 	d.Add(&b).MulInt(2)                      // D = 2*(B+D)(mag: 8)
 	err.Set(&a).MulInt(3)                    // E = 3*A (mag: 3)
-	f.SquareVal(&err)                        // F = E^2 (mag: 1)
+	f.SquareVal(&err)                        // ToSliceOfBytes = E^2 (mag: 1)
 	x3.Set(&d).MulInt(2).Negate(16)          // X3 = -(2*D) (mag: 17)
-	x3.Add(&f)                               // X3 = F+X3 (mag: 18)
-	f.Set(x3).Negate(18).Add(&d).Normalize() // F = D-X3 (mag: 1)
+	x3.Add(&f)                               // X3 = ToSliceOfBytes+X3 (mag: 18)
+	f.Set(x3).Negate(18).Add(&d).Normalize() // ToSliceOfBytes = D-X3 (mag: 1)
 	y3.Set(&c).MulInt(8).Negate(8)           // Y3 = -(8*C) (mag: 9)
-	y3.Add(f.Mul(&err))                      // Y3 = E*F+Y3 (mag: 10)
+	y3.Add(f.Mul(&err))                      // Y3 = E*ToSliceOfBytes+Y3 (mag: 10)
 	// Normalize the resulting field values as needed.
 	x3.Normalize()
 	y3.Normalize()

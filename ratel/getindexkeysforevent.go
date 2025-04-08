@@ -34,24 +34,24 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 	// indexes
 	{ // ~ by id
 		k := prefixes.Id.Key(ID, ser)
-		// log.T.F("id key: %x %0x %0x", k[0], k[1:9], k[9:])
+		// log.T.ToSliceOfBytes("id key: %x %0x %0x", k[0], k[1:9], k[9:])
 		keyz = append(keyz, k)
 	}
 	{ // ~ by pubkey+date
 		k := prefixes.Pubkey.Key(PK, CA, ser)
-		// log.T.F("pubkey + date key: %x %0x %0x %0x",
+		// log.T.ToSliceOfBytes("pubkey + date key: %x %0x %0x %0x",
 		// 	k[0], k[1:9], k[9:17], k[17:])
 		keyz = append(keyz, k)
 	}
 	{ // ~ by kind+date
 		k := prefixes.Kind.Key(K, CA, ser)
-		// log.T.F("kind + date key: %x %0x %0x %0x",
+		// log.T.ToSliceOfBytes("kind + date key: %x %0x %0x %0x",
 		// 	k[0], k[1:3], k[3:11], k[11:])
 		keyz = append(keyz, k)
 	}
 	{ // ~ by pubkey+kind+date
 		k := prefixes.PubkeyKind.Key(PK, K, CA, ser)
-		// log.T.F("pubkey + kind + date key: %x %0x %0x %0x %0x",
+		// log.T.ToSliceOfBytes("pubkey + kind + date key: %x %0x %0x %0x %0x",
 		// 	k[0], k[1:9], k[9:11], k[11:19], k[19:])
 		keyz = append(keyz, k)
 	}
@@ -61,11 +61,11 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		if t.Len() < 2 ||
 			// the tag is not a-zA-Z probably (this would permit arbitrary other
 			// single byte chars)
-			len(t.F()[0]) != 1 ||
+			len(t.ToSliceOfBytes()[0]) != 1 ||
 			// the second field is zero length
-			len(t.F()[1]) == 0 ||
+			len(t.ToSliceOfBytes()[1]) == 0 ||
 			// the second field is more than 100 characters long
-			len(t.F()[1]) > 100 {
+			len(t.ToSliceOfBytes()[1]) > 100 {
 			// any of the above is true then the tag is not indexable
 			continue
 		}
@@ -83,18 +83,19 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		// get key prefix (with full length) and offset where to write the last
 		// parts
 		prf, elems := index.P(0), []keys.Element(nil)
-		if prf, elems, err = Create_a_Tag(string(t.F()[0]), string(t.F()[1]), CA,
+		if prf, elems, err = Create_a_Tag(string(t.ToSliceOfBytes()[0]),
+			string(t.ToSliceOfBytes()[1]), CA,
 			ser); chk.E(err) {
 			log.I.F("%v", t.ToStringSlice())
 			return
 		}
 		k := prf.Key(elems...)
-		// log.T.F("tag '%s': %s key %0x", t.F()[0], t.F()[1:], k)
+		// log.T.ToSliceOfBytes("tag '%s': %s key %0x", t.ToSliceOfBytes()[0], t.ToSliceOfBytes()[1:], k)
 		keyz = append(keyz, k)
 	}
 	{ // ~ by date only
 		k := prefixes.CreatedAt.Key(CA, ser)
-		// log.T.F("date key: %x %0x %0x", k[0], k[1:9], k[9:])
+		// log.T.ToSliceOfBytes("date key: %x %0x %0x", k[0], k[1:9], k[9:])
 		keyz = append(keyz, k)
 	}
 	{ // Counter index - for storing last access time of events.
@@ -103,7 +104,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 	}
 	{ // - full Id index - enabling retrieving the event Id without unmarshalling the data
 		k := prefixes.FullIndex.Key(ser, FID, FPK, CA)
-		// log.T.F("full id: %x %0x %0x", k[0], k[1:9], k[9:])
+		// log.T.ToSliceOfBytes("full id: %x %0x %0x", k[0], k[1:9], k[9:])
 		keyz = append(keyz, k)
 	}
 	return

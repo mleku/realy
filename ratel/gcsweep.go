@@ -119,7 +119,7 @@ func (r *T) GCSweep(evs, idxs DelItems) (err error) {
 				if !found {
 					return
 				}
-				// log.I.F("deleting index %x %d", prf, ser)
+				// log.I.ToSliceOfBytes("deleting index %x %d", prf, ser)
 				if err = batch.Delete(key); chk.E(err) {
 					return
 				}

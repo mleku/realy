@@ -46,7 +46,7 @@ func PrepareQueries(f *filter.T) (
 	// first if there is IDs, just search for them, this overrides all other filters
 	case f.IDs.Len() > 0:
 		qs = make([]query, f.IDs.Len())
-		for i, idB := range f.IDs.F() {
+		for i, idB := range f.IDs.ToSliceOfBytes() {
 			ih := id.New(eventid.NewWith(idB))
 			if ih == nil {
 				log.E.F("failed to decode event Id: %s", idB)
@@ -54,7 +54,7 @@ func PrepareQueries(f *filter.T) (
 				continue
 			}
 			prf := prefixes.Id.Key(ih)
-			// log.T.F("id prefix to search on %0x from key %0x", prf, ih.Val)
+			// log.T.ToSliceOfBytes("id prefix to search on %0x from key %0x", prf, ih.Val)
 			qs[i] = query{
 				index:        i,
 				queryFilter:  f,
@@ -68,14 +68,14 @@ func PrepareQueries(f *filter.T) (
 		// if there is no kinds, we just make the queries based on the author pub keys
 		if f.Kinds.Len() == 0 {
 			qs = make([]query, f.Authors.Len())
-			for i, pubkeyHex := range f.Authors.F() {
+			for i, pubkeyHex := range f.Authors.ToSliceOfBytes() {
 				var pk *pubkey.T
 				if pk, err = pubkey.New(pubkeyHex); chk.E(err) {
 					// bogus filter, continue anyway
 					continue
 				}
 				sp := prefixes.Pubkey.Key(pk)
-				// log.I.F("search only for authors %0x from pub key %0x", sp, pk.Val)
+				// log.I.ToSliceOfBytes("search only for authors %0x from pub key %0x", sp, pk.Val)
 				qs[i] = query{
 					index:        i,
 					queryFilter:  f,
@@ -88,7 +88,7 @@ func PrepareQueries(f *filter.T) (
 			qs = make([]query, f.Authors.Len()*f.Kinds.Len())
 			i := 0
 		authors:
-			for _, pubkeyHex := range f.Authors.F() {
+			for _, pubkeyHex := range f.Authors.ToSliceOfBytes() {
 				for _, kind := range f.Kinds.K {
 					var pk *pubkey.T
 					if pk, err = pubkey.New(pubkeyHex); chk.E(err) {
@@ -97,7 +97,7 @@ func PrepareQueries(f *filter.T) (
 					}
 					ki := kinder.New(kind.K)
 					sp := prefixes.PubkeyKind.Key(pk, ki)
-					// log.T.F("search for authors from pub key %0x and kind %0x", pk.Val, ki.Val)
+					// log.T.ToSliceOfBytes("search for authors from pub key %0x and kind %0x", pk.Val, ki.Val)
 					qs[i] = query{index: i, queryFilter: f, searchPrefix: sp}
 					i++
 				}
@@ -124,15 +124,15 @@ func PrepareQueries(f *filter.T) (
 		i := 0
 		// log.T.S(f.Tags.Value())
 		for _, values := range f.Tags.Value() {
-			// log.T.S(values.F())
-			for _, value := range values.F()[1:] {
+			// log.T.S(values.ToSliceOfBytes())
+			for _, value := range values.ToSliceOfBytes()[1:] {
 				// get key prefix (with full length) and offset where to write the last parts
 				var prf []byte
 				if prf, err = GetTagKeyPrefix(string(value)); chk.E(err) {
 					continue
 				}
 				// remove the last part to get just the prefix we want here
-				// log.T.F("search tags %0x", prf)
+				// log.T.ToSliceOfBytes("search tags %0x", prf)
 				qs[i] = query{index: i, queryFilter: f, searchPrefix: prf}
 				i++
 			}
@@ -171,7 +171,7 @@ func PrepareQueries(f *filter.T) (
 			since = fs
 		}
 	}
-	// log.I.F("since %d", since)
+	// log.I.ToSliceOfBytes("since %d", since)
 
 	var until uint64 = math.MaxInt64
 	if f.Until != nil {
@@ -179,7 +179,7 @@ func PrepareQueries(f *filter.T) (
 			until = fu + 1
 		}
 	}
-	// log.I.F("until %d", until)
+	// log.I.ToSliceOfBytes("until %d", until)
 	for i, q := range qs {
 		qs[i].start = binary.BigEndian.AppendUint64(q.searchPrefix, uint64(until))
 	}

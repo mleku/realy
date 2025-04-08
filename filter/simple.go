@@ -138,7 +138,7 @@ func (f *S) Marshal(dst []byte) (b []byte) {
 			first = true
 		}
 		dst = text.JSONKey(dst, Authors)
-		dst = text.MarshalHexArray(dst, f.Authors.ToByteSlice())
+		dst = text.MarshalHexArray(dst, f.Authors.ToSliceOfBytes())
 	}
 	if f.Tags.Len() > 0 {
 		// tags are stored as tags with the initial element the "#s" and the rest the
@@ -155,13 +155,13 @@ func (f *S) Marshal(dst []byte) (b []byte) {
 				// if there is no values, skip; the "key" field must be 2 characters long,
 				continue
 			}
-			tKey := tg.F()[0]
+			tKey := tg.ToSliceOfBytes()[0]
 			if tKey[0] != '#' &&
 				(tKey[1] < 's' && tKey[1] > 'z' || tKey[1] < 'A' && tKey[1] > 'Z') {
 				// first "key" field must begin with '#' and second be alpha
 				continue
 			}
-			values := tg.F()[1:]
+			values := tg.ToSliceOfBytes()[1:]
 			if len(values) == 0 {
 				continue
 			}
@@ -206,7 +206,7 @@ func (f *S) Unmarshal(b []byte) (r []byte, err error) {
 	var key []byte
 	var state int
 	for ; len(r) >= 0; r = r[1:] {
-		// log.I.F("%c", rem[0])
+		// log.I.ToSliceOfBytes("%c", rem[0])
 		switch state {
 		case beforeOpen:
 			if r[0] == '{' {
@@ -316,15 +316,15 @@ invalid:
 // Matches checks if a filter.S matches an event.
 func (f *S) Matches(ev *event.T) bool {
 	if ev == nil {
-		// log.T.F("nil event")
+		// log.T.ToSliceOfBytes("nil event")
 		return false
 	}
 	if f.Kinds.Len() > 0 && !f.Kinds.Contains(ev.Kind) {
-		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), s.ToObject().String())
+		// log.T.ToSliceOfBytes("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), s.ToObject().String())
 		return false
 	}
 	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.Pubkey) {
-		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), s.ToObject().String())
+		// log.T.ToSliceOfBytes("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), s.ToObject().String())
 		return false
 	}
 	if f.Tags.Len() > 0 && !ev.Tags.Intersects(f.Tags) {

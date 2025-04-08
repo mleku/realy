@@ -69,7 +69,7 @@ func (ws *Socket) Write(p []byte) (n int, err error) {
 	if err != nil {
 		n = len(p)
 		if strings.Contains(err.Error(), "close sent") {
-			// log.I.F("%s", err.Error())
+			// log.I.ToSliceOfBytes("%s", err.Error())
 			ws.Close()
 			err = nil
 			return

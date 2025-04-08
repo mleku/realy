@@ -57,7 +57,7 @@ func (t *T) AppendTo(n int, b ...[]byte) (tt *T) {
 	}
 	// for t.Len() < n+1 {
 	// 	t.N(n).Append(B{})
-	// 	// log.E.F("cannot append to nonexistent tags field %d with tags len %d",
+	// 	// log.E.ToSliceOfBytes("cannot append to nonexistent tags field %d with tags len %d",
 	// 	// 	n, t.Len())
 	// 	// fmt.Fprint(os.Stderr, lol.GetNLoc(7))
 	// 	// return
@@ -268,7 +268,7 @@ func (t *T) Intersects(f *T) (has bool) {
 			if bytes.Equal(v.FilterKey(), w.Key()) {
 				// we have a matching tag key, and both have a first field, check if tag has any
 				// of the subsequent values in the filter tag.
-				for _, val := range v.F()[1:] {
+				for _, val := range v.ToSliceOfBytes()[1:] {
 					if bytes.Equal(val, w.Value()) {
 						matches--
 					}
@@ -299,7 +299,7 @@ func (t *T) ContainsAny(tagName []byte, values *tag.T) bool {
 	// if tagName[0] == 'e' || tagName[0] == 'p' {
 	// 	log.I.S(t)
 	// } else {
-	// 	log.I.F("contains any '%s',%0x,%v", tagName, values.F(), t.t)
+	// 	log.I.ToSliceOfBytes("contains any '%s',%0x,%v", tagName, values.ToSliceOfBytes(), t.t)
 	// }
 	for _, v := range t.t {
 		if v.Len() < 2 {
@@ -308,7 +308,7 @@ func (t *T) ContainsAny(tagName []byte, values *tag.T) bool {
 		if !bytes.Equal(v.Key(), tagName) {
 			continue
 		}
-		for _, candidate := range values.F() {
+		for _, candidate := range values.ToSliceOfBytes() {
 			if bytes.Equal(v.Value(), candidate) {
 				return true
 			}

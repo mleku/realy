@@ -24,6 +24,7 @@ const (
 	MarkerMention = "mention"
 )
 
+// BS is an abstract data type that can process strings and byte slices as byte slices.
 type BS[Z []byte | string] []byte
 
 // T is a list of strings with a literal ordering.
@@ -33,6 +34,7 @@ type T struct {
 	field []BS[[]byte]
 }
 
+// S returns a field of a tag.T as a string.
 func (t *T) S(i int) (s string) {
 	if t == nil {
 		return
@@ -43,6 +45,7 @@ func (t *T) S(i int) (s string) {
 	return string(t.field[i])
 }
 
+// B returns a field of a tag.T as a byte slice.
 func (t *T) B(i int) (b []byte) {
 	if t == nil {
 		return
@@ -53,28 +56,7 @@ func (t *T) B(i int) (b []byte) {
 	return t.field[i]
 }
 
-func (t *T) BS() (bs [][]byte) {
-	if t == nil {
-		return
-	}
-	bs = make([][]byte, 0, t.Len())
-	for _, b := range t.field {
-		bs = append(bs, b)
-	}
-	return
-}
-
-func (t *T) F() (b [][]byte) {
-	if t == nil {
-		return [][]byte{}
-	}
-	b = make([][]byte, t.Len())
-	for i := range t.field {
-		b[i] = t.B(i)
-	}
-	return
-}
-
+// Len returns the number of elements in a tag.T.
 func (t *T) Len() int {
 	if t == nil {
 		return 0
@@ -82,6 +64,8 @@ func (t *T) Len() int {
 	return len(t.field)
 }
 
+// Less returns whether one field of a tag.T is lexicographically less than another (smaller).
+// This uses bytes.Compare, which sorts strings and byte slices as though they are numbers.
 func (t *T) Less(i, j int) bool {
 	var cursor int
 	for len(t.field[i]) < cursor-1 && len(t.field[j]) < cursor-1 {
@@ -93,10 +77,13 @@ func (t *T) Less(i, j int) bool {
 	return false
 }
 
+// Swap flips the position of two fields of a tag.T with each other.
 func (t *T) Swap(i, j int) { t.field[i], t.field[j] = t.field[j], t.field[i] }
 
+// NewWithCap creates a new empty tag.T with a pre-allocated capacity for some number of fields.
 func NewWithCap(c int) *T { return &T{make([]BS[[]byte], 0, c)} }
 
+// New creates a new tag.T from a variadic parameter that can be either string or byte slice.
 func New[V string | []byte](fields ...V) (t *T) {
 	t = &T{field: make([]BS[[]byte], len(fields))}
 	for i, field := range fields {
@@ -105,6 +92,7 @@ func New[V string | []byte](fields ...V) (t *T) {
 	return
 }
 
+// FromBytesSlice creates a tag.T from a slice of slice of bytes.
 func FromBytesSlice(fields ...[]byte) (t *T) {
 	t = &T{field: make([]BS[[]byte], len(fields))}
 	for i, field := range fields {
@@ -125,10 +113,11 @@ func (t *T) Clone() (c *T) {
 	return
 }
 
+// Append a slice of slice of bytes to a tag.T.
 func (t *T) Append(b ...[]byte) (tt *T) {
 	if t == nil {
 		// we are propagating back this to tt if t was nil, else it appends
-		// t = &T{make([]BS[B], 0, len(t.field))}
+		// t = &T{make([]ToSliceOfBytes[B], 0, len(t.field))}
 		t = &T{}
 	}
 	for _, bb := range b {
@@ -137,17 +126,28 @@ func (t *T) Append(b ...[]byte) (tt *T) {
 	return t
 }
 
-func (t *T) Cap() int                { return cap(t.field) }
-func (t *T) Clear()                  { t.field = t.field[:0] }
+// Cap returns the capacity of a tag.T (how much elements it can hold without a re-allocation).
+func (t *T) Cap() int { return cap(t.field) }
+
+// Clear sets the length of the tag.T to zero so new elements can be appended.
+func (t *T) Clear() { t.field = t.field[:0] }
+
+// Slice cuts out a given start and end (exclusive) segment of the tag.T.
 func (t *T) Slice(start, end int) *T { return &T{t.field[start:end]} }
 
-func (t *T) ToByteSlice() (b [][]byte) {
+// ToSliceOfBytes renders a tag.T as a slice of slice of bytes.
+func (t *T) ToSliceOfBytes() (b [][]byte) {
+	if t == nil {
+		return [][]byte{}
+	}
+	b = make([][]byte, t.Len())
 	for i := range t.field {
-		b = append(b, t.field[i])
+		b[i] = t.B(i)
 	}
 	return
 }
 
+// ToStringSlice converts a tag.T to a slice of strings.
 func (t *T) ToStringSlice() (b []string) {
 	b = make([]string, 0, len(t.field))
 	for i := range t.field {
@@ -226,6 +226,7 @@ func (t *T) Relay() (s []byte) {
 	return
 }
 
+// Marshal encodes a tag.T as standard minified JSON array of strings.
 func (t *T) Marshal(dst []byte) (b []byte) {
 	dst = append(dst, '[')
 	for i, s := range t.field {
@@ -238,10 +239,11 @@ func (t *T) Marshal(dst []byte) (b []byte) {
 	return dst
 }
 
+// Unmarshal decodes a standard minified JSON array of strings to a tags.T.
 func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 	var inQuotes, openedBracket bool
 	var quoteStart int
-	// t.Field = []BS[B]{}
+	// t.Field = []ToSliceOfBytes[B]{}
 	for i := 0; i < len(b); i++ {
 		if !openedBracket && b[i] == '[' {
 			openedBracket = true

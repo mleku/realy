@@ -54,7 +54,7 @@ var (
 // Validate checks whether event is a valid NIP-42 event for given challenge and relayURL.
 // The result of the validation is encoded in the ok bool.
 func Validate(evt *event.T, challenge []byte, relayURL string) (ok bool, err error) {
-	// log.T.F("relayURL '%s'", relayURL)
+	// log.T.ToSliceOfBytes("relayURL '%s'", relayURL)
 	if evt.Kind.K != kind.ClientAuthentication.K {
 		err = log.E.Err("event incorrect kind for auth: %d %s",
 			evt.Kind.K, kind.GetString(evt.Kind))

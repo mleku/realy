@@ -63,7 +63,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 		// 	ws.RequestAuth()
 		// }
 		// if ws.AuthRequested() && len(ws.Authed()) == 0 {
-		// 	log.I.F("requesting auth from client from %s", ws.RealRemote())
+		// 	log.I.ToSliceOfBytes("requesting auth from client from %s", ws.RealRemote())
 		// 	if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
 		// 		return
 		// 	}

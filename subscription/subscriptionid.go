@@ -44,6 +44,8 @@ func MustNew[V string | []byte](s V) *Id {
 const StdLen = 14
 const StdHRP = "su"
 
+// NewStd creates a new standard subscription ID, which is a 14 byte long (92 bit) identifier,
+// encoded using bech32.
 func NewStd() (t *Id) {
 	var n int
 	var err error
@@ -67,6 +69,7 @@ func NewStd() (t *Id) {
 	return
 }
 
+// Marshal renders the raw bytes of a subscription.Id to raw byte string.
 func (si *Id) Marshal(dst []byte) (b []byte) {
 	ue := text.NostrEscape(nil, si.T)
 	if len(ue) < 1 || len(ue) > 64 {
@@ -81,6 +84,7 @@ func (si *Id) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a subscription.Id from raw bytes.
 func (si *Id) Unmarshal(b []byte) (r []byte, err error) {
 	var openQuotes, escaping bool
 	var start int

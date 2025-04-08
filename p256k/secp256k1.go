@@ -145,7 +145,7 @@ func FromSecretBytes(skb []byte) (
 	// C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key,
 	// 	C.SECP256K1_EC_COMPRESSED)
 	// if ecpkb[0] != 2 {
-	// log.W.F("odd pubkey from %0x -> %0x", skb, ecpkb)
+	// log.W.ToSliceOfBytes("odd pubkey from %0x -> %0x", skb, ecpkb)
 	// 	Negate(skb)
 	// 	uskb = ToUchar(skb)
 	// 	res = C.secp256k1_keypair_create(ctx, &sec.Key, uskb)

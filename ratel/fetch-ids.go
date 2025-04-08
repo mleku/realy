@@ -19,7 +19,7 @@ func (r *T) FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error) {
 	// it needs to get bigger it will be reallocated.
 	b := make([]byte, 0, 100000)
 	err = r.View(func(txn *badger.Txn) (err error) {
-		for _, v := range evIds.F() {
+		for _, v := range evIds.ToSliceOfBytes() {
 			var evId *id.T
 			if evId, err = id.NewFromBytes(v); chk.E(err) {
 				return

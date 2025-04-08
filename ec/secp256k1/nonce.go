@@ -183,7 +183,7 @@ func NonceRFC6979(secKey []byte, hash []byte, extra []byte, version []byte,
 	hasher.ResetKey(k)
 	hasher.Write(v)
 	v = hasher.Sum()
-	// Step F.
+	// Step ToSliceOfBytes.
 	//
 	// K = HMAC_K(V || 0x01 || int2octets(x) || bits2octets(h1))
 	//

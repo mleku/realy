@@ -11,7 +11,7 @@ type P byte
 func (p P) Key(element ...keys.Element) (b []byte) {
 	b = keys.Write(
 		append([]keys.Element{New(byte(p))}, element...)...)
-	// log.T.F("key %x", b)
+	// log.T.ToSliceOfBytes("key %x", b)
 	return
 }
 
