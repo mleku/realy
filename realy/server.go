@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -106,6 +105,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	if c, ok := s.relay.Storage().(store.Configurationer); ok {
 		s.ConfigurationMx.Lock()
 		if s.Configuration, err = c.GetConfiguration(); chk.E(err) {
+			s.Configuration = &store.Configuration{}
 		}
 		s.ConfigurationMx.Unlock()
 	}
@@ -125,13 +125,16 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	return s, nil
 }
 
+// ServeHTTP implements the relay's http handler.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	remote := GetRemoteFromReq(r)
-	for _, a := range s.Configuration.BlockList {
-		if strings.HasPrefix(remote, a) {
-			log.W.F("rejecting request from %s because on blocklist", remote)
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-			return
+	if s.Configuration != nil {
+		for _, a := range s.Configuration.BlockList {
+			if strings.HasPrefix(remote, a) {
+				log.W.F("rejecting request from %s because on blocklist", remote)
+				http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+				return
+			}
 		}
 	}
 	// standard nostr protocol only governs the "root" path of the relay and websockets
@@ -149,6 +152,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// s.mux.ServeHTTP(w, r)
 }
 
+// Start up the relay.
 func (s *Server) Start(host string, port int, started ...chan bool) error {
 	addr := net.JoinHostPort(host, strconv.Itoa(port))
 	log.I.F("starting relay listener at %s", addr)
@@ -173,6 +177,7 @@ func (s *Server) Start(host string, port int, started ...chan bool) error {
 	return nil
 }
 
+// Shutdown the relay.
 func (s *Server) Shutdown() {
 	log.I.Ln("shutting down relay")
 	s.Cancel()
@@ -193,8 +198,7 @@ func (s *Server) Shutdown() {
 	}
 }
 
+// Router returns the servemux that handles paths on the HTTP server of the relay.
 func (s *Server) Router() *http.ServeMux {
 	return s.mux.ServeMux
 }
-
-func fprintf(w io.Writer, format string, a ...any) { _, _ = fmt.Fprintf(w, format, a...) }

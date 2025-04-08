@@ -1858,7 +1858,7 @@ var golden = []sha256Test{
 		(1 * 1) + (0 * 2) + (1 * 4) + (0 * 8) + (1 * 16) + (0 * 32) + (0 * 64) + (0 * 128),
 		(0 * 1) + (0 * 2) + (0 * 4) + (1 * 8) + (1 * 16) + (0 * 32) + (1 * 64) + (0 * 128),
 		(0 * 1) + (1 * 2) + (0 * 4) + (1 * 8) + (0 * 16) + (1 * 32) + (0 * 64) + (0 * 128)},
-		strings.Repeat("ToSliceOfBytes", 128)},
+		strings.Repeat("F", 128)},
 	// $ echo -n "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG" | sha256sum
 	// 394394b5f0e91a21d1e932f9ed55e098c8b05f3668f77134eeee843fef1d1758
 	{[32]byte{(1 * 1) + (0 * 2) + (0 * 4) + (1 * 8) + (1 * 16) + (1 * 32) + (0 * 64) + (0 * 128),
