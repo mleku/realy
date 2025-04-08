@@ -150,7 +150,7 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 				if evt.Kind.Equal(kind.Deletion) {
 					// check all a tags present are not follow/mute lists of the owners
 					aTags := evt.Tags.GetAll(tag.New("a"))
-					for _, at := range aTags.F() {
+					for _, at := range aTags.ToSliceOfTags() {
 						a := &atag.T{}
 						var rem []byte
 						var err error
@@ -368,7 +368,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			}
 			for _, ev := range evs {
 				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.Id)
-				for _, t := range ev.Tags.F() {
+				for _, t := range ev.Tags.ToSliceOfTags() {
 					if bytes.Equal(t.Key(), []byte("p")) {
 						var p []byte
 						if p, err = hex.Dec(string(t.Value())); chk.E(err) {
@@ -394,7 +394,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 				// we want to protect the follow lists of users as well so they also cannot be
 				// deleted, only replaced.
 				r.OwnersFollowLists = append(r.OwnersFollowLists, ev.Id)
-				for _, t := range ev.Tags.F() {
+				for _, t := range ev.Tags.ToSliceOfTags() {
 					if bytes.Equal(t.Key(), []byte("p")) {
 						var p []byte
 						if p, err = hex.Dec(string(t.Value())); err != nil {
@@ -415,7 +415,7 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 			}
 			for _, ev := range evs {
 				r.OwnersMuteLists = append(r.OwnersMuteLists, ev.Id)
-				for _, t := range ev.Tags.F() {
+				for _, t := range ev.Tags.ToSliceOfTags() {
 					if bytes.Equal(t.Key(), []byte("p")) {
 						var p []byte
 						if p, err = hex.Dec(string(t.Value())); chk.E(err) {

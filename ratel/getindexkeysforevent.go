@@ -56,7 +56,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		keyz = append(keyz, k)
 	}
 	// ~ by tag value + date
-	for i, t := range ev.Tags.Value() {
+	for i, t := range ev.Tags.ToSliceOfTags() {
 		// there is no value field
 		if t.Len() < 2 ||
 			// the tag is not a-zA-Z probably (this would permit arbitrary other
@@ -71,7 +71,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		}
 		var firstIndex int
 		var tt *tag.T
-		for firstIndex, tt = range ev.Tags.Value() {
+		for firstIndex, tt = range ev.Tags.ToSliceOfTags() {
 			if tt.Len() >= 2 && bytes.Equal(tt.B(1), t.B(1)) {
 				break
 			}

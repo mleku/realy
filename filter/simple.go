@@ -146,7 +146,7 @@ func (f *S) Marshal(dst []byte) (b []byte) {
 		//
 		//     [["#p","<pubkey1>","<pubkey3"],["#t","hashtag","stuff"]]
 		//
-		for _, tg := range f.Tags.Value() {
+		for _, tg := range f.Tags.ToSliceOfTags() {
 			if tg == nil {
 				// nothing here
 				continue

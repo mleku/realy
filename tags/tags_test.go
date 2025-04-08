@@ -24,7 +24,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 				_, _ = frand.Read(b1)
 				tg = tg.Append(b1)
 			}
-			tgs.t = append(tgs.t, tg)
+			tgs.element = append(tgs.element, tg)
 		}
 		b = tgs.Marshal(b)
 		bb := make([]byte, len(b))
@@ -95,7 +95,7 @@ func BenchmarkMarshalUnmarshal(bb *testing.B) {
 					tg = tg.Append(b1)
 					// tg.Field = append(tg.Field, b1)
 				}
-				tgs.t = append(tgs.t, tg)
+				tgs.element = append(tgs.element, tg)
 			}
 			b = tgs.Marshal(b)
 			b = b[:0]
@@ -114,7 +114,7 @@ func BenchmarkMarshalUnmarshal(bb *testing.B) {
 					_, _ = frand.Read(b1)
 					tg = tg.Append(b1)
 				}
-				tgs.t = append(tgs.t, tg)
+				tgs.element = append(tgs.element, tg)
 			}
 			b = tgs.Marshal(b)
 			ta := New()
@@ -144,7 +144,7 @@ func TestT_Clone_Equal(t *testing.T) {
 				_, _ = frand.Read(b1)
 				tg = tg.Append(b1)
 			}
-			t1.t = append(t1.t, tg)
+			t1.element = append(t1.element, tg)
 		}
 		t2 := t1.Clone()
 		if !t1.Equal(t2) {
@@ -187,10 +187,10 @@ func TestTagHelpers(t *testing.T) {
 	if tags.AppendUnique(tag.New("e", "bbbbbb")).Len() != 6 {
 		t.Error("append unique failed to append when didn't exist")
 	}
-	if string(tags.AppendUnique(tag.New("e", "eeeeee")).N(4).S(1)) != "ffffff" {
+	if string(tags.AppendUnique(tag.New("e", "eeeeee")).GetTagElement(4).S(1)) != "ffffff" {
 		t.Error("append unique changed the order")
 	}
-	if string(tags.AppendUnique(tag.New("e", "eeeeee")).N(3).S(1)) != "eeeeee" {
+	if string(tags.AppendUnique(tag.New("e", "eeeeee")).GetTagElement(3).S(1)) != "eeeeee" {
 		t.Error("append unique changed the order")
 	}
 }

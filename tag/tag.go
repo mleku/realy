@@ -34,6 +34,18 @@ type T struct {
 	field []BS[[]byte]
 }
 
+// New creates a new tag.T from a variadic parameter that can be either string or byte slice.
+func New[V string | []byte](fields ...V) (t *T) {
+	t = &T{field: make([]BS[[]byte], len(fields))}
+	for i, field := range fields {
+		t.field[i] = []byte(field)
+	}
+	return
+}
+
+// NewWithCap creates a new empty tag.T with a pre-allocated capacity for some number of fields.
+func NewWithCap(c int) *T { return &T{make([]BS[[]byte], 0, c)} }
+
 // S returns a field of a tag.T as a string.
 func (t *T) S(i int) (s string) {
 	if t == nil {
@@ -79,18 +91,6 @@ func (t *T) Less(i, j int) bool {
 
 // Swap flips the position of two fields of a tag.T with each other.
 func (t *T) Swap(i, j int) { t.field[i], t.field[j] = t.field[j], t.field[i] }
-
-// NewWithCap creates a new empty tag.T with a pre-allocated capacity for some number of fields.
-func NewWithCap(c int) *T { return &T{make([]BS[[]byte], 0, c)} }
-
-// New creates a new tag.T from a variadic parameter that can be either string or byte slice.
-func New[V string | []byte](fields ...V) (t *T) {
-	t = &T{field: make([]BS[[]byte], len(fields))}
-	for i, field := range fields {
-		t.field[i] = []byte(field)
-	}
-	return
-}
 
 // FromBytesSlice creates a tag.T from a slice of slice of bytes.
 func FromBytesSlice(fields ...[]byte) (t *T) {

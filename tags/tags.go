@@ -14,57 +14,55 @@ import (
 	"realy.lol/tag"
 )
 
-// T is a list of T - which are lists of string elements with ordering and no
-// uniqueness constraint (not a set).
+// T is a list of tag.T - which are lists of string elements with ordering and no uniqueness
+// constraint (not a set).
 type T struct {
-	t []*tag.T
+	element []*tag.T
 }
 
+// New creates a new tags.T with a provided list of tag.T. These can be created with tag.New for
+// the elements or other methods like tag.FromBytesSlice.
 func New(fields ...*tag.T) (t *T) {
 	// t = &T{T: make([]*tag.T, 0, len(fields))}
 	t = &T{}
 	for _, field := range fields {
-		t.t = append(t.t, field)
+		t.element = append(t.element, field)
 	}
 	return
 }
 
+// NewWithCap creates a tags.T with space pre-allocated for a number of tag.T elements.
 func NewWithCap(c int) (t *T) {
-	return &T{t: make([]*tag.T, 0, c)}
+	return &T{element: make([]*tag.T, 0, c)}
 }
 
-func (t *T) F() (tt []*tag.T) {
+// ToSliceOfTags converts a tags.T to a slice of tag.T.
+func (t *T) ToSliceOfTags() (tt []*tag.T) {
 	if t == nil {
 		return []*tag.T{tag.New([]byte{})}
 	}
-	return t.t
+	return t.element
 }
 
-func (t *T) N(i int) (tt *tag.T) {
+// GetTagElement returns a specific ordered element of a tags.T.
+func (t *T) GetTagElement(i int) (tt *tag.T) {
 	if t == nil {
 		return tag.NewWithCap(0)
 	}
-	if len(t.t) <= i {
+	if len(t.element) <= i {
 		return tag.New([]byte{})
 	}
-	return t.t[i]
+	return t.element[i]
 }
 
+// AppendTo adds a new tag, at a given position, from a slice of slice of bytes.
 func (t *T) AppendTo(n int, b ...[]byte) (tt *T) {
 	if t == nil {
 		log.E.S(t, b)
 		return
 	}
-	// for t.Len() < n+1 {
-	// 	t.N(n).Append(B{})
-	// 	// log.E.ToSliceOfBytes("cannot append to nonexistent tags field %d with tags len %d",
-	// 	// 	n, t.Len())
-	// 	// fmt.Fprint(os.Stderr, lol.GetNLoc(7))
-	// 	// return
-	// }
 	for _, bb := range b {
-		t.N(n).Append(bb)
-		// t.T[n].Field = append(t.T[n].Field, bb)
+		t.GetTagElement(n).Append(bb)
 	}
 	return t
 }
@@ -72,10 +70,11 @@ func (t *T) AppendTo(n int, b ...[]byte) (tt *T) {
 // AppendSlice just appends a slice of slices of bytes into the tags. Like AppendTo
 // but without the position specifier. todo: this is a terribly constructed API innit.
 func (t *T) AppendSlice(b ...[]byte) (tt *T) {
-	t.t = append(t.t, tag.New(b...))
+	t.element = append(t.element, tag.New(b...))
 	return
 }
 
+// AddCap adds extra capacity to a tags.T.
 func (t *T) AddCap(i, c int) (tt *T) {
 	if t == nil {
 		log.E.F("cannot add capacity to index %d of nil tags", i)
@@ -83,32 +82,27 @@ func (t *T) AddCap(i, c int) (tt *T) {
 		return t
 	}
 
-	n := i - len(t.t) + 1
+	n := i - len(t.element) + 1
 	for range n {
-		t.t = append(t.t, &tag.T{})
+		t.element = append(t.element, &tag.T{})
 	}
 	return t
 }
 
-func (t *T) Value() (tt []*tag.T) {
-	if t == nil {
-		return []*tag.T{}
-	}
-	return t.t
-}
-
-func (t *T) ToStringSlice() (b [][]string) {
-	b = make([][]string, 0, len(t.t))
-	for i := range t.t {
-		b = append(b, t.t[i].ToStringSlice())
+// ToStringsSlice converts a tags.T to a slice of slice of strings.
+func (t *T) ToStringsSlice() (b [][]string) {
+	b = make([][]string, 0, len(t.element))
+	for i := range t.element {
+		b = append(b, t.element[i].ToStringSlice())
 	}
 	return
 }
 
+// Clone makes a copy of all of the elements of a tags.T into a new tags.T.
 func (t *T) Clone() (c *T) {
-	c = &T{t: make([]*tag.T, len(t.t))}
-	for i, field := range t.t {
-		c.t[i] = field.Clone()
+	c = &T{element: make([]*tag.T, len(t.element))}
+	for i, field := range t.element {
+		c.element[i] = field.Clone()
 	}
 	return
 }
@@ -119,8 +113,8 @@ func (t *T) Equal(ta *T) bool {
 	sort.Sort(t1)
 	t2 := ta.Clone()
 	sort.Sort(t2)
-	for i := range t.t {
-		if !t1.t[i].Equal(t2.t[i]) {
+	for i := range t.element {
+		if !t1.element[i].Equal(t2.element[i]) {
 			return false
 		}
 	}
@@ -129,7 +123,7 @@ func (t *T) Equal(ta *T) bool {
 
 // Less returns which tag's first element is first lexicographically
 func (t *T) Less(i, j int) (less bool) {
-	a, b := t.t[i], t.t[j]
+	a, b := t.element[i], t.element[j]
 	if a.Len() < 1 && b.Len() < 1 {
 		return false // they are equal
 	}
@@ -143,22 +137,22 @@ func (t *T) Less(i, j int) (less bool) {
 }
 
 func (t *T) Swap(i, j int) {
-	t.t[i], t.t[j] = t.t[j], t.t[i]
+	t.element[i], t.element[j] = t.element[j], t.element[i]
 }
 
 func (t *T) Len() (l int) {
 	if t == nil {
 		return
 	}
-	if t.t != nil {
-		return len(t.t)
+	if t.element != nil {
+		return len(t.element)
 	}
 	return
 }
 
 // GetFirst gets the first tag in tags that matches the prefix, see [T.StartsWith]
 func (t *T) GetFirst(tagPrefix *tag.T) *tag.T {
-	for _, v := range t.t {
+	for _, v := range t.element {
 		if v.StartsWith(tagPrefix) {
 			return v
 		}
@@ -168,8 +162,8 @@ func (t *T) GetFirst(tagPrefix *tag.T) *tag.T {
 
 // GetLast gets the last tag in tags that matches the prefix, see [T.StartsWith]
 func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
-	for i := len(t.t) - 1; i >= 0; i-- {
-		v := t.t[i]
+	for i := len(t.element) - 1; i >= 0; i-- {
+		v := t.element[i]
 		if v.StartsWith(tagPrefix) {
 			return v
 		}
@@ -180,10 +174,10 @@ func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
 // GetAll gets all the tags that match the prefix, see [T.StartsWith]
 func (t *T) GetAll(tagPrefix *tag.T) *T {
 	// log.I.S("GetAll", tagPrefix, t)
-	result := &T{t: make([]*tag.T, 0, len(t.t))}
-	for _, v := range t.t {
+	result := &T{element: make([]*tag.T, 0, len(t.element))}
+	for _, v := range t.element {
 		if v.StartsWith(tagPrefix) {
-			result.t = append(result.t, v)
+			result.element = append(result.element, v)
 		}
 	}
 	return result
@@ -191,10 +185,10 @@ func (t *T) GetAll(tagPrefix *tag.T) *T {
 
 // FilterOut removes all tags that match the prefix, see [T.StartsWith]
 func (t *T) FilterOut(tagPrefix [][]byte) *T {
-	filtered := &T{t: make([]*tag.T, 0, len(t.t))}
-	for _, v := range t.t {
+	filtered := &T{element: make([]*tag.T, 0, len(t.element))}
+	for _, v := range t.element {
 		if !v.StartsWith(tag.New(tagPrefix...)) {
-			filtered.t = append(filtered.t, v)
+			filtered.element = append(filtered.element, v)
 		}
 	}
 	return filtered
@@ -209,7 +203,7 @@ func (t *T) AppendUnique(tag *tag.T) *T {
 		n = 2
 	}
 	if t.GetFirst(tag.Slice(0, n)) == nil {
-		return &T{append(t.t, tag)}
+		return &T{append(t.element, tag)}
 	}
 	return t
 }
@@ -219,8 +213,8 @@ func (t *T) Append(ttt ...*T) (tt *T) {
 		t = NewWithCap(len(ttt))
 	}
 	for _, tf := range ttt {
-		for _, v := range tf.t {
-			t.t = append(t.t, v)
+		for _, v := range tf.element {
+			t.element = append(t.element, v)
 		}
 	}
 	return t
@@ -230,12 +224,12 @@ func (t *T) AppendTags(ttt ...*tag.T) (tt *T) {
 	if t == nil {
 		t = NewWithCap(len(ttt))
 	}
-	t.t = append(t.t, ttt...)
+	t.element = append(t.element, ttt...)
 	return t
 }
 
-// Scan parses a string or raw bytes that should be a string and embeds the values into the tags variable from which
-// this method is invoked.
+// Scan parses a string or raw bytes that should be a string and embeds the values into the tags
+// variable from which this method is invoked.
 //
 // todo: wut is this?
 func (t *T) Scan(src any) (err error) {
@@ -262,9 +256,9 @@ func (t *T) Intersects(f *T) (has bool) {
 		// that's not the same as an intersection).
 		return
 	}
-	matches := len(f.t)
-	for _, v := range f.t {
-		for _, w := range t.t {
+	matches := len(f.element)
+	for _, v := range f.element {
+		for _, w := range t.element {
 			if bytes.Equal(v.FilterKey(), w.Key()) {
 				// we have a matching tag key, and both have a first field, check if tag has any
 				// of the subsequent values in the filter tag.
@@ -282,7 +276,7 @@ func (t *T) Intersects(f *T) (has bool) {
 // ContainsProtectedMarker returns true if an event may only be published to the relay by a user
 // authed with the same pubkey as in the event. This is for implementing relayinfo.NIP70.
 func (t *T) ContainsProtectedMarker() (does bool) {
-	for _, v := range t.t {
+	for _, v := range t.element {
 		if bytes.Equal(v.Key(), []byte("-")) {
 			return true
 		}
@@ -296,12 +290,7 @@ func (t *T) ContainsAny(tagName []byte, values *tag.T) bool {
 	if len(tagName) < 1 {
 		return false
 	}
-	// if tagName[0] == 'e' || tagName[0] == 'p' {
-	// 	log.I.S(t)
-	// } else {
-	// 	log.I.ToSliceOfBytes("contains any '%s',%0x,%v", tagName, values.ToSliceOfBytes(), t.t)
-	// }
-	for _, v := range t.t {
+	for _, v := range t.element {
 		if v.Len() < 2 {
 			continue
 		}
@@ -318,7 +307,7 @@ func (t *T) ContainsAny(tagName []byte, values *tag.T) bool {
 }
 
 func (t *T) Contains(filterTags *T) (has bool) {
-	for _, v := range filterTags.t {
+	for _, v := range filterTags.element {
 		if t.ContainsAny(v.FilterKey(), v) {
 			return true
 		}
@@ -329,7 +318,7 @@ func (t *T) Contains(filterTags *T) (has bool) {
 // MarshalTo appends the JSON encoded byte of T as [][]string to dst. String escaping is as described in RFC8259.
 func (t *T) MarshalTo(dst []byte) []byte {
 	dst = append(dst, '[')
-	for i, tt := range t.t {
+	for i, tt := range t.element {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
@@ -339,31 +328,18 @@ func (t *T) MarshalTo(dst []byte) []byte {
 	return dst
 }
 
-// func (t *T) String() string {
-// 	buf := new(bytes.Buffer)
-// 	buf.WriteByte('[')
-// 	last := len(t.T) - 1
-// 	for i := range t.T {
-// 		_, _ = fmt.Fprint(buf, t.T[i])
-// 		if i < last {
-// 			buf.WriteByte(',')
-// 		}
-// 	}
-// 	buf.WriteByte(']')
-// 	return buf.String()
-// }
-
+// Marshal encodes a tags.T appended to a provided byte slice in JSON form.
 func (t *T) Marshal(dst []byte) (b []byte) {
 	b = dst
 	b = append(b, '[')
-	if t == nil || t.t == nil {
+	if t == nil || t.element == nil {
 		b = append(b, ']')
 		return
 	}
-	if len(t.t) == 0 {
+	if len(t.element) == 0 {
 		b = append(b, '[', ']')
 	}
-	for i, s := range t.t {
+	for i, s := range t.element {
 		if i > 0 {
 			b = append(b, ',')
 		}
@@ -373,6 +349,8 @@ func (t *T) Marshal(dst []byte) (b []byte) {
 	return
 }
 
+// Unmarshal a tags.T from a provided byte slice and return what remains after the end of the
+// array.
 func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 	r = b[:]
 	for len(r) > 0 {
@@ -398,7 +376,7 @@ func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 				if r, err = tt.Unmarshal(r); chk.E(err) {
 					return
 				}
-				t.t = append(t.t, tt)
+				t.element = append(t.element, tt)
 			case ',':
 				r = r[1:]
 				// next

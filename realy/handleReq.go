@@ -138,7 +138,7 @@ func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I)
 				Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
 				var mutePubs [][]byte
 				for _, ev := range mutes {
-					for _, t := range ev.Tags.F() {
+					for _, t := range ev.Tags.ToSliceOfTags() {
 						if bytes.Equal(t.Key(), []byte("p")) {
 							var p []byte
 							if p, err = hex.Dec(string(t.Value())); chk.E(err) {

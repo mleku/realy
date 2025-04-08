@@ -105,7 +105,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		}
 		if ev.Kind.K == kind.Deletion.K {
 			log.I.F("delete event\n%s", ev.Serialize())
-			for _, t := range ev.Tags.Value() {
+			for _, t := range ev.Tags.ToSliceOfTags() {
 				var res []*event.T
 				if t.Len() >= 2 {
 					switch {

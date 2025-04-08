@@ -111,7 +111,7 @@ func PrepareQueries(f *filter.T) (
 	case f.Tags.Len() > 0:
 		// determine the size of the queries array by inspecting all tags sizes
 		size := 0
-		for _, values := range f.Tags.Value() {
+		for _, values := range f.Tags.ToSliceOfTags() {
 			size += values.Len() - 1
 		}
 		if size == 0 {
@@ -122,9 +122,7 @@ func PrepareQueries(f *filter.T) (
 		// and any kinds mentioned as well in extra filter
 		ext = &filter.T{Kinds: f.Kinds}
 		i := 0
-		// log.T.S(f.Tags.Value())
-		for _, values := range f.Tags.Value() {
-			// log.T.S(values.ToSliceOfBytes())
+		for _, values := range f.Tags.ToSliceOfTags() {
 			for _, value := range values.ToSliceOfBytes()[1:] {
 				// get key prefix (with full length) and offset where to write the last parts
 				var prf []byte
@@ -132,7 +130,6 @@ func PrepareQueries(f *filter.T) (
 					continue
 				}
 				// remove the last part to get just the prefix we want here
-				// log.T.ToSliceOfBytes("search tags %0x", prf)
 				qs[i] = query{index: i, queryFilter: f, searchPrefix: prf}
 				i++
 			}

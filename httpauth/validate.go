@@ -76,7 +76,7 @@ func CheckAuth(r *http.Request, tolerance ...time.Duration) (valid bool,
 		var expiring bool
 		if exp.Len() == 1 {
 			ex := ints.New(0)
-			exp1 := exp.F()[0]
+			exp1 := exp.ToSliceOfTags()[0]
 			if rem, err = ex.Unmarshal(exp1.Value()); chk.E(err) {
 				return
 			}
@@ -103,7 +103,7 @@ func CheckAuth(r *http.Request, tolerance ...time.Duration) (valid bool,
 			err = errorf.E("more than one \"u\" tag found: '%s'", ut.MarshalTo(nil))
 			return
 		}
-		uts := ut.Value()
+		uts := ut.ToSliceOfTags()
 		// The u tag MUST be exactly the same as the absolute request URL (including query
 		// parameters).
 		proto := r.URL.Scheme
@@ -138,7 +138,7 @@ func CheckAuth(r *http.Request, tolerance ...time.Duration) (valid bool,
 				err = errorf.E("more than one \"method\" tag found: '%s'", mt.MarshalTo(nil))
 				return
 			}
-			mts := mt.Value()
+			mts := mt.ToSliceOfTags()
 			if strings.ToLower(string(mts[0].Value())) != strings.ToLower(r.Method) {
 				err = errorf.E("request has method %s but event has method %s",
 					string(mts[0].Value()), r.Method)

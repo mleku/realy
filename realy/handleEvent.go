@@ -100,7 +100,7 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte,
 	}
 	if env.T.Kind.K == kind.Deletion.K {
 		log.I.F("delete event\n%s", env.T.Serialize())
-		for _, t := range env.Tags.Value() {
+		for _, t := range env.Tags.ToSliceOfTags() {
 			var res []*event.T
 			if t.Len() >= 2 {
 				switch {

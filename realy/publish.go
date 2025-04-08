@@ -73,7 +73,7 @@ func (s *Server) Publish(c context.T, evt *event.T) (err error) {
 		f := filter.New()
 		f.Authors = tag.New(evt.Pubkey)
 		f.Kinds = kinds.New(evt.Kind)
-		log.I.F("filter for parameterized replaceable %v %s", f.Tags.ToStringSlice(),
+		log.I.F("filter for parameterized replaceable %v %s", f.Tags.ToStringsSlice(),
 			f.Serialize())
 		if evs, err = sto.QueryEvents(c, f); err != nil {
 			return errorf.E("failed to query before replacing: %w", err)

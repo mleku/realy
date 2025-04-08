@@ -100,7 +100,7 @@ func (ev *T) PubKeyString() (s string) { return hex.Enc(ev.Pubkey) }
 func (ev *T) SigString() (s string) { return hex.Enc(ev.Sig) }
 
 // TagStrings returns the tags as a slice of slice of strings.
-func (ev *T) TagStrings() (s [][]string) { return ev.Tags.ToStringSlice() }
+func (ev *T) TagStrings() (s [][]string) { return ev.Tags.ToStringsSlice() }
 
 // ContentString returns the content field as a string.
 func (ev *T) ContentString() (s string) { return string(ev.Content) }
@@ -124,7 +124,7 @@ func (ev *T) ToEventJ() (j *J) {
 	j.CreatedAt = unix.Time{ev.CreatedAt.Time()}
 	j.Kind = ev.KindInt32()
 	j.Content = ev.ContentString()
-	j.Tags = ev.Tags.ToStringSlice()
+	j.Tags = ev.Tags.ToStringsSlice()
 	j.Sig = ev.SigString()
 	return
 }
