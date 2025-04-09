@@ -210,7 +210,6 @@ func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 	accept = len(authedPubkey) == schnorr.PubKeyBytesLen
 	if !accept {
 		notice = "auth required but user not authed"
-		log.I.F("notice: %s", notice)
 		afterSave = func() {
 
 		}

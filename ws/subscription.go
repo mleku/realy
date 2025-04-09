@@ -14,6 +14,7 @@ import (
 	"realy.lol/subscription"
 )
 
+// Subscription is a client interface for a subscription (what REQ turns into after EOSE).
 type Subscription struct {
 	label   string
 	counter int
@@ -48,6 +49,7 @@ type Subscription struct {
 	storedwg sync.WaitGroup
 }
 
+// EventMessage is an event, with the associated relay URL attached.
 type EventMessage struct {
 	Event event.T
 	Relay string

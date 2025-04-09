@@ -17,6 +17,7 @@ import (
 	"realy.lol/context"
 )
 
+// Connection is an outbound client -> relay connection.
 type Connection struct {
 	conn              net.Conn
 	enableCompression bool
@@ -29,6 +30,7 @@ type Connection struct {
 	msgStateW         *wsflate.MessageState
 }
 
+// NewConnection creates a new Connection.
 func NewConnection(c context.T, url string, requestHeader http.Header,
 	tlsConfig *tls.Config) (*Connection, error) {
 	dialer := ws.Dialer{
@@ -106,6 +108,7 @@ func NewConnection(c context.T, url string, requestHeader http.Header,
 	}, nil
 }
 
+// WriteMessage dispatches a message through the Connection.
 func (cn *Connection) WriteMessage(c context.T, data []byte) error {
 	select {
 	case <-c.Done():
@@ -135,6 +138,7 @@ func (cn *Connection) WriteMessage(c context.T, data []byte) error {
 	return nil
 }
 
+// ReadMessage picks up the next incoming message on a Connection.
 func (cn *Connection) ReadMessage(c context.T, buf io.Writer) error {
 	for {
 		select {
@@ -177,6 +181,7 @@ func (cn *Connection) ReadMessage(c context.T, buf io.Writer) error {
 	return nil
 }
 
+// Close the Connection.
 func (cn *Connection) Close() error {
 	return cn.conn.Close()
 }

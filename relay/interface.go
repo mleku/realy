@@ -11,7 +11,7 @@ import (
 	"realy.lol/filters"
 	"realy.lol/relayinfo"
 	"realy.lol/store"
-	"realy.lol/web"
+	"realy.lol/ws"
 )
 
 // I is the main interface for implementing a nostr relay.
@@ -60,7 +60,8 @@ type ReqAcceptor interface {
 	// support for in/outbox access.
 	//
 	// In order to support the ability to respond to
-	AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.T, authedPubkey []byte) (allowed *filters.T,
+	AcceptReq(c context.T, hr *http.Request, id []byte, ff *filters.T,
+		authedPubkey []byte) (allowed *filters.T,
 		ok bool, modified bool)
 }
 
@@ -92,7 +93,7 @@ type Informationer interface {
 // WebSocketHandler is passed nostr message types unrecognized by the
 // server. The server handles "EVENT", "REQ" and "CLOSE" messages, as described in NIP-01.
 type WebSocketHandler interface {
-	HandleUnknownType(ws *web.Socket, t string, request []byte)
+	HandleUnknownType(ws *ws.Listener, t string, request []byte)
 }
 
 // ShutdownAware is called during the server shutdown.

@@ -18,10 +18,10 @@ import (
 	"realy.lol/sha256"
 	"realy.lol/store"
 	"realy.lol/tag"
-	"realy.lol/web"
+	"realy.lol/ws"
 )
 
-func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte,
+func (s *Server) handleEvent(c context.T, ws *ws.Listener, req []byte,
 	sto store.I) (msg []byte) {
 	log.T.F("handleEvent %s %s", ws.RealRemote(), req)
 	var err error
@@ -43,7 +43,6 @@ func (s *Server) handleEvent(c context.T, ws *web.Socket, req []byte,
 				normalize.Blocked.F(notice)).Write(ws); chk.T(err) {
 			}
 		} else {
-			log.I.F("AUTHING")
 			var auther relay.Authenticator
 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 				if !ws.AuthRequested() {

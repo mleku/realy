@@ -23,7 +23,7 @@ var (
 	seenAlreadyDropTick = 60
 )
 
-type SimplePool struct {
+type Pool struct {
 	Relays          *xsync.MapOf[string, *Client]
 	Context         context.T
 	authHandler     func() signer.I
@@ -48,13 +48,13 @@ func (ie IncomingEvent) String() string {
 }
 
 type PoolOption interface {
-	ApplyPoolOption(*SimplePool)
+	ApplyPoolOption(*Pool)
 }
 
-func NewSimplePool(c context.T, opts ...PoolOption) *SimplePool {
+func NewPool(c context.T, opts ...PoolOption) *Pool {
 	ctx, cancel := context.Cancel(c)
 
-	pool := &SimplePool{
+	pool := &Pool{
 		Relays: xsync.NewMapOf[string, *Client](),
 
 		Context: ctx,
@@ -73,7 +73,7 @@ func NewSimplePool(c context.T, opts ...PoolOption) *SimplePool {
 // with the "auth-required:" prefix, only once for each relay
 type WithAuthHandler func() signer.I
 
-func (h WithAuthHandler) ApplyPoolOption(pool *SimplePool) {
+func (h WithAuthHandler) ApplyPoolOption(pool *Pool) {
 	pool.authHandler = h
 }
 
@@ -81,7 +81,7 @@ func (h WithAuthHandler) ApplyPoolOption(pool *SimplePool) {
 // more than one can be passed at a time.
 type WithEventMiddleware func(IncomingEvent)
 
-func (h WithEventMiddleware) ApplyPoolOption(pool *SimplePool) {
+func (h WithEventMiddleware) ApplyPoolOption(pool *Pool) {
 	pool.eventMiddleware = append(pool.eventMiddleware, h)
 }
 
@@ -90,9 +90,10 @@ var (
 	_ PoolOption = (WithEventMiddleware)(nil)
 )
 
-const MAX_LOCKS = 50
+// MaxLocks is the maximum number of sync.Mutex locks used in a pool todo: is this too few?
+const MaxLocks = 50
 
-var namedMutexPool = make([]sync.Mutex, MAX_LOCKS)
+var namedMutexPool = make([]sync.Mutex, MaxLocks)
 
 //go:noescape
 //go:linkname memhash runtime.memhash
@@ -100,12 +101,13 @@ func memhash(p unsafe.Pointer, h, s uintptr) uintptr
 
 func namedLock(name string) (unlock func()) {
 	sptr := unsafe.StringData(name)
-	idx := uint64(memhash(unsafe.Pointer(sptr), 0, uintptr(len(name)))) % MAX_LOCKS
+	idx := uint64(memhash(unsafe.Pointer(sptr), 0, uintptr(len(name)))) % MaxLocks
 	namedMutexPool[idx].Lock()
 	return namedMutexPool[idx].Unlock
 }
 
-func (pool *SimplePool) EnsureRelay(url string) (*Client, error) {
+// EnsureRelay connects a pool to a relay or fails.
+func (pool *Pool) EnsureRelay(url string) (*Client, error) {
 	nm := string(normalize.URL(url))
 	defer namedLock(nm)()
 
@@ -135,16 +137,17 @@ func (pool *SimplePool) EnsureRelay(url string) (*Client, error) {
 
 // SubMany opens a subscription with the given filters to multiple relays
 // the subscriptions only end when the context is canceled
-func (pool *SimplePool) SubMany(c context.T, urls []string, ff *filters.T) chan IncomingEvent {
+func (pool *Pool) SubMany(c context.T, urls []string, ff *filters.T) chan IncomingEvent {
 	return pool.subMany(c, urls, ff, true)
 }
 
 // SubManyNonUnique is like SubMany, but returns duplicate events if they come from different relays
-func (pool *SimplePool) SubManyNonUnique(c context.T, urls []string, ff *filters.T) chan IncomingEvent {
+func (pool *Pool) SubManyNonUnique(c context.T, urls []string,
+	ff *filters.T) chan IncomingEvent {
 	return pool.subMany(c, urls, ff, false)
 }
 
-func (pool *SimplePool) subMany(c context.T, urls []string, ff *filters.T,
+func (pool *Pool) subMany(c context.T, urls []string, ff *filters.T,
 	unique bool) chan IncomingEvent {
 	ctx, cancel := context.Cancel(c)
 	_ = cancel // do this so `go vet` will stop complaining
@@ -262,17 +265,17 @@ func (pool *SimplePool) subMany(c context.T, urls []string, ff *filters.T,
 }
 
 // SubManyEose is like SubMany, but it stops subscriptions and closes the channel when gets a EOSE
-func (pool *SimplePool) SubManyEose(c context.T, urls []string, ff *filters.T) chan IncomingEvent {
+func (pool *Pool) SubManyEose(c context.T, urls []string, ff *filters.T) chan IncomingEvent {
 	return pool.subManyEose(c, urls, ff, true)
 }
 
 // SubManyEoseNonUnique is like SubManyEose, but returns duplicate events if they come from different relays
-func (pool *SimplePool) SubManyEoseNonUnique(c context.T, urls []string,
+func (pool *Pool) SubManyEoseNonUnique(c context.T, urls []string,
 	ff *filters.T) chan IncomingEvent {
 	return pool.subManyEose(c, urls, ff, false)
 }
 
-func (pool *SimplePool) subManyEose(c context.T, urls []string, ff *filters.T,
+func (pool *Pool) subManyEose(c context.T, urls []string, ff *filters.T,
 	unique bool) chan IncomingEvent {
 	ctx, cancel := context.Cancel(c)
 
@@ -354,7 +357,7 @@ func (pool *SimplePool) subManyEose(c context.T, urls []string, ff *filters.T,
 }
 
 // QuerySingle returns the first event returned by the first relay, cancels everything else.
-func (pool *SimplePool) QuerySingle(c context.T, urls []string, f *filter.T) *IncomingEvent {
+func (pool *Pool) QuerySingle(c context.T, urls []string, f *filter.T) *IncomingEvent {
 	ctx, cancel := context.Cancel(c)
 	defer cancel()
 	for ievt := range pool.SubManyEose(ctx, urls, filters.New(f)) {
@@ -363,7 +366,7 @@ func (pool *SimplePool) QuerySingle(c context.T, urls []string, f *filter.T) *In
 	return nil
 }
 
-func (pool *SimplePool) batchedSubMany(
+func (pool *Pool) batchedSubMany(
 	c context.T,
 	dfs []DirectedFilters,
 	subFn func(context.T, []string, *filters.T, bool) chan IncomingEvent,
@@ -382,11 +385,11 @@ func (pool *SimplePool) batchedSubMany(
 }
 
 // BatchedSubMany fires subscriptions only to specific relays, but batches them when they are the same.
-func (pool *SimplePool) BatchedSubMany(c context.T, dfs []DirectedFilters) chan IncomingEvent {
+func (pool *Pool) BatchedSubMany(c context.T, dfs []DirectedFilters) chan IncomingEvent {
 	return pool.batchedSubMany(c, dfs, pool.subMany)
 }
 
 // BatchedSubManyEose is like BatchedSubMany, but ends upon receiving EOSE from all relays.
-func (pool *SimplePool) BatchedSubManyEose(c context.T, dfs []DirectedFilters) chan IncomingEvent {
+func (pool *Pool) BatchedSubManyEose(c context.T, dfs []DirectedFilters) chan IncomingEvent {
 	return pool.batchedSubMany(c, dfs, pool.subManyEose)
 }

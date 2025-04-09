@@ -8,7 +8,7 @@ import (
 
 type Time struct{ time.Time }
 
-func UnixNow() *Time { return &Time{Time: time.Now()} }
+func Now() *Time { return &Time{Time: time.Now()} }
 
 func (u *Time) MarshalJSON() (b []byte, err error) {
 	b = ints.New(u.Time.Unix()).Marshal(b)

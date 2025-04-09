@@ -22,15 +22,15 @@ import (
 	"realy.lol/filters"
 	"realy.lol/tag"
 	"realy.lol/units"
-	"realy.lol/web"
+	"realy.lol/ws"
 )
 
 type (
 	// L is a collection of filters.
 	L struct{ filters *filters.T }
 
-	// Map is a map of filters associated with a collection of web.Socket..
-	Map map[*web.Socket]map[string]*L
+	// Map is a map of filters associated with a collection of web.Listener..
+	Map map[*ws.Listener]map[string]*L
 
 	// H is the control structure for a HTTP SSE subscription, including the filter, authed
 	// pubkey and a channel to send the events to.
@@ -115,7 +115,7 @@ func New(ctx context.T) (l *S) {
 
 // GetChallenge generates a new challenge for a subscriber.
 func (s *S) GetChallenge(conn *websocket.Conn, req *http.Request,
-	addr string) (ws *web.Socket) {
+	addr string) (w *ws.Listener) {
 	var err error
 	cb := make([]byte, s.ChallengeLength)
 	if _, err = rand.Read(cb); chk.E(err) {
@@ -129,12 +129,12 @@ func (s *S) GetChallenge(conn *websocket.Conn, req *http.Request,
 	if encoded, err = bech32.Encode([]byte(s.ChallengeHRP), b5); chk.E(err) {
 		return
 	}
-	ws = web.NewSocket(conn, req, encoded)
+	w = ws.NewListener(conn, req, encoded)
 	return
 }
 
 // Set a new subscriber with its collection of filters.
-func (s *S) Set(id string, ws *web.Socket, ff *filters.T) {
+func (s *S) Set(id string, ws *ws.Listener, ff *filters.T) {
 	s.Mutex.Lock()
 	subs, ok := s.Map[ws]
 	if !ok {
@@ -146,7 +146,7 @@ func (s *S) Set(id string, ws *web.Socket, ff *filters.T) {
 }
 
 // RemoveSubscriberId removes a specific subscription from a subscriber websocket.
-func (s *S) RemoveSubscriberId(ws *web.Socket, id string) {
+func (s *S) RemoveSubscriberId(ws *ws.Listener, id string) {
 	s.Mutex.Lock()
 	if subs, ok := s.Map[ws]; ok {
 		delete(s.Map[ws], id)
@@ -158,7 +158,7 @@ func (s *S) RemoveSubscriberId(ws *web.Socket, id string) {
 }
 
 // RemoveSubscriber removes a websocket from the subscribers.S collection.
-func (s *S) RemoveSubscriber(ws *web.Socket) {
+func (s *S) RemoveSubscriber(ws *ws.Listener) {
 	s.Mutex.Lock()
 	clear(s.Map[ws])
 	delete(s.Map, ws)

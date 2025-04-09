@@ -22,10 +22,10 @@ import (
 	"realy.lol/relay"
 	"realy.lol/store"
 	"realy.lol/tag"
-	"realy.lol/web"
+	"realy.lol/ws"
 )
 
-func (s *Server) handleReq(c context.T, ws *web.Socket, req []byte, sto store.I) (r []byte) {
+func (s *Server) handleReq(c context.T, ws *ws.Listener, req []byte, sto store.I) (r []byte) {
 	var err error
 	var rem []byte
 	env := reqenvelope.New()

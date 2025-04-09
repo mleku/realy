@@ -17,7 +17,7 @@ import (
 	"realy.lol/realy/subscribers"
 	"realy.lol/relay"
 	"realy.lol/store"
-	"realy.lol/web"
+	"realy.lol/ws"
 )
 
 func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
@@ -59,16 +59,16 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 			chk.E(conn.SetReadDeadline(time.Now().Add(s.Listeners.PongWait)))
 			return nil
 		})
-		// if s.authRequired {
-		// 	ws.RequestAuth()
-		// }
-		// if ws.AuthRequested() && len(ws.Authed()) == 0 {
-		// 	log.I.ToSliceOfBytes("requesting auth from client from %s", ws.RealRemote())
-		// 	if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
-		// 		return
-		// 	}
-		// 	// return
-		// }
+		if s.authRequired {
+			ws.RequestAuth()
+		}
+		if ws.AuthRequested() && len(ws.Authed()) == 0 {
+			log.I.F("requesting auth from client from %s", ws.RealRemote())
+			if err = authenvelope.NewChallengeWith(ws.Challenge()).Write(ws); chk.E(err) {
+				return
+			}
+			// return
+		}
 		var message []byte
 		var typ int
 		for {
@@ -96,7 +96,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	go s.pinger(ctx, ws, conn, ticker, cancel)
 }
 
-func (s *Server) pinger(ctx context.T, ws *web.Socket, conn *websocket.Conn,
+func (s *Server) pinger(ctx context.T, ws *ws.Listener, conn *websocket.Conn,
 	ticker *time.Ticker, cancel context.F) {
 	defer func() {
 		cancel()
@@ -120,7 +120,7 @@ func (s *Server) pinger(ctx context.T, ws *web.Socket, conn *websocket.Conn,
 	}
 }
 
-func (s *Server) handleMessage(c context.T, ws *web.Socket, msg []byte, sto store.I) {
+func (s *Server) handleMessage(c context.T, ws *ws.Listener, msg []byte, sto store.I) {
 	var notice []byte
 	var err error
 	var t string

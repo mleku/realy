@@ -30,8 +30,6 @@ import (
 	"realy.lol/signer"
 )
 
-type Status int
-
 var subscriptionIDCounter atomic.Int32
 
 type Client struct {
@@ -175,10 +173,11 @@ func (r *Client) ConnectWithTLS(ctx context.T, tlsConfig *tls.Config) error {
 	}()
 	// queue all write operations here so we don't do mutex spaghetti
 	go func() {
+		var err error
 		for {
 			select {
 			case <-ticker.C:
-				err := wsutil.WriteClientMessage(r.Connection.conn, ws.OpPing, nil)
+				err = wsutil.WriteClientMessage(r.Connection.conn, ws.OpPing, nil)
 				if err != nil {
 					log.D.F("{%s} error writing ping: %v; closing websocket", r.URL,
 						err)
@@ -187,7 +186,7 @@ func (r *Client) ConnectWithTLS(ctx context.T, tlsConfig *tls.Config) error {
 				}
 			case writeReq := <-r.writeQueue:
 				// all write requests will go through this to prevent races
-				if err := r.Connection.WriteMessage(r.connectionContext,
+				if err = r.Connection.WriteMessage(r.connectionContext,
 					writeReq.msg); chk.T(err) {
 					writeReq.answer <- err
 				}
@@ -431,6 +430,8 @@ func (r *Client) PrepareSubscription(c context.T, ff *filters.T,
 	return sub
 }
 
+// QuerySync is only used in tests. The realy query method is synchronous now anyway (it ensures
+// sort order is respected).
 func (r *Client) QuerySync(ctx context.T, f *filter.T,
 	opts ...SubscriptionOption) ([]*event.T, error) {
 	sub, err := r.Subscribe(ctx, filters.New(f), opts...)
@@ -464,33 +465,35 @@ func (r *Client) QuerySync(ctx context.T, f *filter.T,
 	}
 }
 
-func (r *Client) Count(c context.T, ff *filters.T, opts ...SubscriptionOption) (int, error) {
-	sub := r.PrepareSubscription(c, ff, opts...)
-	sub.countResult = make(chan int)
+// TODO: count is a dumb idea anyway, and nothing is using this
+// func (r *Client) Count(c context.T, ff *filters.T, opts ...SubscriptionOption) (int, error) {
+// 	sub := r.PrepareSubscription(c, ff, opts...)
+// 	sub.countResult = make(chan int)
+//
+// 	if err := sub.Fire(); chk.T(err) {
+// 		return 0, err
+// 	}
+//
+// 	defer sub.Unsub()
+//
+// 	if _, ok := c.Deadline(); !ok {
+// 		// if no timeout is set, force it to 7 seconds
+// 		var cancel context.F
+// 		c, cancel = context.Timeout(c, 7*time.Second)
+// 		defer cancel()
+// 	}
+//
+// 	for {
+// 		select {
+// 		case count := <-sub.countResult:
+// 			return count, nil
+// 		case <-c.Done():
+// 			return 0, c.Err()
+// 		}
+// 	}
+// }
 
-	if err := sub.Fire(); chk.T(err) {
-		return 0, err
-	}
-
-	defer sub.Unsub()
-
-	if _, ok := c.Deadline(); !ok {
-		// if no timeout is set, force it to 7 seconds
-		var cancel context.F
-		c, cancel = context.Timeout(c, 7*time.Second)
-		defer cancel()
-	}
-
-	for {
-		select {
-		case count := <-sub.countResult:
-			return count, nil
-		case <-c.Done():
-			return 0, c.Err()
-		}
-	}
-}
-
+// Close shuts down a websocket client connection.
 func (r *Client) Close() error {
 	r.closeMutex.Lock()
 	defer r.closeMutex.Unlock()

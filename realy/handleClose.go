@@ -2,10 +2,10 @@ package realy
 
 import (
 	"realy.lol/envelopes/closeenvelope"
-	"realy.lol/web"
+	"realy.lol/ws"
 )
 
-func (s *Server) handleClose(ws *web.Socket, req []byte) (note []byte) {
+func (s *Server) handleClose(ws *ws.Listener, req []byte) (note []byte) {
 	var err error
 	var rem []byte
 	env := closeenvelope.New()

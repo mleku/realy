@@ -6,10 +6,10 @@ import (
 	"realy.lol/envelopes/okenvelope"
 	"realy.lol/normalize"
 	"realy.lol/relay"
-	"realy.lol/web"
+	"realy.lol/ws"
 )
 
-func (s *Server) handleAuth(ws *web.Socket, req []byte) (msg []byte) {
+func (s *Server) handleAuth(ws *ws.Listener, req []byte) (msg []byte) {
 	if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
 		svcUrl := auther.ServiceUrl(ws.Req())
 		if svcUrl == "" {
