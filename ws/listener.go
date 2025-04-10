@@ -8,7 +8,7 @@ import (
 
 	"github.com/fasthttp/websocket"
 
-	"realy.lol/atomic"
+	"realy.mleku.dev/atomic"
 )
 
 // Listener is a websocket implementation for a relay listener.

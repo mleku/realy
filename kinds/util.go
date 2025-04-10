@@ -1,7 +1,7 @@
 package kinds
 
 import (
-	"realy.lol/lol"
+	"realy.mleku.dev/lol"
 )
 
 var (

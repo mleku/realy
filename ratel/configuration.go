@@ -5,8 +5,8 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.lol/ratel/prefixes"
-	"realy.lol/store"
+	"realy.mleku.dev/ratel/prefixes"
+	"realy.mleku.dev/store"
 )
 
 // SetConfiguration stores the store.Configuration value to a provided setting.

@@ -6,8 +6,8 @@ package subscription
 import (
 	"crypto/rand"
 
-	"realy.lol/ec/bech32"
-	"realy.lol/text"
+	"realy.mleku.dev/ec/bech32"
+	"realy.mleku.dev/text"
 )
 
 type Id struct {

@@ -5,7 +5,7 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/sha256"
+	"realy.mleku.dev/sha256"
 )
 
 func TestUnescapeByteString(t *testing.T) {

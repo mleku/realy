@@ -7,9 +7,9 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/ec/schnorr"
-	"realy.lol/hex"
-	"realy.lol/kind"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/kind"
 )
 
 func TestT_Marshal_Unmarshal(t *testing.T) {

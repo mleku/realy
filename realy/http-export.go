@@ -5,7 +5,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.lol/context"
+	"realy.mleku.dev/context"
 )
 
 // Export is a HTTP API method to export the entire content of an event store to an admin user.

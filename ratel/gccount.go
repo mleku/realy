@@ -9,14 +9,14 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.lol/ratel/keys/count"
-	"realy.lol/ratel/keys/createdat"
-	"realy.lol/ratel/keys/index"
-	"realy.lol/ratel/keys/serial"
-	"realy.lol/ratel/prefixes"
-	"realy.lol/sha256"
-	"realy.lol/timestamp"
-	"realy.lol/units"
+	"realy.mleku.dev/ratel/keys/count"
+	"realy.mleku.dev/ratel/keys/createdat"
+	"realy.mleku.dev/ratel/keys/index"
+	"realy.mleku.dev/ratel/keys/serial"
+	"realy.mleku.dev/ratel/prefixes"
+	"realy.mleku.dev/sha256"
+	"realy.mleku.dev/timestamp"
+	"realy.mleku.dev/units"
 )
 
 const KeyLen = serial.Len + 1

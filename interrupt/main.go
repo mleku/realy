@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"runtime"
 
-	"realy.lol/atomic"
-	"realy.lol/qu"
+	"realy.mleku.dev/atomic"
+	"realy.mleku.dev/qu"
 )
 
 // HandlerWithSource is an interrupt handling closure and the source location that it was sent

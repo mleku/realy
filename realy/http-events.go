@@ -7,14 +7,14 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.lol/cmd/realy/app"
-	"realy.lol/context"
-	"realy.lol/ec/schnorr"
-	"realy.lol/hex"
-	"realy.lol/httpauth"
-	"realy.lol/sha256"
-	"realy.lol/store"
-	"realy.lol/tag"
+	"realy.mleku.dev/cmd/realy/app"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/httpauth"
+	"realy.mleku.dev/sha256"
+	"realy.mleku.dev/store"
+	"realy.mleku.dev/tag"
 )
 
 // Events is a HTTP API method to retrieve a number of events from their event Ids.

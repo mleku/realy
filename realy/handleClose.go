@@ -1,8 +1,8 @@
 package realy
 
 import (
-	"realy.lol/envelopes/closeenvelope"
-	"realy.lol/ws"
+	"realy.mleku.dev/envelopes/closeenvelope"
+	"realy.mleku.dev/ws"
 )
 
 func (s *Server) handleClose(ws *ws.Listener, req []byte) (note []byte) {

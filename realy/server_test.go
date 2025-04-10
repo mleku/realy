@@ -8,9 +8,9 @@ import (
 
 	"github.com/gobwas/ws/wsutil"
 
-	"realy.lol/context"
-	"realy.lol/ratel"
-	"realy.lol/ws"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/ratel"
+	"realy.mleku.dev/ws"
 )
 
 func TestServerStartShutdown(t *testing.T) {

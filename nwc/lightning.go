@@ -1,7 +1,7 @@
 package nwc
 
 import (
-	"realy.lol/kind"
+	"realy.mleku.dev/kind"
 )
 
 var Kinds = []*kind.T{

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"io"
 
-	"realy.lol/event"
+	"realy.mleku.dev/event"
 )
 
 const maxLen = 500000000

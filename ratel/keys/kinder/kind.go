@@ -6,8 +6,8 @@ import (
 	"encoding/binary"
 	"io"
 
-	"realy.lol/kind"
-	"realy.lol/ratel/keys"
+	"realy.mleku.dev/kind"
+	"realy.mleku.dev/ratel/keys"
 )
 
 const Len = 2

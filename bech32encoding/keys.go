@@ -3,11 +3,11 @@ package bech32encoding
 import (
 	"bytes"
 
-	btcec "realy.lol/ec"
-	"realy.lol/ec/bech32"
-	"realy.lol/ec/schnorr"
-	"realy.lol/ec/secp256k1"
-	"realy.lol/hex"
+	btcec "realy.mleku.dev/ec"
+	"realy.mleku.dev/ec/bech32"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/ec/secp256k1"
+	"realy.mleku.dev/hex"
 )
 
 const (
@@ -28,10 +28,16 @@ var (
 )
 
 // ConvertForBech32 performs the bit expansion required for encoding into Bech32.
-func ConvertForBech32(b8 []byte) (b5 []byte, err error) { return bech32.ConvertBits(b8, 8, 5, true) }
+func ConvertForBech32(b8 []byte) (b5 []byte, err error) {
+	return bech32.ConvertBits(b8, 8, 5,
+		true)
+}
 
 // ConvertFromBech32 collapses together the bit expanded 5 bit numbers encoded in bech32.
-func ConvertFromBech32(b5 []byte) (b8 []byte, err error) { return bech32.ConvertBits(b5, 5, 8, true) }
+func ConvertFromBech32(b5 []byte) (b8 []byte, err error) {
+	return bech32.ConvertBits(b5, 5, 8,
+		true)
+}
 
 // SecretKeyToNsec encodes an secp256k1 secret key as a Bech32 string (nsec).
 func SecretKeyToNsec(sk *secp256k1.SecretKey) (encoded []byte, err error) {

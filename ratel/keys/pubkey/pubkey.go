@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"realy.lol/ec/schnorr"
-	"realy.lol/ratel/keys"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/ratel/keys"
 )
 
 const Len = 8

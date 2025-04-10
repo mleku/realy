@@ -12,7 +12,7 @@ import (
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/hkdf"
 
-	"realy.lol/sha256"
+	"realy.mleku.dev/sha256"
 )
 
 const (
@@ -93,7 +93,8 @@ func Encrypt(plaintext string, conversationKey []byte,
 
 // Decrypt data that has been encoded using a provided symmetric conversation
 // key using NIP-44 encryption (chacha20 cipher stream and sha256 HMAC).
-func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (plaintext string, err error) {
+func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (plaintext string,
+	err error) {
 	cLen := len(b64ciphertextWrapped)
 	if cLen < 132 || cLen > 87472 {
 		err = errorf.E("invalid payload length: %d", cLen)

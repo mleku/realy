@@ -15,13 +15,13 @@ import (
 	"github.com/fasthttp/websocket"
 	"github.com/rs/cors"
 
-	realy_lol "realy.lol"
-	"realy.lol/context"
-	"realy.lol/realy/options"
-	"realy.lol/realy/subscribers"
-	"realy.lol/relay"
-	"realy.lol/signer"
-	"realy.lol/store"
+	realy_lol "realy.mleku.dev"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/realy/options"
+	"realy.mleku.dev/realy/subscribers"
+	"realy.mleku.dev/relay"
+	"realy.mleku.dev/signer"
+	"realy.mleku.dev/store"
 )
 
 type Server struct {
@@ -101,6 +101,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	huma.AutoRegister(s.API, NewConfiguration(s))
 	huma.AutoRegister(s.API, NewNuke(s))
 
+	huma.AutoRegister(s.API, NewRelay(s))
 	// load configuration if it has been set
 	if c, ok := s.relay.Storage().(store.Configurationer); ok {
 		s.ConfigurationMx.Lock()

@@ -1,7 +1,7 @@
 package nwc
 
 import (
-	"realy.lol/text"
+	"realy.mleku.dev/text"
 )
 
 type PayInvoiceRequest struct {

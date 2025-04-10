@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"realy.lol/ec/schnorr"
-	"realy.lol/event"
-	"realy.lol/event/examples"
-	"realy.lol/p256k/btcec"
-	"realy.lol/sha256"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/event/examples"
+	"realy.mleku.dev/p256k/btcec"
+	"realy.mleku.dev/sha256"
 )
 
 func TestSigner_Generate(t *testing.T) {

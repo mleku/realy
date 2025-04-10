@@ -6,8 +6,8 @@ import (
 	_ "embed"
 	"testing"
 
-	"realy.lol/event/examples"
-	"realy.lol/p256k"
+	"realy.mleku.dev/event/examples"
+	"realy.mleku.dev/p256k"
 )
 
 func TestTMarshal_Unmarshal(t *testing.T) {

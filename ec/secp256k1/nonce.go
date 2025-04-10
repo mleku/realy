@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"hash"
 
-	"realy.lol/sha256"
+	"realy.mleku.dev/sha256"
 )
 
 // References:

@@ -7,7 +7,7 @@ import (
 	"time"
 	"unsafe"
 
-	"realy.lol/ints"
+	"realy.mleku.dev/ints"
 )
 
 // T is a convenience type for UNIX 64 bit timestamps of 1 second

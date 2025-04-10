@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"io"
 
-	"realy.lol/ratel/keys"
-	"realy.lol/ratel/keys/serial"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/ratel/keys"
+	"realy.mleku.dev/ratel/keys/serial"
+	"realy.mleku.dev/timestamp"
 )
 
 const Len = 8

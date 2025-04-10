@@ -6,11 +6,11 @@ package store
 import (
 	"io"
 
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/eventid"
-	"realy.lol/filter"
-	"realy.lol/tag"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/filter"
+	"realy.mleku.dev/tag"
 )
 
 // I is an types for a persistence layer for nostr events handled by a relay.

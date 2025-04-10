@@ -1,7 +1,7 @@
 package keys_test
 
 import (
-	"realy.lol/lol"
+	"realy.mleku.dev/lol"
 )
 
 var (

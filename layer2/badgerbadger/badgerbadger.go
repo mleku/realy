@@ -6,13 +6,13 @@ package badgerbadger
 import (
 	"sync"
 
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/eventid"
-	"realy.lol/filter"
-	"realy.lol/layer2"
-	"realy.lol/ratel"
-	"realy.lol/store"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/filter"
+	"realy.mleku.dev/layer2"
+	"realy.mleku.dev/ratel"
+	"realy.mleku.dev/store"
 )
 
 // Backend is a hybrid badger/badger eventstore where L1 will have GC enabled

@@ -7,11 +7,11 @@ import (
 	"io"
 	"strings"
 
-	"realy.lol/ratel/keys"
-	"realy.lol/sha256"
+	"realy.mleku.dev/ratel/keys"
+	"realy.mleku.dev/sha256"
 
-	"realy.lol/eventid"
-	"realy.lol/hex"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/hex"
 )
 
 const Len = 8

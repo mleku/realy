@@ -3,8 +3,8 @@ package tcpkeepalive
 import (
 	"bytes"
 
-	"realy.lol/context"
-	"realy.lol/lol"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/lol"
 )
 
 type (

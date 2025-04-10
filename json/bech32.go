@@ -3,9 +3,9 @@ package json
 import (
 	"bytes"
 
-	"realy.lol/bech32encoding"
-	"realy.lol/ec/bech32"
-	"realy.lol/text"
+	"realy.mleku.dev/bech32encoding"
+	"realy.mleku.dev/ec/bech32"
+	"realy.mleku.dev/text"
 )
 
 // Bech32 is a string encoded in bech32 format including a human-readable prefix and base32

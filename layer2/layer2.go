@@ -11,13 +11,13 @@ import (
 	"sync"
 	"time"
 
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/eventid"
-	"realy.lol/filter"
-	"realy.lol/store"
-	"realy.lol/tag"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/filter"
+	"realy.mleku.dev/store"
+	"realy.mleku.dev/tag"
+	"realy.mleku.dev/timestamp"
 )
 
 // Backend is a two level nostr event store. The first level is assumed to have a subset of all

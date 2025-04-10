@@ -3,13 +3,13 @@ package ratel
 import (
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.lol/event"
-	"realy.lol/ratel/keys"
-	"realy.lol/ratel/keys/createdat"
-	"realy.lol/ratel/keys/serial"
-	"realy.lol/ratel/prefixes"
-	"realy.lol/sha256"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/ratel/keys"
+	"realy.mleku.dev/ratel/keys/createdat"
+	"realy.mleku.dev/ratel/keys/serial"
+	"realy.mleku.dev/ratel/prefixes"
+	"realy.mleku.dev/sha256"
+	"realy.mleku.dev/timestamp"
 )
 
 // Rescan regenerates all indexes of events to add new indexes in a new version.

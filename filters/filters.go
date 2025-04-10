@@ -2,8 +2,8 @@
 package filters
 
 import (
-	"realy.lol/event"
-	"realy.lol/filter"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/filter"
 )
 
 // T is a wrapper around an array of pointers to filter.T.

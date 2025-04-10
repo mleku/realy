@@ -4,9 +4,9 @@ package p256k
 
 import "C"
 import (
-	btcec "realy.lol/ec"
-	"realy.lol/ec/secp256k1"
-	realy "realy.lol/signer"
+	btcec "realy.mleku.dev/ec"
+	"realy.mleku.dev/ec/secp256k1"
+	realy "realy.mleku.dev/signer"
 )
 
 func init() {

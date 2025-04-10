@@ -9,8 +9,8 @@ import (
 	"bytes"
 	"testing"
 
-	"realy.lol/hex"
-	"realy.lol/sha256"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/sha256"
 )
 
 // hexToBytes converts the passed hex string into bytes and will panic if there

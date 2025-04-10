@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"realy.lol/bech32encoding/pointers"
-	"realy.lol/bech32encoding/tlv"
-	"realy.lol/ec/bech32"
-	"realy.lol/ec/schnorr"
-	"realy.lol/eventid"
-	"realy.lol/hex"
-	"realy.lol/kind"
-	"realy.lol/sha256"
+	"realy.mleku.dev/bech32encoding/pointers"
+	"realy.mleku.dev/bech32encoding/tlv"
+	"realy.mleku.dev/ec/bech32"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/kind"
+	"realy.mleku.dev/sha256"
 )
 
 var (

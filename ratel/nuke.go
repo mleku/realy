@@ -1,7 +1,7 @@
 package ratel
 
 import (
-	"realy.lol/ratel/prefixes"
+	"realy.mleku.dev/ratel/prefixes"
 )
 
 func (r *T) Nuke() (err error) {

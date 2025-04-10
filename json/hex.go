@@ -1,8 +1,8 @@
 package json
 
 import (
-	"realy.lol/hex"
-	"realy.lol/text"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/text"
 )
 
 // Hex is a string representing binary data encoded as hexadecimal.

@@ -3,8 +3,8 @@ package ratel
 import (
 	"sort"
 
-	"realy.lol/ratel/keys/count"
-	"realy.lol/units"
+	"realy.mleku.dev/ratel/keys/count"
+	"realy.mleku.dev/units"
 )
 
 type DelItems []uint64

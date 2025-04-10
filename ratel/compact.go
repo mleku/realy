@@ -1,7 +1,7 @@
 package ratel
 
 import (
-	"realy.lol/event"
+	"realy.mleku.dev/event"
 )
 
 // Unmarshal an event from bytes, using compact encoding if configured.

@@ -3,17 +3,17 @@ package ratel
 import (
 	"strings"
 
-	"realy.lol/ec/schnorr"
-	"realy.lol/hex"
-	"realy.lol/ratel/keys"
-	"realy.lol/ratel/keys/arb"
-	"realy.lol/ratel/keys/createdat"
-	"realy.lol/ratel/keys/index"
-	"realy.lol/ratel/keys/kinder"
-	"realy.lol/ratel/keys/pubkey"
-	"realy.lol/ratel/keys/serial"
-	"realy.lol/ratel/prefixes"
-	"realy.lol/tag/atag"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/ratel/keys"
+	"realy.mleku.dev/ratel/keys/arb"
+	"realy.mleku.dev/ratel/keys/createdat"
+	"realy.mleku.dev/ratel/keys/index"
+	"realy.mleku.dev/ratel/keys/kinder"
+	"realy.mleku.dev/ratel/keys/pubkey"
+	"realy.mleku.dev/ratel/keys/serial"
+	"realy.mleku.dev/ratel/prefixes"
+	"realy.mleku.dev/tag/atag"
 )
 
 // Create_a_Tag generates tag indexes from a tag key, tag value, created_at

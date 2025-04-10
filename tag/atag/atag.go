@@ -5,9 +5,9 @@ package atag
 import (
 	"bytes"
 
-	"realy.lol/hex"
-	"realy.lol/ints"
-	"realy.lol/kind"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/ints"
+	"realy.mleku.dev/kind"
 )
 
 // T is a data structure for what is found in an `a` tag: kind:pubkey:arbitrary data

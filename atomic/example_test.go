@@ -23,7 +23,7 @@ package atomic_test
 import (
 	"fmt"
 
-	"realy.lol/atomic"
+	"realy.mleku.dev/atomic"
 )
 
 func Example() {

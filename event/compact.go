@@ -1,7 +1,7 @@
 package event
 
 import (
-	"realy.lol/ec/schnorr"
+	"realy.mleku.dev/ec/schnorr"
 )
 
 // MarshalCompact encodes an event as the canonical form followed by the raw binary

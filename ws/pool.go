@@ -10,13 +10,13 @@ import (
 
 	"github.com/puzpuzpuz/xsync/v3"
 
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/filter"
-	"realy.lol/filters"
-	"realy.lol/normalize"
-	"realy.lol/signer"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/filter"
+	"realy.mleku.dev/filters"
+	"realy.mleku.dev/normalize"
+	"realy.mleku.dev/signer"
+	"realy.mleku.dev/timestamp"
 )
 
 var (

@@ -7,10 +7,10 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/event"
-	"realy.lol/kind"
-	"realy.lol/p256k"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/kind"
+	"realy.mleku.dev/p256k"
+	"realy.mleku.dev/timestamp"
 )
 
 // GenerateEvent creates events full of random kinds and content data.

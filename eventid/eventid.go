@@ -5,8 +5,8 @@ package eventid
 import (
 	"lukechampine.com/frand"
 
-	"realy.lol/hex"
-	"realy.lol/sha256"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/sha256"
 )
 
 // T is the SHA256 hash in hexadecimal of the canonical form of an event as

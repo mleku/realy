@@ -6,7 +6,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.lol/context"
+	"realy.mleku.dev/context"
 )
 
 type Shutdown struct{ *Server }

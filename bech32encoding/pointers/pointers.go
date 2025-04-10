@@ -3,8 +3,8 @@
 package pointers
 
 import (
-	"realy.lol/eventid"
-	"realy.lol/kind"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/kind"
 )
 
 // Profile pointer is a combination of pubkey and relay list.

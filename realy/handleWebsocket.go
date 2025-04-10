@@ -7,17 +7,17 @@ import (
 
 	"github.com/fasthttp/websocket"
 
-	"realy.lol/context"
-	"realy.lol/envelopes"
-	"realy.lol/envelopes/authenvelope"
-	"realy.lol/envelopes/closeenvelope"
-	"realy.lol/envelopes/eventenvelope"
-	"realy.lol/envelopes/noticeenvelope"
-	"realy.lol/envelopes/reqenvelope"
-	"realy.lol/realy/subscribers"
-	"realy.lol/relay"
-	"realy.lol/store"
-	"realy.lol/ws"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/envelopes"
+	"realy.mleku.dev/envelopes/authenvelope"
+	"realy.mleku.dev/envelopes/closeenvelope"
+	"realy.mleku.dev/envelopes/eventenvelope"
+	"realy.mleku.dev/envelopes/noticeenvelope"
+	"realy.mleku.dev/envelopes/reqenvelope"
+	"realy.mleku.dev/realy/subscribers"
+	"realy.mleku.dev/relay"
+	"realy.mleku.dev/store"
+	"realy.mleku.dev/ws"
 )
 
 func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {

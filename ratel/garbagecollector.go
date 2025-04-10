@@ -3,7 +3,7 @@ package ratel
 import (
 	"time"
 
-	"realy.lol/units"
+	"realy.mleku.dev/units"
 )
 
 // GarbageCollector starts up a ticker that runs a check on space utilisation

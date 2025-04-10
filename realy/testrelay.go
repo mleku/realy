@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"testing"
 
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/eventid"
-	"realy.lol/filter"
-	"realy.lol/store"
-	"realy.lol/units"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/filter"
+	"realy.mleku.dev/store"
+	"realy.mleku.dev/units"
 )
 
 func startTestRelay(c context.T, t *testing.T, tr *testRelay) *Server {

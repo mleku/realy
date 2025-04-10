@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"realy.lol/ratel/keys"
+	"realy.mleku.dev/ratel/keys"
 )
 
 const Len = 1

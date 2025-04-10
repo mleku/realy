@@ -3,8 +3,8 @@ package store
 import (
 	"net/http"
 
-	"realy.lol/envelopes/okenvelope"
-	"realy.lol/subscription"
+	"realy.mleku.dev/envelopes/okenvelope"
+	"realy.mleku.dev/subscription"
 )
 
 type SubID = subscription.Id

@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"strings"
 
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/normalize"
-	"realy.lol/realy/subscribers"
-	"realy.lol/relay"
-	"realy.lol/store"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/normalize"
+	"realy.mleku.dev/realy/subscribers"
+	"realy.mleku.dev/relay"
+	"realy.mleku.dev/store"
 )
 
 func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,

@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"realy.lol/ec"
-	"realy.lol/hex"
-	"realy.lol/sha256"
+	"realy.mleku.dev/ec"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/sha256"
 )
 
 const (

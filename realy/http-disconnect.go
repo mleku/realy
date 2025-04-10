@@ -5,7 +5,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.lol/context"
+	"realy.mleku.dev/context"
 )
 
 // Disconnect is the HTTP API ta trigger disconnecting all currently open websockets.

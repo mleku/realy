@@ -5,7 +5,7 @@
 package options
 
 import (
-	"realy.lol/event"
+	"realy.mleku.dev/event"
 )
 
 // T is a collection of options.

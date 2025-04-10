@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"realy.lol/cmd/lerproxy/timeout"
+	"realy.mleku.dev/cmd/lerproxy/timeout"
 )
 
 // Period can be changed prior to opening a Listener to alter its'

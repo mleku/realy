@@ -5,8 +5,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.lol/context"
-	"realy.lol/store"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/store"
 )
 
 // Configuration is a database-stored configuration struct that can be hot-reloaded.

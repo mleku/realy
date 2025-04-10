@@ -13,16 +13,16 @@ import (
 
 	"github.com/fasthttp/websocket"
 
-	"realy.lol/bech32encoding"
-	"realy.lol/context"
-	"realy.lol/ec/bech32"
-	"realy.lol/envelopes/eventenvelope"
-	"realy.lol/event"
-	"realy.lol/filter"
-	"realy.lol/filters"
-	"realy.lol/tag"
-	"realy.lol/units"
-	"realy.lol/ws"
+	"realy.mleku.dev/bech32encoding"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/ec/bech32"
+	"realy.mleku.dev/envelopes/eventenvelope"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/filter"
+	"realy.mleku.dev/filters"
+	"realy.mleku.dev/tag"
+	"realy.mleku.dev/units"
+	"realy.mleku.dev/ws"
 )
 
 type (

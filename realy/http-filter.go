@@ -9,19 +9,19 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/filter"
-	"realy.lol/filters"
-	"realy.lol/hex"
-	"realy.lol/httpauth"
-	"realy.lol/kind"
-	"realy.lol/kinds"
-	"realy.lol/relay"
-	"realy.lol/store"
-	"realy.lol/tag"
-	"realy.lol/tags"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/filter"
+	"realy.mleku.dev/filters"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/httpauth"
+	"realy.mleku.dev/kind"
+	"realy.mleku.dev/kinds"
+	"realy.mleku.dev/relay"
+	"realy.mleku.dev/store"
+	"realy.mleku.dev/tag"
+	"realy.mleku.dev/tags"
+	"realy.mleku.dev/timestamp"
 )
 
 // SimpleFilter is the main parts of a filter.T that relate to event store indexes.

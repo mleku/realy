@@ -1,7 +1,7 @@
 package nwc
 
 import (
-	"realy.lol/ints"
+	"realy.mleku.dev/ints"
 )
 
 // Interfaces

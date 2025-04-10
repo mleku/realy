@@ -11,7 +11,7 @@ package btcec
 import (
 	"testing"
 
-	"realy.lol/hex"
+	"realy.mleku.dev/hex"
 )
 
 func FuzzParsePubKey(f *testing.F) {

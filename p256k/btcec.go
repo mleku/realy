@@ -3,7 +3,7 @@
 package p256k
 
 import (
-	"realy.lol/p256k/btcec"
+	"realy.mleku.dev/p256k/btcec"
 )
 
 func init() {

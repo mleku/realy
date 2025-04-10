@@ -6,8 +6,8 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/hex"
-	"realy.lol/sha256"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/sha256"
 )
 
 func TestUnmarshalHexArray(t *testing.T) {

@@ -10,13 +10,13 @@ import (
 	"net/url"
 	"os"
 
-	realy_lol "realy.lol"
-	"realy.lol/bech32encoding"
-	"realy.lol/hex"
-	"realy.lol/httpauth"
-	"realy.lol/p256k"
-	"realy.lol/sha256"
-	"realy.lol/signer"
+	realy_lol "realy.mleku.dev"
+	"realy.mleku.dev/bech32encoding"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/httpauth"
+	"realy.mleku.dev/p256k"
+	"realy.mleku.dev/sha256"
+	"realy.mleku.dev/signer"
 )
 
 const secEnv = "NOSTR_SECRET_KEY"

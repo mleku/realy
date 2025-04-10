@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"testing"
 
-	"realy.lol/event/examples"
+	"realy.mleku.dev/event/examples"
 )
 
 func TestFromCanonical(t *testing.T) {

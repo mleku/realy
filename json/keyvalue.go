@@ -3,7 +3,7 @@ package json
 import (
 	"io"
 
-	"realy.lol/codec"
+	"realy.mleku.dev/codec"
 )
 
 // An Object is an (not necessarily) ordered list of KeyValue.

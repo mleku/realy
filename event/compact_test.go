@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"testing"
 
-	"realy.lol/event/examples"
+	"realy.mleku.dev/event/examples"
 )
 
 func TestFromCompact(t *testing.T) {

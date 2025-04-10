@@ -3,8 +3,8 @@
 package kinds
 
 import (
-	"realy.lol/ints"
-	"realy.lol/kind"
+	"realy.mleku.dev/ints"
+	"realy.mleku.dev/kind"
 )
 
 // T is an array of kind.T, used in filter.T and filter.S for searches.

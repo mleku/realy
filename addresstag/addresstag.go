@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"realy.lol/hex"
+	"realy.mleku.dev/hex"
 )
 
 // DecodeAddressTag unpacks the contents of an `a` tag.

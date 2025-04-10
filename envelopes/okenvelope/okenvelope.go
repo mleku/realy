@@ -6,11 +6,11 @@ package okenvelope
 import (
 	"io"
 
-	"realy.lol/codec"
-	"realy.lol/envelopes"
-	"realy.lol/eventid"
-	"realy.lol/sha256"
-	"realy.lol/text"
+	"realy.mleku.dev/codec"
+	"realy.mleku.dev/envelopes"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/sha256"
+	"realy.mleku.dev/text"
 )
 
 // L is the label associated with this type of codec.Envelope.

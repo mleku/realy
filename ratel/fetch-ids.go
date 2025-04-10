@@ -5,12 +5,12 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/ratel/keys/id"
-	"realy.lol/ratel/keys/serial"
-	"realy.lol/ratel/prefixes"
-	"realy.lol/tag"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/ratel/keys/id"
+	"realy.mleku.dev/ratel/keys/serial"
+	"realy.mleku.dev/ratel/prefixes"
+	"realy.mleku.dev/tag"
 )
 
 // FetchIds retrieves events based on a list of event Ids that have been provided.

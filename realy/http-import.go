@@ -9,8 +9,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.lol/cmd/realy/app"
-	"realy.lol/context"
+	"realy.mleku.dev/cmd/realy/app"
+	"realy.mleku.dev/context"
 )
 
 // Import is a HTTP API method that accepts events as minified, line structured JSON.

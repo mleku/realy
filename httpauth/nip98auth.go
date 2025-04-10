@@ -6,12 +6,12 @@ import (
 	"net/url"
 	"strings"
 
-	"realy.lol/event"
-	"realy.lol/kind"
-	"realy.lol/signer"
-	"realy.lol/tag"
-	"realy.lol/tags"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/kind"
+	"realy.mleku.dev/signer"
+	"realy.mleku.dev/tag"
+	"realy.mleku.dev/tags"
+	"realy.mleku.dev/timestamp"
 )
 
 const (

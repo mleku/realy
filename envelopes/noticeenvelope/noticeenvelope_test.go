@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"realy.lol/envelopes"
-	"realy.lol/envelopes/messages"
+	"realy.mleku.dev/envelopes"
+	"realy.mleku.dev/envelopes/messages"
 )
 
 func TestMarshalUnmarshal(t *testing.T) {

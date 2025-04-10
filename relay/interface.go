@@ -5,13 +5,13 @@ package relay
 import (
 	"net/http"
 
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/filter"
-	"realy.lol/filters"
-	"realy.lol/relayinfo"
-	"realy.lol/store"
-	"realy.lol/ws"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/filter"
+	"realy.mleku.dev/filters"
+	"realy.mleku.dev/relayinfo"
+	"realy.mleku.dev/store"
+	"realy.mleku.dev/ws"
 )
 
 // I is the main interface for implementing a nostr relay.

@@ -11,19 +11,19 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/bech32encoding"
-	"realy.lol/context"
-	"realy.lol/event"
-	"realy.lol/filter"
-	"realy.lol/interrupt"
-	"realy.lol/keys"
-	"realy.lol/layer2"
-	"realy.lol/lol"
-	"realy.lol/qu"
-	"realy.lol/ratel"
-	"realy.lol/tag"
-	"realy.lol/tests"
-	"realy.lol/units"
+	"realy.mleku.dev/bech32encoding"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/filter"
+	"realy.mleku.dev/interrupt"
+	"realy.mleku.dev/keys"
+	"realy.mleku.dev/layer2"
+	"realy.mleku.dev/lol"
+	"realy.mleku.dev/qu"
+	"realy.mleku.dev/ratel"
+	"realy.mleku.dev/tag"
+	"realy.mleku.dev/tests"
+	"realy.mleku.dev/units"
 )
 
 type Counter struct {

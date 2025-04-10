@@ -4,17 +4,17 @@ import (
 	"encoding/binary"
 	"sort"
 
-	"realy.lol/ec/schnorr"
-	"realy.lol/event"
-	"realy.lol/hex"
-	"realy.lol/ints"
-	"realy.lol/kinds"
-	"realy.lol/realy/pointers"
-	"realy.lol/sha256"
-	"realy.lol/tag"
-	"realy.lol/tags"
-	"realy.lol/text"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/ints"
+	"realy.mleku.dev/kinds"
+	"realy.mleku.dev/realy/pointers"
+	"realy.mleku.dev/sha256"
+	"realy.mleku.dev/tag"
+	"realy.mleku.dev/tags"
+	"realy.mleku.dev/text"
+	"realy.mleku.dev/timestamp"
 )
 
 // S is a simplified filter that only covers the nip-01 REQ filter minus the

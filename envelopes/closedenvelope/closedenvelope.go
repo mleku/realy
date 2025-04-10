@@ -6,10 +6,10 @@ package closedenvelope
 import (
 	"io"
 
-	"realy.lol/codec"
-	"realy.lol/envelopes"
-	"realy.lol/subscription"
-	"realy.lol/text"
+	"realy.mleku.dev/codec"
+	"realy.mleku.dev/envelopes"
+	"realy.mleku.dev/subscription"
+	"realy.mleku.dev/text"
 )
 
 // L is the label associated with this type of codec.Envelope.

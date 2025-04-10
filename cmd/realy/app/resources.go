@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"realy.lol/context"
+	"realy.mleku.dev/context"
 )
 
 func MonitorResources(c context.T) {
@@ -19,7 +19,8 @@ func MonitorResources(c context.T) {
 			return
 		case <-tick.C:
 			// runtime.ReadMemStats(memStats)
-			log.D.Ln("# goroutines", runtime.NumGoroutine(), "# cgo calls", runtime.NumCgoCall())
+			log.D.Ln("# goroutines", runtime.NumGoroutine(), "# cgo calls",
+				runtime.NumCgoCall())
 			// log.D.S(memStats)
 		}
 	}

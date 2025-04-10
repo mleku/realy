@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"realy.lol/context"
-	"realy.lol/normalize"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/normalize"
 )
 
 // Fetch fetches the NIP-11 Info.

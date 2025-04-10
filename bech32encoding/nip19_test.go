@@ -5,10 +5,10 @@ import (
 	"reflect"
 	"testing"
 
-	"realy.lol/bech32encoding/pointers"
-	"realy.lol/eventid"
-	"realy.lol/hex"
-	"realy.lol/kind"
+	"realy.mleku.dev/bech32encoding/pointers"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/kind"
 )
 
 func TestEncodeNpub(t *testing.T) {

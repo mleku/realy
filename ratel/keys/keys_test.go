@@ -9,18 +9,18 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/ec/schnorr"
-	"realy.lol/eventid"
-	"realy.lol/kind"
-	"realy.lol/ratel/keys"
-	"realy.lol/ratel/keys/createdat"
-	"realy.lol/ratel/keys/id"
-	"realy.lol/ratel/keys/index"
-	"realy.lol/ratel/keys/kinder"
-	"realy.lol/ratel/keys/pubkey"
-	"realy.lol/ratel/keys/serial"
-	"realy.lol/ratel/prefixes"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/kind"
+	"realy.mleku.dev/ratel/keys"
+	"realy.mleku.dev/ratel/keys/createdat"
+	"realy.mleku.dev/ratel/keys/id"
+	"realy.mleku.dev/ratel/keys/index"
+	"realy.mleku.dev/ratel/keys/kinder"
+	"realy.mleku.dev/ratel/keys/pubkey"
+	"realy.mleku.dev/ratel/keys/serial"
+	"realy.mleku.dev/ratel/prefixes"
+	"realy.mleku.dev/timestamp"
 )
 
 func TestElement(t *testing.T) {

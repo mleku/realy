@@ -14,7 +14,7 @@ import (
 	"github.com/gobwas/ws/wsflate"
 	"github.com/gobwas/ws/wsutil"
 
-	"realy.lol/context"
+	"realy.mleku.dev/context"
 )
 
 // Connection is an outbound client -> relay connection.

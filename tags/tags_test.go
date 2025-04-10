@@ -6,8 +6,8 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/hex"
-	"realy.lol/tag"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/tag"
 )
 
 func TestMarshalUnmarshal(t *testing.T) {

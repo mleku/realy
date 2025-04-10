@@ -13,9 +13,9 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"realy.lol/ec"
-	"realy.lol/ec/secp256k1"
-	"realy.lol/hex"
+	"realy.mleku.dev/ec"
+	"realy.mleku.dev/ec/secp256k1"
+	"realy.mleku.dev/hex"
 )
 
 type bip340Test struct {

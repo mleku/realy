@@ -5,7 +5,7 @@
 package btcec
 
 import (
-	"realy.lol/ec/secp256k1"
+	"realy.mleku.dev/ec/secp256k1"
 )
 
 // These constants define the lengths of serialized public keys.

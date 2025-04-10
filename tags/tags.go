@@ -10,8 +10,8 @@ import (
 	"os"
 	"sort"
 
-	"realy.lol/lol"
-	"realy.lol/tag"
+	"realy.mleku.dev/lol"
+	"realy.mleku.dev/tag"
 )
 
 // T is a list of tag.T - which are lists of string elements with ordering and no uniqueness

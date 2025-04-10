@@ -11,19 +11,19 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/ec/schnorr"
-	"realy.lol/ec/secp256k1"
-	"realy.lol/event"
-	"realy.lol/hex"
-	"realy.lol/ints"
-	"realy.lol/kind"
-	"realy.lol/kinds"
-	"realy.lol/realy/pointers"
-	"realy.lol/sha256"
-	"realy.lol/tag"
-	"realy.lol/tags"
-	"realy.lol/text"
-	"realy.lol/timestamp"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/ec/secp256k1"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/ints"
+	"realy.mleku.dev/kind"
+	"realy.mleku.dev/kinds"
+	"realy.mleku.dev/realy/pointers"
+	"realy.mleku.dev/sha256"
+	"realy.mleku.dev/tag"
+	"realy.mleku.dev/tags"
+	"realy.mleku.dev/text"
+	"realy.mleku.dev/timestamp"
 )
 
 // T is the primary query form for requesting events from a nostr relay.

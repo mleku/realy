@@ -1,7 +1,7 @@
 package dns
 
 import (
-	"realy.lol/lol"
+	"realy.mleku.dev/lol"
 )
 
 var (

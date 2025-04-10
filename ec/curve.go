@@ -6,7 +6,7 @@ package btcec
 import (
 	"fmt"
 
-	"realy.lol/ec/secp256k1"
+	"realy.mleku.dev/ec/secp256k1"
 )
 
 // JacobianPoint is an element of the group formed by the secp256k1 curve in

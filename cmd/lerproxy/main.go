@@ -26,12 +26,12 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/sync/errgroup"
 
-	"realy.lol/cmd/lerproxy/buf"
-	"realy.lol/cmd/lerproxy/hsts"
-	"realy.lol/cmd/lerproxy/reverse"
-	"realy.lol/cmd/lerproxy/tcpkeepalive"
-	"realy.lol/cmd/lerproxy/util"
-	"realy.lol/context"
+	"realy.mleku.dev/cmd/lerproxy/buf"
+	"realy.mleku.dev/cmd/lerproxy/hsts"
+	"realy.mleku.dev/cmd/lerproxy/reverse"
+	"realy.mleku.dev/cmd/lerproxy/tcpkeepalive"
+	"realy.mleku.dev/cmd/lerproxy/util"
+	"realy.mleku.dev/context"
 )
 
 type runArgs struct {

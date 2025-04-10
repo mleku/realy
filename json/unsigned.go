@@ -3,7 +3,7 @@ package json
 import (
 	"golang.org/x/exp/constraints"
 
-	"realy.lol/ints"
+	"realy.mleku.dev/ints"
 )
 
 // Unsigned integers have no possible `-` prefix nor a decimal place.

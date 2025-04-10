@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"realy.lol/httpauth"
+	"realy.mleku.dev/httpauth"
 )
 
 func (s *Server) authAdmin(r *http.Request, tolerance ...time.Duration) (authed bool,

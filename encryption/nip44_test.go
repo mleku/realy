@@ -9,12 +9,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"realy.lol/hex"
-	"realy.lol/keys"
-	"realy.lol/sha256"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/keys"
+	"realy.mleku.dev/sha256"
 )
 
-func assertCryptPriv(t *testing.T, sk1, sk2, conversationKey, salt, plaintext, expected string) {
+func assertCryptPriv(t *testing.T,
+	sk1, sk2, conversationKey, salt, plaintext, expected string) {
 	var (
 		k1, s             []byte
 		actual, decrypted string
@@ -1162,7 +1163,8 @@ func TestMaxLength(t *testing.T) {
 	)
 }
 
-func assertCryptPub(t *testing.T, sk1, pub2, conversationKey, salt, plaintext, expected string) {
+func assertCryptPub(t *testing.T,
+	sk1, pub2, conversationKey, salt, plaintext, expected string) {
 	var (
 		k1, s             []byte
 		actual, decrypted string

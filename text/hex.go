@@ -1,7 +1,7 @@
 package text
 
 import (
-	"realy.lol/hex"
+	"realy.mleku.dev/hex"
 )
 
 // AppendHexFromBinary appends to a hex output from binary input.

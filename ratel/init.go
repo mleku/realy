@@ -8,8 +8,8 @@ import (
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
 
-	"realy.lol/ratel/prefixes"
-	"realy.lol/units"
+	"realy.mleku.dev/ratel/prefixes"
+	"realy.mleku.dev/units"
 )
 
 // Init sets up the database with the loaded configuration.

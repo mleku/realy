@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"testing"
 
-	"realy.lol/ec"
-	"realy.lol/ec/schnorr"
-	"realy.lol/hex"
+	"realy.mleku.dev/ec"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/hex"
 )
 
 var (

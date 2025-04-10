@@ -9,8 +9,8 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/hex"
-	"realy.lol/p256k"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/p256k"
 )
 
 // ComputeSharedSecret returns a shared secret key used to encrypt messages. The private and public keys should be hex

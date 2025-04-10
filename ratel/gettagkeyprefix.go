@@ -1,13 +1,13 @@
 package ratel
 
 import (
-	eventstore "realy.lol/addresstag"
-	"realy.lol/hex"
-	"realy.lol/ratel/keys"
-	"realy.lol/ratel/keys/arb"
-	"realy.lol/ratel/keys/kinder"
-	"realy.lol/ratel/keys/pubkey"
-	"realy.lol/ratel/prefixes"
+	eventstore "realy.mleku.dev/addresstag"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/ratel/keys"
+	"realy.mleku.dev/ratel/keys/arb"
+	"realy.mleku.dev/ratel/keys/kinder"
+	"realy.mleku.dev/ratel/keys/pubkey"
+	"realy.mleku.dev/ratel/prefixes"
 )
 
 // GetTagKeyPrefix returns tag index prefixes based on the initial field of a

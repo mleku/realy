@@ -3,7 +3,7 @@ package unix
 import (
 	"time"
 
-	"realy.lol/ints"
+	"realy.mleku.dev/ints"
 )
 
 type Time struct{ time.Time }

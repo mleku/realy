@@ -6,8 +6,8 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.lol/envelopes"
-	"realy.lol/subscription"
+	"realy.mleku.dev/envelopes"
+	"realy.mleku.dev/subscription"
 )
 
 var messages = [][]byte{

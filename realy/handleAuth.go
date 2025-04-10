@@ -1,12 +1,12 @@
 package realy
 
 import (
-	"realy.lol/auth"
-	"realy.lol/envelopes/authenvelope"
-	"realy.lol/envelopes/okenvelope"
-	"realy.lol/normalize"
-	"realy.lol/relay"
-	"realy.lol/ws"
+	"realy.mleku.dev/auth"
+	"realy.mleku.dev/envelopes/authenvelope"
+	"realy.mleku.dev/envelopes/okenvelope"
+	"realy.mleku.dev/normalize"
+	"realy.mleku.dev/relay"
+	"realy.mleku.dev/ws"
 )
 
 func (s *Server) handleAuth(ws *ws.Listener, req []byte) (msg []byte) {

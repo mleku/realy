@@ -15,9 +15,9 @@ import (
 	"github.com/adrg/xdg"
 	"go-simpler.org/env"
 
-	"realy.lol"
-	"realy.lol/apputil"
-	"realy.lol/config"
+	"realy.mleku.dev"
+	"realy.mleku.dev/apputil"
+	"realy.mleku.dev/config"
 )
 
 // C is the configuration for realy relay. These are read from the environment if present, or if

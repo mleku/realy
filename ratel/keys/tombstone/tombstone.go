@@ -5,8 +5,8 @@ package tombstone
 import (
 	"io"
 
-	"realy.lol/eventid"
-	"realy.lol/ratel/keys"
+	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/ratel/keys"
 )
 
 const Len = 16

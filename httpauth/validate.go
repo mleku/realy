@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"realy.lol/event"
-	"realy.lol/ints"
-	"realy.lol/kind"
-	"realy.lol/tag"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/ints"
+	"realy.mleku.dev/kind"
+	"realy.mleku.dev/tag"
 )
 
 var ErrMissingKey = fmt.Errorf(

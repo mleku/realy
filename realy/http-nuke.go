@@ -6,8 +6,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.lol/context"
-	"realy.lol/store"
+	"realy.mleku.dev/context"
+	"realy.mleku.dev/store"
 )
 
 // Nuke is the HTTP API method to wipe the event store of a relay.

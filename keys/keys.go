@@ -5,9 +5,9 @@ package keys
 import (
 	"bytes"
 
-	"realy.lol/ec/schnorr"
-	"realy.lol/hex"
-	"realy.lol/p256k"
+	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/hex"
+	"realy.mleku.dev/p256k"
 )
 
 // GeneratePrivateKey - deprecated, use GenerateSecretKeyHex

@@ -6,8 +6,8 @@ package tag
 import (
 	"bytes"
 
-	"realy.lol/normalize"
-	"realy.lol/text"
+	"realy.mleku.dev/normalize"
+	"realy.mleku.dev/text"
 )
 
 // The tag position meanings, so they are clear when reading.

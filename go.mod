@@ -1,4 +1,4 @@
-module realy.lol
+module realy.mleku.dev
 
 go 1.24.1
 

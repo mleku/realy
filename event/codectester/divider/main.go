@@ -10,9 +10,9 @@ import (
 	"os"
 	"strings"
 
-	"realy.lol/event"
-	"realy.lol/interrupt"
-	"realy.lol/units"
+	"realy.mleku.dev/event"
+	"realy.mleku.dev/interrupt"
+	"realy.mleku.dev/units"
 )
 
 func main() {

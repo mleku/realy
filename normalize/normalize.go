@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"realy.lol/ints"
+	"realy.mleku.dev/ints"
 )
 
 var (
