@@ -136,8 +136,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	log.I.F("http request: %s from %s", r.URL.String(), helpers.GetRemoteFromReq(r))
 	s.mux.ServeHTTP(w, r)
-	// s.HandleHTTP(w, r)
-	// s.mux.ServeHTTP(w, r)
 }
 
 // Start up the relay.
@@ -150,9 +148,8 @@ func (s *Server) Start(host string, port int, started ...chan bool) error {
 	}
 	s.Addr = ln.Addr().String() // todo: this doesn't seem to do anything
 	s.httpServer = &http.Server{
-		Handler: cors.Default().Handler(s),
-		Addr:    addr,
-		// WriteTimeout: 7 * time.Second,
+		Handler:           cors.Default().Handler(s),
+		Addr:              addr,
 		ReadHeaderTimeout: 7 * time.Second,
 		IdleTimeout:       28 * time.Second,
 	}

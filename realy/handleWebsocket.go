@@ -1,23 +1,15 @@
 package realy
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/fasthttp/websocket"
 
 	"realy.mleku.dev/context"
-	"realy.mleku.dev/envelopes"
 	"realy.mleku.dev/envelopes/authenvelope"
-	"realy.mleku.dev/envelopes/closeenvelope"
-	"realy.mleku.dev/envelopes/eventenvelope"
-	"realy.mleku.dev/envelopes/noticeenvelope"
-	"realy.mleku.dev/envelopes/reqenvelope"
 	"realy.mleku.dev/realy/subscribers"
-	"realy.mleku.dev/relay"
-	"realy.mleku.dev/store"
-	"realy.mleku.dev/ws"
+	"realy.mleku.dev/socketapi"
 )
 
 func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
@@ -90,66 +82,9 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 				}
 				continue
 			}
-			go s.handleMessage(ctx, ws, message, sto)
+			a := &socketapi.A{ws}
+			go s.handleMessage(ctx, a, message, sto)
 		}
 	}()
 	go s.pinger(ctx, ws, conn, ticker, cancel)
-}
-
-func (s *Server) pinger(ctx context.T, ws *ws.Listener, conn *websocket.Conn,
-	ticker *time.Ticker, cancel context.F) {
-	defer func() {
-		cancel()
-		ticker.Stop()
-		_ = conn.Close()
-	}()
-	var err error
-	for {
-		select {
-		case <-ticker.C:
-			err = conn.WriteControl(websocket.PingMessage, nil,
-				time.Now().Add(s.listeners.WriteWait))
-			if err != nil {
-				log.E.F("error writing ping: %v; closing websocket", err)
-				return
-			}
-			ws.RealRemote()
-		case <-ctx.Done():
-			return
-		}
-	}
-}
-
-func (s *Server) handleMessage(c context.T, ws *ws.Listener, msg []byte, sto store.I) {
-	var notice []byte
-	var err error
-	var t string
-	var rem []byte
-	if t, rem, err = envelopes.Identify(msg); chk.E(err) {
-		notice = []byte(err.Error())
-	}
-	switch t {
-	case eventenvelope.L:
-		notice = s.handleEvent(c, ws, rem, sto)
-	// case countenvelope.L:
-	// 	notice = s.handleCount(c, ws, rem, sto)
-	case reqenvelope.L:
-		notice = s.handleReq(c, ws, rem, sto)
-	case closeenvelope.L:
-		notice = s.handleClose(ws, rem)
-	case authenvelope.L:
-		notice = s.handleAuth(ws, rem)
-	default:
-		if cwh, ok := s.relay.(relay.WebSocketHandler); ok {
-			cwh.HandleUnknownType(ws, t, rem)
-		} else {
-			notice = []byte(fmt.Sprintf("unknown envelope type %s\n%s", t, rem))
-		}
-	}
-	if len(notice) > 0 {
-		log.D.F("notice->%s %s", ws.RealRemote(), notice)
-		if err = noticeenvelope.NewFrom(notice).Write(ws); err != nil {
-			return
-		}
-	}
 }

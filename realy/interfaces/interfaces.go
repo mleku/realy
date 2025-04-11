@@ -12,23 +12,25 @@ import (
 )
 
 type Server interface {
-	Context() context.T
-	AdminAuth(r *http.Request,
-		tolerance ...time.Duration) (authed bool, pubkey []byte)
-	Storage() store.I
-	Configuration() store.Configuration
-	SetConfiguration(*store.Configuration)
-	Relay() relay.I
-	Disconnect()
+	AcceptEvent(
+		c context.T, ev *event.T, hr *http.Request, origin string,
+		authedPubkey []byte) (accept bool, notice string, afterSave func())
 	AddEvent(
 		c context.T, rl relay.I, ev *event.T, hr *http.Request,
 		origin string, authedPubkey []byte) (accepted bool,
 		message []byte)
-	AcceptEvent(
-		c context.T, ev *event.T, hr *http.Request, origin string,
-		authedPubkey []byte) (accept bool, notice string, afterSave func())
+	AdminAuth(r *http.Request,
+		tolerance ...time.Duration) (authed bool, pubkey []byte)
+	AuthRequired() bool
+	Configuration() store.Configuration
+	Context() context.T
+	Disconnect()
 	Listeners() *subscribers.S
-	PublicReadable() bool
 	Owners() [][]byte
+	PublicReadable() bool
+	Publish(c context.T, evt *event.T) (err error)
+	Relay() relay.I
+	SetConfiguration(*store.Configuration)
 	Shutdown()
+	Storage() store.I
 }

@@ -1,11 +1,12 @@
-package realy
+package socketapi
 
 import (
 	"realy.mleku.dev/envelopes/closeenvelope"
-	"realy.mleku.dev/ws"
+	"realy.mleku.dev/realy/interfaces"
 )
 
-func (s *Server) handleClose(ws *ws.Listener, req []byte) (note []byte) {
+func (a *A) HandleClose(req []byte,
+	srv interfaces.Server) (note []byte) {
 	var err error
 	var rem []byte
 	env := closeenvelope.New()
@@ -18,6 +19,6 @@ func (s *Server) handleClose(ws *ws.Listener, req []byte) (note []byte) {
 	if env.ID.String() == "" {
 		return []byte("CLOSE has no <id>")
 	}
-	s.listeners.RemoveSubscriberId(ws, env.ID.String())
+	srv.Listeners().RemoveSubscriberId(a.Listener, env.ID.String())
 	return
 }

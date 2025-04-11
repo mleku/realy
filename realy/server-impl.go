@@ -59,4 +59,6 @@ func (s *Server) Context() context.T { return s.Ctx }
 
 func (s *Server) Owners() [][]byte { return s.owners }
 
+func (s *Server) AuthRequired() bool { return s.authRequired }
+
 var _ interfaces.Server = &Server{}

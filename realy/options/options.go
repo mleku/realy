@@ -8,11 +8,13 @@ import (
 	"realy.mleku.dev/event"
 )
 
+type SkipEventFunc func(*event.T) bool
+
 // T is a collection of options.
 type T struct {
 	// SkipEventFunc is in theory a function to test whether an event should not be sent in
 	// response to a query.
-	SkipEventFunc func(*event.T) bool
+	SkipEventFunc
 }
 
 // O is a function that processes an options.T.
