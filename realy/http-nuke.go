@@ -7,14 +7,16 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/store"
 )
 
 // Nuke is the HTTP API method to wipe the event store of a relay.
-type Nuke struct{ *Server }
+type Nuke struct{ interfaces.Server }
 
 // NewNuke creates a new Nuke.
-func NewNuke(s *Server) (ep *Nuke) { return &Nuke{Server: s} }
+func NewNuke(s interfaces.Server) (ep *Nuke) { return &Nuke{Server: s} }
 
 // NukeInput is the parameters for the HTTP API method nuke. Note that it has a confirmation
 // header that must be provided to prevent accidental invocation of this method.
@@ -27,7 +29,7 @@ type NukeInput struct {
 type NukeOutput struct{}
 
 // RegisterNuke is the implementation of the Nuke HTTP API method.
-func (ep *Nuke) RegisterNuke(api huma.API) {
+func (x *Nuke) RegisterNuke(api huma.API) {
 	name := "Nuke"
 	description := "Nuke all events in the database"
 	path := "/nuke"
@@ -39,15 +41,14 @@ func (ep *Nuke) RegisterNuke(api huma.API) {
 		Path:          path,
 		Method:        method,
 		Tags:          []string{"admin"},
-		Description:   generateDescription(description, scopes),
+		Description:   helpers.GenerateDescription(description, scopes),
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *NukeInput) (wgh *NukeOutput, err error) {
 		r := ctx.Value("http-request").(*http.Request)
 		// w := ctx.Value("http-response").(http.ResponseWriter)
 		rr := GetRemoteFromReq(r)
-		s := ep.Server
-		authed, pubkey := s.authAdmin(r)
+		authed, pubkey := x.AdminAuth(r)
 		if !authed {
 			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized("user not authorized for action")
@@ -59,7 +60,7 @@ func (ep *Nuke) RegisterNuke(api huma.API) {
 		}
 		log.I.F("database nuke request from %s pubkey %0x",
 			rr, pubkey)
-		sto := s.relay.Storage()
+		sto := x.Storage()
 		if nuke, ok := sto.(store.Nukener); ok {
 			log.I.F("rescanning")
 			if err = nuke.Nuke(); chk.E(err) {

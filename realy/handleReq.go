@@ -230,6 +230,6 @@ func (s *Server) handleReq(c context.T, ws *ws.Listener, req []byte, sto store.I
 	if env.Filters != allowed {
 		return
 	}
-	s.Listeners.Set(env.Subscription.String(), ws, env.Filters)
+	s.listeners.Set(env.Subscription.String(), ws, env.Filters)
 	return
 }

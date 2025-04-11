@@ -11,13 +11,15 @@ import (
 
 	"realy.mleku.dev/cmd/realy/app"
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 )
 
 // Import is a HTTP API method that accepts events as minified, line structured JSON.
-type Import struct{ *Server }
+type Import struct{ interfaces.Server }
 
 // NewImport creates a new Import.
-func NewImport(s *Server) (ep *Import) {
+func NewImport(s interfaces.Server) (ep *Import) {
 	return &Import{Server: s}
 }
 
@@ -32,7 +34,7 @@ type ImportInput struct {
 type ImportOutput struct{}
 
 // RegisterImport is the implementation of the Import operation.
-func (ep *Import) RegisterImport(api huma.API) {
+func (x *Import) RegisterImport(api huma.API) {
 	name := "Import"
 	description := "Import events from line structured JSON (jsonl)"
 	path := "/import"
@@ -44,25 +46,24 @@ func (ep *Import) RegisterImport(api huma.API) {
 		Path:          path,
 		Method:        method,
 		Tags:          []string{"admin"},
-		Description:   generateDescription(description, scopes),
+		Description:   helpers.GenerateDescription(description, scopes),
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *ImportInput) (wgh *ImportOutput, err error) {
 		r := ctx.Value("http-request").(*http.Request)
 		rr := GetRemoteFromReq(r)
-		s := ep.Server
-		authed, pubkey := s.authAdmin(r, time.Minute*10)
+		authed, pubkey := x.AdminAuth(r, time.Minute*10)
 		if !authed {
 			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized(
 				fmt.Sprintf("user %0x not authorized for action", pubkey))
 			return
 		}
-		sto := s.relay.Storage()
+		sto := x.Storage()
 		if len(input.RawBody) > 0 {
 			read := bytes.NewBuffer(input.RawBody)
 			sto.Import(read)
-			if realy, ok := s.relay.(*app.Relay); ok {
+			if realy, ok := x.Relay().(*app.Relay); ok {
 				realy.ZeroLists()
 				realy.CheckOwnerLists(context.Bg())
 			}
@@ -71,7 +72,7 @@ func (ep *Import) RegisterImport(api huma.API) {
 				pubkey)
 			read := io.LimitReader(r.Body, r.ContentLength)
 			sto.Import(read)
-			if realy, ok := s.relay.(*app.Relay); ok {
+			if realy, ok := x.Relay().(*app.Relay); ok {
 				realy.ZeroLists()
 				realy.CheckOwnerLists(context.Bg())
 			}

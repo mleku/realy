@@ -6,14 +6,16 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/store"
 )
 
 // Configuration is a database-stored configuration struct that can be hot-reloaded.
-type Configuration struct{ *Server }
+type Configuration struct{ interfaces.Server }
 
 // NewConfiguration creates a new Configuration for a Server.
-func NewConfiguration(s *Server) (ep *Configuration) {
+func NewConfiguration(s interfaces.Server) (ep *Configuration) {
 	return &Configuration{Server: s}
 }
 
@@ -31,7 +33,7 @@ type ConfigurationGetInput struct {
 
 // ConfigurationGetOutput is the result of getting Configuration.
 type ConfigurationGetOutput struct {
-	Body *store.Configuration `doc:"the current configuration"`
+	Body store.Configuration `doc:"the current configuration"`
 }
 
 // RegisterConfigurationSet implements the HTTP API for setting Configuration.
@@ -47,28 +49,25 @@ func (x *Configuration) RegisterConfigurationSet(api huma.API) {
 		Path:        path,
 		Method:      method,
 		Tags:        []string{"admin"},
-		Description: generateDescription(description, scopes),
+		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *ConfigurationSetInput) (wgh *struct{}, err error) {
 		log.I.S(input)
 		r := ctx.Value("http-request").(*http.Request)
 		// w := ctx.Value("http-response").(http.ResponseWriter)
 		// rr := GetRemoteFromReq(r)
-		s := x.Server
-		authed, _ := s.authAdmin(r)
+		authed, _ := x.AdminAuth(r)
 		if !authed {
 			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized("authorization required")
 			return
 		}
-		sto := s.relay.Storage()
+		sto := x.Storage()
 		if c, ok := sto.(store.Configurationer); ok {
 			if err = c.SetConfiguration(input.Body); chk.E(err) {
 				return
 			}
-			x.ConfigurationMx.Lock()
-			s.Configuration = input.Body
-			x.ConfigurationMx.Unlock()
+			x.SetConfiguration(input.Body)
 		}
 		return
 	})
@@ -87,29 +86,17 @@ func (x *Configuration) RegisterConfigurationGet(api huma.API) {
 		Path:        path,
 		Method:      method,
 		Tags:        []string{"admin"},
-		Description: generateDescription(description, scopes),
+		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *ConfigurationGetInput) (output *ConfigurationGetOutput,
 		err error) {
 		r := ctx.Value("http-request").(*http.Request)
-		// w := ctx.Value("http-response").(http.ResponseWriter)
-		// rr := GetRemoteFromReq(r)
-		s := x.Server
-		authed, _ := s.authAdmin(r)
+		authed, _ := x.AdminAuth(r)
 		if !authed {
-			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized("authorization required")
 			return
 		}
-		// sto := s.relay.Storage()
-		// if c, ok := sto.(store.Configurationer); ok {
-		// 	var cfg *store.Configuration
-		// 	if cfg, err = c.GetConfiguration(); chk.E(err) {
-		// 		return
-		// 	}
-		x.ConfigurationMx.Lock()
-		output = &ConfigurationGetOutput{Body: s.Configuration}
-		x.ConfigurationMx.Unlock()
+		output = &ConfigurationGetOutput{Body: x.Configuration()}
 		// }
 		return
 	})

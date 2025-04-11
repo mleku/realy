@@ -1,8 +1,7 @@
-package realy
+package humaapi
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
@@ -50,15 +49,4 @@ func NewHuma(router *ServeMux, name, version, description string) (api huma.API)
 	api = humago.New(router, config)
 	api.UseMiddleware(ExposeMiddleware)
 	return
-}
-
-func generateDescription(text string, scopes []string) string {
-	if len(scopes) == 0 {
-		return text
-	}
-	result := make([]string, 0)
-	for _, value := range scopes {
-		result = append(result, "`"+value+"`")
-	}
-	return text + "<br/><br/>**Scopes**<br/>" + strings.Join(result, ", ")
 }

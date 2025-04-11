@@ -29,7 +29,7 @@ type I interface {
 }
 
 type Initer interface {
-	// Init is called at the very beginning by [Server.Start], after [Relay.Init], allowing a
+	// Init is called at the very beginning by [Server.Start], after [relay.Init], allowing a
 	// storage to initialize its internal resources. The parameters can be used by the database
 	// implementations to set custom parameters such as cache management and other relevant
 	// parameters to the specific implementation.
@@ -72,7 +72,7 @@ type Deleter interface {
 }
 
 type Saver interface {
-	// SaveEvent is called once Relay.AcceptEvent reports true.
+	// SaveEvent is called once relay.AcceptEvent reports true.
 	SaveEvent(c context.T, ev *event.T) (err error)
 }
 

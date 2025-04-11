@@ -17,6 +17,7 @@ import (
 
 	realy_lol "realy.mleku.dev"
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/realy/humaapi"
 	"realy.mleku.dev/realy/options"
 	"realy.mleku.dev/realy/subscribers"
 	"realy.mleku.dev/relay"
@@ -32,17 +33,17 @@ type Server struct {
 	clientsMu      sync.Mutex
 	clients        map[*websocket.Conn]struct{}
 	Addr           string
-	mux            *ServeMux
+	mux            *humaapi.ServeMux
 	httpServer     *http.Server
 	authRequired   bool
 	publicReadable bool
 	maxLimit       int
 	admins         []signer.I
 	owners         [][]byte
-	Listeners      *subscribers.S
+	listeners      *subscribers.S
 	huma.API
 	ConfigurationMx sync.Mutex
-	Configuration   *store.Configuration
+	configuration   *store.Configuration
 }
 
 type ServerParams struct {
@@ -70,7 +71,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
 	}
-	serveMux := NewServeMux()
+	serveMux := humaapi.NewServeMux()
 	s = &Server{
 		Ctx:            sp.Ctx,
 		Cancel:         sp.Cancel,
@@ -83,8 +84,8 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 		maxLimit:       sp.MaxLimit,
 		admins:         sp.Admins,
 		owners:         sp.Rl.Owners(),
-		Listeners:      subscribers.New(sp.Ctx),
-		API: NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version,
+		listeners:      subscribers.New(sp.Ctx),
+		API: humaapi.NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version,
 			realy_lol.Description),
 	}
 	huma.AutoRegister(s.API, NewEvent(s))
@@ -105,8 +106,8 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	// load configuration if it has been set
 	if c, ok := s.relay.Storage().(store.Configurationer); ok {
 		s.ConfigurationMx.Lock()
-		if s.Configuration, err = c.GetConfiguration(); chk.E(err) {
-			s.Configuration = &store.Configuration{}
+		if s.configuration, err = c.GetConfiguration(); chk.E(err) {
+			s.configuration = &store.Configuration{}
 		}
 		s.ConfigurationMx.Unlock()
 	}
@@ -119,7 +120,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	if inj, ok := s.relay.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
-				s.Listeners.NotifySubscribers(s.authRequired, s.publicReadable, ev)
+				s.listeners.NotifySubscribers(s.authRequired, s.publicReadable, ev)
 			}
 		}()
 	}
@@ -129,13 +130,11 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 // ServeHTTP implements the relay's http handler.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	remote := GetRemoteFromReq(r)
-	if s.Configuration != nil {
-		for _, a := range s.Configuration.BlockList {
-			if strings.HasPrefix(remote, a) {
-				log.W.F("rejecting request from %s because on blocklist", remote)
-				http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-				return
-			}
+	for _, a := range s.Configuration().BlockList {
+		if strings.HasPrefix(remote, a) {
+			log.W.F("rejecting request from %s because on blocklist", remote)
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
 		}
 	}
 	// standard nostr protocol only governs the "root" path of the relay and websockets

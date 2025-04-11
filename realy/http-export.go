@@ -6,13 +6,15 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 )
 
 // Export is a HTTP API method to export the entire content of an event store to an admin user.
-type Export struct{ *Server }
+type Export struct{ interfaces.Server }
 
 // NewExport creates a new Export.
-func NewExport(s *Server) (ep *Export) {
+func NewExport(s interfaces.Server) (ep *Export) {
 	return &Export{Server: s}
 }
 
@@ -28,7 +30,7 @@ type ExportInput struct {
 type ExportOutput struct{ RawBody []byte }
 
 // RegisterExport implements the Export HTTP API method.
-func (ep *Export) RegisterExport(api huma.API) {
+func (x *Export) RegisterExport(api huma.API) {
 	name := "Export"
 	description := "Export all events (only works with NIP-98/JWT capable client, will not work with UI)"
 	path := "/export"
@@ -40,15 +42,14 @@ func (ep *Export) RegisterExport(api huma.API) {
 		Path:        path,
 		Method:      method,
 		Tags:        []string{"admin"},
-		Description: generateDescription(description, scopes),
+		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *ExportInput) (resp *huma.StreamResponse, err error) {
 		r := ctx.Value("http-request").(*http.Request)
 		rr := GetRemoteFromReq(r)
 		log.I.F("processing export from %s", rr)
 		// w := ctx.Value("http-response").(http.ResponseWriter)
-		s := ep.Server
-		authed, pubkey := s.authAdmin(r)
+		authed, pubkey := x.AdminAuth(r)
 		if !authed {
 			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized("Not Authorized")
@@ -56,11 +57,11 @@ func (ep *Export) RegisterExport(api huma.API) {
 		}
 		log.I.F("export of event data requested on admin port from %s pubkey %0x",
 			rr, pubkey)
-		sto := s.relay.Storage()
+		sto := x.Storage()
 		resp = &huma.StreamResponse{
 			func(ctx huma.Context) {
 				ctx.SetHeader("Content-Type", "application/nostr+jsonl")
-				sto.Export(s.Ctx, ctx.BodyWriter())
+				sto.Export(x.Context(), ctx.BodyWriter())
 				if f, ok := ctx.BodyWriter().(http.Flusher); ok {
 					f.Flush()
 				} else {

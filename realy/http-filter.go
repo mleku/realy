@@ -17,6 +17,8 @@ import (
 	"realy.mleku.dev/httpauth"
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/kinds"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/store"
 	"realy.mleku.dev/tag"
@@ -33,10 +35,10 @@ type SimpleFilter struct {
 
 // Filter is a HTTP API method for performing a filter search for events based on kind, author
 // and tags.
-type Filter struct{ *Server }
+type Filter struct{ interfaces.Server }
 
 // NewFilter creates a new Filter.
-func NewFilter(s *Server) (ep *Filter) { return &Filter{Server: s} }
+func NewFilter(s interfaces.Server) (ep *Filter) { return &Filter{Server: s} }
 
 // FilterInput is the parameters for a Filter HTTP API call.
 type FilterInput struct {
@@ -88,7 +90,7 @@ type FilterOutput struct {
 }
 
 // RegisterFilter is the implementation of the HTTP API Filter method.
-func (ep *Filter) RegisterFilter(api huma.API) {
+func (x *Filter) RegisterFilter(api huma.API) {
 	name := "Filter"
 	description := "Search for events and receive a sorted list of event Ids (one of authors, kinds or tags must be present)"
 	path := "/filter"
@@ -100,7 +102,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 		Path:        path,
 		Method:      method,
 		Tags:        []string{"events"},
-		Description: generateDescription(description, scopes),
+		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *FilterInput) (output *FilterOutput, err error) {
 		log.I.S(input)
@@ -111,9 +113,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 		}
 		log.I.F("%s", f.Marshal(nil))
 		r := ctx.Value("http-request").(*http.Request)
-		// w := ctx.Value("http-response").(http.ResponseWriter)
 		rr := GetRemoteFromReq(r)
-		// s := ep.Server
 		if len(input.Body.Authors) < 1 && len(input.Body.Kinds) < 1 && len(input.Body.Tags) < 1 {
 			err = huma.Error400BadRequest(
 				"cannot process filter with none of Authors/Kinds/Tags")
@@ -133,27 +133,24 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 			err = huma.Error401Unauthorized("Authorization header is invalid")
 			return
 		}
-		// log.I.ToSliceOfBytes("processing req\n%s\n", f.Serialize())
 		allowed := filters.New(f)
-		if accepter, ok := ep.relay.(relay.ReqAcceptor); ok {
+		if accepter, ok := x.Relay().(relay.ReqAcceptor); ok {
 			var accepted, modified bool
-			allowed, accepted, modified = accepter.AcceptReq(ep.Ctx, r, nil, filters.New(f),
-				pubkey)
+			allowed, accepted, modified = accepter.AcceptReq(x.Context(), r, nil,
+				filters.New(f), pubkey)
 			if !accepted {
 				err = huma.Error401Unauthorized("auth to get access for this filter")
 				return
 			} else if modified {
 				log.D.F("filter modified %s", allowed.F[0])
-				// err = huma.Error401Unauthorized("returning results from modified filter; auth to get full access")
 			}
 		}
 		if len(allowed.F) == 0 {
 			err = huma.Error401Unauthorized("all kinds in event restricted; auth to get access for this filter")
 			return
 		}
-		// log.I.ToSliceOfBytes("allowed\n%s\n", allowed.Marshal(nil))
 		if f.Kinds.IsPrivileged() {
-			if auther, ok := ep.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+			if auther, ok := x.Relay().(relay.Authenticator); ok && auther.AuthEnabled() {
 				log.T.F("privileged request\n%s", f.Serialize())
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("#p"))
@@ -172,7 +169,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 				}
 			}
 		}
-		sto := ep.relay.Storage()
+		sto := x.Storage()
 		var ok bool
 		var quer store.Querier
 		if quer, ok = sto.(store.Querier); !ok {
@@ -180,7 +177,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 			return
 		}
 		var evs []store.IdTsPk
-		if evs, err = quer.QueryForIds(ep.Ctx, allowed.F[0]); chk.E(err) {
+		if evs, err = quer.QueryForIds(x.Context(), allowed.F[0]); chk.E(err) {
 			err = huma.Error500InternalServerError("error querying for events", err)
 			return
 		}
@@ -201,7 +198,7 @@ func (ep *Filter) RegisterFilter(api huma.API) {
 			// remove events from results if we find the user's mute list, that are present
 			// on this list
 			var mutes event.Ts
-			if mutes, err = sto.QueryEvents(ep.Ctx, &filter.T{Authors: tag.New(pubkey),
+			if mutes, err = sto.QueryEvents(x.Context(), &filter.T{Authors: tag.New(pubkey),
 				Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
 				var mutePubs [][]byte
 				for _, ev := range mutes {

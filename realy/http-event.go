@@ -15,16 +15,18 @@ import (
 	"realy.mleku.dev/httpauth"
 	"realy.mleku.dev/ints"
 	"realy.mleku.dev/kind"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/sha256"
 	"realy.mleku.dev/tag"
 )
 
 // Event is the HTTP API method for publishing a new event.T.
-type Event struct{ *Server }
+type Event struct{ interfaces.Server }
 
 // NewEvent creates a new Event.
-func NewEvent(s *Server) (ep *Event) {
+func NewEvent(s interfaces.Server) (ep *Event) {
 	return &Event{Server: s}
 }
 
@@ -38,7 +40,7 @@ type EventInput struct {
 type EventOutput struct{ Body string }
 
 // RegisterEvent is the implementatino of the HTTP API Event method.
-func (ep *Event) RegisterEvent(api huma.API) {
+func (x *Event) RegisterEvent(api huma.API) {
 	name := "Event"
 	description := "Submit an event"
 	path := "/event"
@@ -50,7 +52,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		Path:        path,
 		Method:      method,
 		Tags:        []string{"events"},
-		Description: generateDescription(description, scopes),
+		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *EventInput) (output *EventOutput, err error) {
 		r := ctx.Value("http-request").(*http.Request)
@@ -62,8 +64,10 @@ func (ep *Event) RegisterEvent(api huma.API) {
 			return
 		}
 		var ok bool
-		s := ep.Server
-		sto := s.relay.Storage()
+		sto := x.Storage()
+		if sto == nil {
+			panic("no event store has been set to store event")
+		}
 		advancedDeleter, _ := sto.(relay.AdvancedDeleter)
 		var valid bool
 		var pubkey []byte
@@ -83,7 +87,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		// if there was auth, or no auth, check the relay policy allows accepting the
 		// event (no auth with auth required or auth not valid for action can apply
 		// here).
-		accept, notice, after := s.relay.AcceptEvent(ctx, ev, r, rr, pubkey)
+		accept, notice, after := x.AcceptEvent(ctx, ev, r, rr, pubkey)
 		if !accept {
 			err = huma.Error401Unauthorized(notice)
 			return
@@ -99,10 +103,6 @@ func (ep *Event) RegisterEvent(api huma.API) {
 			err = huma.Error400BadRequest("signature is invalid")
 			return
 		}
-		storage := s.relay.Storage()
-		if storage == nil {
-			panic("no event store has been set to store event")
-		}
 		if ev.Kind.K == kind.Deletion.K {
 			log.I.F("delete event\n%s", ev.Serialize())
 			for _, t := range ev.Tags.ToSliceOfTags() {
@@ -114,7 +114,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 						if _, err = hex.DecBytes(evId, t.Value()); chk.E(err) {
 							continue
 						}
-						res, err = storage.QueryEvents(ctx, &filter.T{IDs: tag.New(evId)})
+						res, err = sto.QueryEvents(ctx, &filter.T{IDs: tag.New(evId)})
 						if err != nil {
 							err = huma.Error500InternalServerError(err.Error())
 							return
@@ -163,7 +163,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 						f.Kinds.K = []*kind.T{kk}
 						f.Authors.Append(pk)
 						f.Tags.AppendTags(tag.New([]byte{'#', 'd'}, split[2]))
-						res, err = storage.QueryEvents(ctx, f)
+						res, err = sto.QueryEvents(ctx, f)
 						if err != nil {
 							err = huma.Error500InternalServerError(err.Error())
 							return
@@ -212,7 +212,7 @@ func (ep *Event) RegisterEvent(api huma.API) {
 			return
 		}
 		var reason []byte
-		ok, reason = s.addEvent(ctx, s.relay, ev, r, rr, pubkey)
+		ok, reason = x.AddEvent(ctx, x.Relay(), ev, r, rr, pubkey)
 		// return the response whether true or false and any reason if false
 		if ok {
 		} else {
@@ -226,10 +226,10 @@ func (ep *Event) RegisterEvent(api huma.API) {
 		// notify subscribers
 		var authRequired bool
 		var ar relay.Authenticator
-		if ar, ok = s.relay.(relay.Authenticator); ok {
+		if ar, ok = x.Relay().(relay.Authenticator); ok {
 			authRequired = ar.AuthEnabled()
 		}
-		s.Listeners.NotifySubscribers(authRequired, s.publicReadable, ev)
+		x.Listeners().NotifySubscribers(authRequired, x.PublicReadable(), ev)
 		return
 	})
 }

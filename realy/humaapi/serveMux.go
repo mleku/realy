@@ -1,4 +1,4 @@
-package realy
+package humaapi
 
 import "net/http"
 

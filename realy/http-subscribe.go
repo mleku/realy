@@ -16,15 +16,17 @@ import (
 	"realy.mleku.dev/httpauth"
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/kinds"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/realy/subscribers"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tags"
 )
 
-type Subscribe struct{ *Server }
+type Subscribe struct{ interfaces.Server }
 
-func NewSubscribe(s *Server) (ep *Subscribe) { return &Subscribe{Server: s} }
+func NewSubscribe(s interfaces.Server) (ep *Subscribe) { return &Subscribe{Server: s} }
 
 type SubscribeInput struct {
 	Auth   string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
@@ -57,7 +59,7 @@ func (fi SubscribeInput) ToFilter() (f *filter.T, err error) {
 	return
 }
 
-func (ep *Subscribe) RegisterSubscribe(api huma.API) {
+func (x *Subscribe) RegisterSubscribe(api huma.API) {
 	name := "Subscribe"
 	description := "Subscribe for newly published events by author, kind or tags; empty also allowed, which just sends all incoming events - uses Server Sent Events format for compatibility with standard libraries."
 	path := "/subscribe"
@@ -69,7 +71,7 @@ func (ep *Subscribe) RegisterSubscribe(api huma.API) {
 		Path:        path,
 		Method:      method,
 		Tags:        []string{"events"},
-		Description: generateDescription(description, scopes),
+		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	},
 		map[string]any{
@@ -85,9 +87,7 @@ func (ep *Subscribe) RegisterSubscribe(api huma.API) {
 			}
 			log.I.F("%s", f.Marshal(nil))
 			r := ctx.Value("http-request").(*http.Request)
-			// w := ctx.Value("http-response").(http.ResponseWriter)
 			rr := GetRemoteFromReq(r)
-			s := ep.Server
 			var valid bool
 			var pubkey []byte
 			valid, pubkey, err = httpauth.CheckAuth(r)
@@ -102,27 +102,25 @@ func (ep *Subscribe) RegisterSubscribe(api huma.API) {
 				err = huma.Error401Unauthorized("Authorization header is invalid")
 				return
 			}
-			// log.I.ToSliceOfBytes("processing req\n%s\n", f.Serialize())
 			allowed := filters.New(f)
-			if accepter, ok := ep.relay.(relay.ReqAcceptor); ok {
+			if accepter, ok := x.Relay().(relay.ReqAcceptor); ok {
 				var accepted, modified bool
-				allowed, accepted, modified = accepter.AcceptReq(ep.Ctx, r, nil, filters.New(f),
+				allowed, accepted, modified = accepter.AcceptReq(x.Context(), r, nil,
+					filters.New(f),
 					pubkey)
 				if !accepted {
 					err = huma.Error401Unauthorized("auth to get access for this filter")
 					return
 				} else if modified {
 					log.D.F("filter modified %s", allowed.F[0])
-					// err = huma.Error401Unauthorized("returning results from modified filter; auth to get full access")
 				}
 			}
 			if len(allowed.F) == 0 {
 				err = huma.Error401Unauthorized("all kinds in event restricted; auth to get access for this filter")
 				return
 			}
-			// log.I.ToSliceOfBytes("allowed\n%s\n", allowed.Marshal(nil))
 			if f.Kinds.IsPrivileged() {
-				if auther, ok := ep.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+				if auther, ok := x.Relay().(relay.Authenticator); ok && auther.AuthEnabled() {
 					log.T.F("privileged request\n%s", f.Serialize())
 					senders := f.Authors
 					receivers := f.Tags.GetAll(tag.New("#p"))
@@ -141,42 +139,23 @@ func (ep *Subscribe) RegisterSubscribe(api huma.API) {
 					}
 				}
 			}
-			// register the filter with the Listeners
+			// register the filter with the listeners
 			receiver := make(event.C, 32)
-			s.Listeners.Hchan <- subscribers.H{
+			x.Listeners().Hchan <- subscribers.H{
 				Ctx:      r.Context(),
 				Receiver: receiver,
 				Pubkey:   pubkey,
 				Filter:   f,
 			}
-			// output = &huma.StreamResponse{
-			// 	func(ctx huma.Context) {
-			// 		ctx.SetHeader("Content-Type", "text/event-stream")
-			// 		ctx.SetHeader("X-Accel-Buffering", "no")
-			// 		ctx.SetHeader("Cache-Control", "no-cache")
-			// 		w := ctx.BodyWriter()
-			// 		tick := time.NewTicker(time.Second)
 		out:
 			for {
 				select {
-				// case <-tick.C:
-				// 	log.I.ToSliceOfBytes("tick")
 				case <-r.Context().Done():
 					break out
 				case ev := <-receiver:
 					if err = send.Data(ev.ToEventJ()); chk.E(err) {
 					}
-					// w.Write([]byte("data: "))
-					// w.Write(ev.Serialize())
-					// w.Write([]byte("\n\n"))
-					// if f, ok := ctx.BodyWriter().(http.Flusher); ok {
-					// 	f.Flush()
-					// } else {
-					// 	log.W.ToSliceOfBytes("error: unable to flush")
-					// }
-					// }
 				}
-				// },
 			}
 
 			return

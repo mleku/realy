@@ -6,12 +6,14 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/store"
 )
 
-type Rescan struct{ *Server }
+type Rescan struct{ interfaces.Server }
 
-func NewRescan(s *Server) (ep *Rescan) {
+func NewRescan(s interfaces.Server) (ep *Rescan) {
 	return &Rescan{Server: s}
 }
 
@@ -21,7 +23,7 @@ type RescanInput struct {
 
 type RescanOutput struct{}
 
-func (ep *Rescan) RegisterRescan(api huma.API) {
+func (x *Rescan) RegisterRescan(api huma.API) {
 	name := "Rescan"
 	description := "Rescan all events and rewrite their indexes (to enable new indexes on old events)"
 	path := "/rescan"
@@ -33,23 +35,20 @@ func (ep *Rescan) RegisterRescan(api huma.API) {
 		Path:          path,
 		Method:        method,
 		Tags:          []string{"admin"},
-		Description:   generateDescription(description, scopes),
+		Description:   helpers.GenerateDescription(description, scopes),
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *RescanInput) (wgh *RescanOutput, err error) {
 		r := ctx.Value("http-request").(*http.Request)
-		// w := ctx.Value("http-response").(http.ResponseWriter)
 		rr := GetRemoteFromReq(r)
-		s := ep.Server
-		authed, pubkey := s.authAdmin(r)
+		authed, pubkey := x.AdminAuth(r)
 		if !authed {
-			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized("not authorized")
 			return
 		}
 		log.I.F("index rescan requested on admin port from %s pubkey %0x",
 			rr, pubkey)
-		sto := s.relay.Storage()
+		sto := x.Storage()
 		if rescanner, ok := sto.(store.Rescanner); ok {
 			log.I.F("rescanning")
 			if err = rescanner.Rescan(); chk.E(err) {

@@ -6,13 +6,15 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 )
 
 // Disconnect is the HTTP API ta trigger disconnecting all currently open websockets.
-type Disconnect struct{ *Server }
+type Disconnect struct{ interfaces.Server }
 
 // NewDisconnect creates a new Disconnect.
-func NewDisconnect(s *Server) (ep *Disconnect) {
+func NewDisconnect(s interfaces.Server) (ep *Disconnect) {
 	return &Disconnect{Server: s}
 }
 
@@ -37,21 +39,18 @@ func (x *Disconnect) RegisterDisconnect(api huma.API) {
 		Path:          path,
 		Method:        method,
 		Tags:          []string{"admin"},
-		Description:   generateDescription(description, scopes),
+		Description:   helpers.GenerateDescription(description, scopes),
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *DisconnectInput) (wgh *DisconnectOutput, err error) {
 		r := ctx.Value("http-request").(*http.Request)
-		// w := ctx.Value("http-response").(http.ResponseWriter)
-		// rr := GetRemoteFromReq(r)
-		s := x.Server
-		authed, _ := s.authAdmin(r)
+		authed, _ := x.AdminAuth(r)
 		if !authed {
 			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized("authorization required")
 			return
 		}
-		x.Server.Disconnect()
+		x.Disconnect()
 		return
 	})
 }

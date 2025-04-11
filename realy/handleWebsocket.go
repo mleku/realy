@@ -29,7 +29,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	s.clientsMu.Lock()
 	defer s.clientsMu.Unlock()
 	s.clients[conn] = struct{}{}
-	ticker := time.NewTicker(s.Listeners.PingPeriod)
+	ticker := time.NewTicker(s.listeners.PingPeriod)
 	ip := conn.RemoteAddr().String()
 	var realIP string
 	if realIP = r.Header.Get("X-Forwarded-For"); realIP != "" {
@@ -38,7 +38,7 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 		ip = realIP
 	}
 	log.T.F("connected from %s", ip)
-	ws := s.Listeners.GetChallenge(conn, r, ip)
+	ws := s.listeners.GetChallenge(conn, r, ip)
 	ctx, cancel := context.Cancel(context.Bg())
 	sto := s.relay.Storage()
 	go func() {
@@ -49,14 +49,14 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 			if _, ok := s.clients[conn]; ok {
 				chk.E(conn.Close())
 				delete(s.clients, conn)
-				s.Listeners.RemoveSubscriber(ws)
+				s.listeners.RemoveSubscriber(ws)
 			}
 			s.clientsMu.Unlock()
 		}()
-		conn.SetReadLimit(s.Listeners.MaxMessageSize)
-		chk.E(conn.SetReadDeadline(time.Now().Add(s.Listeners.PongWait)))
+		conn.SetReadLimit(s.listeners.MaxMessageSize)
+		chk.E(conn.SetReadDeadline(time.Now().Add(s.listeners.PongWait)))
 		conn.SetPongHandler(func(string) error {
-			chk.E(conn.SetReadDeadline(time.Now().Add(s.Listeners.PongWait)))
+			chk.E(conn.SetReadDeadline(time.Now().Add(s.listeners.PongWait)))
 			return nil
 		})
 		if s.authRequired {
@@ -108,7 +108,7 @@ func (s *Server) pinger(ctx context.T, ws *ws.Listener, conn *websocket.Conn,
 		select {
 		case <-ticker.C:
 			err = conn.WriteControl(websocket.PingMessage, nil,
-				time.Now().Add(s.Listeners.WriteWait))
+				time.Now().Add(s.listeners.WriteWait))
 			if err != nil {
 				log.E.F("error writing ping: %v; closing websocket", err)
 				return

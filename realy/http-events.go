@@ -12,16 +12,18 @@ import (
 	"realy.mleku.dev/ec/schnorr"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/httpauth"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/sha256"
 	"realy.mleku.dev/store"
 	"realy.mleku.dev/tag"
 )
 
 // Events is a HTTP API method to retrieve a number of events from their event Ids.
-type Events struct{ *Server }
+type Events struct{ interfaces.Server }
 
 // NewEvents creates a new Events with a provided Server.
-func NewEvents(s *Server) (ep *Events) {
+func NewEvents(s interfaces.Server) (ep *Events) {
 	return &Events{Server: s}
 }
 
@@ -32,7 +34,7 @@ type EventsInput struct {
 }
 
 // RegisterEvents is the implementation of the HTTP API for Events.
-func (ep *Events) RegisterEvents(api huma.API) {
+func (x *Events) RegisterEvents(api huma.API) {
 	name := "Events"
 	description := "Returns the full events from a list of event Ids as a line structured JSON. Auth required to fetch more than 1000 events, and if not enabled, 1000 is the limit."
 	path := "/events"
@@ -44,7 +46,7 @@ func (ep *Events) RegisterEvents(api huma.API) {
 		Path:          path,
 		Method:        method,
 		Tags:          []string{"events"},
-		Description:   generateDescription(description, scopes),
+		Description:   helpers.GenerateDescription(description, scopes),
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *EventsInput) (output *huma.StreamResponse, err error) {
@@ -60,9 +62,6 @@ func (ep *Events) RegisterEvents(api huma.API) {
 			authrequired = true
 		}
 		r := ctx.Value("http-request").(*http.Request)
-		// w := ctx.Value("http-response").(http.ResponseWriter)
-		// rr := GetRemoteFromReq(r)
-		s := ep.Server
 		var valid bool
 		var pubkey []byte
 		valid, pubkey, err = httpauth.CheckAuth(r)
@@ -79,12 +78,12 @@ func (ep *Events) RegisterEvents(api huma.API) {
 			return
 		}
 		if authrequired && valid {
-			if len(s.owners) < 1 {
+			if len(x.Owners()) < 1 {
 				err = huma.Error400BadRequest(
 					"cannot process more than 1000 events in a request without auth enabled")
 				return
 			}
-			if rl, ok := s.relay.(*app.Relay); ok {
+			if rl, ok := x.Relay().(*app.Relay); ok {
 				rl.Lock()
 				// we only allow the first level of the allowed users this kind of access
 				if _, ok = rl.OwnersFollowed[string(pubkey)]; !ok {
@@ -100,8 +99,7 @@ func (ep *Events) RegisterEvents(api huma.API) {
 			err = huma.Error401Unauthorized("Authorization header is invalid")
 			return
 		}
-		_ = pubkey
-		sto := ep.relay.Storage()
+		sto := x.Storage()
 		var evIds [][]byte
 		for _, id := range input.Body {
 			var idb []byte
@@ -118,7 +116,7 @@ func (ep *Events) RegisterEvents(api huma.API) {
 		if idsWriter, ok := sto.(store.GetIdsWriter); ok {
 			output = &huma.StreamResponse{
 				func(ctx huma.Context) {
-					if err = idsWriter.FetchIds(s.Ctx, tag.New(evIds...),
+					if err = idsWriter.FetchIds(x.Context(), tag.New(evIds...),
 						ctx.BodyWriter()); chk.E(err) {
 						return
 					}

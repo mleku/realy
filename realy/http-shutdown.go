@@ -7,11 +7,13 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 )
 
-type Shutdown struct{ *Server }
+type Shutdown struct{ interfaces.Server }
 
-func NewShutdown(s *Server) (ep *Shutdown) {
+func NewShutdown(s interfaces.Server) (x *Shutdown) {
 	return &Shutdown{Server: s}
 }
 
@@ -23,7 +25,7 @@ type ShutdownOutput struct{}
 
 func (x *Shutdown) RegisterShutdown(api huma.API) {
 	name := "Shutdown"
-	description := "Shutdown Relay"
+	description := "Shutdown relay"
 	path := "/shutdown"
 	scopes := []string{"admin"}
 	method := http.MethodGet
@@ -33,23 +35,19 @@ func (x *Shutdown) RegisterShutdown(api huma.API) {
 		Path:          path,
 		Method:        method,
 		Tags:          []string{"admin"},
-		Description:   generateDescription(description, scopes),
+		Description:   helpers.GenerateDescription(description, scopes),
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *ShutdownInput) (wgh *ShutdownOutput, err error) {
 		r := ctx.Value("http-request").(*http.Request)
-		// w := ctx.Value("http-response").(http.ResponseWriter)
-		// rr := GetRemoteFromReq(r)
-		s := x.Server
-		authed, _ := s.authAdmin(r)
+		authed, _ := x.AdminAuth(r)
 		if !authed {
-			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized("authorization required")
 			return
 		}
 		go func() {
 			time.Sleep(time.Second)
-			x.Server.Shutdown()
+			x.Shutdown()
 		}()
 
 		return

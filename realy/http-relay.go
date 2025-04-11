@@ -10,14 +10,16 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/httpauth"
+	"realy.mleku.dev/realy/helpers"
+	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/relay"
 )
 
 // Relay is the HTTP API method for submitting an event only to subscribers and not saving it.
-type Relay struct{ *Server }
+type Relay struct{ interfaces.Server }
 
 // NewRelay creates a new Relay.
-func NewRelay(s *Server) (ep *Relay) {
+func NewRelay(s interfaces.Server) (ep *Relay) {
 	return &Relay{Server: s}
 }
 
@@ -31,9 +33,9 @@ type RelayInput struct {
 type RelayOutput struct{ Body string }
 
 // RegisterRelay is the implementatino of the HTTP API Relay method.
-func (ep *Relay) RegisterRelay(api huma.API) {
-	name := "Relay"
-	description := "Relay an event, don't store it"
+func (x *Relay) RegisterRelay(api huma.API) {
+	name := "relay"
+	description := "relay an event, don't store it"
 	path := "/relay"
 	scopes := []string{"user"}
 	method := http.MethodPost
@@ -43,18 +45,15 @@ func (ep *Relay) RegisterRelay(api huma.API) {
 		Path:        path,
 		Method:      method,
 		Tags:        []string{"events"},
-		Description: generateDescription(description, scopes),
+		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *RelayInput) (output *RelayOutput, err error) {
 		log.I.S(input)
 		r := ctx.Value("http-request").(*http.Request)
-		// w := ctx.Value("http-response").(http.ResponseWriter)
 		rr := GetRemoteFromReq(r)
-		s := ep.Server
 		var valid bool
 		var pubkey []byte
 		valid, pubkey, err = httpauth.CheckAuth(r)
-		// missing := !errors.Is(err, httpauth.ErrMissingKey)
 		// if there is an error but not that the token is missing, or there is no error
 		// but the signature is invalid, return error that request is unauthorized.
 		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
@@ -75,7 +74,7 @@ func (ep *Relay) RegisterRelay(api huma.API) {
 			err = huma.Error406NotAcceptable(err.Error())
 			return
 		}
-		accept, notice, _ := s.relay.AcceptEvent(ctx, ev, r, rr, pubkey)
+		accept, notice, _ := x.AcceptEvent(ctx, ev, r, rr, pubkey)
 		if !accept {
 			err = huma.Error401Unauthorized(notice)
 			return
@@ -93,11 +92,10 @@ func (ep *Relay) RegisterRelay(api huma.API) {
 		}
 		var authRequired bool
 		var ar relay.Authenticator
-		if ar, ok = s.relay.(relay.Authenticator); ok {
+		if ar, ok = x.Relay().(relay.Authenticator); ok {
 			authRequired = ar.AuthEnabled()
 		}
-		s.Listeners.NotifySubscribers(authRequired, s.publicReadable, ev)
-		// s := ep.Server
+		x.Listeners().NotifySubscribers(authRequired, x.PublicReadable(), ev)
 		return
 	})
 }

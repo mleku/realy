@@ -9,8 +9,8 @@ import (
 	"realy.mleku.dev/httpauth"
 )
 
-func (s *Server) authAdmin(r *http.Request, tolerance ...time.Duration) (authed bool,
-	pubkey []byte) {
+func (s *Server) adminAuth(r *http.Request,
+	tolerance ...time.Duration) (authed bool, pubkey []byte) {
 	var valid bool
 	var err error
 	var tolerate time.Duration
