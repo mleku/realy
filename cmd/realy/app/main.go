@@ -103,7 +103,7 @@ func (r *Relay) ZeroLists() {
 func (r *Relay) AcceptEvent(c context.T, evt *event.T, hr *http.Request,
 	origin string, authedPubkey []byte) (accept bool, notice string, afterSave func()) {
 	// if the authenticator is enabled we require auth to accept events
-	if !r.AuthEnabled() && len(r.owners) < 1 {
+	if !r.AuthRequired() && len(r.owners) < 1 {
 		return true, "", nil
 	}
 	// if evt.CreatedAt.I64()-10 > time.Now().Unix() {
@@ -439,12 +439,12 @@ func (r *Relay) CheckOwnerLists(c context.T) {
 	}
 }
 
-func (r *Relay) AuthEnabled() bool { return r.AuthRequired || !r.PublicReadable || len(r.owners) > 0 }
+func (r *Relay) AuthRequired() bool { return !r.PublicReadable || len(r.owners) > 0 }
 
 // ServiceUrl returns the address of the relay to send back in auth responses.
 // If auth is disabled this returns an empty string.
 func (r *Relay) ServiceUrl(req *http.Request) (s string) {
-	if !r.AuthEnabled() {
+	if !r.AuthRequired() {
 		return
 	}
 	host := req.Header.Get("X-Forwarded-Host")

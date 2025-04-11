@@ -1,4 +1,4 @@
-package realy
+package openapi
 
 import (
 	"net/http"
@@ -7,22 +7,11 @@ import (
 
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/realy/interfaces"
 )
-
-// Export is a HTTP API method to export the entire content of an event store to an admin user.
-type Export struct{ interfaces.Server }
-
-// NewExport creates a new Export.
-func NewExport(s interfaces.Server) (ep *Export) {
-	return &Export{Server: s}
-}
 
 // ExportInput is the parameters for the HTTP API Export method.
 type ExportInput struct {
-	Auth        string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
-	Accept      string `header:"Accept" default:"application/nostr+jsonl" enum:"application/nostr+jsonl" required:"false"`
-	ContentType string `header:"Content-Type" default:"application/nostr+jsonl" enum:"application/nostr+jsonl" required:"false"`
+	Auth string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true"`
 }
 
 // ExportOutput is the return value of Export. It usually will be line structured JSON. In
@@ -30,7 +19,7 @@ type ExportInput struct {
 type ExportOutput struct{ RawBody []byte }
 
 // RegisterExport implements the Export HTTP API method.
-func (x *Export) RegisterExport(api huma.API) {
+func (x *Operations) RegisterExport(api huma.API) {
 	name := "Export"
 	description := "Export all events (only works with NIP-98/JWT capable client, will not work with UI)"
 	path := "/export"
@@ -46,7 +35,7 @@ func (x *Export) RegisterExport(api huma.API) {
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *ExportInput) (resp *huma.StreamResponse, err error) {
 		r := ctx.Value("http-request").(*http.Request)
-		rr := GetRemoteFromReq(r)
+		rr := helpers.GetRemoteFromReq(r)
 		log.I.F("processing export from %s", rr)
 		// w := ctx.Value("http-response").(http.ResponseWriter)
 		authed, pubkey := x.AdminAuth(r)

@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) handleAuth(ws *ws.Listener, req []byte) (msg []byte) {
-	if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+	if auther, ok := s.relay.(relay.Authenticator); ok && auther.AuthRequired() {
 		svcUrl := auther.ServiceUrl(ws.Req())
 		if svcUrl == "" {
 			return

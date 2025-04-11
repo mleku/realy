@@ -43,7 +43,7 @@ func (s *Server) handleReq(c context.T, ws *ws.Listener, req []byte, sto store.I
 			[]byte(ws.Authed()))
 		if !accepted || allowed == nil || modified {
 			var auther relay.Authenticator
-			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
+			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthRequired() && !ws.AuthRequested() {
 				ws.RequestAuth()
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for request processing")).Write(ws); chk.E(err) {
@@ -64,7 +64,7 @@ func (s *Server) handleReq(c context.T, ws *ws.Listener, req []byte, sto store.I
 		defer func() {
 			var auther relay.Authenticator
 			var ok bool
-			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() &&
+			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthRequired() &&
 				!ws.AuthRequested() {
 				ws.RequestAuth()
 				if err = closedenvelope.NewFrom(env.Subscription,
@@ -92,7 +92,7 @@ func (s *Server) handleReq(c context.T, ws *ws.Listener, req []byte, sto store.I
 		}
 		var auther relay.Authenticator
 		var ok bool
-		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+		if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthRequired() {
 			if f.Kinds.IsPrivileged() {
 				log.T.F("privileged request\n%s", f.Serialize())
 				senders := f.Authors

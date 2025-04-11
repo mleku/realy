@@ -75,7 +75,7 @@ type FilterAcceptor interface {
 // Authenticator is the interface for implementing NIP-42.
 // ServiceURL() returns the URL used to verify the "AUTH" event from clients.
 type Authenticator interface {
-	AuthEnabled() bool
+	AuthRequired() bool
 	ServiceUrl(r *http.Request) string
 }
 

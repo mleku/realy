@@ -24,7 +24,7 @@ package realy
 // 			[]byte(ws.Authed()))
 // 		if !accepted || allowed == nil || modified {
 // 			var auther relay.Authenticator
-// 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() && !ws.AuthRequested() {
+// 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthRequired() && !ws.AuthRequested() {
 // 				ws.RequestAuth()
 // 				if err = closedenvelope.NewFrom(env.Subscription,
 // 					normalize.AuthRequired.ToSliceOfBytes("auth required for count processing")).Write(ws); chk.E(err) {
@@ -43,7 +43,7 @@ package realy
 // 		defer func() {
 // 			var auther relay.Authenticator
 // 			var ok bool
-// 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+// 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthRequired() {
 // 				// ws.RequestAuth()
 // 				if err = closedenvelope.NewFrom(env.Subscription,
 // 					normalize.AuthRequired.ToSliceOfBytes("auth required for request processing")).Write(ws); chk.E(err) {
@@ -62,7 +62,7 @@ package realy
 // 	if allowed != nil {
 // 		for _, f := range allowed.ToSliceOfBytes {
 // 			var auther relay.Authenticator
-// 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+// 			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthRequired() {
 // 				if f.Kinds.Contains(kind.EncryptedDirectMessage) || f.Kinds.Contains(kind.GiftWrap) {
 // 					senders := f.Authors
 // 					receivers := f.Tags.GetAll(tag.New("p"))

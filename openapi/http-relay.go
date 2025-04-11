@@ -1,4 +1,4 @@
-package realy
+package openapi
 
 import (
 	"bytes"
@@ -11,21 +11,12 @@ import (
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/httpauth"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/relay"
 )
 
-// Relay is the HTTP API method for submitting an event only to subscribers and not saving it.
-type Relay struct{ interfaces.Server }
-
-// NewRelay creates a new Relay.
-func NewRelay(s interfaces.Server) (ep *Relay) {
-	return &Relay{Server: s}
-}
-
 // RelayInput is the parameters for the Event HTTP API method.
 type RelayInput struct {
-	Auth    string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Auth    string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false"`
 	RawBody []byte
 }
 
@@ -33,7 +24,7 @@ type RelayInput struct {
 type RelayOutput struct{ Body string }
 
 // RegisterRelay is the implementatino of the HTTP API Relay method.
-func (x *Relay) RegisterRelay(api huma.API) {
+func (x *Operations) RegisterRelay(api huma.API) {
 	name := "relay"
 	description := "relay an event, don't store it"
 	path := "/relay"
@@ -50,7 +41,7 @@ func (x *Relay) RegisterRelay(api huma.API) {
 	}, func(ctx context.T, input *RelayInput) (output *RelayOutput, err error) {
 		log.I.S(input)
 		r := ctx.Value("http-request").(*http.Request)
-		rr := GetRemoteFromReq(r)
+		rr := helpers.GetRemoteFromReq(r)
 		var valid bool
 		var pubkey []byte
 		valid, pubkey, err = httpauth.CheckAuth(r)
@@ -93,7 +84,7 @@ func (x *Relay) RegisterRelay(api huma.API) {
 		var authRequired bool
 		var ar relay.Authenticator
 		if ar, ok = x.Relay().(relay.Authenticator); ok {
-			authRequired = ar.AuthEnabled()
+			authRequired = ar.AuthRequired()
 		}
 		x.Listeners().NotifySubscribers(authRequired, x.PublicReadable(), ev)
 		return

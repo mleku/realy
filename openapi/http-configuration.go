@@ -1,4 +1,4 @@
-package realy
+package openapi
 
 import (
 	"net/http"
@@ -7,27 +7,18 @@ import (
 
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/store"
 )
 
-// Configuration is a database-stored configuration struct that can be hot-reloaded.
-type Configuration struct{ interfaces.Server }
-
-// NewConfiguration creates a new Configuration for a Server.
-func NewConfiguration(s interfaces.Server) (ep *Configuration) {
-	return &Configuration{Server: s}
-}
-
 // ConfigurationSetInput is the parameters for HTTP API method to set Configuration.
 type ConfigurationSetInput struct {
-	Auth string               `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Auth string               `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true"`
 	Body *store.Configuration `doc:"the new configuration"`
 }
 
 // ConfigurationGetInput is the parameters for HTTP API method to get Configuration.
 type ConfigurationGetInput struct {
-	Auth   string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Auth   string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true"`
 	Accept string `header:"Accept" default:"application/json" enum:"application/json" required:"true"`
 }
 
@@ -37,9 +28,9 @@ type ConfigurationGetOutput struct {
 }
 
 // RegisterConfigurationSet implements the HTTP API for setting Configuration.
-func (x *Configuration) RegisterConfigurationSet(api huma.API) {
+func (x *Operations) RegisterConfigurationSet(api huma.API) {
 	name := "ConfigurationSet"
-	description := "set the current configuration"
+	description := "Set the configuration"
 	path := "/configuration/set"
 	scopes := []string{"admin", "write"}
 	method := http.MethodPost
@@ -74,9 +65,9 @@ func (x *Configuration) RegisterConfigurationSet(api huma.API) {
 }
 
 // RegisterConfigurationGet implements the HTTP API for getting the Configuration.
-func (x *Configuration) RegisterConfigurationGet(api huma.API) {
+func (x *Operations) RegisterConfigurationGet(api huma.API) {
 	name := "ConfigurationGet"
-	description := "fetch the current configuration"
+	description := "Fetch the current configuration"
 	path := "/configuration/get"
 	scopes := []string{"admin", "read"}
 	method := http.MethodGet

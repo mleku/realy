@@ -1,4 +1,4 @@
-package realy
+package openapi
 
 import (
 	"errors"
@@ -13,28 +13,19 @@ import (
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/httpauth"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/sha256"
 	"realy.mleku.dev/store"
 	"realy.mleku.dev/tag"
 )
 
-// Events is a HTTP API method to retrieve a number of events from their event Ids.
-type Events struct{ interfaces.Server }
-
-// NewEvents creates a new Events with a provided Server.
-func NewEvents(s interfaces.Server) (ep *Events) {
-	return &Events{Server: s}
-}
-
 // EventsInput is the parameters for an Events HTTP API method. Basically an array of eventid.T.
 type EventsInput struct {
-	Auth string   `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Auth string   `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false"`
 	Body []string `doc:"list of event Ids"`
 }
 
 // RegisterEvents is the implementation of the HTTP API for Events.
-func (x *Events) RegisterEvents(api huma.API) {
+func (x *Operations) RegisterEvents(api huma.API) {
 	name := "Events"
 	description := "Returns the full events from a list of event Ids as a line structured JSON. Auth required to fetch more than 1000 events, and if not enabled, 1000 is the limit."
 	path := "/events"

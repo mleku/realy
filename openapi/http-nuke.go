@@ -1,4 +1,4 @@
-package realy
+package openapi
 
 import (
 	"net/http"
@@ -8,20 +8,13 @@ import (
 
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/store"
 )
-
-// Nuke is the HTTP API method to wipe the event store of a relay.
-type Nuke struct{ interfaces.Server }
-
-// NewNuke creates a new Nuke.
-func NewNuke(s interfaces.Server) (ep *Nuke) { return &Nuke{Server: s} }
 
 // NukeInput is the parameters for the HTTP API method nuke. Note that it has a confirmation
 // header that must be provided to prevent accidental invocation of this method.
 type NukeInput struct {
-	Auth    string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Auth    string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true"`
 	Confirm string `header:"X-Confirm" doc:"must put 'Yes I Am Sure' in this field as confirmation"`
 }
 
@@ -29,7 +22,7 @@ type NukeInput struct {
 type NukeOutput struct{}
 
 // RegisterNuke is the implementation of the Nuke HTTP API method.
-func (x *Nuke) RegisterNuke(api huma.API) {
+func (x *Operations) RegisterNuke(api huma.API) {
 	name := "Nuke"
 	description := "Nuke all events in the database"
 	path := "/nuke"
@@ -47,7 +40,7 @@ func (x *Nuke) RegisterNuke(api huma.API) {
 	}, func(ctx context.T, input *NukeInput) (wgh *NukeOutput, err error) {
 		r := ctx.Value("http-request").(*http.Request)
 		// w := ctx.Value("http-response").(http.ResponseWriter)
-		rr := GetRemoteFromReq(r)
+		rr := helpers.GetRemoteFromReq(r)
 		authed, pubkey := x.AdminAuth(r)
 		if !authed {
 			// pubkey = ev.Pubkey

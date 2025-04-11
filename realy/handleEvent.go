@@ -44,7 +44,7 @@ func (s *Server) handleEvent(c context.T, ws *ws.Listener, req []byte,
 			}
 		} else {
 			var auther relay.Authenticator
-			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthEnabled() {
+			if auther, ok = s.relay.(relay.Authenticator); ok && auther.AuthRequired() {
 				if !ws.AuthRequested() {
 					ws.RequestAuth()
 					log.I.F("requesting auth from client %s", ws.RealRemote())

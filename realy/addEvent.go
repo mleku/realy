@@ -61,7 +61,7 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 	}
 	var authRequired bool
 	if ar, ok := rl.(relay.Authenticator); ok {
-		authRequired = ar.AuthEnabled()
+		authRequired = ar.AuthRequired()
 	}
 	s.listeners.NotifySubscribers(authRequired, s.publicReadable, ev)
 	accepted = true

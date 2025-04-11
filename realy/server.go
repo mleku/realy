@@ -17,7 +17,8 @@ import (
 
 	realy_lol "realy.mleku.dev"
 	"realy.mleku.dev/context"
-	"realy.mleku.dev/realy/humaapi"
+	"realy.mleku.dev/openapi"
+	"realy.mleku.dev/realy/helpers"
 	"realy.mleku.dev/realy/options"
 	"realy.mleku.dev/realy/subscribers"
 	"realy.mleku.dev/relay"
@@ -33,7 +34,7 @@ type Server struct {
 	clientsMu      sync.Mutex
 	clients        map[*websocket.Conn]struct{}
 	Addr           string
-	mux            *humaapi.ServeMux
+	mux            *openapi.ServeMux
 	httpServer     *http.Server
 	authRequired   bool
 	publicReadable bool
@@ -64,14 +65,14 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	}
 	var authRequired bool
 	if ar, ok := sp.Rl.(relay.Authenticator); ok {
-		authRequired = ar.AuthEnabled()
+		authRequired = ar.AuthRequired()
 	}
 	if storage := sp.Rl.Storage(); storage != nil {
 		if err := storage.Init(sp.DbPath); chk.T(err) {
 			return nil, fmt.Errorf("storage init: %w", err)
 		}
 	}
-	serveMux := humaapi.NewServeMux()
+	serveMux := openapi.NewServeMux()
 	s = &Server{
 		Ctx:            sp.Ctx,
 		Cancel:         sp.Cancel,
@@ -85,24 +86,11 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 		admins:         sp.Admins,
 		owners:         sp.Rl.Owners(),
 		listeners:      subscribers.New(sp.Ctx),
-		API: humaapi.NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version,
+		API: openapi.NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version,
 			realy_lol.Description),
 	}
-	huma.AutoRegister(s.API, NewEvent(s))
-	huma.AutoRegister(s.API, NewFilter(s))
-	huma.AutoRegister(s.API, NewEvents(s))
-	huma.AutoRegister(s.API, NewSubscribe(s))
-
-	huma.AutoRegister(s.API, NewExport(s))
-	huma.AutoRegister(s.API, NewImport(s))
-
-	huma.AutoRegister(s.API, NewRescan(s))
-	huma.AutoRegister(s.API, NewShutdown(s))
-	huma.AutoRegister(s.API, NewDisconnect(s))
-	huma.AutoRegister(s.API, NewConfiguration(s))
-	huma.AutoRegister(s.API, NewNuke(s))
-
-	huma.AutoRegister(s.API, NewRelay(s))
+	// register the http API operations
+	huma.AutoRegister(s.API, openapi.NewOperations(s))
 	// load configuration if it has been set
 	if c, ok := s.relay.Storage().(store.Configurationer); ok {
 		s.ConfigurationMx.Lock()
@@ -129,7 +117,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 
 // ServeHTTP implements the relay's http handler.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	remote := GetRemoteFromReq(r)
+	remote := helpers.GetRemoteFromReq(r)
 	for _, a := range s.Configuration().BlockList {
 		if strings.HasPrefix(remote, a) {
 			log.W.F("rejecting request from %s because on blocklist", remote)
@@ -146,7 +134,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.handleWebsocket(w, r)
 		return
 	}
-	log.I.F("http request: %s from %s", r.URL.String(), GetRemoteFromReq(r))
+	log.I.F("http request: %s from %s", r.URL.String(), helpers.GetRemoteFromReq(r))
 	s.mux.ServeHTTP(w, r)
 	// s.HandleHTTP(w, r)
 	// s.mux.ServeHTTP(w, r)

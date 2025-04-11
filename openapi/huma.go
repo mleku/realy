@@ -1,4 +1,4 @@
-package humaapi
+package openapi
 
 import (
 	"net/http"

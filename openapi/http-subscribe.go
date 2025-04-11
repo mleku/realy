@@ -1,4 +1,4 @@
-package realy
+package openapi
 
 import (
 	"errors"
@@ -17,19 +17,14 @@ import (
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/kinds"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/realy/subscribers"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tags"
 )
 
-type Subscribe struct{ interfaces.Server }
-
-func NewSubscribe(s interfaces.Server) (ep *Subscribe) { return &Subscribe{Server: s} }
-
 type SubscribeInput struct {
-	Auth   string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false" example:"Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJFUzI1N2ZGFkNjZlNDdkYjJmIiwic3ViIjoiaHR0cDovLzEyNy4wLjAuMSJ9.cHT_pB3wTLxUNOqxYL6fxAYUJXNKBXcOnYLlkO1nwa7BHr9pOTQzNywJpc3MM2I0N2UziOiI0YzgwMDI1N2E1ODhhODI4NDlkMDIsImV4cCIQ5ODE3YzJiZGFhZDk4NGMgYtGi6MTc0Mjg40NWFkOWYCzvHyiXtIyNWEVZiaWF0IjoxNzQyNjMwMjM3LClZPtt0w_dJxEpYcSIEcY4wg"`
+	Auth   string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false"`
 	Accept string `header:"Accept" default:"text/event-stream" enum:"text/event-stream" required:"true"`
 	// ContentType string       `header:"Content-Type" default:"text/event-stream" enum:"text/event-stream" required:"true"`
 	Body SimpleFilter `body:"filter" doc:"filter criteria to match for events to return"`
@@ -59,7 +54,7 @@ func (fi SubscribeInput) ToFilter() (f *filter.T, err error) {
 	return
 }
 
-func (x *Subscribe) RegisterSubscribe(api huma.API) {
+func (x *Operations) RegisterSubscribe(api huma.API) {
 	name := "Subscribe"
 	description := "Subscribe for newly published events by author, kind or tags; empty also allowed, which just sends all incoming events - uses Server Sent Events format for compatibility with standard libraries."
 	path := "/subscribe"
@@ -87,7 +82,7 @@ func (x *Subscribe) RegisterSubscribe(api huma.API) {
 			}
 			log.I.F("%s", f.Marshal(nil))
 			r := ctx.Value("http-request").(*http.Request)
-			rr := GetRemoteFromReq(r)
+			rr := helpers.GetRemoteFromReq(r)
 			var valid bool
 			var pubkey []byte
 			valid, pubkey, err = httpauth.CheckAuth(r)
@@ -120,7 +115,7 @@ func (x *Subscribe) RegisterSubscribe(api huma.API) {
 				return
 			}
 			if f.Kinds.IsPrivileged() {
-				if auther, ok := x.Relay().(relay.Authenticator); ok && auther.AuthEnabled() {
+				if auther, ok := x.Relay().(relay.Authenticator); ok && auther.AuthRequired() {
 					log.T.F("privileged request\n%s", f.Serialize())
 					senders := f.Authors
 					receivers := f.Tags.GetAll(tag.New("#p"))
