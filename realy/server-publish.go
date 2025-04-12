@@ -93,7 +93,8 @@ func (s *Server) Publish(c context.T, evt *event.T) (err error) {
 				}
 				evdt := ev.Tags.GetFirst(tag.New("d"))
 				evtdt := evt.Tags.GetFirst(tag.New("d"))
-				log.I.F("%s != %s", evdt.Value(), evtdt.Value())
+				log.I.F("%s != %s %v", evdt.Value(), evtdt.Value(),
+					!bytes.Equal(evdt.Value(), evtdt.Value()))
 				if !bytes.Equal(evdt.Value(), evtdt.Value()) {
 					continue
 				}

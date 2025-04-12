@@ -167,13 +167,13 @@ func (s *Server) Shutdown() {
 	log.I.Ln("shutting down relay")
 	s.Cancel()
 	s.clientsMu.Lock()
-	defer s.clientsMu.Unlock()
 	for conn := range s.clients {
 		log.I.Ln("disconnecting", conn.RemoteAddr())
 		chk.E(conn.WriteControl(websocket.CloseMessage, nil, time.Now().Add(time.Second)))
 		chk.E(conn.Close())
 		delete(s.clients, conn)
 	}
+	s.clientsMu.Unlock()
 	log.W.Ln("closing event store")
 	chk.E(s.relay.Storage().Close())
 	log.W.Ln("shutting down relay listener")

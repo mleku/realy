@@ -136,7 +136,7 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 			}
 			// register the filter with the listeners
 			receiver := make(event.C, 32)
-			x.Listeners().Hchan <- subscribers.H{
+			x.Listeners().HChan <- subscribers.H{
 				Ctx:      r.Context(),
 				Receiver: receiver,
 				Pubkey:   pubkey,

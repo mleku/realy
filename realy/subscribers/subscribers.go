@@ -29,8 +29,8 @@ type (
 	// L is a collection of filters.
 	L struct{ filters *filters.T }
 
-	// Map is a map of filters associated with a collection of web.Listener..
-	Map map[*ws.Listener]map[string]*L
+	// WsMap is a map of filters associated with a collection of ws.Listener connections.
+	WsMap map[*ws.Listener]map[string]*L
 
 	// H is the control structure for a HTTP SSE subscription, including the filter, authed
 	// pubkey and a channel to send the events to.
@@ -47,22 +47,36 @@ type (
 		Filter *filter.T
 	}
 
-	// Subs is a collection of H TTP subscriptions.
-	Subs map[*H]struct{}
+	// HMap is a collection of H TTP subscriptions.
+	HMap map[*H]struct{}
 
 	// S is the control structure for the subscription management scheme.
 	S struct {
 		Ctx context.T
-		sync.Mutex
-		Map
-		Subs
-		Hchan        chan H
-		Hlock        sync.Mutex
+
+		// WsMx is the mutex for the WsMap.
+		WsMx sync.Mutex
+		// WsMap is the map of subscribers and subscriptions from the websocket api.
+		WsMap
+		// WsPingWait is the time between writing pings to the websocket.
+		WsPingWait time.Duration
+		// WsPongWait is the time after which the connection will be considered ded.
+		WsPongWait time.Duration
+		// WsPingPeriod sets the time between sending pings to the client.
+		WsPingPeriod time.Duration
+		// WsMaxMessageSize is is the largest message that will be allowed to be received on the
+		// websocket.
+		WsMaxMessageSize int64
+
+		// HMap is the map of subscriptions from the http api.
+		HMap
+		// HChan is a channel that http api subscriptions send their receiver channel through.
+		HChan chan H
+		// HLock is the mutex that locks the HMap map.
+		HMx sync.Mutex
+		// ChallengeHRP is the bech32 HRP prefix used in encoding challenges.
 		ChallengeHRP string
-		WriteWait,
-		PongWait,
-		PingPeriod time.Duration
-		MaxMessageSize  int64
+		// ChallengeLength is the length of bytes of the challenge random value.
 		ChallengeLength int
 	}
 )
@@ -83,26 +97,26 @@ var (
 // New creates a new subscribers.S.
 func New(ctx context.T) (l *S) {
 	l = &S{
-		Ctx:             ctx,
-		Map:             make(Map),
-		Subs:            make(Subs),
-		Hchan:           make(chan H),
-		ChallengeHRP:    DefaultChallengeHRP,
-		WriteWait:       DefaultWriteWait,
-		PongWait:        DefaultPongWait,
-		PingPeriod:      DefaultPingPeriod,
-		MaxMessageSize:  DefaultMaxMessageSize,
-		ChallengeLength: DefaultChallengeLength,
+		Ctx:              ctx,
+		WsMap:            make(WsMap),
+		HMap:             make(HMap),
+		HChan:            make(chan H),
+		ChallengeHRP:     DefaultChallengeHRP,
+		WsPingWait:       DefaultWriteWait,
+		WsPongWait:       DefaultPongWait,
+		WsPingPeriod:     DefaultPingPeriod,
+		WsMaxMessageSize: DefaultMaxMessageSize,
+		ChallengeLength:  DefaultChallengeLength,
 	}
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case h := <-l.Hchan:
-				l.Hlock.Lock()
-				l.Subs[&h] = struct{}{}
-				l.Hlock.Unlock()
+			case h := <-l.HChan:
+				l.HMx.Lock()
+				l.HMap[&h] = struct{}{}
+				l.HMx.Unlock()
 			}
 		}
 	}()
@@ -130,34 +144,34 @@ func (s *S) GetChallenge(conn *websocket.Conn, req *http.Request) (w *ws.Listene
 
 // Set a new subscriber with its collection of filters.
 func (s *S) Set(id string, ws *ws.Listener, ff *filters.T) {
-	s.Mutex.Lock()
-	subs, ok := s.Map[ws]
+	s.WsMx.Lock()
+	subs, ok := s.WsMap[ws]
 	if !ok {
 		subs = make(map[string]*L)
-		s.Map[ws] = subs
+		s.WsMap[ws] = subs
 	}
 	subs[id] = &L{filters: ff}
-	s.Mutex.Unlock()
+	s.WsMx.Unlock()
 }
 
 // RemoveSubscriberId removes a specific subscription from a subscriber websocket.
 func (s *S) RemoveSubscriberId(ws *ws.Listener, id string) {
-	s.Mutex.Lock()
-	if subs, ok := s.Map[ws]; ok {
-		delete(s.Map[ws], id)
+	s.WsMx.Lock()
+	if subs, ok := s.WsMap[ws]; ok {
+		delete(s.WsMap[ws], id)
 		if len(subs) == 0 {
-			delete(s.Map, ws)
+			delete(s.WsMap, ws)
 		}
 	}
-	s.Mutex.Unlock()
+	s.WsMx.Unlock()
 }
 
 // RemoveSubscriber removes a websocket from the subscribers.S collection.
 func (s *S) RemoveSubscriber(ws *ws.Listener) {
-	s.Mutex.Lock()
-	clear(s.Map[ws])
-	delete(s.Map, ws)
-	s.Mutex.Unlock()
+	s.WsMx.Lock()
+	clear(s.WsMap[ws])
+	delete(s.WsMap, ws)
+	s.WsMx.Unlock()
 }
 
 // NotifySubscribers processes a new event and determines whether to send it to subscribers.
@@ -166,8 +180,8 @@ func (s *S) NotifySubscribers(authRequired, publicReadable bool, ev *event.T) {
 		return
 	}
 	var err error
-	s.Mutex.Lock()
-	for ws, subs := range s.Map {
+	s.WsMx.Lock()
+	for ws, subs := range s.WsMap {
 		for id, listener := range subs {
 			if !publicReadable {
 				if authRequired && !ws.IsAuthed() {
@@ -201,10 +215,10 @@ func (s *S) NotifySubscribers(authRequired, publicReadable bool, ev *event.T) {
 			}
 		}
 	}
-	s.Mutex.Unlock()
-	s.Hlock.Lock()
+	s.WsMx.Unlock()
+	s.HMx.Lock()
 	var subs []*H
-	for sub := range s.Subs {
+	for sub := range s.HMap {
 		// check if the subscription's subscriber is still alive
 		select {
 		case <-sub.Ctx.Done():
@@ -213,10 +227,10 @@ func (s *S) NotifySubscribers(authRequired, publicReadable bool, ev *event.T) {
 		}
 	}
 	for _, sub := range subs {
-		delete(s.Subs, sub)
+		delete(s.HMap, sub)
 	}
 	subs = subs[:0]
-	for sub := range s.Subs {
+	for sub := range s.HMap {
 		// if auth required, check the subscription pubkey matches
 		if !publicReadable {
 			if authRequired && len(sub.Pubkey) == 0 {
@@ -241,5 +255,5 @@ func (s *S) NotifySubscribers(authRequired, publicReadable bool, ev *event.T) {
 		// send the event to the subscriber
 		sub.Receiver <- ev
 	}
-	s.Hlock.Unlock()
+	s.HMx.Unlock()
 }

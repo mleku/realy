@@ -2,6 +2,7 @@ package socketapi
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,8 +24,8 @@ type A struct {
 func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 
 	var err error
-	ticker := time.NewTicker(s.Listeners().PingPeriod)
-	ctx, cancel := context.Cancel(context.Bg())
+	ticker := time.NewTicker(s.Listeners().WsPingPeriod)
+	ctx, cancel := context.Cancel(s.Context())
 	var conn *websocket.Conn
 	conn, err = Upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -32,8 +33,8 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 		return
 	}
 	a.ClientsMu.Lock()
-	defer a.ClientsMu.Unlock()
 	a.Clients[conn] = struct{}{}
+	a.ClientsMu.Unlock()
 	a.Listener = s.Listeners().GetChallenge(conn, r)
 
 	defer func() {
@@ -47,10 +48,10 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 		}
 		a.ClientsMu.Unlock()
 	}()
-	conn.SetReadLimit(a.Listeners().MaxMessageSize)
-	chk.E(conn.SetReadDeadline(time.Now().Add(a.Listeners().PongWait)))
+	conn.SetReadLimit(a.Listeners().WsMaxMessageSize)
+	chk.E(conn.SetReadDeadline(time.Now().Add(a.Listeners().WsPongWait)))
 	conn.SetPongHandler(func(string) error {
-		chk.E(conn.SetReadDeadline(time.Now().Add(a.Listeners().PongWait)))
+		chk.E(conn.SetReadDeadline(time.Now().Add(a.Listeners().WsPongWait)))
 		return nil
 	})
 	if a.Server.AuthRequired() {
@@ -67,8 +68,20 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 	var message []byte
 	var typ int
 	for {
+		select {
+		case <-ctx.Done():
+			a.Listener.Close()
+			return
+		case <-s.Context().Done():
+			a.Listener.Close()
+			return
+		default:
+		}
 		typ, message, err = conn.ReadMessage()
 		if err != nil {
+			if strings.Contains(err.Error(), "use of closed network connection") {
+				return
+			}
 			if websocket.IsUnexpectedCloseError(err,
 				websocket.CloseNormalClosure,
 				websocket.CloseGoingAway,
@@ -78,7 +91,7 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 				log.W.F("unexpected close error from %s: %v",
 					a.Listener.Request.Header.Get("X-Forwarded-For"), err)
 			}
-			break
+			return
 		}
 		if typ == websocket.PingMessage {
 			if err = a.Listener.WriteMessage(websocket.PongMessage, nil); chk.E(err) {
