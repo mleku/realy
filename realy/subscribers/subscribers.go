@@ -4,7 +4,6 @@
 package subscribers
 
 import (
-	"bytes"
 	"crypto/rand"
 	"net/http"
 	"regexp"
@@ -16,11 +15,9 @@ import (
 	"realy.mleku.dev/bech32encoding"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/ec/bech32"
-	"realy.mleku.dev/envelopes/eventenvelope"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/filter"
 	"realy.mleku.dev/filters"
-	"realy.mleku.dev/tag"
 	"realy.mleku.dev/units"
 	"realy.mleku.dev/ws"
 )
@@ -179,81 +176,6 @@ func (s *S) NotifySubscribers(authRequired, publicReadable bool, ev *event.T) {
 	if ev == nil {
 		return
 	}
-	var err error
-	s.WsMx.Lock()
-	for ws, subs := range s.WsMap {
-		for id, listener := range subs {
-			if !publicReadable {
-				if authRequired && !ws.IsAuthed() {
-					continue
-				}
-			}
-			if !listener.filters.Match(ev) {
-				continue
-			}
-			if ev.Kind.IsPrivileged() {
-				ab := ws.AuthedBytes()
-				var containsPubkey bool
-				if ev.Tags != nil {
-					containsPubkey = ev.Tags.ContainsAny([]byte{'p'}, tag.New(ab))
-				}
-				if !bytes.Equal(ev.Pubkey, ab) || containsPubkey {
-					if ab == nil {
-						continue
-					}
-					log.I.F("authed user %0x not privileged to receive event\n%s",
-						ab, ev.Serialize())
-					continue
-				}
-			}
-			var res *eventenvelope.Result
-			if res, err = eventenvelope.NewResultWith(id, ev); chk.E(err) {
-				continue
-			}
-			if err = res.Write(ws); chk.E(err) {
-				continue
-			}
-		}
-	}
-	s.WsMx.Unlock()
-	s.HMx.Lock()
-	var subs []*H
-	for sub := range s.HMap {
-		// check if the subscription's subscriber is still alive
-		select {
-		case <-sub.Ctx.Done():
-			subs = append(subs, sub)
-		default:
-		}
-	}
-	for _, sub := range subs {
-		delete(s.HMap, sub)
-	}
-	subs = subs[:0]
-	for sub := range s.HMap {
-		// if auth required, check the subscription pubkey matches
-		if !publicReadable {
-			if authRequired && len(sub.Pubkey) == 0 {
-				continue
-			}
-		}
-		// if the filter doesn't match, skip
-		if !sub.Filter.Matches(ev) {
-			continue
-		}
-		// if the filter is privileged and the user doesn't have matching auth, skip
-		if ev.Kind.IsPrivileged() {
-			ab := sub.Pubkey
-			var containsPubkey bool
-			if ev.Tags != nil {
-				containsPubkey = ev.Tags.ContainsAny([]byte{'p'}, tag.New(ab))
-			}
-			if !bytes.Equal(ev.Pubkey, ab) || containsPubkey {
-				continue
-			}
-		}
-		// send the event to the subscriber
-		sub.Receiver <- ev
-	}
-	s.HMx.Unlock()
+	s.NotifySocketAPI(authRequired, publicReadable, ev)
+	s.NotifyHTTPAPI(authRequired, publicReadable, ev)
 }
