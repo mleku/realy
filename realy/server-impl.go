@@ -7,6 +7,7 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/realy/interfaces"
+	"realy.mleku.dev/realy/options"
 	"realy.mleku.dev/realy/subscribers"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/store"
@@ -60,5 +61,7 @@ func (s *Server) Context() context.T { return s.Ctx }
 func (s *Server) Owners() [][]byte { return s.owners }
 
 func (s *Server) AuthRequired() bool { return s.authRequired }
+
+func (s *Server) Options() *options.T { return s.options }
 
 var _ interfaces.Server = &Server{}

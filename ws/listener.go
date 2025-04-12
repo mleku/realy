@@ -14,8 +14,8 @@ import (
 // Listener is a websocket implementation for a relay listener.
 type Listener struct {
 	mutex         sync.Mutex
-	conn          *websocket.Conn
-	req           *http.Request
+	Conn          *websocket.Conn
+	Request       *http.Request
 	challenge     atomic.String
 	remote        atomic.String
 	authed        atomic.String
@@ -28,7 +28,7 @@ func NewListener(
 	req *http.Request,
 	challenge []byte,
 ) (ws *Listener) {
-	ws = &Listener{conn: conn, req: req}
+	ws = &Listener{Conn: conn, Request: req}
 	ws.challenge.Store(string(challenge))
 	ws.authRequested.Store(false)
 	ws.setRemoteFromReq(req)
@@ -62,7 +62,7 @@ func (ws *Listener) setRemoteFromReq(r *http.Request) {
 	if rr == "" {
 		// if that fails, fall back to the remote (probably the proxy, unless the realy is
 		// actually directly listening)
-		rr = ws.conn.NetConn().RemoteAddr().String()
+		rr = ws.Conn.NetConn().RemoteAddr().String()
 	}
 	ws.remote.Store(rr)
 }
@@ -71,7 +71,7 @@ func (ws *Listener) setRemoteFromReq(r *http.Request) {
 func (ws *Listener) Write(p []byte) (n int, err error) {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
-	err = ws.conn.WriteMessage(websocket.TextMessage, p)
+	err = ws.Conn.WriteMessage(websocket.TextMessage, p)
 	if err != nil {
 		n = len(p)
 		if strings.Contains(err.Error(), "close sent") {
@@ -88,7 +88,7 @@ func (ws *Listener) Write(p []byte) (n int, err error) {
 func (ws *Listener) WriteJSON(any interface{}) error {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
-	return ws.conn.WriteJSON(any)
+	return ws.Conn.WriteJSON(any)
 }
 
 // WriteMessage is a wrapper around the websocket WriteMessage, which includes a websocket
@@ -96,7 +96,7 @@ func (ws *Listener) WriteJSON(any interface{}) error {
 func (ws *Listener) WriteMessage(t int, b []byte) error {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
-	return ws.conn.WriteMessage(t, b)
+	return ws.Conn.WriteMessage(t, b)
 }
 
 // Challenge returns the current auth challenge string on the socket.
@@ -122,7 +122,7 @@ func (ws *Listener) SetAuthed(s string) {
 }
 
 // Req returns the http.Request associated with the client connection to the Listener.
-func (ws *Listener) Req() *http.Request { return ws.req }
+func (ws *Listener) Req() *http.Request { return ws.Request }
 
 // Close the Listener connection from the Listener side.
-func (ws *Listener) Close() (err error) { return ws.conn.Close() }
+func (ws *Listener) Close() (err error) { return ws.Conn.Close() }

@@ -6,6 +6,7 @@ import (
 
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
+	"realy.mleku.dev/realy/options"
 	"realy.mleku.dev/realy/subscribers"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/store"
@@ -33,4 +34,5 @@ type Server interface {
 	SetConfiguration(*store.Configuration)
 	Shutdown()
 	Storage() store.I
+	Options() *options.T
 }

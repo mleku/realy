@@ -1,4 +1,4 @@
-package realy
+package socketapi
 
 import (
 	"time"
@@ -6,27 +6,26 @@ import (
 	"github.com/fasthttp/websocket"
 
 	"realy.mleku.dev/context"
-	"realy.mleku.dev/ws"
+	"realy.mleku.dev/realy/interfaces"
 )
 
-func (s *Server) pinger(ctx context.T, ws *ws.Listener, conn *websocket.Conn,
-	ticker *time.Ticker, cancel context.F) {
+func (a *A) Pinger(ctx context.T, ticker *time.Ticker, cancel context.F, s interfaces.Server) {
 	defer func() {
 		cancel()
 		ticker.Stop()
-		_ = conn.Close()
+		_ = a.Listener.Conn.Close()
 	}()
 	var err error
 	for {
 		select {
 		case <-ticker.C:
-			err = conn.WriteControl(websocket.PingMessage, nil,
-				time.Now().Add(s.listeners.WriteWait))
+			err = a.Listener.Conn.WriteControl(websocket.PingMessage, nil,
+				time.Now().Add(s.Listeners().WriteWait))
 			if err != nil {
 				log.E.F("error writing ping: %v; closing websocket", err)
 				return
 			}
-			ws.RealRemote()
+			a.Listener.RealRemote()
 		case <-ctx.Done():
 			return
 		}

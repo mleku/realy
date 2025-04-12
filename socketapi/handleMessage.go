@@ -1,9 +1,8 @@
-package realy
+package socketapi
 
 import (
 	"fmt"
 
-	"realy.mleku.dev/context"
 	"realy.mleku.dev/envelopes"
 	"realy.mleku.dev/envelopes/authenvelope"
 	"realy.mleku.dev/envelopes/closeenvelope"
@@ -11,11 +10,9 @@ import (
 	"realy.mleku.dev/envelopes/noticeenvelope"
 	"realy.mleku.dev/envelopes/reqenvelope"
 	"realy.mleku.dev/relay"
-	"realy.mleku.dev/socketapi"
-	"realy.mleku.dev/store"
 )
 
-func (s *Server) handleMessage(c context.T, a *socketapi.A, msg []byte, sto store.I) {
+func (a *A) HandleMessage(msg []byte) {
 	var notice []byte
 	var err error
 	var t string
@@ -23,17 +20,16 @@ func (s *Server) handleMessage(c context.T, a *socketapi.A, msg []byte, sto stor
 	if t, rem, err = envelopes.Identify(msg); chk.E(err) {
 		notice = []byte(err.Error())
 	}
-	skipEventFunc := s.options.SkipEventFunc
-	rl := s.relay
+	rl := a.Relay()
 	switch t {
 	case eventenvelope.L:
-		notice = a.HandleEvent(c, rem, s)
+		notice = a.HandleEvent(a.Context(), rem, a.Server)
 	case reqenvelope.L:
-		notice = a.HandleReq(c, rem, skipEventFunc, s)
+		notice = a.HandleReq(a.Context(), rem, a.Options().SkipEventFunc, a.Server)
 	case closeenvelope.L:
-		notice = a.HandleClose(rem, s)
+		notice = a.HandleClose(rem, a.Server)
 	case authenvelope.L:
-		notice = a.HandleAuth(rem, s)
+		notice = a.HandleAuth(rem, a.Server)
 	default:
 		if wsh, ok := rl.(relay.WebSocketHandler); ok {
 			wsh.HandleUnknownType(a.Listener, t, rem)
@@ -47,4 +43,5 @@ func (s *Server) handleMessage(c context.T, a *socketapi.A, msg []byte, sto stor
 			return
 		}
 	}
+
 }

@@ -78,10 +78,6 @@ const (
 
 var (
 	NIP20prefixmatcher = regexp.MustCompile(`^\w+: `)
-	Upgrader           = websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024,
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		}}
 )
 
 // New creates a new subscribers.S.
@@ -114,8 +110,7 @@ func New(ctx context.T) (l *S) {
 }
 
 // GetChallenge generates a new challenge for a subscriber.
-func (s *S) GetChallenge(conn *websocket.Conn, req *http.Request,
-	addr string) (w *ws.Listener) {
+func (s *S) GetChallenge(conn *websocket.Conn, req *http.Request) (w *ws.Listener) {
 	var err error
 	cb := make([]byte, s.ChallengeLength)
 	if _, err = rand.Read(cb); chk.E(err) {
