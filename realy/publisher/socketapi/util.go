@@ -1,4 +1,4 @@
-package subscribers
+package socketapi
 
 import (
 	"realy.mleku.dev/lol"

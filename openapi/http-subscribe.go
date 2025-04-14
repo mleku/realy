@@ -17,7 +17,7 @@ import (
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/kinds"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/realy/subscribers"
+	"realy.mleku.dev/realy/publisher/openapi"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tags"
@@ -136,12 +136,12 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 			}
 			// register the filter with the listeners
 			receiver := make(event.C, 32)
-			x.Listeners().HChan <- subscribers.H{
+			x.Publisher().Receive(openapi.H{
 				Ctx:      r.Context(),
 				Receiver: receiver,
 				Pubkey:   pubkey,
 				Filter:   f,
-			}
+			})
 		out:
 			for {
 				select {
@@ -152,7 +152,6 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 					}
 				}
 			}
-
 			return
 		})
 }

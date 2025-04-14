@@ -21,6 +21,7 @@ import (
 	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/realy/options"
 	"realy.mleku.dev/realy/pointers"
+	"realy.mleku.dev/realy/publisher/socketapi"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/tag"
 )
@@ -238,6 +239,12 @@ func (a *A) HandleReq(
 	if env.Filters != allowed {
 		return
 	}
-	srv.Listeners().Set(env.Subscription.String(), a.Listener, env.Filters)
+	receiver := make(event.C, 32)
+	srv.Publisher().Receive(socketapi.W{
+		Listener: a.Listener,
+		Id:       env.Subscription.String(),
+		Receiver: receiver,
+		Filters:  env.Filters,
+	})
 	return
 }

@@ -86,7 +86,7 @@ func (x *Operations) RegisterRelay(api huma.API) {
 		if ar, ok = x.Relay().(relay.Authenticator); ok {
 			authRequired = ar.AuthRequired()
 		}
-		x.Listeners().NotifySubscribers(authRequired, x.PublicReadable(), ev)
+		x.Publisher().Deliver(authRequired, x.PublicReadable(), ev)
 		return
 	})
 }

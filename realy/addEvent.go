@@ -10,7 +10,7 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/normalize"
-	"realy.mleku.dev/realy/subscribers"
+	"realy.mleku.dev/realy/publisher/socketapi"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/store"
 )
@@ -43,7 +43,7 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 				return false, normalize.Error.F(saveErr.Error())
 			}
 			errmsg := saveErr.Error()
-			if subscribers.NIP20prefixmatcher.MatchString(errmsg) {
+			if socketapi.NIP20prefixmatcher.MatchString(errmsg) {
 				if strings.Contains(errmsg, "tombstone") {
 					return false, normalize.Blocked.F("event was deleted, not storing it again")
 				}
@@ -63,7 +63,8 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 	if ar, ok := rl.(relay.Authenticator); ok {
 		authRequired = ar.AuthRequired()
 	}
-	s.listeners.NotifySubscribers(authRequired, s.publicReadable, ev)
+	// notify subscribers
+	s.listeners.Deliver(authRequired, s.publicReadable, ev)
 	accepted = true
 	log.I.F("event id %0x stored", ev.Id)
 	return

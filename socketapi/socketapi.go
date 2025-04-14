@@ -11,10 +11,12 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/envelopes/authenvelope"
 	"realy.mleku.dev/realy/interfaces"
+	"realy.mleku.dev/realy/publisher/socketapi"
 	"realy.mleku.dev/ws"
 )
 
 type A struct {
+	Ctx context.T
 	*ws.Listener
 	interfaces.Server
 	ClientsMu *sync.Mutex
@@ -24,8 +26,9 @@ type A struct {
 func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 
 	var err error
-	ticker := time.NewTicker(s.Listeners().WsPingPeriod)
-	ctx, cancel := context.Cancel(s.Context())
+	ticker := time.NewTicker(s.Publisher().WsPingPeriod)
+	var cancel context.F
+	a.Ctx, cancel = context.Cancel(s.Context())
 	var conn *websocket.Conn
 	conn, err = Upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -35,7 +38,7 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 	a.ClientsMu.Lock()
 	a.Clients[conn] = struct{}{}
 	a.ClientsMu.Unlock()
-	a.Listener = s.Listeners().GetChallenge(conn, r)
+	a.Listener = GetListener(conn, r)
 
 	defer func() {
 		cancel()
@@ -44,14 +47,18 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 		if _, ok := a.Clients[a.Listener.Conn]; ok {
 			chk.E(a.Listener.Conn.Close())
 			delete(a.Clients, a.Listener.Conn)
-			a.Listeners().RemoveSubscriber(a.Listener)
+			a.Publisher().Receive(socketapi.W{
+				Cancel:   true,
+				Listener: a.Listener,
+			})
+			// a.Publisher().removeSubscriber(a.Listener)
 		}
 		a.ClientsMu.Unlock()
 	}()
-	conn.SetReadLimit(a.Listeners().WsMaxMessageSize)
-	chk.E(conn.SetReadDeadline(time.Now().Add(a.Listeners().WsPongWait)))
+	conn.SetReadLimit(a.Publisher().WsMaxMessageSize)
+	chk.E(conn.SetReadDeadline(time.Now().Add(a.Publisher().WsPongWait)))
 	conn.SetPongHandler(func(string) error {
-		chk.E(conn.SetReadDeadline(time.Now().Add(a.Listeners().WsPongWait)))
+		chk.E(conn.SetReadDeadline(time.Now().Add(a.Publisher().WsPongWait)))
 		return nil
 	})
 	if a.Server.AuthRequired() {
@@ -64,12 +71,12 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 		}
 		// return
 	}
-	go a.Pinger(ctx, ticker, cancel, a.Server)
+	go a.Pinger(a.Ctx, ticker, cancel, a.Server)
 	var message []byte
 	var typ int
 	for {
 		select {
-		case <-ctx.Done():
+		case <-a.Ctx.Done():
 			a.Listener.Close()
 			return
 		case <-s.Context().Done():

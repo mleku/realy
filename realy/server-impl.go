@@ -8,7 +8,7 @@ import (
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/realy/options"
-	"realy.mleku.dev/realy/subscribers"
+	"realy.mleku.dev/realy/publisher"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/store"
 )
@@ -52,7 +52,7 @@ func (s *Server) AcceptEvent(
 	return s.relay.AcceptEvent(c, ev, hr, origin, authedPubkey)
 }
 
-func (s *Server) Listeners() *subscribers.S { return s.listeners }
+func (s *Server) Publisher() *publisher.S { return s.listeners }
 
 func (s *Server) PublicReadable() bool { return s.publicReadable }
 

@@ -214,13 +214,6 @@ func (x *Operations) RegisterEvent(api huma.API) {
 			go after()
 		}
 		output = &EventOutput{"event accepted"}
-		// notify subscribers
-		var authRequired bool
-		var ar relay.Authenticator
-		if ar, ok = x.Relay().(relay.Authenticator); ok {
-			authRequired = ar.AuthRequired()
-		}
-		x.Listeners().NotifySubscribers(authRequired, x.PublicReadable(), ev)
 		return
 	})
 }

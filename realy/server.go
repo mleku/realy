@@ -20,7 +20,7 @@ import (
 	"realy.mleku.dev/openapi"
 	"realy.mleku.dev/realy/helpers"
 	"realy.mleku.dev/realy/options"
-	"realy.mleku.dev/realy/subscribers"
+	"realy.mleku.dev/realy/publisher"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/signer"
 	"realy.mleku.dev/store"
@@ -41,7 +41,7 @@ type Server struct {
 	maxLimit       int
 	admins         []signer.I
 	owners         [][]byte
-	listeners      *subscribers.S
+	listeners      *publisher.S
 	huma.API
 	ConfigurationMx sync.Mutex
 	configuration   *store.Configuration
@@ -85,7 +85,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 		maxLimit:       sp.MaxLimit,
 		admins:         sp.Admins,
 		owners:         sp.Rl.Owners(),
-		listeners:      subscribers.New(sp.Ctx),
+		listeners:      publisher.New(sp.Ctx),
 		API: openapi.NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version,
 			realy_lol.Description),
 	}
@@ -108,7 +108,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	if inj, ok := s.relay.(relay.Injector); ok {
 		go func() {
 			for ev := range inj.InjectEvents() {
-				s.listeners.NotifySubscribers(s.authRequired, s.publicReadable, ev)
+				s.listeners.Deliver(s.authRequired, s.publicReadable, ev)
 			}
 		}()
 	}
@@ -166,14 +166,6 @@ func (s *Server) Start(host string, port int, started ...chan bool) error {
 func (s *Server) Shutdown() {
 	log.I.Ln("shutting down relay")
 	s.Cancel()
-	s.clientsMu.Lock()
-	for conn := range s.clients {
-		log.I.Ln("disconnecting", conn.RemoteAddr())
-		chk.E(conn.WriteControl(websocket.CloseMessage, nil, time.Now().Add(time.Second)))
-		chk.E(conn.Close())
-		delete(s.clients, conn)
-	}
-	s.clientsMu.Unlock()
 	log.W.Ln("closing event store")
 	chk.E(s.relay.Storage().Close())
 	log.W.Ln("shutting down relay listener")
