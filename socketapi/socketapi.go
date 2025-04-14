@@ -3,7 +3,6 @@ package socketapi
 import (
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/fasthttp/websocket"
@@ -19,8 +18,8 @@ type A struct {
 	Ctx context.T
 	*ws.Listener
 	interfaces.Server
-	ClientsMu *sync.Mutex
-	Clients   map[*websocket.Conn]struct{}
+	// ClientsMu *sync.Mutex
+	// Clients   map[*websocket.Conn]struct{}
 }
 
 func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
@@ -35,25 +34,25 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 		log.E.F("failed to upgrade websocket: %v", err)
 		return
 	}
-	a.ClientsMu.Lock()
-	a.Clients[conn] = struct{}{}
-	a.ClientsMu.Unlock()
+	// a.ClientsMu.Lock()
+	// a.Clients[conn] = struct{}{}
+	// a.ClientsMu.Unlock()
 	a.Listener = GetListener(conn, r)
 
 	defer func() {
 		cancel()
 		ticker.Stop()
-		a.ClientsMu.Lock()
-		if _, ok := a.Clients[a.Listener.Conn]; ok {
-			chk.E(a.Listener.Conn.Close())
-			delete(a.Clients, a.Listener.Conn)
-			a.Publisher().Receive(socketapi.W{
-				Cancel:   true,
-				Listener: a.Listener,
-			})
-			// a.Publisher().removeSubscriber(a.Listener)
-		}
-		a.ClientsMu.Unlock()
+		// a.ClientsMu.Lock()
+		// if _, ok := a.Clients[a.Listener.Conn]; ok {
+		a.Publisher().Receive(socketapi.W{
+			Cancel:   true,
+			Listener: a.Listener,
+		})
+		// 	delete(a.Clients, a.Listener.Conn)
+		chk.E(a.Listener.Conn.Close())
+		// a.Publisher().removeSubscriber(a.Listener)
+		// }
+		// a.ClientsMu.Unlock()
 	}()
 	conn.SetReadLimit(a.Publisher().WsMaxMessageSize)
 	chk.E(conn.SetReadDeadline(time.Now().Add(a.Publisher().WsPongWait)))
