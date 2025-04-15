@@ -121,7 +121,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	remote := helpers.GetRemoteFromReq(r)
 	for _, a := range s.Configuration().BlockList {
 		if strings.HasPrefix(remote, a) {
-			log.W.F("rejecting request from %s because on blocklist", remote)
+			// log.W.F("rejecting request from %s because on blocklist", remote)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
@@ -147,7 +147,7 @@ func (s *Server) Start(host string, port int, started ...chan bool) error {
 	if err != nil {
 		return err
 	}
-	s.Addr = ln.Addr().String() // todo: this doesn't seem to do anything
+	// s.Addr = ln.Addr().String() // todo: this doesn't seem to do anything
 	s.httpServer = &http.Server{
 		Handler:           cors.Default().Handler(s),
 		Addr:              addr,

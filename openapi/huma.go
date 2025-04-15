@@ -22,9 +22,6 @@ func ExposeMiddleware(ctx huma.Context, next func(huma.Context)) {
 func NewHuma(router *ServeMux, name, version, description string) (api huma.API) {
 	config := huma.DefaultConfig(name, version)
 	config.Info.Description = description
-	// config.Security = []map[string][]string{{"auth": {}}}
-	// config.Components.SecuritySchemes = map[string]*huma.SecurityScheme{"auth": {Type: "http", Scheme: "apiKey"}} // apiKey todo:
-	// config.DocsPath = "/api"
 	config.DocsPath = ""
 	router.ServeMux.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
