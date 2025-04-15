@@ -309,16 +309,7 @@ func TimeStamper() (s string) {
 	if NoTimeStomp.Load() {
 		return
 	}
-	timeText := fmt.Sprint(time.Now().UnixNano())
-	lt := len(timeText)
-	lb := lt + 1
-	var timeBytes = make([]byte, lb)
-	copy(timeBytes[lb-9:lb], timeText[lt-9:lt])
-	timeBytes[lb-10] = '.'
-	lb -= 10
-	lt -= 9
-	copy(timeBytes[:lb], timeText[:lt])
-	return fmt.Sprint(string(timeBytes), " ")
+	return time.Now().Format("2006-01-02T15:04:05Z07:00.000 ")
 }
 
 // var wd, _ = os.Getwd()
