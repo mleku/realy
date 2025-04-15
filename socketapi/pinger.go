@@ -20,7 +20,7 @@ func (a *A) Pinger(ctx context.T, ticker *time.Ticker, cancel context.F, s inter
 		select {
 		case <-ticker.C:
 			err = a.Listener.Conn.WriteControl(websocket.PingMessage, nil,
-				time.Now().Add(s.Publisher().WsPingWait))
+				time.Now().Add(DefaultPingWait))
 			if err != nil {
 				log.E.F("error writing ping: %v; closing websocket", err)
 				return

@@ -10,8 +10,16 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/envelopes/authenvelope"
 	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/realy/publisher/socketapi"
+	"realy.mleku.dev/realy/publish/socketapi"
+	"realy.mleku.dev/units"
 	"realy.mleku.dev/ws"
+)
+
+const (
+	DefaultWriteWait      = 10 * time.Second
+	DefaultPongWait       = 60 * time.Second
+	DefaultPingWait       = DefaultPongWait / 2
+	DefaultMaxMessageSize = 1 * units.Mb
 )
 
 type A struct {
@@ -25,7 +33,8 @@ type A struct {
 func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 
 	var err error
-	ticker := time.NewTicker(s.Publisher().WsPingPeriod)
+
+	ticker := time.NewTicker(DefaultPingWait)
 	var cancel context.F
 	a.Ctx, cancel = context.Cancel(s.Context())
 	var conn *websocket.Conn
@@ -44,7 +53,7 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 		ticker.Stop()
 		// a.ClientsMu.Lock()
 		// if _, ok := a.Clients[a.Listener.Conn]; ok {
-		a.Publisher().Receive(socketapi.W{
+		a.Publisher().Receive(&socketapi.W{
 			Cancel:   true,
 			Listener: a.Listener,
 		})
@@ -54,10 +63,10 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 		// }
 		// a.ClientsMu.Unlock()
 	}()
-	conn.SetReadLimit(a.Publisher().WsMaxMessageSize)
-	chk.E(conn.SetReadDeadline(time.Now().Add(a.Publisher().WsPongWait)))
+	conn.SetReadLimit(DefaultMaxMessageSize)
+	chk.E(conn.SetReadDeadline(time.Now().Add(DefaultPongWait)))
 	conn.SetPongHandler(func(string) error {
-		chk.E(conn.SetReadDeadline(time.Now().Add(a.Publisher().WsPongWait)))
+		chk.E(conn.SetReadDeadline(time.Now().Add(DefaultPongWait)))
 		return nil
 	})
 	if a.Server.AuthRequired() {

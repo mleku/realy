@@ -20,7 +20,9 @@ import (
 	"realy.mleku.dev/openapi"
 	"realy.mleku.dev/realy/helpers"
 	"realy.mleku.dev/realy/options"
-	"realy.mleku.dev/realy/publisher"
+	"realy.mleku.dev/realy/publish"
+	oa "realy.mleku.dev/realy/publish/openapi"
+	"realy.mleku.dev/realy/publish/socketapi"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/signer"
 	"realy.mleku.dev/store"
@@ -41,7 +43,7 @@ type Server struct {
 	maxLimit       int
 	admins         []signer.I
 	owners         [][]byte
-	listeners      *publisher.S
+	listeners      *publish.S
 	huma.API
 	ConfigurationMx sync.Mutex
 	configuration   *store.Configuration
@@ -85,7 +87,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 		maxLimit:       sp.MaxLimit,
 		admins:         sp.Admins,
 		owners:         sp.Rl.Owners(),
-		listeners:      publisher.New(sp.Ctx),
+		listeners:      publish.New(socketapi.New(), oa.New()),
 		API: openapi.NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version,
 			realy_lol.Description),
 	}

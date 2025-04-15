@@ -21,7 +21,7 @@ import (
 	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/realy/options"
 	"realy.mleku.dev/realy/pointers"
-	"realy.mleku.dev/realy/publisher/socketapi"
+	"realy.mleku.dev/realy/publish/socketapi"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/tag"
 )
@@ -240,7 +240,7 @@ func (a *A) HandleReq(
 		return
 	}
 	receiver := make(event.C, 32)
-	srv.Publisher().Receive(socketapi.W{
+	srv.Publisher().Receive(&socketapi.W{
 		Listener: a.Listener,
 		Id:       env.Subscription.String(),
 		Receiver: receiver,

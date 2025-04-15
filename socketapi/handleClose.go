@@ -3,7 +3,7 @@ package socketapi
 import (
 	"realy.mleku.dev/envelopes/closeenvelope"
 	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/realy/publisher/socketapi"
+	"realy.mleku.dev/realy/publish/socketapi"
 )
 
 func (a *A) HandleClose(req []byte,
@@ -20,7 +20,7 @@ func (a *A) HandleClose(req []byte,
 	if env.ID.String() == "" {
 		return []byte("CLOSE has no <id>")
 	}
-	srv.Publisher().Receive(socketapi.W{
+	srv.Publisher().Receive(&socketapi.W{
 		Cancel:   true,
 		Listener: a.Listener,
 		Id:       env.ID.String(),

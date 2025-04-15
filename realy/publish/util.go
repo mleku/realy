@@ -1,4 +1,4 @@
-package publisher
+package publish
 
 import (
 	"realy.mleku.dev/lol"

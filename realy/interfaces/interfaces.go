@@ -7,7 +7,7 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/realy/options"
-	"realy.mleku.dev/realy/publisher"
+	"realy.mleku.dev/realy/publish"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/store"
 )
@@ -26,7 +26,7 @@ type Server interface {
 	Configuration() store.Configuration
 	Context() context.T
 	Disconnect()
-	Publisher() *publisher.S
+	Publisher() *publish.S
 	Owners() [][]byte
 	PublicReadable() bool
 	Publish(c context.T, evt *event.T) (err error)

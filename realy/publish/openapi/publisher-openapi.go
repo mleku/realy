@@ -7,8 +7,11 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/filter"
+	"realy.mleku.dev/realy/publish/publisher"
 	"realy.mleku.dev/tag"
 )
+
+const Type = "openapi"
 
 // H is the control structure for a HTTP SSE subscription, including the filter, authed
 // pubkey and a channel to send the events to.
@@ -25,43 +28,37 @@ type H struct {
 	Filter *filter.T
 }
 
+func (h *H) Type() string { return Type }
+
 // Map is a collection of H TTP subscriptions.
 type Map map[*H]struct{}
 
-type HP struct {
+type S struct {
 	// Map is the map of subscriptions from the http api.
 	Map
-	// Chan is a channel that http api subscriptions send their receiver channel through.
-	Chan chan H
 	// HLock is the mutex that locks the Map.
 	Mx sync.Mutex
 }
 
-func NewHP() *HP {
-	return &HP{
-		Map:  make(Map),
-		Chan: make(chan H),
+var _ publisher.I = &S{}
+
+func New() *S { return &S{Map: make(Map)} }
+
+func (p *S) Type() string { return Type }
+
+func (p *S) Receive(msg publisher.Message) {
+	if m, ok := msg.(*H); ok {
+		p.Mx.Lock()
+		p.Map[m] = struct{}{}
+		p.Mx.Unlock()
 	}
 }
 
-func (hp *HP) ReceiverLoop(ctx context.T) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case h := <-hp.Chan:
-			hp.Mx.Lock()
-			hp.Map[&h] = struct{}{}
-			hp.Mx.Unlock()
-		}
-	}
-}
-
-func (hp *HP) Deliver(authRequired, publicReadable bool, ev *event.T) {
-	hp.Mx.Lock()
+func (p *S) Deliver(authRequired, publicReadable bool, ev *event.T) {
+	p.Mx.Lock()
 	var subs []*H
-	for sub := range hp.Map {
-		// check if the subscription'hp subscriber is still alive
+	for sub := range p.Map {
+		// check if the subscription'p subscriber is still alive
 		select {
 		case <-sub.Ctx.Done():
 			subs = append(subs, sub)
@@ -69,10 +66,10 @@ func (hp *HP) Deliver(authRequired, publicReadable bool, ev *event.T) {
 		}
 	}
 	for _, sub := range subs {
-		delete(hp.Map, sub)
+		delete(p.Map, sub)
 	}
 	subs = subs[:0]
-	for sub := range hp.Map {
+	for sub := range p.Map {
 		// if auth required, check the subscription pubkey matches
 		if !publicReadable {
 			if authRequired && len(sub.Pubkey) == 0 {
@@ -97,5 +94,5 @@ func (hp *HP) Deliver(authRequired, publicReadable bool, ev *event.T) {
 		// send the event to the subscriber
 		sub.Receiver <- ev
 	}
-	hp.Mx.Unlock()
+	p.Mx.Unlock()
 }
