@@ -58,7 +58,7 @@ func (p *S) Deliver(authRequired, publicReadable bool, ev *event.T) {
 	p.Mx.Lock()
 	var subs []*H
 	for sub := range p.Map {
-		// check if the subscription'p subscriber is still alive
+		// check if the subscription's subscriber is still alive
 		select {
 		case <-sub.Ctx.Done():
 			subs = append(subs, sub)

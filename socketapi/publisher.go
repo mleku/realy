@@ -78,10 +78,10 @@ func (p *S) Receive(msg publisher.Message) {
 func (p *S) Deliver(authRequired, publicReadable bool, ev *event.T) {
 	var err error
 	p.Mx.Lock()
-	for ws, subs := range p.Map {
+	for w, subs := range p.Map {
 		for id, subscriber := range subs {
 			if !publicReadable {
-				if authRequired && !ws.IsAuthed() {
+				if authRequired && !w.IsAuthed() {
 					continue
 				}
 			}
@@ -89,7 +89,7 @@ func (p *S) Deliver(authRequired, publicReadable bool, ev *event.T) {
 				continue
 			}
 			if ev.Kind.IsPrivileged() {
-				ab := ws.AuthedBytes()
+				ab := w.AuthedBytes()
 				var containsPubkey bool
 				if ev.Tags != nil {
 					containsPubkey = ev.Tags.ContainsAny([]byte{'p'}, tag.New(ab))
@@ -105,7 +105,7 @@ func (p *S) Deliver(authRequired, publicReadable bool, ev *event.T) {
 			if res, err = eventenvelope.NewResultWith(id, ev); chk.E(err) {
 				continue
 			}
-			if err = res.Write(ws); chk.E(err) {
+			if err = res.Write(w); chk.E(err) {
 				continue
 			}
 		}

@@ -10,8 +10,8 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/normalize"
-	"realy.mleku.dev/realy/publish/socketapi"
 	"realy.mleku.dev/relay"
+	"realy.mleku.dev/socketapi"
 	"realy.mleku.dev/store"
 )
 

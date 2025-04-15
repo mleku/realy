@@ -21,10 +21,9 @@ import (
 	"realy.mleku.dev/realy/helpers"
 	"realy.mleku.dev/realy/options"
 	"realy.mleku.dev/realy/publish"
-	oa "realy.mleku.dev/realy/publish/openapi"
-	"realy.mleku.dev/realy/publish/socketapi"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/signer"
+	"realy.mleku.dev/socketapi"
 	"realy.mleku.dev/store"
 )
 
@@ -87,7 +86,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 		maxLimit:       sp.MaxLimit,
 		admins:         sp.Admins,
 		owners:         sp.Rl.Owners(),
-		listeners:      publish.New(socketapi.New(), oa.New()),
+		listeners:      publish.New(socketapi.New(), openapi.New()),
 		API: openapi.NewHuma(serveMux, sp.Rl.Name(), realy_lol.Version,
 			realy_lol.Description),
 	}

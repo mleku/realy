@@ -78,3 +78,4 @@ node_modules/**
 
 # ...even if they are in subdirectories
 !*/
+/blocklist.json

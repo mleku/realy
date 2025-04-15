@@ -17,7 +17,6 @@ import (
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/kinds"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/realy/publish/openapi"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tags"
@@ -136,7 +135,7 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 			}
 			// register the filter with the listeners
 			receiver := make(event.C, 32)
-			x.Publisher().Receive(&openapi.H{
+			x.Publisher().Receive(&H{
 				Ctx:      r.Context(),
 				Receiver: receiver,
 				Pubkey:   pubkey,

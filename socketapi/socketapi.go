@@ -10,7 +10,6 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/envelopes/authenvelope"
 	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/realy/publish/socketapi"
 	"realy.mleku.dev/units"
 	"realy.mleku.dev/ws"
 )
@@ -53,7 +52,7 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 		ticker.Stop()
 		// a.ClientsMu.Lock()
 		// if _, ok := a.Clients[a.Listener.Conn]; ok {
-		a.Publisher().Receive(&socketapi.W{
+		a.Publisher().Receive(&W{
 			Cancel:   true,
 			Listener: a.Listener,
 		})
