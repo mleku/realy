@@ -11,6 +11,7 @@ import (
 
 	"realy.mleku.dev/cmd/realy/app"
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/realy/helpers"
 )
 

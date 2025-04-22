@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"realy.mleku.dev/bech32encoding/pointers"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/keys"
 )
 

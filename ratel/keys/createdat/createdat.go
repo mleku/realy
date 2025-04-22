@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"io"
 
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/ratel/keys"
 	"realy.mleku.dev/ratel/keys/serial"
 	"realy.mleku.dev/timestamp"

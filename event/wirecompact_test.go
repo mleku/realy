@@ -5,6 +5,9 @@ import (
 	"bytes"
 	_ "embed"
 	"testing"
+
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/log"
 )
 
 //go:embed test.jsonl

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gobwas/ws/wsutil"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/ratel"
 	"realy.mleku.dev/ws"

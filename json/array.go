@@ -3,6 +3,7 @@ package json
 import (
 	"io"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/codec"
 )
 

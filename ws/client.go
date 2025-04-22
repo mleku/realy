@@ -13,6 +13,7 @@ import (
 
 	"realy.mleku.dev/atomic"
 	"realy.mleku.dev/auth"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/envelopes"
 	"realy.mleku.dev/envelopes/authenvelope"
@@ -22,10 +23,12 @@ import (
 	"realy.mleku.dev/envelopes/eventenvelope"
 	"realy.mleku.dev/envelopes/noticeenvelope"
 	"realy.mleku.dev/envelopes/okenvelope"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/filter"
 	"realy.mleku.dev/filters"
 	"realy.mleku.dev/kind"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/normalize"
 	"realy.mleku.dev/signer"
 )
@@ -211,7 +214,7 @@ func (r *Client) ConnectWithTLS(ctx context.T, tlsConfig *tls.Config) error {
 			log.D.F("{%s} %v\n", r.URL, message)
 
 			var t string
-			if t, message, err = envelopes.Identify(message); chk.E(err) {
+			if t, message = envelopes.Identify(message); chk.E(err) {
 				continue
 			}
 			switch t {

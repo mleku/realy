@@ -2,8 +2,10 @@ package socketapi
 
 import (
 	"realy.mleku.dev/auth"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/envelopes/authenvelope"
 	"realy.mleku.dev/envelopes/okenvelope"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/normalize"
 	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/relay"

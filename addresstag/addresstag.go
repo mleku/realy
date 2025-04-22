@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/hex"
 )
 
@@ -11,8 +12,10 @@ import (
 func DecodeAddressTag(tagValue string) (k uint16, pkb []byte, d string) {
 	split := strings.Split(tagValue, ":")
 	if len(split) == 3 {
+		var err error
+		var key uint64
 		if pkb, _ = hex.Dec(split[1]); len(pkb) == 32 {
-			if key, err := strconv.ParseUint(split[0], 10, 16); err == nil {
+			if key, err = strconv.ParseUint(split[0], 10, 16); !chk.E(err) {
 				return uint16(key), pkb, split[2]
 			}
 		}

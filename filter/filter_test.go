@@ -3,6 +3,8 @@ package filter
 import (
 	"bytes"
 	"testing"
+
+	"realy.mleku.dev/chk"
 )
 
 func TestT_MarshalUnmarshal(t *testing.T) {

@@ -4,8 +4,11 @@ package p256k
 
 import "C"
 import (
+	"realy.mleku.dev/chk"
 	btcec "realy.mleku.dev/ec"
 	"realy.mleku.dev/ec/secp256k1"
+	"realy.mleku.dev/errorf"
+	"realy.mleku.dev/log"
 	realy "realy.mleku.dev/signer"
 )
 

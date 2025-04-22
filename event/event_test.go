@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"testing"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/event/examples"
 	"realy.mleku.dev/p256k"
 )

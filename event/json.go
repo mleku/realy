@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"io"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/sha256"

@@ -4,7 +4,9 @@ import (
 	"encoding/binary"
 	"sort"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/ints"

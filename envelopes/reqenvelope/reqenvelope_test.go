@@ -27,7 +27,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 		copy(rb1, rb)
 		var rem []byte
 		var l string
-		if l, rb, err = envelopes.Identify(rb); chk.E(err) {
+		if l, rb = envelopes.Identify(rb); chk.E(err) {
 			t.Fatal(err)
 		}
 		if l != L {

@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"sync"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/envelopes/eventenvelope"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/filters"

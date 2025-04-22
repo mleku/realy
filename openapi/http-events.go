@@ -7,6 +7,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/cmd/realy/app"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/ec/schnorr"

@@ -2,6 +2,8 @@ package event
 
 import (
 	"encoding/base64"
+
+	"realy.mleku.dev/chk"
 )
 
 // MarshalWireCompact encodes an event as the canonical form wrapped in an array

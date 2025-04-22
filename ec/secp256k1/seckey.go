@@ -8,6 +8,8 @@ package secp256k1
 import (
 	"crypto/rand"
 	"io"
+
+	"realy.mleku.dev/chk"
 )
 
 // SecretKey provides facilities for working with secp256k1 secret keys within

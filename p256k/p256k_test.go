@@ -9,9 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/schnorr"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/event/examples"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/p256k"
 	realy "realy.mleku.dev/signer"
 )

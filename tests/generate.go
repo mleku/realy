@@ -7,6 +7,7 @@ import (
 
 	"lukechampine.com/frand"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/p256k"

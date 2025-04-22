@@ -6,6 +6,9 @@ import (
 	"encoding/hex"
 
 	"github.com/templexxx/xhex"
+
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/errorf"
 )
 
 var Enc = hex.EncodeToString

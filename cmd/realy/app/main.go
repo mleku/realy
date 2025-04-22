@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"realy.mleku.dev/bech32encoding"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/ec/schnorr"
 	"realy.mleku.dev/event"
@@ -18,6 +19,7 @@ import (
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/kinds"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/realy/config"
 	"realy.mleku.dev/store"
 	"realy.mleku.dev/tag"

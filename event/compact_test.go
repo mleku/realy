@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"testing"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/event/examples"
 )
 

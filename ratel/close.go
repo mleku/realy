@@ -1,5 +1,10 @@
 package ratel
 
+import (
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/log"
+)
+
 // Close the database. If the Flatten flag was set, then trigger the flattening of tables before
 // shutting down.
 func (r *T) Close() (err error) {

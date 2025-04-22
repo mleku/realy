@@ -6,6 +6,8 @@ import (
 	"sort"
 
 	"realy.mleku.dev"
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/relayinfo"
 	"realy.mleku.dev/store"

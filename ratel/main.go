@@ -10,6 +10,7 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/ratel/keys/serial"
 	"realy.mleku.dev/ratel/prefixes"

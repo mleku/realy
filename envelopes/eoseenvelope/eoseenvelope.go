@@ -7,6 +7,7 @@ package eoseenvelope
 import (
 	"io"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/codec"
 	"realy.mleku.dev/envelopes"
 	"realy.mleku.dev/subscription"

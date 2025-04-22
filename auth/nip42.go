@@ -7,8 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/kind"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tags"
 	"realy.mleku.dev/timestamp"
@@ -37,11 +39,7 @@ func CreateUnsigned(pubkey, challenge []byte, relayURL string) (ev *event.T) {
 
 // helper function for ValidateAuthEvent.
 func parseURL(input string) (*url.URL, error) {
-	return url.Parse(
-		strings.ToLower(
-			strings.TrimSuffix(input, "/"),
-		),
-	)
+	return url.Parse(strings.ToLower(strings.TrimSuffix(input, "/")))
 }
 
 var (

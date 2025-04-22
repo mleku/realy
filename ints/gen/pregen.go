@@ -5,6 +5,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"realy.mleku.dev/chk"
 )
 
 func main() {

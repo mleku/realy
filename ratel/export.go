@@ -7,11 +7,12 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/filter"
 	"realy.mleku.dev/hex"
-	"realy.mleku.dev/qu"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/ratel/keys/serial"
 	"realy.mleku.dev/ratel/prefixes"
 	"realy.mleku.dev/sha256"
@@ -51,7 +52,7 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 		}
 		queries = append(queries, queries2...)
 		// start up writer loop
-		quit := qu.T()
+		quit := make(chan struct{})
 		go func() {
 			for {
 				select {
@@ -101,7 +102,7 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 			}
 		}()
 		// stop the writer loop
-		defer quit.Q()
+		defer close(quit)
 		for _, q := range queries {
 			select {
 			case <-r.Ctx.Done():

@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/schnorr"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/ratel/keys"
 )
 

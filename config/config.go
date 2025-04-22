@@ -5,6 +5,8 @@ package config
 import (
 	"os"
 	"strings"
+
+	"realy.mleku.dev/chk"
 )
 
 // Env is a key/value map used to represent environment variables. This is

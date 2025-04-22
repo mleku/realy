@@ -8,6 +8,8 @@ import (
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
 
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/ratel/prefixes"
 	"realy.mleku.dev/units"
 )

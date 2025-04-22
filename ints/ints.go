@@ -9,6 +9,8 @@ import (
 	"io"
 
 	"golang.org/x/exp/constraints"
+
+	"realy.mleku.dev/errorf"
 )
 
 // run this to regenerate (pointlessly) the base 10 array of 4 places per entry

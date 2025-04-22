@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/httpauth"
 )
 

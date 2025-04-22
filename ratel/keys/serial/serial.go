@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ratel/keys"
 )
 

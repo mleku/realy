@@ -10,7 +10,7 @@ import (
 	"runtime"
 
 	"realy.mleku.dev/atomic"
-	"realy.mleku.dev/qu"
+	"realy.mleku.dev/log"
 )
 
 // HandlerWithSource is an interrupt handling closure and the source location that it was sent
@@ -32,7 +32,7 @@ var (
 	signals = []os.Signal{os.Interrupt}
 
 	// ShutdownRequestChan is a channel that can receive shutdown requests
-	ShutdownRequestChan = qu.T()
+	ShutdownRequestChan = make(chan struct{})
 
 	// addHandlerChan is used to add an interrupt handler to the list of handlers to be invoked
 	// on SIGINT (Ctrl+C) signals.
@@ -40,7 +40,7 @@ var (
 
 	// HandlersDone is closed after all interrupt handlers run the first time an interrupt is
 	// signaled.
-	HandlersDone = make(qu.C)
+	HandlersDone = make(chan struct{})
 
 	interruptCallbacks       []func()
 	interruptCallbackSources []string
@@ -57,7 +57,7 @@ func Listener() {
 			interruptCallbacks[idx]()
 		}
 		log.D.Ln("interrupt handlers finished")
-		HandlersDone.Q()
+		close(HandlersDone)
 		if RestartRequested {
 			Restart()
 		}
@@ -71,7 +71,7 @@ out:
 			invokeCallbacks()
 			break out
 
-		case <-ShutdownRequestChan.Wait():
+		case <-ShutdownRequestChan:
 			log.W.Ln("received shutdown request - shutting down...")
 			requested.Store(true)
 			invokeCallbacks()
@@ -82,7 +82,7 @@ out:
 			interruptCallbackSources = append(interruptCallbackSources,
 				handler.Source)
 
-		case <-HandlersDone.Wait():
+		case <-HandlersDone:
 			break out
 		}
 	}
@@ -113,7 +113,7 @@ func Request() {
 		return
 	}
 	requested.Store(true)
-	ShutdownRequestChan.Q()
+	close(ShutdownRequestChan)
 	var ok bool
 	select {
 	case _, ok = <-ShutdownRequestChan:

@@ -1,6 +1,7 @@
 package event
 
 import (
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/schnorr"
 )
 

@@ -5,6 +5,7 @@ package musig2
 import (
 	"fmt"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec"
 	"realy.mleku.dev/ec/schnorr"
 )

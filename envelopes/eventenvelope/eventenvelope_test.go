@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"testing"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/envelopes"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/event/examples"
@@ -30,7 +31,7 @@ func TestSubmission(t *testing.T) {
 		rem = ea.Marshal(rem)
 		c = append(c, rem...)
 		var l string
-		if l, rem, err = envelopes.Identify(rem); chk.E(err) {
+		if l, rem = envelopes.Identify(rem); chk.E(err) {
 			t.Fatal(err)
 		}
 		if l != L {
@@ -72,7 +73,7 @@ func TestResult(t *testing.T) {
 		rem = ea.Marshal(rem)
 		c = append(c, rem...)
 		var l string
-		if l, rem, err = envelopes.Identify(rem); chk.E(err) {
+		if l, rem = envelopes.Identify(rem); chk.E(err) {
 			t.Fatal(err)
 		}
 		if l != L {

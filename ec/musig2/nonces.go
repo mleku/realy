@@ -9,6 +9,7 @@ import (
 	"errors"
 	"io"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec"
 	"realy.mleku.dev/ec/chainhash"
 	"realy.mleku.dev/ec/schnorr"

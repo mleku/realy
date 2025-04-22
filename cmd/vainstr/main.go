@@ -14,13 +14,16 @@ import (
 
 	"github.com/alexflint/go-arg"
 
+	"realy.mleku.dev/qu"
+
 	"realy.mleku.dev/atomic"
 	"realy.mleku.dev/bech32encoding"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/bech32"
 	"realy.mleku.dev/ec/schnorr"
 	"realy.mleku.dev/ec/secp256k1"
 	"realy.mleku.dev/interrupt"
-	"realy.mleku.dev/qu"
+	"realy.mleku.dev/log"
 )
 
 var prefix = append(bech32encoding.PubHRP, '1')

@@ -2,6 +2,7 @@ package ratel
 
 import (
 	eventstore "realy.mleku.dev/addresstag"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/ratel/keys"
 	"realy.mleku.dev/ratel/keys/arb"

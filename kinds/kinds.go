@@ -3,8 +3,11 @@
 package kinds
 
 import (
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/ints"
 	"realy.mleku.dev/kind"
+	"realy.mleku.dev/log"
 )
 
 // T is an array of kind.T, used in filter.T and filter.S for searches.

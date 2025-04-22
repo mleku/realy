@@ -6,7 +6,9 @@ import (
 
 	"lukechampine.com/frand"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/hex"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/tag"
 )
 

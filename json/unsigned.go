@@ -3,6 +3,7 @@ package json
 import (
 	"golang.org/x/exp/constraints"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ints"
 )
 

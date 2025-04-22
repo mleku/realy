@@ -3,8 +3,10 @@ package ratel
 import (
 	"strings"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/schnorr"
 	"realy.mleku.dev/hex"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/ratel/keys"
 	"realy.mleku.dev/ratel/keys/arb"
 	"realy.mleku.dev/ratel/keys/createdat"

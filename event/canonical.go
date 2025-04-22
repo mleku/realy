@@ -3,10 +3,13 @@ package event
 import (
 	"reflect"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/codec"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/json"
 	"realy.mleku.dev/kind"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/tags"
 	"realy.mleku.dev/text"
 	"realy.mleku.dev/timestamp"

@@ -3,12 +3,14 @@ package socketapi
 import (
 	"fmt"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/envelopes"
 	"realy.mleku.dev/envelopes/authenvelope"
 	"realy.mleku.dev/envelopes/closeenvelope"
 	"realy.mleku.dev/envelopes/eventenvelope"
 	"realy.mleku.dev/envelopes/noticeenvelope"
 	"realy.mleku.dev/envelopes/reqenvelope"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/relay"
 )
 
@@ -17,7 +19,7 @@ func (a *A) HandleMessage(msg []byte) {
 	var err error
 	var t string
 	var rem []byte
-	if t, rem, err = envelopes.Identify(msg); chk.E(err) {
+	if t, rem = envelopes.Identify(msg); chk.E(err) {
 		notice = []byte(err.Error())
 	}
 	rl := a.Relay()

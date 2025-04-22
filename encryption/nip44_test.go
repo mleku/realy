@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/keys"
 	"realy.mleku.dev/sha256"

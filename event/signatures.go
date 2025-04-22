@@ -3,8 +3,11 @@ package event
 import (
 	"bytes"
 
+	"realy.mleku.dev/chk"
 	sch "realy.mleku.dev/ec/schnorr"
 	k1 "realy.mleku.dev/ec/secp256k1"
+	"realy.mleku.dev/errorf"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/p256k"
 	"realy.mleku.dev/signer"
 )

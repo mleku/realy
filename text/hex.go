@@ -1,6 +1,7 @@
 package text
 
 import (
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/hex"
 )
 

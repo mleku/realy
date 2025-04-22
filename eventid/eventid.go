@@ -5,7 +5,10 @@ package eventid
 import (
 	"lukechampine.com/frand"
 
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/hex"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/sha256"
 )
 

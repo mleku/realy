@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/cmd/lerproxy/timeout"
 )
 
@@ -21,7 +22,7 @@ type Listener struct {
 	*net.TCPListener
 }
 
-func (ln Listener) Accept() (conn net.Conn, e er) {
+func (ln Listener) Accept() (conn net.Conn, e error) {
 	var tc *net.TCPConn
 	if tc, e = ln.AcceptTCP(); chk.E(e) {
 		return

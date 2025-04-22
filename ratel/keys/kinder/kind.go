@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"io"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/ratel/keys"
 )

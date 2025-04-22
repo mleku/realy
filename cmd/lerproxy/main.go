@@ -26,26 +26,28 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/sync/errgroup"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/cmd/lerproxy/buf"
 	"realy.mleku.dev/cmd/lerproxy/hsts"
 	"realy.mleku.dev/cmd/lerproxy/reverse"
 	"realy.mleku.dev/cmd/lerproxy/tcpkeepalive"
 	"realy.mleku.dev/cmd/lerproxy/util"
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/log"
 )
 
 type runArgs struct {
-	Addr  st            `arg:"-l,--listen" default:":https" help:"address to listen at"`
-	Conf  st            `arg:"-m,--map" default:"mapping.txt" help:"file with host/backend mapping"`
-	Cache st            `arg:"-c,--cachedir" default:"/var/cache/letsencrypt" help:"path to directory to cache key and certificates"`
-	HSTS  bo            `arg:"-h,--hsts" help:"add Strict-Transport-Security header"`
-	Email st            `arg:"-e,--email" help:"contact email address presented to letsencrypt CA"`
-	HTTP  st            `arg:"--http" default:":http" help:"optional address to serve http-to-https redirects and ACME http-01 challenge responses"`
+	Addr  string        `arg:"-l,--listen" default:":https" help:"address to listen at"`
+	Conf  string        `arg:"-m,--map" default:"mapping.txt" help:"file with host/backend mapping"`
+	Cache string        `arg:"-c,--cachedir" default:"/var/cache/letsencrypt" help:"path to directory to cache key and certificates"`
+	HSTS  bool          `arg:"-h,--hsts" help:"add Strict-Transport-Security header"`
+	Email string        `arg:"-e,--email" help:"contact email address presented to letsencrypt CA"`
+	HTTP  string        `arg:"--http" default:":http" help:"optional address to serve http-to-https redirects and ACME http-01 challenge responses"`
 	RTO   time.Duration `arg:"-r,--rto" default:"1m" help:"maximum duration before timing out read of the request"`
 	WTO   time.Duration `arg:"-w,--wto" default:"5m" help:"maximum duration before timing out write of the response"`
 	Idle  time.Duration `arg:"-i,--idle" help:"how long idle connection is kept before closing (set rto, wto to 0 to use this)"`
-	Certs []st          `arg:"--cert,separate" help:"certificates and the domain they match: eg: realy.lol:/path/to/cert - this will indicate to load two, one with extension .key and one with .crt, each expected to be PEM encoded TLS private and public keys, respectively"`
-	// Rewrites st        `arg:"-r,--rewrites" default:"rewrites.txt"`
+	Certs []string      `arg:"--cert,separate" help:"certificates and the domain they match: eg: realy.lol:/path/to/cert - this will indicate to load two, one with extension .key and one with .crt, each expected to be PEM encoded TLS private and public keys, respectively"`
+	// Rewrites string        `arg:"-r,--rewrites" default:"rewrites.txt"`
 }
 
 var args runArgs
@@ -59,7 +61,7 @@ func main() {
 	}
 }
 
-func run(c cx, args runArgs) (err er) {
+func run(c context.T, args runArgs) (err error) {
 
 	if args.Cache == "" {
 		err = log.E.Err("no cache specified")
@@ -86,11 +88,11 @@ func run(c cx, args runArgs) (err er) {
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		}
-		group.Go(func() (err er) {
+		group.Go(func() (err error) {
 			chk.E(httpServer.ListenAndServe())
 			return
 		})
-		group.Go(func() er {
+		group.Go(func() error {
 			<-ctx.Done()
 			ctx, cancel := context.Timeout(context.Bg(),
 				time.Second)
@@ -99,12 +101,12 @@ func run(c cx, args runArgs) (err er) {
 		})
 	}
 	if srv.ReadTimeout != 0 || srv.WriteTimeout != 0 || args.Idle == 0 {
-		group.Go(func() (err er) {
+		group.Go(func() (err error) {
 			chk.E(srv.ListenAndServeTLS("", ""))
 			return
 		})
 	} else {
-		group.Go(func() (err er) {
+		group.Go(func() (err error) {
 			var ln net.Listener
 			if ln, err = net.Listen("tcp", srv.Addr); chk.E(err) {
 				return
@@ -119,7 +121,7 @@ func run(c cx, args runArgs) (err er) {
 			return
 		})
 	}
-	group.Go(func() er {
+	group.Go(func() error {
 		<-ctx.Done()
 		ctx, cancel := context.Timeout(context.Bg(), time.Second)
 		defer cancel()
@@ -132,8 +134,8 @@ func run(c cx, args runArgs) (err er) {
 // as any provided .pem certificates from providers.
 //
 // The certs are provided in the form "example.com:/path/to/cert.pem"
-func TLSConfig(m *autocert.Manager, certs ...st) (tc *tls.Config) {
-	certMap := make(map[st]*tls.Certificate)
+func TLSConfig(m *autocert.Manager, certs ...string) (tc *tls.Config) {
+	certMap := make(map[string]*tls.Certificate)
 	var mx sync.Mutex
 	for _, cert := range certs {
 		split := strings.Split(cert, ":")
@@ -141,7 +143,7 @@ func TLSConfig(m *autocert.Manager, certs ...st) (tc *tls.Config) {
 			log.E.F("invalid certificate parameter format: `%s`", cert)
 			continue
 		}
-		var err er
+		var err error
 		var c tls.Certificate
 		if c, err = tls.LoadX509KeyPair(split[1]+".crt", split[1]+".key"); chk.E(err) {
 			continue
@@ -149,9 +151,9 @@ func TLSConfig(m *autocert.Manager, certs ...st) (tc *tls.Config) {
 		certMap[split[0]] = &c
 	}
 	tc = m.TLSConfig()
-	tc.GetCertificate = func(helo *tls.ClientHelloInfo) (cert *tls.Certificate, err er) {
+	tc.GetCertificate = func(helo *tls.ClientHelloInfo) (cert *tls.Certificate, err error) {
 		mx.Lock()
-		var own st
+		var own string
 		for i := range certMap {
 			// to also handle explicit subdomain certs, prioritize over a root wildcard.
 			if helo.ServerName == i {
@@ -175,8 +177,8 @@ func TLSConfig(m *autocert.Manager, certs ...st) (tc *tls.Config) {
 	return
 }
 
-func setupServer(a runArgs) (s *http.Server, h http.Handler, err er) {
-	var mapping map[st]st
+func setupServer(a runArgs) (s *http.Server, h http.Handler, err error) {
+	var mapping map[string]string
 	if mapping, err = readMapping(a.Conf); chk.E(err) {
 		return
 	}
@@ -209,11 +211,11 @@ func setupServer(a runArgs) (s *http.Server, h http.Handler, err er) {
 }
 
 type NostrJSON struct {
-	Names  map[st]st   `json:"names"`
-	Relays map[st][]st `json:"relays"`
+	Names  map[string]string   `json:"names"`
+	Relays map[string][]string `json:"relays"`
 }
 
-func setProxy(mapping map[st]st) (h http.Handler, err er) {
+func setProxy(mapping map[string]string) (h http.Handler, err error) {
 	if len(mapping) == 0 {
 		return nil, fmt.Errorf("empty mapping")
 	}
@@ -228,7 +230,7 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 		if ba != "" && ba[0] == '@' && runtime.GOOS == "linux" {
 			// append \0 to address so addrlen for connect(2) is calculated in a
 			// way compatible with some other implementations (i.e. uwsgi)
-			network, ba = "unix", ba+st(byte(0))
+			network, ba = "unix", ba+string(byte(0))
 		} else if strings.HasPrefix(ba, "git+") {
 			split := strings.Split(ba, "git+")
 			if len(split) != 2 {
@@ -251,7 +253,7 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 		} else if filepath.IsAbs(ba) {
 			network = "unix"
 			switch {
-			case strings.HasSuffix(ba, st(os.PathSeparator)):
+			case strings.HasSuffix(ba, string(os.PathSeparator)):
 				// path specified as directory with explicit trailing slash; add
 				// this path as static site
 				fs := http.FileServer(http.Dir(ba))
@@ -259,7 +261,7 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 				continue
 			case strings.HasSuffix(ba, "nostr.json"):
 				log.I.Ln(hn, ba)
-				var fb by
+				var fb []byte
 				if fb, err = os.ReadFile(ba); chk.E(err) {
 					continue
 				}
@@ -267,11 +269,11 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 				if err = json.Unmarshal(fb, &v); chk.E(err) {
 					continue
 				}
-				var jb by
+				var jb []byte
 				if jb, err = json.Marshal(v); chk.E(err) {
 					continue
 				}
-				nostrJSON := st(jb)
+				nostrJSON := string(jb)
 				mux.HandleFunc(hn+"/.well-known/nostr.json",
 					func(writer http.ResponseWriter, request *http.Request) {
 						log.I.Ln("serving nostr json to", hn)
@@ -290,7 +292,7 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 			switch u.Scheme {
 			case "http", "https":
 				rp := reverse.NewSingleHostReverseProxy(u)
-				modifyCORSResponse := func(res *http.Response) er {
+				modifyCORSResponse := func(res *http.Response) error {
 					res.Header.Set("Access-Control-Allow-Methods",
 						"GET,HEAD,PUT,PATCH,POST,DELETE")
 					// res.Header.Set("Access-Control-Allow-Credentials", "true")
@@ -316,7 +318,7 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 				log.D.Ln(req.URL, req.RemoteAddr)
 			},
 			Transport: &http.Transport{
-				DialContext: func(c cx, n, addr st) (net.Conn, er) {
+				DialContext: func(c context.T, n, addr string) (net.Conn, error) {
 					return net.DialTimeout(network, ba, 5*time.Second)
 				},
 			},
@@ -328,12 +330,12 @@ func setProxy(mapping map[st]st) (h http.Handler, err er) {
 	return mux, nil
 }
 
-func readMapping(file st) (m map[st]st, err er) {
+func readMapping(file string) (m map[string]string, err error) {
 	var f *os.File
 	if f, err = os.Open(file); chk.E(err) {
 		return
 	}
-	m = make(map[st]st)
+	m = make(map[string]string)
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		if b := sc.Bytes(); len(b) == 0 || b[0] == '#' {

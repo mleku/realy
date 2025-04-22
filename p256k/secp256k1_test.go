@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"testing"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/schnorr"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/event/examples"

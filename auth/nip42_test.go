@@ -3,6 +3,7 @@ package auth
 import (
 	"testing"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/p256k"
 )
 

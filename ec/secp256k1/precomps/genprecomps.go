@@ -13,7 +13,9 @@ import (
 	"math/big"
 	"os"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/secp256k1"
+	"realy.mleku.dev/log"
 )
 
 // curveParams houses the secp256k1 curve parameters for convenient access.

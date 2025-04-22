@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/hex"
 )
 

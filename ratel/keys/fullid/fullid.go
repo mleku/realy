@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ratel/keys"
 	"realy.mleku.dev/sha256"
 

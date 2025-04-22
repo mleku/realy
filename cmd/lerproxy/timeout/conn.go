@@ -5,6 +5,8 @@ package timeout
 import (
 	"net"
 	"time"
+
+	"realy.mleku.dev/chk"
 )
 
 // Conn extends deadline after successful read or write operations
@@ -13,7 +15,7 @@ type Conn struct {
 	*net.TCPConn
 }
 
-func (c Conn) Read(b by) (n no, e er) {
+func (c Conn) Read(b []byte) (n int, e error) {
 	if n, e = c.TCPConn.Read(b); !chk.E(e) {
 		if e = c.SetDeadline(c.getTimeout()); chk.E(e) {
 		}
@@ -21,7 +23,7 @@ func (c Conn) Read(b by) (n no, e er) {
 	return
 }
 
-func (c Conn) Write(b by) (n no, e er) {
+func (c Conn) Write(b []byte) (n int, e error) {
 	if n, e = c.TCPConn.Write(b); !chk.E(e) {
 		if e = c.SetDeadline(c.getTimeout()); chk.E(e) {
 		}

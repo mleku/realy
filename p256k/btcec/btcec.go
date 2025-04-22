@@ -2,9 +2,11 @@
 package btcec
 
 import (
+	"realy.mleku.dev/chk"
 	ec "realy.mleku.dev/ec"
 	"realy.mleku.dev/ec/schnorr"
 	"realy.mleku.dev/ec/secp256k1"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/signer"
 )
 

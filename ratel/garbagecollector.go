@@ -3,6 +3,8 @@ package ratel
 import (
 	"time"
 
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/units"
 )
 

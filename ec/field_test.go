@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"testing"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/hex"
 )
 

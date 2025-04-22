@@ -17,10 +17,12 @@ import (
 
 	realy_lol "realy.mleku.dev"
 	"realy.mleku.dev/bech32encoding"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/cmd/realy/app"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/interrupt"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/lol"
 	"realy.mleku.dev/p256k"
 	"realy.mleku.dev/ratel"

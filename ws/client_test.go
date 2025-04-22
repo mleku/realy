@@ -15,6 +15,7 @@ import (
 
 	"golang.org/x/net/websocket"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/envelopes/eventenvelope"
 	"realy.mleku.dev/envelopes/okenvelope"
 	"realy.mleku.dev/event"

@@ -9,6 +9,7 @@ import (
 
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
+	"realy.mleku.dev/log"
 	"realy.mleku.dev/normalize"
 	"realy.mleku.dev/relay"
 	"realy.mleku.dev/socketapi"

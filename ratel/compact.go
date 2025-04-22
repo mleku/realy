@@ -1,6 +1,7 @@
 package ratel
 
 import (
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/event"
 )
 

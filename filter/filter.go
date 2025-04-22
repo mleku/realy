@@ -11,8 +11,10 @@ import (
 
 	"lukechampine.com/frand"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/schnorr"
 	"realy.mleku.dev/ec/secp256k1"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/ints"

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/bech32"
 	"realy.mleku.dev/ec/chaincfg"
 )

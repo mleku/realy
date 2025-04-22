@@ -5,7 +5,7 @@ package envelopes
 // is not sufficient because the same labels are used on several codec.Envelope
 // types in the nostr specification. The rest of the context is in whether this
 // is a client or a relay receiving it.
-func Identify(b []byte) (t string, rem []byte, err error) {
+func Identify(b []byte) (t string, rem []byte) {
 	var openBrackets, openQuotes, afterQuotes bool
 	var label []byte
 	rem = b

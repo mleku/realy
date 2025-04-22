@@ -6,9 +6,11 @@ import (
 	"testing"
 
 	"realy.mleku.dev/bech32encoding/pointers"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/eventid"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/kind"
+	"realy.mleku.dev/log"
 )
 
 func TestEncodeNpub(t *testing.T) {

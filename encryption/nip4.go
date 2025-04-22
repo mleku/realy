@@ -9,6 +9,8 @@ import (
 
 	"lukechampine.com/frand"
 
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/p256k"
 )

@@ -1,6 +1,7 @@
 package json
 
 import (
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/text"
 )
 

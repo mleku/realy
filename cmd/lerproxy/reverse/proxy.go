@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"realy.mleku.dev/cmd/lerproxy/util"
+	"realy.mleku.dev/log"
 )
 
 // NewSingleHostReverseProxy is a copy of httputil.NewSingleHostReverseProxy

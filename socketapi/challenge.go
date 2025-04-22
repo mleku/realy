@@ -7,6 +7,7 @@ import (
 	"github.com/fasthttp/websocket"
 
 	"realy.mleku.dev/bech32encoding"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/ec/bech32"
 	"realy.mleku.dev/ws"
 )

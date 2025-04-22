@@ -17,7 +17,9 @@ import (
 
 	"realy.mleku.dev"
 	"realy.mleku.dev/apputil"
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/config"
+	"realy.mleku.dev/log"
 )
 
 // C is the configuration for realy relay. These are read from the environment if present, or if

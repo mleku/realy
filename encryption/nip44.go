@@ -12,6 +12,8 @@ import (
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/hkdf"
 
+	"realy.mleku.dev/chk"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/sha256"
 )
 
