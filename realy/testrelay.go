@@ -9,6 +9,7 @@ import (
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/eventid"
 	"realy.mleku.dev/filter"
+	"realy.mleku.dev/filters"
 	"realy.mleku.dev/store"
 	"realy.mleku.dev/units"
 )
@@ -66,6 +67,25 @@ func (tr *testRelay) AcceptEvent(c context.T, evt *event.T, hr *http.Request, or
 		return fn(evt), "", nil
 	}
 	return true, "", nil
+}
+
+func (tr *testRelay) AcceptReq(c context.T, hr *http.Request, id []byte,
+	ff *filters.T, authedPubkey []byte) (allowed *filters.T, ok bool, modified bool) {
+	// TODO implement me
+	panic("implement me")
+}
+func (tr *testRelay) AcceptFilter(c context.T, hr *http.Request, f *filter.S,
+	authedPubkey []byte) (allowed *filter.S, ok bool, modified bool) {
+	// TODO implement me
+	panic("implement me")
+}
+func (tr *testRelay) AuthRequired() bool {
+	// TODO implement me
+	panic("implement me")
+}
+func (tr *testRelay) ServiceUrl(req *http.Request) (s string) {
+	// TODO implement me
+	panic("implement me")
 }
 
 type testStorage struct {
@@ -135,11 +155,4 @@ func (string *testStorage) SaveEvent(c context.T, e *event.T) error {
 		return fn(c, e)
 	}
 	return nil
-}
-
-func (string *testStorage) CountEvents(c context.T, f *filter.T) (int, bool, error) {
-	if fn := string.countEvents; fn != nil {
-		return fn(c, f)
-	}
-	return 0, false, nil
 }

@@ -66,10 +66,6 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 	for _, opt := range opts {
 		opt(op)
 	}
-	var authRequired bool
-	if ar, ok := sp.Rl.(relay.Authenticator); ok {
-		authRequired = ar.AuthRequired()
-	}
 	if storage := sp.Rl.Storage(); storage != nil {
 		if err := storage.Init(sp.DbPath); chk.T(err) {
 			return nil, fmt.Errorf("storage init: %w", err)
@@ -83,7 +79,7 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 		clients:        make(map[*websocket.Conn]struct{}),
 		mux:            serveMux,
 		options:        op,
-		authRequired:   authRequired,
+		authRequired:   sp.Rl.AuthRequired(),
 		publicReadable: sp.PublicReadable,
 		maxLimit:       sp.MaxLimit,
 		admins:         sp.Admins,
@@ -108,13 +104,6 @@ func NewServer(sp *ServerParams, opts ...options.O) (s *Server, err error) {
 			s.Shutdown()
 		}
 	}()
-	if inj, ok := s.relay.(relay.Injector); ok {
-		go func() {
-			for ev := range inj.InjectEvents() {
-				s.listeners.Deliver(s.authRequired, s.publicReadable, ev)
-			}
-		}()
-	}
 	return s, nil
 }
 
@@ -173,9 +162,6 @@ func (s *Server) Shutdown() {
 	chk.E(s.relay.Storage().Close())
 	log.W.Ln("shutting down relay listener")
 	chk.E(s.httpServer.Shutdown(s.Ctx))
-	if f, ok := s.relay.(relay.ShutdownAware); ok {
-		f.OnShutdown(s.Ctx)
-	}
 }
 
 // Router returns the servemux that handles paths on the HTTP server of the relay.

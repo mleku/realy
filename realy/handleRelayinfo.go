@@ -8,54 +8,41 @@ import (
 	"realy.mleku.dev"
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/log"
-	"realy.mleku.dev/relay"
 	"realy.mleku.dev/relayinfo"
-	"realy.mleku.dev/store"
 )
 
 func (s *Server) handleRelayInfo(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	log.I.Ln("handling relay information document")
 	var info *relayinfo.T
-	if informationer, ok := s.relay.(relay.Informationer); ok {
-		info = informationer.GetNIP11InformationDocument()
-	} else {
-		supportedNIPs := relayinfo.GetList(
-			relayinfo.BasicProtocol,
-			relayinfo.EncryptedDirectMessage,
-			relayinfo.EventDeletion,
-			relayinfo.RelayInformationDocument,
-			relayinfo.GenericTagQueries,
-			relayinfo.NostrMarketplace,
-			relayinfo.EventTreatment,
-			relayinfo.CommandResults,
-			relayinfo.ParameterizedReplaceableEvents,
-			relayinfo.ExpirationTimestamp,
-			relayinfo.ProtectedEvents,
-			relayinfo.RelayListMetadata,
-		)
-		var auther relay.Authenticator
-		if auther, ok = s.relay.(relay.Authenticator); ok && auther.ServiceUrl(r) != "" {
-			supportedNIPs = append(supportedNIPs, relayinfo.Authentication.N())
-		}
-		var storage store.I
-		if storage = s.relay.Storage(); storage != nil {
-			if _, ok = storage.(relay.EventCounter); ok {
-				supportedNIPs = append(supportedNIPs, relayinfo.CountingResults.N())
-			}
-		}
-		sort.Sort(supportedNIPs)
-		log.T.Ln("supported NIPs", supportedNIPs)
-		info = &relayinfo.T{Name: s.relay.Name(),
-			Description: realy_lol.Description,
-			Nips:        supportedNIPs, Software: realy_lol.URL, Version: realy_lol.Version,
-			Limitation: relayinfo.Limits{
-				MaxLimit:         s.maxLimit,
-				AuthRequired:     s.authRequired,
-				RestrictedWrites: !s.publicReadable || s.authRequired || len(s.owners) > 0,
-			},
-			Icon: "https://cdn.satellite.earth/ac9778868fbf23b63c47c769a74e163377e6ea94d3f0f31711931663d035c4f6.png"}
+	supportedNIPs := relayinfo.GetList(
+		relayinfo.BasicProtocol,
+		relayinfo.EncryptedDirectMessage,
+		relayinfo.EventDeletion,
+		relayinfo.RelayInformationDocument,
+		relayinfo.GenericTagQueries,
+		relayinfo.NostrMarketplace,
+		relayinfo.EventTreatment,
+		relayinfo.CommandResults,
+		relayinfo.ParameterizedReplaceableEvents,
+		relayinfo.ExpirationTimestamp,
+		relayinfo.ProtectedEvents,
+		relayinfo.RelayListMetadata,
+	)
+	if s.relay.ServiceUrl(r) != "" {
+		supportedNIPs = append(supportedNIPs, relayinfo.Authentication.N())
 	}
+	sort.Sort(supportedNIPs)
+	log.T.Ln("supported NIPs", supportedNIPs)
+	info = &relayinfo.T{Name: s.relay.Name(),
+		Description: realy_lol.Description,
+		Nips:        supportedNIPs, Software: realy_lol.URL, Version: realy_lol.Version,
+		Limitation: relayinfo.Limits{
+			MaxLimit:         s.maxLimit,
+			AuthRequired:     s.authRequired,
+			RestrictedWrites: !s.publicReadable || s.authRequired || len(s.owners) > 0,
+		},
+		Icon: "https://cdn.satellite.earth/ac9778868fbf23b63c47c769a74e163377e6ea94d3f0f31711931663d035c4f6.png"}
 	if err := json.NewEncoder(w).Encode(info); chk.E(err) {
 	}
 }

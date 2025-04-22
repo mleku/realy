@@ -13,7 +13,6 @@ import (
 	"realy.mleku.dev/httpauth"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/relay"
 )
 
 // RelayInput is the parameters for the Event HTTP API method.
@@ -83,12 +82,7 @@ func (x *Operations) RegisterRelay(api huma.API) {
 			err = huma.Error400BadRequest("signature is invalid")
 			return
 		}
-		var authRequired bool
-		var ar relay.Authenticator
-		if ar, ok = x.Relay().(relay.Authenticator); ok {
-			authRequired = ar.AuthRequired()
-		}
-		x.Publisher().Deliver(authRequired, x.PublicReadable(), ev)
+		x.Publisher().Deliver(x.Relay().AuthRequired(), x.PublicReadable(), ev)
 		return
 	})
 }

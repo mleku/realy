@@ -18,7 +18,6 @@ import (
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/relay"
 	"realy.mleku.dev/sha256"
 	"realy.mleku.dev/tag"
 )
@@ -32,7 +31,7 @@ type EventInput struct {
 // EventOutput is the return parameters for the HTTP API Event method.
 type EventOutput struct{ Body string }
 
-// RegisterEvent is the implementatino of the HTTP API Event method.
+// RegisterEvent is the implementation of the HTTP API Event method.
 func (x *Operations) RegisterEvent(api huma.API) {
 	name := "Event"
 	description := "Submit an event"
@@ -61,7 +60,6 @@ func (x *Operations) RegisterEvent(api huma.API) {
 		if sto == nil {
 			panic("no event store has been set to store event")
 		}
-		advancedDeleter, _ := sto.(relay.AdvancedDeleter)
 		var valid bool
 		var pubkey []byte
 		valid, pubkey, err = httpauth.CheckAuth(r)
@@ -189,15 +187,9 @@ func (x *Operations) RegisterEvent(api huma.API) {
 						err = huma.Error403Forbidden("only author can delete event")
 						return
 					}
-					if advancedDeleter != nil {
-						advancedDeleter.BeforeDelete(ctx, t.Value(), ev.Pubkey)
-					}
 					if err = sto.DeleteEvent(ctx, target.EventId()); chk.T(err) {
 						err = huma.Error500InternalServerError(err.Error())
 						return
-					}
-					if advancedDeleter != nil {
-						advancedDeleter.AfterDelete(t.Value(), ev.Pubkey)
 					}
 				}
 				res = nil

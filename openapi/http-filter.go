@@ -20,7 +20,6 @@ import (
 	"realy.mleku.dev/kinds"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/relay"
 	"realy.mleku.dev/store"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tags"
@@ -128,23 +127,21 @@ func (x *Operations) RegisterFilter(api huma.API) {
 			return
 		}
 		allowed := filters.New(f)
-		if accepter, ok := x.Relay().(relay.ReqAcceptor); ok {
-			var accepted, modified bool
-			allowed, accepted, modified = accepter.AcceptReq(x.Context(), r, nil,
-				filters.New(f), pubkey)
-			if !accepted {
-				err = huma.Error401Unauthorized("auth to get access for this filter")
-				return
-			} else if modified {
-				log.D.F("filter modified %s", allowed.F[0])
-			}
+		var accepted, modified bool
+		allowed, accepted, modified = x.Relay().AcceptReq(x.Context(), r, nil,
+			filters.New(f), pubkey)
+		if !accepted {
+			err = huma.Error401Unauthorized("auth to get access for this filter")
+			return
+		} else if modified {
+			log.D.F("filter modified %s", allowed.F[0])
 		}
 		if len(allowed.F) == 0 {
 			err = huma.Error401Unauthorized("all kinds in event restricted; auth to get access for this filter")
 			return
 		}
 		if f.Kinds.IsPrivileged() {
-			if auther, ok := x.Relay().(relay.Authenticator); ok && auther.AuthRequired() {
+			if x.Relay().AuthRequired() {
 				log.T.F("privileged request\n%s", f.Serialize())
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("#p"))

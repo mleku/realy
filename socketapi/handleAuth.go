@@ -8,14 +8,13 @@ import (
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/normalize"
 	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/relay"
 )
 
 func (a *A) HandleAuth(req []byte,
 	srv interfaces.Server) (msg []byte) {
 
-	if auther, ok := srv.Relay().(relay.Authenticator); ok && auther.AuthRequired() {
-		svcUrl := auther.ServiceUrl(a.Req())
+	if srv.Relay().AuthRequired() {
+		svcUrl := srv.Relay().ServiceUrl(a.Req())
 		if svcUrl == "" {
 			return
 		}

@@ -23,8 +23,6 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 	if ev == nil {
 		return false, normalize.Invalid.F("empty event")
 	}
-	sto := rl.Storage()
-	advancedSaver, _ := sto.(relay.AdvancedSaver)
 	// don't allow storing event with protected marker as per nip-70 with auth enabled.
 	if (s.authRequired || !s.publicReadable) && ev.Tags.ContainsProtectedMarker() {
 		if len(authedPubkey) == 0 || !bytes.Equal(ev.Pubkey, authedPubkey) {
@@ -36,9 +34,6 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 	}
 	if ev.Kind.IsEphemeral() {
 	} else {
-		if advancedSaver != nil {
-			advancedSaver.BeforeSave(c, ev)
-		}
 		if saveErr := s.Publish(c, ev); saveErr != nil {
 			if errors.Is(saveErr, store.ErrDupEvent) {
 				return false, normalize.Error.F(saveErr.Error())
@@ -56,16 +51,10 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 				return false, normalize.Error.F("failed to save (%s)", errmsg)
 			}
 		}
-		if advancedSaver != nil {
-			advancedSaver.AfterSave(ev)
-		}
 	}
-	var authRequired bool
-	if ar, ok := rl.(relay.Authenticator); ok {
-		authRequired = ar.AuthRequired()
-	}
+	rl.AuthRequired()
 	// notify subscribers
-	s.listeners.Deliver(authRequired, s.publicReadable, ev)
+	s.listeners.Deliver(rl.AuthRequired(), s.publicReadable, ev)
 	accepted = true
 	log.I.F("event id %0x stored", ev.Id)
 	return

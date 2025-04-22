@@ -17,7 +17,6 @@ import (
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/normalize"
 	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/relay"
 	"realy.mleku.dev/sha256"
 	"realy.mleku.dev/tag"
 )
@@ -32,11 +31,7 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server) (msg []b
 	if sto == nil {
 		panic("no event store has been set to store event")
 	}
-	var auther relay.Authenticator
-	if auther, ok = srv.Relay().(relay.Authenticator); ok {
-	}
 	rl := srv.Relay()
-	advancedDeleter, _ := sto.(relay.AdvancedDeleter)
 	env := eventenvelope.NewSubmission()
 	if rem, err = env.Unmarshal(req); chk.E(err) {
 		return
@@ -52,7 +47,7 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server) (msg []b
 				normalize.Blocked.F(notice)).Write(a.Listener); chk.T(err) {
 			}
 		} else {
-			if auther != nil && auther.AuthRequired() {
+			if rl.AuthRequired() {
 				if !a.AuthRequested() {
 					a.RequestAuth()
 					log.I.F("requesting auth from client %s", a.RealRemote())
@@ -230,18 +225,12 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server) (msg []b
 					}
 					return
 				}
-				if advancedDeleter != nil {
-					advancedDeleter.BeforeDelete(c, t.Value(), env.Pubkey)
-				}
 				if err = sto.DeleteEvent(c, target.EventId()); chk.T(err) {
 					if err = okenvelope.NewFrom(env.Id, false,
 						normalize.Error.F(err.Error())).Write(a.Listener); chk.E(err) {
 						return
 					}
 					return
-				}
-				if advancedDeleter != nil {
-					advancedDeleter.AfterDelete(t.Value(), env.Pubkey)
 				}
 			}
 			res = nil
