@@ -78,7 +78,7 @@ func (x *Operations) RegisterEvents(api huma.API) {
 			if rl, ok := x.Relay().(*app.Relay); ok {
 				rl.Lock()
 				// we only allow the first level of the allowed users this kind of access
-				if _, ok = rl.OwnersFollowed[string(pubkey)]; !ok {
+				if rl.OwnersFollowed(pubkey); !ok {
 					err = huma.Error403Forbidden(
 						fmt.Sprintf(
 							"authenticated user %0x does not have permission for this request (owners can use export)",

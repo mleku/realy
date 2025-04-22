@@ -38,6 +38,21 @@ type testRelay struct {
 	acceptEvent func(*event.T) bool
 }
 
+func (tr *testRelay) AllFollowed(pk []byte) (ok bool) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (tr *testRelay) Muted(pk []byte) (ok bool) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (tr *testRelay) OwnersFollowed(pk []byte) (ok bool) {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (tr *testRelay) Name() string     { return tr.name }
 func (tr *testRelay) Storage() store.I { return tr.storage }
 func (tr *testRelay) Origin() string   { return "example.com" }
@@ -97,62 +112,72 @@ type testStorage struct {
 	countEvents func(context.T, *filter.T) (int, bool, error)
 }
 
-func (string *testStorage) Import(r io.Reader) {
+func (ts *testStorage) Import(r io.Reader) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (string *testStorage) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
+func (ts *testStorage) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (string *testStorage) Sync() (err error) {
+func (ts *testStorage) Sync() (err error) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (string *testStorage) Nuke() (err error) {
+func (ts *testStorage) Nuke() (err error) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (string *testStorage) Path() string {
+func (ts *testStorage) Path() string {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (string *testStorage) Init(path string) error {
-	if fn := string.init; fn != nil {
+func (ts *testStorage) Init(path string) error {
+	if fn := ts.init; fn != nil {
 		return fn()
 	}
 	return nil
 }
 
-func (string *testStorage) Close() (err error) {
-	if fn := string.close; fn != nil {
+func (ts *testStorage) Close() (err error) {
+	if fn := ts.close; fn != nil {
 		fn()
 	}
 	return
 }
 
-func (string *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
-	if fn := string.queryEvents; fn != nil {
+func (ts *testStorage) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
+	if fn := ts.queryEvents; fn != nil {
 		return fn(c, f)
 	}
 	return nil, nil
 }
 
-func (string *testStorage) DeleteEvent(c context.T, evt *eventid.T, noTombstone ...bool) error {
-	if fn := string.deleteEvent; fn != nil {
+func (ts *testStorage) DeleteEvent(c context.T, evt *eventid.T, noTombstone ...bool) error {
+	if fn := ts.deleteEvent; fn != nil {
 		return fn(c, evt)
 	}
 	return nil
 }
 
-func (string *testStorage) SaveEvent(c context.T, e *event.T) error {
-	if fn := string.saveEvent; fn != nil {
+func (ts *testStorage) SaveEvent(c context.T, e *event.T) error {
+	if fn := ts.saveEvent; fn != nil {
 		return fn(c, e)
 	}
 	return nil
+}
+
+func (tr *testRelay) CheckOwnerLists(c context.T) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (tr *testRelay) ZeroLists() {
+	// TODO implement me
+	panic("implement me")
 }

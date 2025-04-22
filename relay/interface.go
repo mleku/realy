@@ -61,4 +61,9 @@ type I interface {
 		authedPubkey []byte) (allowed *filter.S, ok bool, modified bool)
 	AuthRequired() bool
 	ServiceUrl(r *http.Request) string
+	CheckOwnerLists(c context.T)
+	ZeroLists()
+	AllFollowed(pk []byte) (ok bool)
+	OwnersFollowed(pk []byte) (ok bool)
+	Muted(pk []byte) (ok bool)
 }
