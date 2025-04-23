@@ -22,6 +22,7 @@ import (
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/normalize"
 	"realy.mleku.dev/p256k"
+	"realy.mleku.dev/reason"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tags"
 	"realy.mleku.dev/timestamp"
@@ -115,7 +116,7 @@ func TestPublishBlocked(t *testing.T) {
 		// send back a not ok nip-20 command result
 		var res []byte
 		if res = okenvelope.NewFrom(textNote.Id, false,
-			normalize.Msg(normalize.Blocked, "no reason")).Marshal(res); chk.E(err) {
+			reason.Msg(reason.Blocked, "no reason")).Marshal(res); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err := websocket.Message.Send(conn, res); chk.T(err) {

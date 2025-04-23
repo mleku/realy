@@ -12,7 +12,7 @@ import (
 	"realy.mleku.dev/filter"
 	"realy.mleku.dev/kinds"
 	"realy.mleku.dev/log"
-	"realy.mleku.dev/normalize"
+	"realy.mleku.dev/reason"
 	"realy.mleku.dev/store"
 	"realy.mleku.dev/tag"
 )
@@ -42,7 +42,7 @@ func (s *Server) Publish(c context.T, evt *event.T) (err error) {
 				}
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
 					log.I.F("not replacing newer replaceable event")
-					return errorf.W(string(normalize.Invalid.F("not replacing newer replaceable event")))
+					return errorf.W(string(reason.Invalid.F("not replacing newer replaceable event")))
 				}
 				// not deleting these events because some clients are retarded and the query
 				// will pull the new one but a backup can recover the data of old ones
@@ -88,7 +88,7 @@ func (s *Server) Publish(c context.T, evt *event.T) (err error) {
 				err = nil
 				log.I.F("maybe replace %s", ev.Serialize())
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
-					return errorf.D(string(normalize.Blocked.F("not replacing newer parameterized replaceable event")))
+					return errorf.D(string(reason.Blocked.F("not replacing newer parameterized replaceable event")))
 				}
 				// not deleting these events because some clients are retarded and the query
 				// will pull the new one but a backup can recover the data of old ones

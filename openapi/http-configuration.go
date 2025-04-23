@@ -83,7 +83,10 @@ func (x *Operations) RegisterConfigurationSet(api huma.API) {
 			}
 		}
 		log.I.F("setting configuration")
-		x.SetConfiguration(input.Body)
+		if err = x.SetConfiguration(input.Body); chk.E(err) {
+			err = huma.Error400BadRequest(err.Error())
+			return
+		}
 		return
 	})
 }

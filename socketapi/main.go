@@ -128,6 +128,6 @@ func (a *A) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			continue
 		}
-		go a.HandleMessage(message, remote)
+		a.HandleMessage(message, remote)
 	}
 }

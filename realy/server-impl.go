@@ -6,6 +6,7 @@ import (
 
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/errorf"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/realy/config"
@@ -32,7 +33,11 @@ func (s *Server) Configuration() config.C {
 	return *s.configuration
 }
 
-func (s *Server) SetConfiguration(cfg *config.C) {
+func (s *Server) SetConfiguration(cfg *config.C) (err error) {
+	if len(cfg.Admins) == 0 {
+		err = errorf.E("cannot set configuration without at least one admin")
+		return
+	}
 	s.configurationMx.Lock()
 	s.configuration = cfg
 	s.configured = true
@@ -41,6 +46,7 @@ func (s *Server) SetConfiguration(cfg *config.C) {
 		chk.E(c.SetConfiguration(cfg))
 		chk.E(s.UpdateConfiguration())
 	}
+	return err
 }
 
 func (s *Server) AddEvent(

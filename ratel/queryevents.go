@@ -194,7 +194,6 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 					// intent or the client is erroneous, if any limit greater is
 					// requested this will be used instead as the previous clause.
 					if len(evMap) >= r.MaxLimit {
-						// log.T.ToSliceOfBytes("found MaxLimit events: %d", len(evMap))
 						return
 					}
 				}
@@ -227,17 +226,6 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 		if len(evs) > limit {
 			evs = evs[:limit]
 		}
-		// log.T.C(func() string {
-		// 	evIds := make([]string, len(evs))
-		// 	for i, ev := range evs {
-		// 		evIds[i] = hex.Enc(ev.Id)
-		// 	}
-		// 	heading := fmt.Sprintf("query complete,%d events found,%s", len(evs),
-		// 		f.Serialize())
-		// 	return fmt.Sprintf("%s\nevents,%v", heading, evIds)
-		// })
-		// bump the access times on all retrieved events. do this in a goroutine so the
-		// user's events are delivered immediately
 		go func() {
 			for ser := range accessed {
 				seri := serial.New([]byte(ser))
@@ -252,7 +240,6 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 							return
 						}
 					}
-					// log.T.Ln("last access for", seri.Uint64(), now.U64())
 					return nil
 				})
 			}
@@ -260,6 +247,5 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 	} else {
 		log.T.F("no events found,%s", f.Serialize())
 	}
-	// }
 	return
 }

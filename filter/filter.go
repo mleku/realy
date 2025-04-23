@@ -410,14 +410,10 @@ func (f *T) Unmarshal(b []byte) (r []byte, err error) {
 			}
 			if r[0] == '}' {
 				state = afterClose
-				// log.I.Ln("afterClose")
-				// rem = rem[1:]
 			} else if r[0] == ',' {
 				state = openParen
-				// log.I.Ln("openParen")
 			} else if r[0] == '"' {
 				state = inKey
-				// log.I.Ln("inKey")
 			}
 		}
 		if len(r) == 0 {
@@ -436,30 +432,24 @@ invalid:
 // Matches checks a filter against an event and determines if the event matches the filter.
 func (f *T) Matches(ev *event.T) bool {
 	if ev == nil {
-		// log.T.ToSliceOfBytes("nil event")
 		return false
 	}
 	if f.IDs.Len() > 0 && !f.IDs.Contains(ev.Id) {
-		// log.T.ToSliceOfBytes("no ids in filter match event\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	if f.Kinds.Len() > 0 && !f.Kinds.Contains(ev.Kind) {
-		// log.T.ToSliceOfBytes("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	if f.Authors.Len() > 0 && !f.Authors.Contains(ev.Pubkey) {
-		// log.T.ToSliceOfBytes("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	if f.Tags.Len() > 0 && !ev.Tags.Intersects(f.Tags) {
 		return false
 	}
 	if f.Since.Int() != 0 && ev.CreatedAt.I64() < f.Since.I64() {
-		// log.T.ToSliceOfBytes("event is older than since\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	if f.Until.Int() != 0 && ev.CreatedAt.I64() > f.Until.I64() {
-		// log.T.ToSliceOfBytes("event is newer than until\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	return true
@@ -535,7 +525,6 @@ func GenFilter() (f *T, err error) {
 		id := make([]byte, sha256.Size)
 		frand.Read(id)
 		f.IDs = f.IDs.Append(id)
-		// f.IDs.Field = append(f.IDs.Field, id)
 	}
 	n = frand.Intn(16)
 	for _ = range n {
@@ -549,7 +538,6 @@ func GenFilter() (f *T, err error) {
 		}
 		pk := sk.PubKey()
 		f.Authors = f.Authors.Append(schnorr.SerializePubKey(pk))
-		// f.Authors.Field = append(f.Authors.Field, schnorr.SerializePubKey(pk))
 	}
 	a := frand.Intn(16)
 	if a < n {
@@ -570,7 +558,6 @@ func GenFilter() (f *T, err error) {
 			}
 			idb = append([][]byte{{'#', byte(b)}}, idb...)
 			f.Tags = f.Tags.AppendTags(tag.FromBytesSlice(idb...))
-			// f.Tags.T = append(f.Tags.T, tag.FromBytesSlice(idb...))
 		} else {
 			var idb [][]byte
 			for range l {
@@ -582,7 +569,6 @@ func GenFilter() (f *T, err error) {
 			}
 			idb = append([][]byte{{'#', byte(b)}}, idb...)
 			f.Tags = f.Tags.AppendTags(tag.FromBytesSlice(idb...))
-			// f.Tags.T = append(f.Tags.T, tag.FromBytesSlice(idb...))
 		}
 	}
 	tn := int(timestamp.Now().I64())

@@ -27,7 +27,7 @@ type Server interface {
 	OwnersFollowed(pubkey string) (ok bool)
 	PublicReadable() bool
 	ServiceURL(req *http.Request) (s string)
-	SetConfiguration(*config.C)
+	SetConfiguration(cfg *config.C) (err error)
 	Shutdown()
 	Storage() store.I
 	Unlock()
