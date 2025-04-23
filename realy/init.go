@@ -102,12 +102,10 @@ func (s *Server) CheckOwnerLists(c context.T) {
 		if len(s.followed) < 1 {
 			log.T.F("regenerating followed list")
 			// add the owners themselves of course
-			log.I.S(s.owners)
 			for i := range s.owners {
 				log.I.F("added owner %0x to followed list", s.owners[i])
 				s.followed[string(s.owners[i])] = struct{}{}
 			}
-			log.I.S(s.followed)
 			log.D.Ln("regenerating owners follow lists")
 			if evs, err = s.Store.QueryEvents(c,
 				&filter.T{Authors: tag.New(s.owners...),
@@ -179,7 +177,6 @@ func (s *Server) CheckOwnerLists(c context.T) {
 			for f := range s.followed {
 				if f == m {
 					// delete muted element from followed list
-					log.I.S(m)
 					delete(s.followed, m)
 				}
 			}

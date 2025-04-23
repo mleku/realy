@@ -20,7 +20,6 @@ func (s *Server) UpdateConfiguration() (err error) {
 			err = nil
 			return
 		}
-		log.I.S(cfg)
 		log.I.F("setting log level %s", cfg.LogLevel)
 		lol.SetLogLevel(cfg.LogLevel)
 		log.I.F("setting timestamp %v", cfg.LogTimestamp)

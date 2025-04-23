@@ -12,7 +12,6 @@ import (
 	"realy.mleku.dev"
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/config/keyvalue"
-	"realy.mleku.dev/log"
 )
 
 // C is the configuration for a realy. Note that it is absolutely minimal. More complex
@@ -35,7 +34,6 @@ func New() (c *C) {
 	if err := env.Load(c, &env.Options{SliceSep: ","}); chk.T(err) {
 		return
 	}
-	log.I.S(c)
 	if len(os.Args) == 2 && os.Args[1] == "help" {
 		fmt.Printf("\nenvironment variables that configure %s\n\n", c.AppName)
 		env.Usage(c, os.Stdout, nil)
