@@ -31,7 +31,6 @@ node_modules/**
 /secp256k1/
 
 # But not these files...
-!/vendor/**
 !/.gitignore
 !*.go
 !go.sum

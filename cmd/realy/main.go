@@ -19,7 +19,6 @@ import (
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/config"
 	"realy.mleku.dev/context"
-	"realy.mleku.dev/gui/gui"
 	"realy.mleku.dev/interrupt"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/lol"
@@ -67,7 +66,6 @@ func main() {
 	}
 	openapi.New(s, cfg.AppName, realy_lol.Version, realy_lol.Description, "/api", serveMux)
 	socketapi.New(s, "/{$}", serveMux)
-	gui.New("/ui", serveMux)
 	interrupt.AddHandler(func() { s.Shutdown() })
 	if err = s.Start(); err != nil {
 		if errors.Is(err, httputil.ErrClosed) {
