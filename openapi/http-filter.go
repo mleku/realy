@@ -86,7 +86,7 @@ type FilterOutput struct {
 func (x *Operations) RegisterFilter(api huma.API) {
 	name := "Filter"
 	description := "Search for events and receive a sorted list of event Ids (one of authors, kinds or tags must be present)"
-	path := "/filter"
+	path := x.path + "/filter"
 	scopes := []string{"user", "read"}
 	method := http.MethodPost
 	huma.Register(api, huma.Operation{
@@ -98,6 +98,12 @@ func (x *Operations) RegisterFilter(api huma.API) {
 		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *FilterInput) (output *FilterOutput, err error) {
+		r := ctx.Value("http-request").(*http.Request)
+		remote := helpers.GetRemoteFromReq(r)
+		if !x.Server.Configured() {
+			err = huma.Error404NotFound("server is not configured")
+			return
+		}
 		log.I.S(input)
 		var f *filter.T
 		if f, err = input.ToFilter(); chk.E(err) {
@@ -105,8 +111,6 @@ func (x *Operations) RegisterFilter(api huma.API) {
 			return
 		}
 		log.I.F("%s", f.Marshal(nil))
-		r := ctx.Value("http-request").(*http.Request)
-		rr := helpers.GetRemoteFromReq(r)
 		if len(input.Body.Authors) < 1 && len(input.Body.Kinds) < 1 && len(input.Body.Tags) < 1 {
 			err = huma.Error400BadRequest(
 				"cannot process filter with none of Authors/Kinds/Tags")
@@ -128,10 +132,10 @@ func (x *Operations) RegisterFilter(api huma.API) {
 		}
 		allowed := filters.New(f)
 		var accepted, modified bool
-		allowed, accepted, modified = x.Relay().AcceptReq(x.Context(), r, nil,
-			filters.New(f), pubkey)
+		allowed, accepted, modified = x.Server.AcceptReq(x.Context(), r, nil,
+			filters.New(f), pubkey, remote)
 		if !accepted {
-			err = huma.Error401Unauthorized("auth to get access for this filter")
+			err = huma.Error401Unauthorized("Auth to get access for this filter")
 			return
 		} else if modified {
 			log.D.F("filter modified %s", allowed.F[0])
@@ -141,7 +145,7 @@ func (x *Operations) RegisterFilter(api huma.API) {
 			return
 		}
 		if f.Kinds.IsPrivileged() {
-			if x.Relay().AuthRequired() {
+			if x.Server.AuthRequired() {
 				log.T.F("privileged request\n%s", f.Serialize())
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("#p"))
@@ -152,7 +156,7 @@ func (x *Operations) RegisterFilter(api huma.API) {
 				case senders.Contains(pubkey) || receivers.ContainsAny([]byte("#p"),
 					tag.New(pubkey)):
 					log.T.F("user %0x from %s allowed to query for privileged event",
-						pubkey, rr)
+						pubkey, remote)
 				default:
 					err = huma.Error403Forbidden(fmt.Sprintf(
 						"authenticated user %0x does not have authorization for "+

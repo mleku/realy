@@ -5,6 +5,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
+
+	"realy.mleku.dev/servemux"
 )
 
 // ExposeMiddleware adds the http.Request and http.ResponseWriter to the context
@@ -19,11 +21,12 @@ func ExposeMiddleware(ctx huma.Context, next func(huma.Context)) {
 
 // NewHuma creates a new huma.API with a Scalar docs UI, and a middleware that allows methods to
 // access the http.Request and http.ResponseWriter.
-func NewHuma(router *ServeMux, name, version, description string) (api huma.API) {
+func NewHuma(router *servemux.S, name, version, description string) (api huma.API) {
 	config := huma.DefaultConfig(name, version)
 	config.Info.Description = description
 	config.DocsPath = ""
-	router.ServeMux.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+	config.OpenAPIPath = "/api/openapi"
+	router.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		w.Write([]byte(`<!DOCTYPE html>
 <html lang="en">
@@ -37,12 +40,11 @@ func NewHuma(router *ServeMux, name, version, description string) (api huma.API)
   <body>
     <script
       id="api-reference"
-      data-url="/openapi.json"></script>
+      data-url="/api/openapi.json"></script>
     <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
   </body>
 </html>`))
 	})
-
 	api = humago.New(router, config)
 	api.UseMiddleware(ExposeMiddleware)
 	return

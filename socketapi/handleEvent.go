@@ -21,9 +21,10 @@ import (
 	"realy.mleku.dev/tag"
 )
 
-func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server) (msg []byte) {
+func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server,
+	remote string) (msg []byte) {
 
-	log.T.F("handleEvent %s %s", a.RealRemote(), req)
+	log.T.F("%s handleEvent %s", remote, req)
 	var err error
 	var ok bool
 	var rem []byte
@@ -31,45 +32,41 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server) (msg []b
 	if sto == nil {
 		panic("no event store has been set to store event")
 	}
-	rl := srv.Relay()
 	env := eventenvelope.NewSubmission()
 	if rem, err = env.Unmarshal(req); chk.E(err) {
 		return
 	}
 	if len(rem) > 0 {
-		log.I.F("extra '%s'", rem)
+		log.T.F("%s extra '%s'", remote, rem)
 	}
-	accept, notice, after := rl.AcceptEvent(c, env.T, a.Req(),
-		a.RealRemote(), a.AuthedBytes())
+	accept, notice, after := a.Server.AcceptEvent(c, env.T, a.Listener.Req(),
+		a.Listener.AuthedBytes(), remote)
+	log.T.F("%s accepted %v", remote, accept)
 	if !accept {
 		if strings.Contains(notice, "mute") {
 			if err = okenvelope.NewFrom(env.Id, false,
 				normalize.Blocked.F(notice)).Write(a.Listener); chk.T(err) {
 			}
 		} else {
-			if rl.AuthRequired() {
-				if !a.AuthRequested() {
-					a.RequestAuth()
-					log.I.F("requesting auth from client %s", a.RealRemote())
-					if err = authenvelope.NewChallengeWith(a.Challenge()).Write(a.Listener); chk.T(err) {
-						return
-					}
-					if err = okenvelope.NewFrom(env.Id, false,
-						normalize.AuthRequired.F("auth required for storing events")).Write(a.Listener); chk.T(err) {
-					}
-					return
-				} else {
-					log.I.F("requesting auth again from client %s", a.RealRemote())
-					if err = authenvelope.NewChallengeWith(a.Challenge()).Write(a.Listener); chk.T(err) {
-						return
-					}
-					if err = okenvelope.NewFrom(env.Id, false,
-						normalize.AuthRequired.F("auth required for storing events")).Write(a.Listener); chk.T(err) {
-					}
+			if !a.Listener.AuthRequested() {
+				a.Listener.RequestAuth()
+				log.I.F("requesting auth from client %s", a.Listener.RealRemote())
+				if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.T(err) {
 					return
 				}
+				if err = okenvelope.NewFrom(env.Id, false,
+					normalize.AuthRequired.F("auth required for storing events")).Write(a.Listener); chk.T(err) {
+				}
+				return
 			} else {
-				log.W.F("didn't find authentication method")
+				log.I.F("requesting auth again from client %s", a.Listener.RealRemote())
+				if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.T(err) {
+					return
+				}
+				if err = okenvelope.NewFrom(env.Id, false,
+					normalize.AuthRequired.F("auth required for storing events")).Write(a.Listener); chk.T(err) {
+				}
+				return
 			}
 		}
 		if err = okenvelope.NewFrom(env.Id, false,
@@ -240,8 +237,8 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server) (msg []b
 		}
 	}
 	var reason []byte
-	ok, reason = srv.AddEvent(c, rl, env.T, a.Req(), a.RealRemote(), a.AuthedBytes())
-	log.I.F("event added %v, %s", ok, reason)
+	ok, reason = srv.AddEvent(c, env.T, a.Listener.Req(), a.Listener.AuthedBytes(), remote)
+	log.T.F("event added %v", ok)
 	if err = okenvelope.NewFrom(env.Id, ok, reason).Write(a.Listener); chk.E(err) {
 		return
 	}

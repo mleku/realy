@@ -18,7 +18,7 @@ import (
 )
 
 func (s *Server) Publish(c context.T, evt *event.T) (err error) {
-	sto := s.relay.Storage()
+	sto := s.Storage()
 	if evt.Kind.IsEphemeral() {
 		// do not store ephemeral events
 		return nil
@@ -41,6 +41,7 @@ func (s *Server) Publish(c context.T, evt *event.T) (err error) {
 					continue
 				}
 				if ev.CreatedAt.Int() > evt.CreatedAt.Int() {
+					log.I.F("not replacing newer replaceable event")
 					return errorf.W(string(normalize.Invalid.F("not replacing newer replaceable event")))
 				}
 				// not deleting these events because some clients are retarded and the query

@@ -54,7 +54,9 @@ func (en *T) ReasonString() string { return string(en.Reason) }
 
 // Write the okenvelope.T to a provided io.Writer.
 func (en *T) Write(w io.Writer) (err error) {
-	_, err = w.Write(en.Marshal(nil))
+	msg := en.Marshal(nil)
+	log.T.F("%s", msg)
+	_, err = w.Write(msg)
 	return
 }
 

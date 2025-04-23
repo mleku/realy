@@ -50,7 +50,7 @@ type Relay struct {
 	ownersMuteLists [][]byte
 }
 
-func (r *Relay) Name() string { return r.C.AppName }
+func (r *Relay) Name() string { return r.Name() }
 
 func (r *Relay) Storage() store.I { return r.Store }
 

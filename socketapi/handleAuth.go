@@ -13,8 +13,8 @@ import (
 func (a *A) HandleAuth(req []byte,
 	srv interfaces.Server) (msg []byte) {
 
-	if srv.Relay().AuthRequired() {
-		svcUrl := srv.Relay().ServiceUrl(a.Req())
+	if srv.AuthRequired() || len(srv.Owners()) > 0 {
+		svcUrl := srv.ServiceURL(a.Listener.Req())
 		if svcUrl == "" {
 			return
 		}
@@ -29,7 +29,7 @@ func (a *A) HandleAuth(req []byte,
 			log.I.F("extra '%s'", rem)
 		}
 		var valid bool
-		if valid, err = auth.Validate(env.Event, []byte(a.Challenge()),
+		if valid, err = auth.Validate(env.Event, []byte(a.Listener.Challenge()),
 			svcUrl); chk.E(err) {
 			e := err.Error()
 			if err = okenvelope.NewFrom(env.Event.Id, false,
@@ -48,8 +48,8 @@ func (a *A) HandleAuth(req []byte,
 				[]byte{}).Write(a.Listener); chk.E(err) {
 				return
 			}
-			log.D.F("%s authed to pubkey,%0x", a.RealRemote(), env.Event.Pubkey)
-			a.SetAuthed(string(env.Event.Pubkey))
+			log.D.F("%s authed to pubkey,%0x", a.Listener.RealRemote(), env.Event.Pubkey)
+			a.Listener.SetAuthed(string(env.Event.Pubkey))
 		}
 	}
 	return

@@ -44,11 +44,6 @@ func (r *T) Init(path string) (err error) {
 	if err = r.runMigrations(); chk.E(err) {
 		return log.E.Err("error running migrations: %w; %s", err, r.dataDir)
 	}
-	if r.DBSizeLimit > 0 {
-		go r.GarbageCollector()
-		// } else {
-		// 	go r.GCCount()
-	}
 	return nil
 
 }

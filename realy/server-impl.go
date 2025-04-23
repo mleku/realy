@@ -4,64 +4,89 @@ import (
 	"net/http"
 	"time"
 
+	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
+	"realy.mleku.dev/log"
+	"realy.mleku.dev/realy/config"
 	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/realy/options"
-	"realy.mleku.dev/realy/publish"
-	"realy.mleku.dev/relay"
+	"realy.mleku.dev/signer"
 	"realy.mleku.dev/store"
 )
 
-func (s *Server) AdminAuth(r *http.Request,
-	tolerance ...time.Duration) (authed bool,
-	pubkey []byte) {
+func (s *Server) AdminAuth(r *http.Request, remote string,
+	tolerance ...time.Duration) (authed bool, pubkey []byte) {
 
 	return s.adminAuth(r, tolerance...)
 }
 
-func (s *Server) Storage() store.I { return s.relay.Storage() }
+func (s *Server) Storage() store.I { return s.Store }
 
-func (s *Server) Configuration() store.Configuration {
-	s.ConfigurationMx.Lock()
-	defer s.ConfigurationMx.Unlock()
+func (s *Server) Configuration() config.C {
+	s.configurationMx.Lock()
+	defer s.configurationMx.Unlock()
+	if s.configuration == nil {
+		s.configured = false
+		return config.C{}
+	}
 	return *s.configuration
 }
 
-func (s *Server) SetConfiguration(cfg *store.Configuration) {
-	s.ConfigurationMx.Lock()
+func (s *Server) SetConfiguration(cfg *config.C) {
+	s.configurationMx.Lock()
 	s.configuration = cfg
-	s.ConfigurationMx.Unlock()
+	s.configured = true
+	s.configurationMx.Unlock()
+	if c, ok := s.Store.(store.Configurationer); ok {
+		chk.E(c.SetConfiguration(cfg))
+		chk.E(s.UpdateConfiguration())
+	}
 }
 
-func (s *Server) Relay() relay.I { return s.relay }
-
-func (s *Server) Disconnect() { s.disconnect() }
-
 func (s *Server) AddEvent(
-	c context.T, rl relay.I, ev *event.T, hr *http.Request, origin string,
-	authedPubkey []byte) (accepted bool, message []byte) {
+	c context.T, ev *event.T, hr *http.Request, authedPubkey []byte,
+	remote string) (accepted bool, message []byte) {
 
-	return s.addEvent(c, rl, ev, hr, origin, authedPubkey)
+	return s.addEvent(c, ev, authedPubkey, remote)
 }
 
 func (s *Server) AcceptEvent(
-	c context.T, ev *event.T, hr *http.Request, origin string,
-	authedPubkey []byte) (accept bool, notice string, afterSave func()) {
-
-	return s.relay.AcceptEvent(c, ev, hr, origin, authedPubkey)
+	c context.T, ev *event.T, hr *http.Request, authedPubkey []byte,
+	remote string) (accept bool, notice string, afterSave func()) {
+	return s.acceptEvent(c, ev, authedPubkey, remote)
 }
 
-func (s *Server) Publisher() *publish.S { return s.listeners }
-
-func (s *Server) PublicReadable() bool { return s.publicReadable }
+func (s *Server) PublicReadable() bool {
+	s.configurationMx.Lock()
+	defer s.configurationMx.Unlock()
+	pr := s.configuration.PublicReadable
+	log.T.F("public readable %v", pr)
+	return pr
+}
 
 func (s *Server) Context() context.T { return s.Ctx }
 
-func (s *Server) Owners() [][]byte { return s.owners }
+func (s *Server) Owners() [][]byte {
+	return s.owners
+}
 
-func (s *Server) AuthRequired() bool { return s.authRequired }
+func (s *Server) SetOwners(owners [][]byte) {
+	s.owners = owners
+}
 
-func (s *Server) Options() *options.T { return s.options }
+func (s *Server) AuthRequired() bool {
+	s.configurationMx.Lock()
+	defer s.configurationMx.Unlock()
+	return s.configuration.AuthRequired
+}
+
+func (s *Server) OwnersFollowed(pubkey string) (ok bool) {
+	_, ok = s.ownersFollowed[pubkey]
+	return
+}
+
+func (s *Server) SetAdmins(admins []signer.I) {
+	s.admins = admins
+}
 
 var _ interfaces.Server = &Server{}

@@ -11,7 +11,10 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/envelopes/authenvelope"
 	"realy.mleku.dev/log"
+	"realy.mleku.dev/publish"
+	"realy.mleku.dev/realy/helpers"
 	"realy.mleku.dev/realy/interfaces"
+	"realy.mleku.dev/servemux"
 	"realy.mleku.dev/units"
 	"realy.mleku.dev/ws"
 )
@@ -24,45 +27,56 @@ const (
 )
 
 type A struct {
-	Ctx context.T
-	*ws.Listener
+	Ctx      context.T
+	Listener *ws.Listener
 	interfaces.Server
-	// ClientsMu *sync.Mutex
-	// Clients   map[*websocket.Conn]struct{}
 }
 
-func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
+func New(s interfaces.Server, path string, sm *servemux.S) {
+	a := &A{Server: s}
+	sm.Handle(path, a)
+	return
+}
 
-	var err error
-
-	ticker := time.NewTicker(DefaultPingWait)
-	var cancel context.F
-	a.Ctx, cancel = context.Cancel(s.Context())
-	var conn *websocket.Conn
-	conn, err = Upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.E.F("failed to upgrade websocket: %v", err)
+func (a *A) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	remote := helpers.GetRemoteFromReq(r)
+	if !a.Server.Configured() {
+		log.T.F("not configured %s", remote)
+		http.Error(w, http.StatusText(http.StatusServiceUnavailable),
+			http.StatusServiceUnavailable)
 		return
 	}
-	// a.ClientsMu.Lock()
-	// a.Clients[conn] = struct{}{}
-	// a.ClientsMu.Unlock()
+	if r.Header.Get("Upgrade") != "websocket" && r.Header.Get("Accept") == "application/nostr+json" {
+		log.T.F("serving realy info %s", remote)
+		a.Server.HandleRelayInfo(w, r)
+		return
+	}
+	if r.Header.Get("Upgrade") != "websocket" {
+		// todo: we can put a website here
+		http.Error(w, http.StatusText(http.StatusUpgradeRequired), http.StatusUpgradeRequired)
+		return
+	}
+	var err error
+	ticker := time.NewTicker(DefaultPingWait)
+	var cancel context.F
+	a.Ctx, cancel = context.Cancel(a.Server.Context())
+	var conn *websocket.Conn
+	if conn, err = Upgrader.Upgrade(w, r, nil); err != nil {
+		log.E.F("%s failed to upgrade websocket: %v", remote, err)
+		return
+	}
+	log.T.F("upgraded to websocket %s", remote)
 	a.Listener = GetListener(conn, r)
 
 	defer func() {
+		log.D.F("%s closing connection", remote)
 		cancel()
 		ticker.Stop()
-		// a.ClientsMu.Lock()
-		// if _, ok := a.Clients[a.Listener.Conn]; ok {
-		a.Publisher().Receive(&W{
+		publish.P.Receive(&W{
 			Cancel:   true,
 			Listener: a.Listener,
 		})
-		// 	delete(a.Clients, a.Listener.Conn)
 		chk.E(a.Listener.Conn.Close())
-		// a.Publisher().removeSubscriber(a.Listener)
-		// }
-		// a.ClientsMu.Unlock()
 	}()
 	conn.SetReadLimit(DefaultMaxMessageSize)
 	chk.E(conn.SetReadDeadline(time.Now().Add(DefaultPongWait)))
@@ -70,25 +84,24 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 		chk.E(conn.SetReadDeadline(time.Now().Add(DefaultPongWait)))
 		return nil
 	})
-	if a.Server.AuthRequired() {
-		a.Listener.RequestAuth()
-	}
-	if a.Listener.AuthRequested() && len(a.Listener.Authed()) == 0 {
-		log.I.F("requesting auth from client from %s", a.Listener.RealRemote())
+	// if a.Server.AuthRequired() || len(a.Owners()) > 0 {
+	// 	log.I.F("requesting auth from %s", remote)
+	// 	a.Listener.RequestAuth()
+	// }
+	if a.Server.AuthRequired() && a.Listener.AuthRequested() && len(a.Listener.Authed()) == 0 {
+		log.T.F("requesting auth from client again from %s", a.Listener.RealRemote())
 		if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.E(err) {
 			return
 		}
 		// return
 	}
-	go a.Pinger(a.Ctx, ticker, cancel, a.Server)
+	go a.Pinger(a.Ctx, ticker, cancel, remote)
 	var message []byte
 	var typ int
 	for {
 		select {
 		case <-a.Ctx.Done():
-			a.Listener.Close()
-			return
-		case <-s.Context().Done():
+			log.I.F("%s closing connection", remote)
 			a.Listener.Close()
 			return
 		default:
@@ -110,10 +123,11 @@ func (a *A) Serve(w http.ResponseWriter, r *http.Request, s interfaces.Server) {
 			return
 		}
 		if typ == websocket.PingMessage {
+			log.T.F("pinging %s", remote)
 			if err = a.Listener.WriteMessage(websocket.PongMessage, nil); chk.E(err) {
 			}
 			continue
 		}
-		go a.HandleMessage(message)
+		go a.HandleMessage(message, remote)
 	}
 }

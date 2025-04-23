@@ -6,33 +6,31 @@ import (
 
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
-	"realy.mleku.dev/realy/options"
-	"realy.mleku.dev/realy/publish"
-	"realy.mleku.dev/relay"
+	"realy.mleku.dev/filters"
+	"realy.mleku.dev/realy/config"
 	"realy.mleku.dev/store"
 )
 
 type Server interface {
-	AcceptEvent(
-		c context.T, ev *event.T, hr *http.Request, origin string,
-		authedPubkey []byte) (accept bool, notice string, afterSave func())
-	AddEvent(
-		c context.T, rl relay.I, ev *event.T, hr *http.Request,
-		origin string, authedPubkey []byte) (accepted bool,
-		message []byte)
-	AdminAuth(r *http.Request,
-		tolerance ...time.Duration) (authed bool, pubkey []byte)
+	AcceptEvent(c context.T, ev *event.T, hr *http.Request, authedPubkey []byte, remote string) (accept bool, notice string, afterSave func())
+	AcceptReq(c context.T, hr *http.Request, id []byte, f *filters.T, authedPubkey []byte, remote string) (allowed *filters.T, ok bool, modified bool)
+	AddEvent(c context.T, ev *event.T, hr *http.Request, authedPubkey []byte, remote string) (accepted bool, message []byte)
+	AdminAuth(r *http.Request, remote string, tolerance ...time.Duration) (authed bool, pubkey []byte)
 	AuthRequired() bool
-	Configuration() store.Configuration
+	CheckOwnerLists(c context.T)
+	Configuration() config.C
+	Configured() bool
 	Context() context.T
-	Disconnect()
-	Publisher() *publish.S
+	HandleRelayInfo(w http.ResponseWriter, r *http.Request)
+	Lock()
 	Owners() [][]byte
+	OwnersFollowed(pubkey string) (ok bool)
 	PublicReadable() bool
-	Publish(c context.T, evt *event.T) (err error)
-	Relay() relay.I
-	SetConfiguration(*store.Configuration)
+	ServiceURL(req *http.Request) (s string)
+	SetConfiguration(*config.C)
 	Shutdown()
 	Storage() store.I
-	Options() *options.T
+	Unlock()
+	UpdateConfiguration() (err error)
+	ZeroLists()
 }

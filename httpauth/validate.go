@@ -26,6 +26,7 @@ var ErrMissingKey = fmt.Errorf(
 func CheckAuth(r *http.Request, tolerance ...time.Duration) (valid bool,
 	pubkey []byte, err error) {
 	val := r.Header.Get(HeaderKey)
+	log.I.F(val)
 	if val == "" {
 		err = ErrMissingKey
 		valid = true
@@ -42,6 +43,7 @@ func CheckAuth(r *http.Request, tolerance ...time.Duration) (valid bool,
 	log.I.F("validating auth '%s'", val)
 	switch {
 	case strings.HasPrefix(val, NIP98Prefix):
+		log.T.F(val)
 		split := strings.Split(val, " ")
 		if len(split) == 1 {
 			err = errorf.E("missing nip-98 auth event from '%s' http header key: '%s'",
@@ -149,10 +151,15 @@ func CheckAuth(r *http.Request, tolerance ...time.Duration) (valid bool,
 				return
 			}
 		}
+		log.T.F("%d %s", time.Now().Unix(), ev.Serialize())
 		if valid, err = ev.Verify(); chk.E(err) {
 			return
 		}
+		if valid {
+			log.I.F("event verified %0x", ev.Pubkey)
+		}
 		if !valid {
+			log.T.F("event not verified")
 			return
 		}
 		pubkey = ev.Pubkey

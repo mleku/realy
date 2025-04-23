@@ -6,16 +6,16 @@ package ratel
 import (
 	"encoding/binary"
 	"sync"
-	"time"
 
 	"github.com/dgraph-io/badger/v4"
 
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/log"
+	"realy.mleku.dev/lol"
 	"realy.mleku.dev/ratel/keys/serial"
 	"realy.mleku.dev/ratel/prefixes"
 	"realy.mleku.dev/store"
-	"realy.mleku.dev/units"
 )
 
 // DefaultMaxLimit is set to a size that means the usual biggest batch of events sent to a
@@ -24,18 +24,9 @@ const DefaultMaxLimit = 512
 
 // T is a badger event store database with layer2 and garbage collection.
 type T struct {
-	Ctx     context.T
-	WG      *sync.WaitGroup
-	dataDir string
-	// DBSizeLimit is the number of bytes we want to keep the data store from exceeding.
-	DBSizeLimit int
-	// DBLowWater is the percentage of DBSizeLimit a GC run will reduce the used storage down
-	// to.
-	DBLowWater int
-	// DBHighWater is the trigger point at which a GC run should start if exceeded.
-	DBHighWater int
-	// GCFrequency is the frequency of checks of the current utilisation.
-	GCFrequency    time.Duration
+	Ctx            context.T
+	WG             *sync.WaitGroup
+	dataDir        string
 	HasL2          bool
 	BlockCacheSize int
 	InitLogLevel   int
@@ -49,9 +40,6 @@ type T struct {
 	// MaxLimit is a default limit that applies to a query without a limit, to avoid sending out
 	// too many events to a client from a malformed or excessively broad filter.
 	MaxLimit int
-	// ActuallyDelete sets whether we actually delete or rewrite deleted entries with a modified
-	// deleted prefix value (8th bit set)
-	ActuallyDelete bool
 	// Flatten should be set to true to trigger a flatten at close... this is mainly
 	// triggered by running an import
 	Flatten bool
@@ -60,6 +48,11 @@ type T struct {
 	UseCompact bool
 	// Compression sets the compression to use, none/snappy/zstd
 	Compression string
+}
+
+func (r *T) SetLogLevel(level string) {
+	log.I.F("setting db log level %s", level)
+	r.Logger.SetLogLevel(lol.GetLogLevel(level))
 }
 
 var _ store.I = (*T)(nil)
@@ -92,20 +85,6 @@ func New(p BackendParams, params ...int) *T {
 // Deprecated: use New instead.
 func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2, useCompact bool,
 	blockCacheSize, logLevel, maxLimit int, compression string, params ...int) (b *T) {
-	var sizeLimit, lw, hw, freq = 0, 50, 66, 3600
-	switch len(params) {
-	case 4:
-		freq = params[3]
-		fallthrough
-	case 3:
-		hw = params[2]
-		fallthrough
-	case 2:
-		lw = params[1]
-		fallthrough
-	case 1:
-		sizeLimit = params[0] * units.Gb
-	}
 	// if unset, assume a safe maximum limit for unlimited filters.
 	if maxLimit == 0 {
 		maxLimit = 512
@@ -113,15 +92,11 @@ func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2, useCompact bool,
 	b = &T{
 		Ctx:            Ctx,
 		WG:             WG,
-		DBSizeLimit:    sizeLimit,
-		DBLowWater:     lw,
-		DBHighWater:    hw,
-		GCFrequency:    time.Duration(freq) * time.Second,
 		HasL2:          hasL2,
 		BlockCacheSize: blockCacheSize,
 		InitLogLevel:   logLevel,
 		MaxLimit:       maxLimit,
-		UseCompact:     useCompact,
+		UseCompact:     true,
 		Compression:    compression,
 	}
 	return

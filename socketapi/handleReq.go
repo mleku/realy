@@ -20,15 +20,15 @@ import (
 	"realy.mleku.dev/kinds"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/normalize"
+	"realy.mleku.dev/publish"
 	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/realy/options"
 	"realy.mleku.dev/realy/pointers"
 	"realy.mleku.dev/tag"
 )
 
 func (a *A) HandleReq(
-	c context.T, req []byte,
-	skipEventFunc options.SkipEventFunc, srv interfaces.Server) (r []byte) {
+	c context.T, req []byte, srv interfaces.Server,
+	remote string) (r []byte) {
 
 	sto := srv.Storage()
 	var err error
@@ -42,18 +42,17 @@ func (a *A) HandleReq(
 	}
 	allowed := env.Filters
 	var accepted, modified bool
-	allowed, accepted, modified = srv.Relay().AcceptReq(c, a.Req(), env.Subscription.T,
-		env.Filters,
-		[]byte(a.Authed()))
+	allowed, accepted, modified = srv.AcceptReq(c, a.Listener.Req(), env.Subscription.T,
+		env.Filters, []byte(a.Listener.Authed()), remote)
 	if !accepted || allowed == nil || modified {
-		if srv.Relay().AuthRequired() && !a.AuthRequested() {
-			a.RequestAuth()
+		if srv.AuthRequired() && !a.Listener.AuthRequested() {
+			a.Listener.RequestAuth()
 			if err = closedenvelope.NewFrom(env.Subscription,
 				normalize.AuthRequired.F("auth required for request processing")).Write(a.Listener); chk.E(err) {
 			}
 			log.T.F("requesting auth from client from %s, challenge '%s'",
-				a.RealRemote(), a.Challenge())
-			if err = authenvelope.NewChallengeWith(a.Challenge()).Write(a.Listener); chk.E(err) {
+				a.Listener.RealRemote(), a.Listener.Challenge())
+			if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.E(err) {
 				return
 			}
 			if !modified {
@@ -64,16 +63,15 @@ func (a *A) HandleReq(
 	// log.I.ToSliceOfBytes("handling %s", env.Marshal(nil))
 	if allowed != env.Filters {
 		defer func() {
-			if srv.Relay().AuthRequired() &&
-				!a.AuthRequested() {
-				a.RequestAuth()
+			if srv.AuthRequired() &&
+				!a.Listener.AuthRequested() {
+				a.Listener.RequestAuth()
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for request processing")).Write(a.Listener); chk.E(err) {
 				}
 				log.T.F("requesting auth from client from %s, challenge '%s'",
-					a.RealRemote(),
-					a.Challenge())
-				if err = authenvelope.NewChallengeWith(a.Challenge()).Write(a.Listener); chk.E(err) {
+					remote, a.Listener.Challenge())
+				if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.E(err) {
 					return
 				}
 				return
@@ -91,37 +89,37 @@ func (a *A) HandleReq(
 			}
 			i = *f.Limit
 		}
-		if srv.Relay().AuthRequired() {
+		if srv.AuthRequired() {
 			if f.Kinds.IsPrivileged() {
 				log.T.F("privileged request\n%s", f.Serialize())
 				senders := f.Authors
 				receivers := f.Tags.GetAll(tag.New("#p"))
 				switch {
-				case len(a.Authed()) == 0:
+				case len(a.Listener.Authed()) == 0:
 					// a.RequestAuth()
 					if err = closedenvelope.NewFrom(env.Subscription,
 						normalize.AuthRequired.F("auth required for processing request due to presence of privileged kinds (DMs, app specific data)")).Write(a.Listener); chk.E(err) {
 					}
-					log.I.F("requesting auth from client from %s", a.RealRemote())
-					if err = authenvelope.NewChallengeWith(a.Challenge()).Write(a.Listener); chk.E(err) {
+					log.I.F("requesting auth from client from %s", remote)
+					if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.E(err) {
 						return
 					}
 					notice := normalize.Restricted.F("this realy does not serve DMs or Application Specific Data " +
 						"to unauthenticated users or to npubs not found in the event tags or author fields, does your " +
 						"client implement NIP-42?")
 					return notice
-				case senders.Contains(a.AuthedBytes()) ||
-					receivers.ContainsAny([]byte("#p"), tag.New(a.AuthedBytes())):
+				case senders.Contains(a.Listener.AuthedBytes()) ||
+					receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes())):
 					log.T.F("user %0x from %s allowed to query for privileged event",
-						a.AuthedBytes(), a.RealRemote())
+						a.Listener.AuthedBytes(), remote)
 				default:
 					return normalize.Restricted.F("authenticated user %0x does not have authorization for "+
-						"requested filters", a.AuthedBytes())
+						"requested filters", a.Listener.AuthedBytes())
 				}
 			}
 		}
 		var events event.Ts
-		log.D.F("query from %s %0x,%s", a.RealRemote(), a.AuthedBytes(), f.Serialize())
+		log.D.F("query from %s %0x,%s", remote, a.Listener.AuthedBytes(), f.Serialize())
 		if events, err = sto.QueryEvents(c, f); err != nil {
 			log.E.F("eventstore: %v", err)
 			if errors.Is(err, badger.ErrDBClosed) {
@@ -129,9 +127,9 @@ func (a *A) HandleReq(
 			}
 			continue
 		}
-		aut := a.AuthedBytes()
+		aut := a.Listener.AuthedBytes()
 		// remove events from muted authors if we have the authed user's mute list.
-		if a.IsAuthed() {
+		if a.Listener.IsAuthed() {
 			var mutes event.Ts
 			if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),
 				Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
@@ -170,8 +168,8 @@ func (a *A) HandleReq(
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for processing request due to presence of privileged kinds (DMs, app specific data)")).Write(a.Listener); chk.E(err) {
 				}
-				log.I.F("requesting auth from client from %s", a.RealRemote())
-				if err = authenvelope.NewChallengeWith(a.Challenge()).Write(a.Listener); chk.E(err) {
+				log.I.F("requesting auth from client from %s", remote)
+				if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.E(err) {
 					return
 				}
 				notice := normalize.Restricted.F("this realy does not serve DMs or Application Specific Data " +
@@ -181,14 +179,14 @@ func (a *A) HandleReq(
 			}
 			// if the authed pubkey is not present in the pubkey or p tags, skip
 			if ev.Kind.IsPrivileged() && (!bytes.Equal(ev.Pubkey, aut) ||
-				!receivers.ContainsAny([]byte("#p"), tag.New(a.AuthedBytes()))) {
+				!receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes()))) {
 				// log.I.ToSliceOfBytes("skipping event %0x because authed key %0x is in neither pubkey or p tag",
 				// 	ev.Id, aut)
 				if err = closedenvelope.NewFrom(env.Subscription,
 					normalize.AuthRequired.F("auth required for processing request due to presence of privileged kinds (DMs, app specific data)")).Write(a.Listener); chk.E(err) {
 				}
-				log.I.F("requesting auth from client from %s", a.RealRemote())
-				if err = authenvelope.NewChallengeWith(a.Challenge()).Write(a.Listener); chk.E(err) {
+				log.I.F("requesting auth from client from %s", remote)
+				if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.E(err) {
 					return
 				}
 				notice := normalize.Restricted.F("this realy does not serve DMs or Application Specific Data " +
@@ -201,9 +199,6 @@ func (a *A) HandleReq(
 		events = tmp
 		// write out the events to the socket
 		for _, ev := range events {
-			if skipEventFunc != nil && skipEventFunc(ev) {
-				continue
-			}
 			i--
 			if i < 0 {
 				break
@@ -225,7 +220,7 @@ func (a *A) HandleReq(
 		return
 	}
 	receiver := make(event.C, 32)
-	srv.Publisher().Receive(&W{
+	publish.P.Receive(&W{
 		Listener: a.Listener,
 		Id:       env.Subscription.String(),
 		Receiver: receiver,

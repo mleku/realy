@@ -19,7 +19,6 @@ import (
 	"realy.mleku.dev/keys"
 	"realy.mleku.dev/layer2"
 	"realy.mleku.dev/lol"
-	"realy.mleku.dev/qu"
 	"realy.mleku.dev/ratel"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tests"
@@ -33,7 +32,7 @@ type Counter struct {
 }
 
 func main() {
-	lol.NoTimeStomp.Store(true)
+	lol.NoTimeStamp.Store(true)
 	lol.SetLogLevel(lol.LevelNames[lol.Debug])
 	var (
 		err            error
@@ -103,7 +102,7 @@ end:
 			return
 		}
 		mx.Unlock()
-		newEvent := qu.T()
+		newEvent := make(chan struct{})
 		go func() {
 			ticker := time.NewTicker(time.Second)
 			var fetchIDs [][]byte

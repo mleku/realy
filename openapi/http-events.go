@@ -8,7 +8,6 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"realy.mleku.dev/chk"
-	"realy.mleku.dev/cmd/realy/app"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/ec/schnorr"
 	"realy.mleku.dev/hex"
@@ -29,7 +28,7 @@ type EventsInput struct {
 func (x *Operations) RegisterEvents(api huma.API) {
 	name := "Events"
 	description := "Returns the full events from a list of event Ids as a line structured JSON. Auth required to fetch more than 1000 events, and if not enabled, 1000 is the limit."
-	path := "/events"
+	path := x.path + "/events"
 	scopes := []string{"user", "read"}
 	method := http.MethodPost
 	huma.Register(api, huma.Operation{
@@ -42,6 +41,10 @@ func (x *Operations) RegisterEvents(api huma.API) {
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *EventsInput) (output *huma.StreamResponse, err error) {
+		if !x.Server.Configured() {
+			err = huma.Error404NotFound("server is not configured")
+			return
+		}
 		// log.I.S(input)
 		if len(input.Body) == 10000 {
 			err = huma.Error400BadRequest(
@@ -75,16 +78,14 @@ func (x *Operations) RegisterEvents(api huma.API) {
 					"cannot process more than 1000 events in a request without auth enabled")
 				return
 			}
-			if rl, ok := x.Relay().(*app.Relay); ok {
-				rl.Lock()
-				// we only allow the first level of the allowed users this kind of access
-				if rl.OwnersFollowed(pubkey); !ok {
-					err = huma.Error403Forbidden(
-						fmt.Sprintf(
-							"authenticated user %0x does not have permission for this request (owners can use export)",
-							pubkey))
-					return
-				}
+			x.Server.Lock()
+			// we only allow the first level of the allowed users this kind of access
+			if x.Server.OwnersFollowed(string(pubkey)) {
+				err = huma.Error403Forbidden(
+					fmt.Sprintf(
+						"authenticated user %0x does not have permission for this request (owners can use export)",
+						pubkey))
+				return
 			}
 		}
 		if !valid {

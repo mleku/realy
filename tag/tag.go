@@ -190,6 +190,17 @@ func (t *T) Key() []byte {
 	return nil
 }
 
+// KeyString returns the first element of the tags as a string.
+func (t *T) KeyString() string {
+	if t == nil {
+		return ""
+	}
+	if t.Len() > Key {
+		return string(t.field[Key])
+	}
+	return ""
+}
+
 // FilterKey returns the first element of a filter tag (the key) with the # removed
 func (t *T) FilterKey() []byte {
 	if t == nil {

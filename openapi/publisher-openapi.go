@@ -7,8 +7,10 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/filter"
-	"realy.mleku.dev/realy/publish/publisher"
+	"realy.mleku.dev/publish"
+	"realy.mleku.dev/publish/publisher"
 	"realy.mleku.dev/tag"
+	"realy.mleku.dev/typer"
 )
 
 const Type = "openapi"
@@ -28,6 +30,10 @@ type H struct {
 	Filter *filter.T
 }
 
+func init() {
+	publish.Register(NewPublisher())
+}
+
 func (h *H) Type() string { return Type }
 
 // Map is a collection of H TTP subscriptions.
@@ -42,11 +48,11 @@ type S struct {
 
 var _ publisher.I = &S{}
 
-func New() *S { return &S{Map: make(Map)} }
+func NewPublisher() *S { return &S{Map: make(Map)} }
 
 func (p *S) Type() string { return Type }
 
-func (p *S) Receive(msg publisher.Message) {
+func (p *S) Receive(msg typer.T) {
 	if m, ok := msg.(*H); ok {
 		p.Mx.Lock()
 		p.Map[m] = struct{}{}

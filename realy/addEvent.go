@@ -4,27 +4,30 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"net/http"
+	"regexp"
 	"strings"
 
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/normalize"
-	"realy.mleku.dev/relay"
-	"realy.mleku.dev/socketapi"
+	"realy.mleku.dev/publish"
 	"realy.mleku.dev/store"
 )
 
-func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
-	hr *http.Request, origin string,
-	authedPubkey []byte) (accepted bool, message []byte) {
+var (
+	NIP20prefixmatcher = regexp.MustCompile(`^\w+: `)
+)
+
+func (s *Server) addEvent(c context.T, ev *event.T,
+	authedPubkey []byte, remote string) (accepted bool, message []byte) {
 
 	if ev == nil {
+		log.I.F("empty event")
 		return false, normalize.Invalid.F("empty event")
 	}
 	// don't allow storing event with protected marker as per nip-70 with auth enabled.
-	if (s.authRequired || !s.publicReadable) && ev.Tags.ContainsProtectedMarker() {
+	if (s.AuthRequired() || !s.PublicReadable()) && ev.Tags.ContainsProtectedMarker() {
 		if len(authedPubkey) == 0 || !bytes.Equal(ev.Pubkey, authedPubkey) {
 			return false,
 				[]byte(fmt.Sprintf("event with relay marker tag '-' (nip-70 protected event) "+
@@ -39,7 +42,7 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 				return false, normalize.Error.F(saveErr.Error())
 			}
 			errmsg := saveErr.Error()
-			if socketapi.NIP20prefixmatcher.MatchString(errmsg) {
+			if NIP20prefixmatcher.MatchString(errmsg) {
 				if strings.Contains(errmsg, "tombstone") {
 					return false, normalize.Blocked.F("event was deleted, not storing it again")
 				}
@@ -52,10 +55,11 @@ func (s *Server) addEvent(c context.T, rl relay.I, ev *event.T,
 			}
 		}
 	}
-	rl.AuthRequired()
+	var authRequired bool
+	authRequired = s.AuthRequired()
 	// notify subscribers
-	s.listeners.Deliver(rl.AuthRequired(), s.publicReadable, ev)
+	publish.P.Deliver(authRequired, s.PublicReadable(), ev)
 	accepted = true
-	log.I.F("event id %0x stored", ev.Id)
+	log.T.F("event id %0x stored", ev.Id)
 	return
 }

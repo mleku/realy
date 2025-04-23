@@ -27,7 +27,7 @@ type NukeOutput struct{}
 func (x *Operations) RegisterNuke(api huma.API) {
 	name := "Nuke"
 	description := "Nuke all events in the database"
-	path := "/nuke"
+	path := x.path + "/nuke"
 	scopes := []string{"admin", "write"}
 	method := http.MethodGet
 	huma.Register(api, huma.Operation{
@@ -40,10 +40,14 @@ func (x *Operations) RegisterNuke(api huma.API) {
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *NukeInput) (wgh *NukeOutput, err error) {
+		if !x.Server.Configured() {
+			err = huma.Error404NotFound("server is not configured")
+			return
+		}
 		r := ctx.Value("http-request").(*http.Request)
 		// w := ctx.Value("http-response").(http.ResponseWriter)
-		rr := helpers.GetRemoteFromReq(r)
-		authed, pubkey := x.AdminAuth(r)
+		remote := helpers.GetRemoteFromReq(r)
+		authed, pubkey := x.AdminAuth(r, remote)
 		if !authed {
 			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized("user not authorized for action")
@@ -54,16 +58,19 @@ func (x *Operations) RegisterNuke(api huma.API) {
 			return
 		}
 		log.I.F("database nuke request from %s pubkey %0x",
-			rr, pubkey)
+			remote, pubkey)
 		sto := x.Storage()
+		log.I.F("nuking")
 		if nuke, ok := sto.(store.Nukener); ok {
-			log.I.F("rescanning")
+			log.I.F("nuking")
 			if err = nuke.Nuke(); chk.E(err) {
 				if strings.HasPrefix(err.Error(), "Value log GC attempt") {
 					err = nil
 				}
 				return
 			}
+		} else {
+			log.I.F("nuking failed")
 		}
 		return
 	})

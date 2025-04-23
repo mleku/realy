@@ -19,7 +19,7 @@ type ShutdownOutput struct{}
 func (x *Operations) RegisterShutdown(api huma.API) {
 	name := "Shutdown"
 	description := "Shutdown relay"
-	path := "/shutdown"
+	path := x.path + "/shutdown"
 	scopes := []string{"admin"}
 	method := http.MethodGet
 	huma.Register(api, huma.Operation{
@@ -32,8 +32,13 @@ func (x *Operations) RegisterShutdown(api huma.API) {
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *ShutdownInput) (wgh *ShutdownOutput, err error) {
+		if !x.Server.Configured() {
+			err = huma.Error404NotFound("server is not configured")
+			return
+		}
 		r := ctx.Value("http-request").(*http.Request)
-		authed, _ := x.AdminAuth(r)
+		remote := helpers.GetRemoteFromReq(r)
+		authed, _ := x.AdminAuth(r, remote)
 		if !authed {
 			err = huma.Error401Unauthorized("authorization required")
 			return

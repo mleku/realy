@@ -9,8 +9,10 @@ import (
 	"realy.mleku.dev/envelopes/eventenvelope"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/filters"
-	"realy.mleku.dev/realy/publish/publisher"
+	"realy.mleku.dev/publish"
+	"realy.mleku.dev/publish/publisher"
 	"realy.mleku.dev/tag"
+	"realy.mleku.dev/typer"
 	"realy.mleku.dev/ws"
 )
 
@@ -50,11 +52,15 @@ type S struct {
 
 var _ publisher.I = &S{}
 
-func New() *S { return &S{Map: make(Map)} }
+func init() {
+	publish.Register(NewPublisher())
+}
+
+func NewPublisher() *S { return &S{Map: make(Map)} }
 
 func (p *S) Type() string { return Type }
 
-func (p *S) Receive(msg publisher.Message) {
+func (p *S) Receive(msg typer.T) {
 	if m, ok := msg.(*W); ok {
 		if m.Cancel {
 			if m.Id == "" {

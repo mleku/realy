@@ -9,7 +9,6 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.mleku.dev/cmd/realy/app"
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/realy/helpers"
@@ -29,7 +28,7 @@ type ImportOutput struct{}
 func (x *Operations) RegisterImport(api huma.API) {
 	name := "Import"
 	description := "Import events from line structured JSON (jsonl)"
-	path := "/import"
+	path := x.path + "/import"
 	scopes := []string{"admin", "write"}
 	method := http.MethodPost
 	huma.Register(api, huma.Operation{
@@ -42,9 +41,13 @@ func (x *Operations) RegisterImport(api huma.API) {
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *ImportInput) (wgh *ImportOutput, err error) {
+		if !x.Server.Configured() {
+			err = huma.Error404NotFound("server is not configured")
+			return
+		}
 		r := ctx.Value("http-request").(*http.Request)
-		rr := helpers.GetRemoteFromReq(r)
-		authed, pubkey := x.AdminAuth(r, time.Minute*10)
+		remote := helpers.GetRemoteFromReq(r)
+		authed, pubkey := x.AdminAuth(r, remote, 10*time.Minute)
 		if !authed {
 			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized(
@@ -55,19 +58,16 @@ func (x *Operations) RegisterImport(api huma.API) {
 		if len(input.RawBody) > 0 {
 			read := bytes.NewBuffer(input.RawBody)
 			sto.Import(read)
-			if realy, ok := x.Relay().(*app.Relay); ok {
-				realy.ZeroLists()
-				realy.CheckOwnerLists(context.Bg())
-			}
+			x.Server.ZeroLists()
+			x.Server.CheckOwnerLists(context.Bg())
 		} else {
-			log.I.F("import of event data requested on admin port from %s pubkey %0x", rr,
+			log.I.F("import of event data requested on admin port from %s pubkey %0x", remote,
 				pubkey)
 			read := io.LimitReader(r.Body, r.ContentLength)
 			sto.Import(read)
-			if realy, ok := x.Relay().(*app.Relay); ok {
-				realy.ZeroLists()
-				realy.CheckOwnerLists(context.Bg())
-			}
+			x.Server.ZeroLists()
+			x.Server.CheckOwnerLists(context.Bg())
+
 		}
 		return
 	})

@@ -13,7 +13,8 @@ import (
 	"realy.mleku.dev/log"
 )
 
-func (a *A) HandleMessage(msg []byte) {
+func (a *A) HandleMessage(msg []byte, remote string) {
+	log.T.F("received message from %s\n%s", remote, msg)
 	var notice []byte
 	var err error
 	var t string
@@ -23,9 +24,9 @@ func (a *A) HandleMessage(msg []byte) {
 	}
 	switch t {
 	case eventenvelope.L:
-		notice = a.HandleEvent(a.Context(), rem, a.Server)
+		notice = a.HandleEvent(a.Context(), rem, a.Server, remote)
 	case reqenvelope.L:
-		notice = a.HandleReq(a.Context(), rem, a.Options().SkipEventFunc, a.Server)
+		notice = a.HandleReq(a.Context(), rem, a.Server, remote)
 	case closeenvelope.L:
 		notice = a.HandleClose(rem, a.Server)
 	case authenvelope.L:
@@ -34,7 +35,7 @@ func (a *A) HandleMessage(msg []byte) {
 		notice = []byte(fmt.Sprintf("unknown envelope type %s\n%s", t, rem))
 	}
 	if len(notice) > 0 {
-		log.D.F("notice->%s %s", a.RealRemote(), notice)
+		log.D.F("notice->%s %s", remote, notice)
 		if err = noticeenvelope.NewFrom(notice).Write(a.Listener); err != nil {
 			return
 		}

@@ -75,7 +75,10 @@ node_modules/**
 !PATENTS
 !*.css
 !*.ts
+!*.html
 
 # ...even if they are in subdirectories
 !*/
 /blocklist.json
+/gui/gui/main.wasm
+/gui/gui/index.html

@@ -4,6 +4,7 @@ import (
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/envelopes/closeenvelope"
 	"realy.mleku.dev/log"
+	"realy.mleku.dev/publish"
 	"realy.mleku.dev/realy/interfaces"
 )
 
@@ -21,7 +22,7 @@ func (a *A) HandleClose(req []byte,
 	if env.ID.String() == "" {
 		return []byte("CLOSE has no <id>")
 	}
-	srv.Publisher().Receive(&W{
+	publish.P.Receive(&W{
 		Cancel:   true,
 		Listener: a.Listener,
 		Id:       env.ID.String(),

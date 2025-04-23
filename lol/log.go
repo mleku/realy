@@ -1,7 +1,7 @@
-// Package lol (log of location) is a simple logging library that prints a high
-// precision unix timestamp and the source location of a log print to make
-// tracing errors simpler. Includes a set of logging levels and the ability to
-// filter out higher log levels for a more quiet output.
+// Package lol (log of location) is a simple logging library that prints a high precision unix
+// timestamp and the source location of a log print to make tracing errors simpler. Includes a
+// set of logging levels and the ability to filter out higher log levels for a more quiet
+// output.
 package lol
 
 import (
@@ -9,12 +9,12 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/fatih/color"
-
-	"realy.mleku.dev/atomic"
 )
 
 const (
@@ -38,8 +38,8 @@ var LevelNames = []string{
 }
 
 type (
-	// LevelPrinter defines a set of terminal printing primitives that output with
-	// extra data, time, log logLevelList, and code location
+	// LevelPrinter defines a set of terminal printing primitives that output with extra data,
+	// time, log logLevelList, and code location
 
 	// Ln prints lists of interfaces with spaces in between
 	Ln func(a ...interface{})
@@ -47,13 +47,13 @@ type (
 	F func(format string, a ...interface{})
 	// S prints a spew.Sdump for an enveloper slice
 	S func(a ...interface{})
-	// C accepts a function so that the extra computation can be avoided if it is
-	// not being viewed
+	// C accepts a function so that the extra computation can be avoided if it is not being
+	// viewed
 	C func(closure func() string)
 	// Chk is a shortcut for printing if there is an error, or returning true
 	Chk func(e error) bool
-	// Err is a pass-through function that uses fmt.Errorf to construct an error
-	// and returns the error after printing it to the log
+	// Err is a pass-through function that uses fmt.Errorf to construct an error and returns the
+	// error after printing it to the log
 	Err func(format string, a ...any) error
 
 	// LevelPrinter is the set of log printers on each log level.
@@ -87,8 +87,7 @@ var (
 	// sep is just a convenient shortcut for this very longwinded expression
 	sep = string(os.PathSeparator)
 
-	// writer can be swapped out for any io.*writer* that you want to use instead of
-	// stdout.
+	// writer can be swapped out for any io.*writer* that you want to use instead of stdout.
 	writer io.Writer = os.Stderr
 
 	// LevelSpecs specifies the id, string name and color-printing function
@@ -101,7 +100,8 @@ var (
 		{Debug, "DBG", color.New(color.FgHiBlue).Sprint},
 		{Trace, "TRC", color.New(color.FgHiMagenta).Sprint},
 	}
-	NoTimeStomp atomic.Bool
+	NoTimeStamp atomic.Bool
+	ShortLoc    atomic.Bool
 )
 
 // NoSprint is a noop for sprint (it returns nothing no matter what is given to it).
@@ -138,7 +138,7 @@ var Main = &Logger{}
 
 func init() {
 	// Main = &Logger{}
-	Main.Log, Main.Check, Main.Errorf = New(os.Stderr)
+	Main.Log, Main.Check, Main.Errorf = New(os.Stderr, 2)
 	SetLoggers(Info)
 }
 
@@ -166,6 +166,7 @@ func SetLogLevel(level string) {
 			return
 		}
 	}
+	SetLoggers(Trace)
 }
 
 // JoinStrings joins together anything into a set of strings with space separating the items.
@@ -182,7 +183,7 @@ func JoinStrings(a ...any) (s string) {
 var msgCol = color.New(color.FgBlue).Sprint
 
 // GetPrinter returns a full logger that writes to the provided io.Writer.
-func GetPrinter(l int32, writer io.Writer) LevelPrinter {
+func GetPrinter(l int32, writer io.Writer, skip int) LevelPrinter {
 	return LevelPrinter{
 		Ln: func(a ...interface{}) {
 			if Level.Load() < l {
@@ -193,7 +194,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				msgCol(TimeStamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				JoinStrings(a...),
-				msgCol(GetLoc(2)),
+				msgCol(GetLoc(skip)),
 			)
 		},
 		F: func(format string, a ...interface{}) {
@@ -205,7 +206,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				msgCol(TimeStamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				fmt.Sprintf(format, a...),
-				msgCol(GetLoc(2)),
+				msgCol(GetLoc(skip)),
 			)
 		},
 		S: func(a ...interface{}) {
@@ -217,7 +218,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				msgCol(TimeStamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				spew.Sdump(a...),
-				msgCol(GetLoc(2)),
+				msgCol(GetLoc(skip)),
 			)
 		},
 		C: func(closure func() string) {
@@ -229,7 +230,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 				msgCol(TimeStamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				closure(),
-				msgCol(GetLoc(2)),
+				msgCol(GetLoc(skip)),
 			)
 		},
 		Chk: func(e error) bool {
@@ -242,7 +243,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 					msgCol(TimeStamper()),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 					e.Error(),
-					msgCol(GetLoc(2)),
+					msgCol(GetLoc(skip)),
 				)
 				return true
 			}
@@ -255,7 +256,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 					msgCol(TimeStamper()),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name, " "),
 					fmt.Sprintf(format, a...),
-					msgCol(GetLoc(2)),
+					msgCol(GetLoc(skip)),
 				)
 			}
 			return fmt.Errorf(format, a...)
@@ -276,14 +277,14 @@ func GetNullPrinter() LevelPrinter {
 }
 
 // New creates a new logger with all the levels and things.
-func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
+func New(writer io.Writer, skip int) (l *Log, c *Check, errorf *Errorf) {
 	l = &Log{
-		T: GetPrinter(Trace, writer),
-		D: GetPrinter(Debug, writer),
-		I: GetPrinter(Info, writer),
-		W: GetPrinter(Warn, writer),
-		E: GetPrinter(Error, writer),
-		F: GetPrinter(Fatal, writer),
+		T: GetPrinter(Trace, writer, skip),
+		D: GetPrinter(Debug, writer, skip),
+		I: GetPrinter(Info, writer, skip),
+		W: GetPrinter(Warn, writer, skip),
+		E: GetPrinter(Error, writer, skip),
+		F: GetPrinter(Fatal, writer, skip),
 	}
 	c = &Check{
 		F: l.F.Chk,
@@ -306,7 +307,7 @@ func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 
 // TimeStamper generates the timestamp for logs.
 func TimeStamper() (s string) {
-	if NoTimeStomp.Load() {
+	if NoTimeStamp.Load() {
 		return
 	}
 	return time.Now().Format("2006-01-02T15:04:05Z07:00.000 ")
@@ -322,14 +323,46 @@ func GetNLoc(n int) (output string) {
 	return
 }
 
+var prefix string
+
+func init() {
+	// this enables us to remove the base of the path for a more compact code location string,
+	// this can be used with tilix custom hyperlinks feature
+	//
+	// create a script called `setcurrent` in your PATH ( eg ~/.local/bin/setcurrent )
+	//
+	//   #!/usr/bin/bash
+	//   echo $(pwd) > ~/.current
+	//
+	// set the following environment variable in your ~/.bashrc
+	//
+	//   export PROMPT_COMMAND='setcurrent'
+	//
+	// using the following regular expressions, replacing the path as necessary, and setting
+	// perhaps a different program than ide (this is for goland, i use an alias to the binary)
+	//
+	//   ^((([a-zA-Z@0-9-_.]+/)+([a-zA-Z@0-9-_.]+)):([0-9]+))    ide --line $5 $(cat /home/mleku/.current)/$2
+	//   [ ]((([a-zA-Z@0-9-_./]+)+([a-zA-Z@0-9-_.]+)):([0-9]+))  ide --line $5 $(cat /home/mleku/.current)/$2
+	//   ([/](([a-zA-Z@0-9-_.]+/)+([a-zA-Z@0-9-_.]+)):([0-9]+))  ide --line $5 /$2
+	//
+	// and so long as you use this with an app containing /lol/log.go as this one is, this finds
+	// that path and trims it off from the log line locations and in tilix you can click on the
+	// file locations that are relative to the CWD where you are running the relay from. if this
+	// is a remote machine, just go to the location where your source code is to make it work.
+	//
+	_, file, _, _ := runtime.Caller(0)
+	prefix = file[:len(file)-10]
+}
+
 // GetLoc returns the code location of the caller.
 func GetLoc(skip int) (output string) {
 	_, file, line, _ := runtime.Caller(skip)
-	// split := strings.Split(file, wd+string(os.PathSeparator))
-	// if len(split) < 2 {
+	if strings.Contains(file, "pkg/mod/") || !ShortLoc.Load() {
+	} else {
+		var split []string
+		split = strings.Split(file, prefix)
+		file = split[1]
+	}
 	output = fmt.Sprintf("%s:%d", file, line)
-	// } else {
-	// 	output = fmt.Sprintf("%s:%d", split[1], line)
-	// }
 	return
 }

@@ -14,8 +14,6 @@ import (
 
 	"github.com/alexflint/go-arg"
 
-	"realy.mleku.dev/qu"
-
 	"realy.mleku.dev/atomic"
 	"realy.mleku.dev/bech32encoding"
 	"realy.mleku.dev/chk"
@@ -96,11 +94,11 @@ func Vanity(str string, where int, threads int) (e error) {
 		}
 	}
 	started := time.Now()
-	quit, shutdown := qu.T(), qu.T()
+	quit, shutdown := make(chan struct{}), make(chan struct{})
 	resC := make(chan Result)
 	interrupt.AddHandler(func() {
 		// this will stop work if CTRL-C or Interrupt signal from OS.
-		shutdown.Q()
+		close(shutdown)
 	})
 	var wg sync.WaitGroup
 	counter := atomic.NewInt64(0)
@@ -123,10 +121,10 @@ out:
 			// one of the workers found the solution
 			res = r
 			// tell the others to stop
-			quit.Q()
+			close(quit)
 			break out
-		case <-shutdown.Wait():
-			quit.Q()
+		case <-shutdown:
+			close(quit)
 			log.I.Ln("\rinterrupt signal received")
 			os.Exit(0)
 		}
@@ -151,7 +149,7 @@ out:
 	return
 }
 
-func mine(str string, where int, quit qu.C, resC chan Result, wg *sync.WaitGroup,
+func mine(str string, where int, quit chan struct{}, resC chan Result, wg *sync.WaitGroup,
 	counter *atomic.Int64) {
 
 	wg.Add(1)
@@ -189,17 +187,17 @@ out:
 		case PositionBeginning:
 			if bytes.HasPrefix(r.npub, append(prefix, []byte(str)...)) {
 				found = true
-				quit.Q()
+				close(quit)
 			}
 		case PositionEnding:
 			if bytes.HasSuffix(r.npub, []byte(str)) {
 				found = true
-				quit.Q()
+				close(quit)
 			}
 		case PositionContains:
 			if bytes.Contains(r.npub, []byte(str)) {
 				found = true
-				quit.Q()
+				close(quit)
 			}
 		}
 	}

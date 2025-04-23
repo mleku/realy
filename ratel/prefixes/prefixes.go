@@ -145,6 +145,7 @@ var AllPrefixes = [][]byte{
 	{Counter.B()},
 	{PubkeyIndex.B()},
 	{FullIndex.B()},
+	{Configuration.B()},
 }
 
 // KeySizes are the byte size of keys of each type of key prefix. int(P) or call the P.I() method

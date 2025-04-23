@@ -6,18 +6,16 @@ import (
 	"github.com/dgraph-io/badger/v4"
 
 	"realy.mleku.dev/chk"
-	"realy.mleku.dev/log"
 	"realy.mleku.dev/ratel/prefixes"
-	"realy.mleku.dev/store"
+	"realy.mleku.dev/realy/config"
 )
 
-// SetConfiguration stores the store.Configuration value to a provided setting.
-func (r *T) SetConfiguration(c *store.Configuration) (err error) {
+// SetConfiguration stores the store.C value to a provided setting.
+func (r *T) SetConfiguration(c *config.C) (err error) {
 	var b []byte
 	if b, err = json.Marshal(c); chk.E(err) {
 		return
 	}
-	log.I.F("%s", b)
 	err = r.Update(func(txn *badger.Txn) (err error) {
 		if err = txn.Set(prefixes.Configuration.Key(), b); chk.E(err) {
 			return
@@ -27,13 +25,12 @@ func (r *T) SetConfiguration(c *store.Configuration) (err error) {
 	return
 }
 
-// GetConfiguration returns the current store.Configuration stored in the database.
-func (r *T) GetConfiguration() (c *store.Configuration, err error) {
+// GetConfiguration returns the current store.C stored in the database.
+func (r *T) GetConfiguration() (c *config.C, err error) {
 	err = r.View(func(txn *badger.Txn) (err error) {
-		c = &store.Configuration{BlockList: make([]string, 0)}
+		c = &config.C{BlockList: make([]string, 0)}
 		var it *badger.Item
 		if it, err = txn.Get(prefixes.Configuration.Key()); chk.E(err) {
-			err = nil
 			return
 		}
 		var b []byte

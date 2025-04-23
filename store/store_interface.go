@@ -10,6 +10,7 @@ import (
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/eventid"
 	"realy.mleku.dev/filter"
+	"realy.mleku.dev/realy/config"
 	"realy.mleku.dev/tag"
 )
 
@@ -26,6 +27,7 @@ type I interface {
 	Importer
 	Exporter
 	Syncer
+	LogLeveler
 }
 
 type Initer interface {
@@ -105,6 +107,10 @@ type Configuration struct {
 }
 
 type Configurationer interface {
-	GetConfiguration() (c *Configuration, err error)
-	SetConfiguration(c *Configuration) (err error)
+	GetConfiguration() (c *config.C, err error)
+	SetConfiguration(c *config.C) (err error)
+}
+
+type LogLeveler interface {
+	SetLogLevel(level string)
 }

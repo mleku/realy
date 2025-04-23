@@ -18,6 +18,7 @@ import (
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/kinds"
 	"realy.mleku.dev/log"
+	"realy.mleku.dev/publish"
 	"realy.mleku.dev/realy/helpers"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tags"
@@ -57,7 +58,7 @@ func (fi SubscribeInput) ToFilter() (f *filter.T, err error) {
 func (x *Operations) RegisterSubscribe(api huma.API) {
 	name := "Subscribe"
 	description := "Subscribe for newly published events by author, kind or tags; empty also allowed, which just sends all incoming events - uses Server Sent Events format for compatibility with standard libraries."
-	path := "/subscribe"
+	path := x.path + "/subscribe"
 	scopes := []string{"user", "read"}
 	method := http.MethodPost
 	sse.Register(api, huma.Operation{
@@ -73,6 +74,9 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 			"event": event.J{},
 		},
 		func(ctx context.T, input *SubscribeInput, send sse.Sender) {
+			if !x.Server.Configured() {
+				return
+			}
 			log.I.S(input)
 			var err error
 			var f *filter.T
@@ -82,7 +86,7 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 			}
 			log.I.F("%s", f.Marshal(nil))
 			r := ctx.Value("http-request").(*http.Request)
-			rr := helpers.GetRemoteFromReq(r)
+			remote := helpers.GetRemoteFromReq(r)
 			var valid bool
 			var pubkey []byte
 			valid, pubkey, err = httpauth.CheckAuth(r)
@@ -99,9 +103,8 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 			}
 			allowed := filters.New(f)
 			var accepted, modified bool
-			allowed, accepted, modified = x.Relay().AcceptReq(x.Context(), r, nil,
-				filters.New(f),
-				pubkey)
+			allowed, accepted, modified = x.Server.AcceptReq(x.Context(), r, nil,
+				filters.New(f), pubkey, remote)
 			if !accepted {
 				err = huma.Error401Unauthorized("auth to get access for this filter")
 				return
@@ -113,7 +116,7 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 				return
 			}
 			if f.Kinds.IsPrivileged() {
-				if x.Relay().AuthRequired() {
+				if x.Server.AuthRequired() {
 					log.T.F("privileged request\n%s", f.Serialize())
 					senders := f.Authors
 					receivers := f.Tags.GetAll(tag.New("#p"))
@@ -124,7 +127,7 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 					case senders.Contains(pubkey) || receivers.ContainsAny([]byte("#p"),
 						tag.New(pubkey)):
 						log.T.F("user %0x from %s allowed to query for privileged event",
-							pubkey, rr)
+							pubkey, remote)
 					default:
 						err = huma.Error403Forbidden(fmt.Sprintf(
 							"authenticated user %0x does not have authorization for "+
@@ -134,7 +137,7 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 			}
 			// register the filter with the listeners
 			receiver := make(event.C, 32)
-			x.Publisher().Receive(&H{
+			publish.P.Receive(&H{
 				Ctx:      r.Context(),
 				Receiver: receiver,
 				Pubkey:   pubkey,

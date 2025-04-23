@@ -12,6 +12,7 @@ import (
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/httpauth"
 	"realy.mleku.dev/log"
+	"realy.mleku.dev/publish"
 	"realy.mleku.dev/realy/helpers"
 )
 
@@ -26,9 +27,9 @@ type RelayOutput struct{ Body string }
 
 // RegisterRelay is the implementatino of the HTTP API Relay method.
 func (x *Operations) RegisterRelay(api huma.API) {
-	name := "relay"
+	name := "Relay"
 	description := "relay an event, don't store it"
-	path := "/relay"
+	path := x.path + "/relay"
 	scopes := []string{"user"}
 	method := http.MethodPost
 	huma.Register(api, huma.Operation{
@@ -40,9 +41,13 @@ func (x *Operations) RegisterRelay(api huma.API) {
 		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *RelayInput) (output *RelayOutput, err error) {
+		if !x.Server.Configured() {
+			err = huma.Error404NotFound("server is not configured")
+			return
+		}
 		log.I.S(input)
 		r := ctx.Value("http-request").(*http.Request)
-		rr := helpers.GetRemoteFromReq(r)
+		remote := helpers.GetRemoteFromReq(r)
 		var valid bool
 		var pubkey []byte
 		valid, pubkey, err = httpauth.CheckAuth(r)
@@ -66,7 +71,7 @@ func (x *Operations) RegisterRelay(api huma.API) {
 			err = huma.Error406NotAcceptable(err.Error())
 			return
 		}
-		accept, notice, _ := x.AcceptEvent(ctx, ev, r, rr, pubkey)
+		accept, notice, _ := x.AcceptEvent(ctx, ev, r, pubkey, remote)
 		if !accept {
 			err = huma.Error401Unauthorized(notice)
 			return
@@ -82,7 +87,11 @@ func (x *Operations) RegisterRelay(api huma.API) {
 			err = huma.Error400BadRequest("signature is invalid")
 			return
 		}
-		x.Publisher().Deliver(x.Relay().AuthRequired(), x.PublicReadable(), ev)
+		var authRequired bool
+
+		authRequired = x.Server.AuthRequired()
+
+		publish.P.Deliver(authRequired, x.PublicReadable(), ev)
 		return
 	})
 }

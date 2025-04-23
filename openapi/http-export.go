@@ -23,7 +23,7 @@ type ExportOutput struct{ RawBody []byte }
 func (x *Operations) RegisterExport(api huma.API) {
 	name := "Export"
 	description := "Export all events (only works with NIP-98/JWT capable client, will not work with UI)"
-	path := "/export"
+	path := x.path + "/export"
 	scopes := []string{"admin", "read"}
 	method := http.MethodGet
 	huma.Register(api, huma.Operation{
@@ -35,18 +35,22 @@ func (x *Operations) RegisterExport(api huma.API) {
 		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *ExportInput) (resp *huma.StreamResponse, err error) {
+		if !x.Server.Configured() {
+			err = huma.Error404NotFound("server is not configured")
+			return
+		}
 		r := ctx.Value("http-request").(*http.Request)
-		rr := helpers.GetRemoteFromReq(r)
-		log.I.F("processing export from %s", rr)
+		remote := helpers.GetRemoteFromReq(r)
+		log.I.F("processing export from %s", remote)
 		// w := ctx.Value("http-response").(http.ResponseWriter)
-		authed, pubkey := x.AdminAuth(r)
+		authed, pubkey := x.AdminAuth(r, remote)
 		if !authed {
 			// pubkey = ev.Pubkey
 			err = huma.Error401Unauthorized("Not Authorized")
 			return
 		}
-		log.I.F("export of event data requested on admin port from %s pubkey %0x",
-			rr, pubkey)
+		log.I.F("%s export of event data requested on admin port pubkey %0x",
+			remote, pubkey)
 		sto := x.Storage()
 		resp = &huma.StreamResponse{
 			func(ctx huma.Context) {

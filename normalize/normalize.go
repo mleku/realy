@@ -127,4 +127,6 @@ func (r Reason) B() []byte { return r }
 func (r Reason) IsPrefix(reason []byte) bool { return bytes.HasPrefix(reason, r.B()) }
 
 // F allows creation of a full Reason text with a printf style format.
-func (r Reason) F(format string, params ...any) []byte { return Msg(r, format, params...) }
+func (r Reason) F(format string, params ...any) []byte {
+	return Msg(r, format, params...)
+}
