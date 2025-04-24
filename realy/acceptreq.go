@@ -21,7 +21,7 @@ func (s *Server) AcceptReq(c context.T, hr *http.Request, id []byte,
 		ok = true
 
 	}
-	if len(s.Owners()) == 0 {
+	if len(s.Owners()) == 0 && !s.AuthRequired() {
 		log.T.F("%s accept because no access control is enabled", remote)
 		allowed = ff
 		ok = true

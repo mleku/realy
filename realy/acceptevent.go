@@ -24,7 +24,7 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 		log.T.F("%s auth not required and no ACL enabled, accepting event %0x", remote, evt.Id)
 		return true, "", nil
 	}
-	if len(authedPubkey) != 32 && !s.PublicReadable() {
+	if len(authedPubkey) != 32 || s.AuthRequired() {
 		return false, fmt.Sprintf("client not authed with auth required %s", remote), nil
 	}
 	// check ACL

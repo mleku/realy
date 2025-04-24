@@ -109,7 +109,7 @@ func (x *Operations) RegisterConfigurationGet(api huma.API) {
 	}, func(ctx context.T, input *ConfigurationGetInput) (output *ConfigurationGetOutput,
 		err error) {
 		if !x.Server.Configured() {
-			err = huma.Error404NotFound("server is not configured")
+			err = huma.Error503ServiceUnavailable("server is not configured")
 			return
 		}
 		r := ctx.Value("http-request").(*http.Request)

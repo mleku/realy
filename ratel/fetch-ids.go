@@ -28,8 +28,8 @@ func (r *T) FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error) {
 			}
 			k := prefixes.Id.Key(evId)
 			it := txn.NewIterator(badger.DefaultIteratorOptions)
-			var ser *serial.T
 			defer it.Close()
+			var ser *serial.T
 			for it.Seek(k); it.ValidForPrefix(k); it.Next() {
 				key := it.Item().Key()
 				ser = serial.FromKey(key)

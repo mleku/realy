@@ -42,7 +42,7 @@ func (x *Operations) RegisterImport(api huma.API) {
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *ImportInput) (wgh *ImportOutput, err error) {
 		if !x.Server.Configured() {
-			err = huma.Error404NotFound("server is not configured")
+			err = huma.Error503ServiceUnavailable("server is not configured")
 			return
 		}
 		r := ctx.Value("http-request").(*http.Request)

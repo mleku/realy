@@ -9,6 +9,7 @@ import (
 	"realy.mleku.dev/context"
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/eventid"
+	"realy.mleku.dev/eventidserial"
 	"realy.mleku.dev/filter"
 	"realy.mleku.dev/realy/config"
 	"realy.mleku.dev/tag"
@@ -28,6 +29,7 @@ type I interface {
 	Exporter
 	Syncer
 	LogLeveler
+	EventIdSerialer
 }
 
 type Initer interface {
@@ -113,4 +115,9 @@ type Configurationer interface {
 
 type LogLeveler interface {
 	SetLogLevel(level string)
+}
+
+type EventIdSerialer interface {
+	EventIdsBySerial(start uint64, count int) (evs []eventidserial.E,
+		err error)
 }

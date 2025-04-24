@@ -42,7 +42,7 @@ func (x *Operations) RegisterEvents(api huma.API) {
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *EventsInput) (output *huma.StreamResponse, err error) {
 		if !x.Server.Configured() {
-			err = huma.Error404NotFound("server is not configured")
+			err = huma.Error503ServiceUnavailable("server is not configured")
 			return
 		}
 		// log.I.S(input)
@@ -53,7 +53,7 @@ func (x *Operations) RegisterEvents(api huma.API) {
 
 		}
 		var authrequired bool
-		if len(input.Body) > 1000 {
+		if len(input.Body) > 1000 || x.Server.AuthRequired() {
 			authrequired = true
 		}
 		r := ctx.Value("http-request").(*http.Request)
@@ -73,11 +73,6 @@ func (x *Operations) RegisterEvents(api huma.API) {
 			return
 		}
 		if authrequired && valid {
-			if len(x.Owners()) < 1 {
-				err = huma.Error400BadRequest(
-					"cannot process more than 1000 events in a request without auth enabled")
-				return
-			}
 			x.Server.Lock()
 			// we only allow the first level of the allowed users this kind of access
 			if x.Server.OwnersFollowed(string(pubkey)) {

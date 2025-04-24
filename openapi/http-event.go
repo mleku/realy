@@ -48,7 +48,7 @@ func (x *Operations) RegisterEvent(api huma.API) {
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *EventInput) (output *EventOutput, err error) {
 		if !x.Server.Configured() {
-			err = huma.Error404NotFound("server is not configured")
+			err = huma.Error503ServiceUnavailable("server is not configured")
 			return
 		}
 		r := ctx.Value("http-request").(*http.Request)
@@ -64,20 +64,22 @@ func (x *Operations) RegisterEvent(api huma.API) {
 		if sto == nil {
 			panic("no event store has been set to store event")
 		}
-		var valid bool
 		var pubkey []byte
-		valid, pubkey, err = httpauth.CheckAuth(r)
-		// missing := !errors.Is(err, httpauth.ErrMissingKey)
-		// if there is an error but not that the token is missing, or there is no error
-		// but the signature is invalid, return error that request is unauthorized.
-		if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
-			err = huma.Error400BadRequest(err.Error())
-			return
-		}
-		err = nil
-		if !valid {
-			err = huma.Error401Unauthorized("Authorization header is invalid")
-			return
+		if x.Server.AuthRequired() || !x.Server.PublicReadable() {
+			var valid bool
+			valid, pubkey, err = httpauth.CheckAuth(r)
+			// missing := !errors.Is(err, httpauth.ErrMissingKey)
+			// if there is an error but not that the token is missing, or there is no error
+			// but the signature is invalid, return error that request is unauthorized.
+			if err != nil && !errors.Is(err, httpauth.ErrMissingKey) {
+				err = huma.Error400BadRequest(err.Error())
+				return
+			}
+			err = nil
+			if !valid {
+				err = huma.Error401Unauthorized("Authorization header is invalid")
+				return
+			}
 		}
 		// if there was auth, or no auth, check the relay policy allows accepting the
 		// event (no auth with auth required or auth not valid for action can apply
