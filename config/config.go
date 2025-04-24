@@ -19,6 +19,7 @@ import (
 type C struct {
 	AppName string `env:"APP_NAME" default:"realy"`
 	Listen  string `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
+	Port    int    `env:"PORT" default:"8080" usage:"network listen port"`
 	Pprof   bool   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
 }
 
