@@ -23,6 +23,7 @@ import (
 	"realy.mleku.dev/realy/interfaces"
 	"realy.mleku.dev/realy/pointers"
 	"realy.mleku.dev/reason"
+	"realy.mleku.dev/store"
 	"realy.mleku.dev/tag"
 )
 
@@ -47,12 +48,7 @@ func (a *A) HandleReq(
 	if !accepted || allowed == nil || modified {
 		if srv.AuthRequired() && !a.Listener.AuthRequested() {
 			a.Listener.RequestAuth()
-			if err = closedenvelope.NewFrom(env.Subscription,
-				reason.AuthRequired.F("auth required for request processing")).Write(a.Listener); chk.E(err) {
-			}
-			log.T.F("requesting auth from client from %s, challenge '%s'",
-				a.Listener.RealRemote(), a.Listener.Challenge())
-			if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.E(err) {
+			if _, err = a.AuthRequiredResponse(env, remote); chk.E(err) {
 				return
 			}
 			if !modified {
@@ -85,22 +81,8 @@ func (a *A) HandleReq(
 			i = *f.Limit
 		}
 		if srv.AuthRequired() && f.Kinds.IsPrivileged() {
-			log.T.F("privileged request\n%s", f.Serialize())
-			senders := f.Authors
-			receivers := f.Tags.GetAll(tag.New("#p"))
-			switch {
-			case len(a.Listener.Authed()) == 0:
-				if notice, err = a.AuthRequiredResponse(env, remote); chk.E(err) {
-					return
-				}
-				return notice
-			case senders.Contains(a.Listener.AuthedBytes()) ||
-				receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes())):
-				log.T.F("user %0x from %s allowed to query for privileged event",
-					a.Listener.AuthedBytes(), remote)
-			default:
-				return reason.Restricted.F("authenticated user %0x does not have authorization for "+
-					"requested filters", a.Listener.AuthedBytes())
+			if notice, err = a.HandleAuthPrivilege(env, f, remote); chk.E(err) {
+				return
 			}
 		}
 		var events event.Ts
@@ -115,33 +97,7 @@ func (a *A) HandleReq(
 		aut := a.Listener.AuthedBytes()
 		// remove events from muted authors if we have the authed user's mute list.
 		if a.Listener.IsAuthed() {
-			var mutes event.Ts
-			if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),
-				Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
-				var mutePubs [][]byte
-				for _, ev := range mutes {
-					for _, t := range ev.Tags.ToSliceOfTags() {
-						if bytes.Equal(t.Key(), []byte("p")) {
-							var p []byte
-							if p, err = hex.Dec(string(t.Value())); chk.E(err) {
-								continue
-							}
-							mutePubs = append(mutePubs, p)
-						}
-					}
-				}
-				var tmp event.Ts
-				for _, ev := range events {
-					for _, pk := range mutePubs {
-						if bytes.Equal(ev.Pubkey, pk) {
-							continue
-						}
-						tmp = append(tmp, ev)
-					}
-				}
-				// remove privileged events
-				events = tmp
-			}
+			a.FilterPrivileged(c, sto, aut, events)
 		}
 		// remove privileged events as they come through in scrape queries
 		if events, notice, err = a.CheckPrivilege(events, f, env, srv, aut, remote); chk.E(err) {
@@ -184,6 +140,59 @@ func (a *A) HandleReq(
 		Receiver: receiver,
 		Filters:  env.Filters,
 	})
+	return
+}
+
+func (a *A) HandleAuthPrivilege(env *reqenvelope.T, f *filter.T, remote string) (notice []byte, err error) {
+	log.T.F("privileged request\n%s", f.Serialize())
+	senders := f.Authors
+	receivers := f.Tags.GetAll(tag.New("#p"))
+	switch {
+	case len(a.Listener.Authed()) == 0:
+		if notice, err = a.AuthRequiredResponse(env, remote); chk.E(err) {
+			return
+		}
+		return
+	case senders.Contains(a.Listener.AuthedBytes()) ||
+		receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes())):
+		log.T.F("user %0x from %s allowed to query for privileged event",
+			a.Listener.AuthedBytes(), remote)
+	default:
+		notice = reason.Restricted.F("authenticated user %0x does not have authorization for "+
+			"requested filters", a.Listener.AuthedBytes())
+	}
+	return
+}
+
+func (a *A) FilterPrivileged(c context.T, sto store.I, aut []byte, events event.Ts) (evs event.Ts) {
+	var mutes event.Ts
+	var err error
+	if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),
+		Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
+		var mutePubs [][]byte
+		for _, ev := range mutes {
+			for _, t := range ev.Tags.ToSliceOfTags() {
+				if bytes.Equal(t.Key(), []byte("p")) {
+					var p []byte
+					if p, err = hex.Dec(string(t.Value())); chk.E(err) {
+						continue
+					}
+					mutePubs = append(mutePubs, p)
+				}
+			}
+		}
+		var tmp event.Ts
+		for _, ev := range events {
+			for _, pk := range mutePubs {
+				if bytes.Equal(ev.Pubkey, pk) {
+					continue
+				}
+				tmp = append(tmp, ev)
+			}
+		}
+		// remove privileged events
+		evs = tmp
+	}
 	return
 }
 
