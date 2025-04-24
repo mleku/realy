@@ -16,7 +16,6 @@ import (
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/reason"
 	"realy.mleku.dev/sha256"
 	"realy.mleku.dev/store"
 	"realy.mleku.dev/tag"
@@ -55,7 +54,7 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server,
 	var reason []byte
 	ok, reason = srv.AddEvent(c, env.T, a.Listener.Req(), a.Listener.AuthedBytes(), remote)
 	log.T.F("event added %v", ok)
-	if err = okenvelope.NewFrom(env.Id, ok, reason).Write(a.Listener); chk.E(err) {
+	if err = okenvelope.NewFrom(env.Id(), ok, reason).Write(a.Listener); chk.E(err) {
 		return
 	}
 	if after != nil {
@@ -65,20 +64,20 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server,
 }
 
 func (a *A) VerifyEvent(env *eventenvelope.Submission) (err error) {
-	if !bytes.Equal(env.GetIDBytes(), env.Id) {
-		if err = a.Invalid(env, "event id is computed incorrectly"); chk.E(err) {
+	if !bytes.Equal(env.GetIDBytes(), env.Id()) {
+		if err = Ok.Invalid(a, env, "event id is computed incorrectly"); chk.E(err) {
 			return
 		}
 		return
 	}
 	var ok bool
 	if ok, err = env.Verify(); chk.T(err) {
-		if err = a.Error(env, "failed to verify signature", err); chk.T(err) {
+		if err = Ok.Error(a, env, "failed to verify signature", err); chk.T(err) {
 			return
 		}
 		return
 	} else if !ok {
-		if err = a.Error(env, "signature is invalid", err); chk.T(err) {
+		if err = Ok.Error(a, env, "signature is invalid", err); chk.T(err) {
 			return
 		}
 		return
@@ -88,7 +87,7 @@ func (a *A) VerifyEvent(env *eventenvelope.Submission) (err error) {
 
 func (a *A) HandleRejectEvent(env *eventenvelope.Submission, notice string) (err error) {
 	if strings.Contains(notice, "mute") {
-		if err = a.Blocked(env, notice); chk.E(err) {
+		if err = Ok.Blocked(a, env, notice); chk.E(err) {
 			return
 		}
 	} else {
@@ -101,12 +100,12 @@ func (a *A) HandleRejectEvent(env *eventenvelope.Submission, notice string) (err
 		if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.T(err) {
 			return
 		}
-		if err = a.AuthRequired(env, "auth required for storing events"); chk.E(err) {
+		if err = Ok.AuthRequired(a, env, "auth required for storing events"); chk.E(err) {
 			return
 		}
 		return
 	}
-	if err = a.Invalid(env, notice); chk.E(err) {
+	if err = Ok.Invalid(a, env, notice); chk.E(err) {
 		return
 	}
 	return
@@ -125,14 +124,14 @@ func (a *A) CheckDelete(c context.T, env *eventenvelope.Submission, sto store.I)
 				}
 				res, err = sto.QueryEvents(c, &filter.T{IDs: tag.New(evId)})
 				if err != nil {
-					if err = a.Ok("failed to query for target event", reason.Error, env); chk.T(err) {
+					if err = Ok.Error(a, env, "failed to query for target event"); chk.T(err) {
 						return
 					}
 					return
 				}
 				for i := range res {
 					if res[i].Kind.Equal(kind.Deletion) {
-						if err = a.Blocked(env,
+						if err = Ok.Blocked(a, env,
 							"not processing or storing delete event containing delete event references",
 						); chk.E(err) {
 							return
@@ -140,7 +139,7 @@ func (a *A) CheckDelete(c context.T, env *eventenvelope.Submission, sto store.I)
 						return
 					}
 					if !bytes.Equal(res[i].Pubkey, env.T.Pubkey) {
-						if err = a.Blocked(env,
+						if err = Ok.Blocked(a, env,
 							"cannot delete other users' events (delete by e tag)",
 						); chk.E(err) {
 							return
@@ -155,14 +154,14 @@ func (a *A) CheckDelete(c context.T, env *eventenvelope.Submission, sto store.I)
 				}
 				var pk []byte
 				if pk, err = hex.DecAppend(nil, split[1]); chk.E(err) {
-					if err = a.Invalid(env,
+					if err = Ok.Invalid(a, env,
 						"delete event a tag pubkey value invalid: %s", t.Value()); chk.T(err) {
 					}
 					return
 				}
 				kin := ints.New(uint16(0))
 				if _, err = kin.Unmarshal(split[0]); chk.E(err) {
-					if err = a.Invalid(env,
+					if err = Ok.Invalid(a, env,
 						"delete event a tag kind value invalid: %s", t.Value()); chk.T(err) {
 						return
 					}
@@ -170,13 +169,13 @@ func (a *A) CheckDelete(c context.T, env *eventenvelope.Submission, sto store.I)
 				}
 				kk := kind.New(kin.Uint16())
 				if kk.Equal(kind.Deletion) {
-					if err = a.Blocked(env, "delete event kind may not be deleted"); chk.E(err) {
+					if err = Ok.Blocked(a, env, "delete event kind may not be deleted"); chk.E(err) {
 						return
 					}
 					return
 				}
 				if !kk.IsParameterizedReplaceable() {
-					if err = a.Error(env,
+					if err = Ok.Error(a, env,
 						"delete tags with a tags containing non-parameterized-replaceable events cannot be processed"); chk.E(err) {
 						return
 					}
@@ -184,7 +183,7 @@ func (a *A) CheckDelete(c context.T, env *eventenvelope.Submission, sto store.I)
 				}
 				if !bytes.Equal(pk, env.T.Pubkey) {
 					log.I.S(pk, env.T.Pubkey, env.T)
-					if err = a.Blocked(env,
+					if err = Ok.Blocked(a, env,
 						"cannot delete other users' events (delete by a tag)"); chk.E(err) {
 						return
 					}
@@ -195,7 +194,8 @@ func (a *A) CheckDelete(c context.T, env *eventenvelope.Submission, sto store.I)
 				f.Authors.Append(pk)
 				f.Tags.AppendTags(tag.New([]byte{'#', 'd'}, split[2]))
 				if res, err = sto.QueryEvents(c, f); err != nil {
-					if err = a.Error(env, "failed to query for target event", err); chk.T(err) {
+					if err = Ok.Error(a, env,
+						"failed to query for target event"); chk.T(err) {
 						return
 					}
 					return
@@ -222,7 +222,7 @@ func (a *A) CheckDelete(c context.T, env *eventenvelope.Submission, sto store.I)
 		}
 		res = nil
 	}
-	if err = okenvelope.NewFrom(env.Id, true).Write(a.Listener); chk.E(err) {
+	if err = okenvelope.NewFrom(env.Id(), true).Write(a.Listener); chk.E(err) {
 		return
 	}
 	return
@@ -230,12 +230,12 @@ func (a *A) CheckDelete(c context.T, env *eventenvelope.Submission, sto store.I)
 
 func (a *A) ProcessDelete(c context.T, target *event.T, env *eventenvelope.Submission, sto store.I) (skip bool, err error) {
 	if target.Kind.K == kind.Deletion.K {
-		if err = a.Error(env, "cannot delete delete event %s", env.Id); chk.E(err) {
+		if err = Ok.Error(a, env, "cannot delete delete event %s", env.Id); chk.E(err) {
 			return
 		}
 	}
 	if target.CreatedAt.Int() > env.T.CreatedAt.Int() {
-		if err = a.Error(env,
+		if err = Ok.Error(a, env,
 			"not deleting\n%d%\nbecause delete event is older\n%d",
 			target.CreatedAt.Int(), env.T.CreatedAt.Int()); chk.E(err) {
 			return
@@ -243,13 +243,13 @@ func (a *A) ProcessDelete(c context.T, target *event.T, env *eventenvelope.Submi
 		skip = true
 	}
 	if !bytes.Equal(target.Pubkey, env.Pubkey) {
-		if err = a.Error(env, "only author can delete event"); chk.E(err) {
+		if err = Ok.Error(a, env, "only author can delete event"); chk.E(err) {
 			return
 		}
 		return
 	}
 	if err = sto.DeleteEvent(c, target.EventId()); chk.T(err) {
-		if err = a.Error(env, err.Error()); chk.T(err) {
+		if err = Ok.Error(a, env, err.Error()); chk.T(err) {
 			return
 		}
 		return

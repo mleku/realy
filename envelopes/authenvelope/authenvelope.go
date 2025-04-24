@@ -103,6 +103,8 @@ func NewResponse() *Response { return &Response{} }
 // NewResponseWith creates a new Response with a provided event.T.
 func NewResponseWith(event *event.T) *Response { return &Response{Event: event} }
 
+func (en *Response) Id() []byte { return en.Event.Id }
+
 // Label returns the label of a auth Response envelope.
 func (en *Response) Label() string { return L }
 

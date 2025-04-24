@@ -29,6 +29,8 @@ func NewSubmission() *Submission { return &Submission{T: &event.T{}} }
 // NewSubmissionWith creates a new eventenvelope.Submission with a provided event.T.
 func NewSubmissionWith(ev *event.T) *Submission { return &Submission{T: ev} }
 
+func (en *Submission) Id() []byte { return en.T.Id }
+
 // Label returns the label of a event eventenvelope.Submission envelope.
 func (en *Submission) Label() string { return L }
 
@@ -98,6 +100,8 @@ func NewResultWith[V string | []byte](s V, ev *event.T) (res *Result, err error)
 	}
 	return &Result{subscription.MustNew(s), ev}, nil
 }
+
+func (en *Result) Id() []byte { return en.Event.Id }
 
 // Label returns the label of a event eventenvelope.Result envelope.
 func (en *Result) Label() string { return L }
