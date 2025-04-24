@@ -10,6 +10,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"sync"
 
@@ -32,6 +33,7 @@ import (
 
 func main() {
 	log.I.F("starting realy %s", realy_lol.Version)
+	runtime.GOMAXPROCS(runtime.NumCPU() * 4)
 	cfg := config.New()
 	lol.ShortLoc.Store(false)
 	log.I.F("starting %s %s", cfg.AppName, realy_lol.Version)

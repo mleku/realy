@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"runtime/debug"
 
 	"github.com/pkg/profile"
 	"go-simpler.org/env"
@@ -18,11 +17,9 @@ import (
 // configurations should generally be stored in the database, where APIs make them easy to
 // modify.
 type C struct {
-	AppName  string `env:"APP_NAME" default:"realy"`
-	Listen   string `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
-	Port     int    `env:"PORT" default:"3334" usage:"port to listen on"` // PORT is used by heroku
-	Pprof    bool   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
-	MemLimit int64  `env:"MEM_LIMIT" default:"250000000" usage:"set memory limit, default is 250Mb"`
+	AppName string `env:"APP_NAME" default:"realy"`
+	Listen  string `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
+	Pprof   bool   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
 }
 
 func New() (c *C) {
@@ -66,6 +63,5 @@ commands:
 			chk.E(http.ListenAndServe("127.0.0.1:6060", nil))
 		}()
 	}
-	debug.SetMemoryLimit(c.MemLimit)
 	return
 }
