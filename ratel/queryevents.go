@@ -174,20 +174,25 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 		}
 	}
 	if len(evMap) > 0 {
-		for i := range evMap {
-			if len(evMap[i].Pubkey) == 0 {
-				log.I.S(evMap[i])
-				continue
-			}
-			evs = append(evs, evMap[i])
-		}
-		sort.Sort(event.Descending(evs))
-		if len(evs) > limit {
-			evs = evs[:limit]
-		}
+		evs = r.FilterSortAndLimit(evMap, limit)
 		go r.UpdateAccessed(accessed)
 	} else {
 		log.T.F("no events found,%s", f.Serialize())
+	}
+	return
+}
+
+func (r *T) FilterSortAndLimit(evMap map[string]*event.T, limit int) (evs event.Ts) {
+	for i := range evMap {
+		if len(evMap[i].Pubkey) == 0 {
+			log.I.S(evMap[i])
+			continue
+		}
+		evs = append(evs, evMap[i])
+	}
+	sort.Sort(event.Descending(evs))
+	if len(evs) > limit {
+		evs = evs[:limit]
 	}
 	return
 }

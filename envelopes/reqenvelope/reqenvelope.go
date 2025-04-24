@@ -95,7 +95,7 @@ func (en *T) Unmarshal(b []byte) (r []byte, err error) {
 
 // Parse reads a REQ envelope from minified JSON into a newly allocated
 // reqenvelope.T.
-func (en *T) Parse(b []byte) (t *T, rem []byte, err error) {
+func Parse(b []byte) (t *T, rem []byte, err error) {
 	t = New()
 	if rem, err = t.Unmarshal(b); chk.E(err) {
 		return

@@ -175,136 +175,141 @@ func (r *Client) ConnectWithTLS(ctx context.T, tlsConfig *tls.Config) error {
 		})
 	}()
 	// queue all write operations here so we don't do mutex spaghetti
-	go func() {
-		var err error
-		for {
-			select {
-			case <-ticker.C:
-				err = wsutil.WriteClientMessage(r.Connection.conn, ws.OpPing, nil)
-				if err != nil {
-					log.D.F("{%s} error writing ping: %v; closing websocket", r.URL,
-						err)
-					r.Close() // this should trigger a context cancelation
-					return
-				}
-			case writeReq := <-r.writeQueue:
-				// all write requests will go through this to prevent races
-				if err = r.Connection.WriteMessage(r.connectionContext,
-					writeReq.msg); chk.T(err) {
-					writeReq.answer <- err
-				}
-				close(writeReq.answer)
-			case <-r.connectionContext.Done():
-				// stop here
-				return
-			}
-		}
-	}()
+	go WriteLoop(ticker, r)
 	// general message reader loop
-	go func() {
-		buf := new(bytes.Buffer)
-		for {
-			buf.Reset()
-			if err := conn.ReadMessage(r.connectionContext, buf); chk.T(err) {
-				r.ConnectionError = err
-				r.Close()
-				break
-			}
-			message := buf.Bytes()
-			log.D.F("{%s} %v\n", r.URL, message)
+	go ReadLoop(conn, r)
+	return nil
+}
 
-			var t string
-			if t, message = envelopes.Identify(message); chk.E(err) {
+func ReadLoop(conn *Connection, r *Client) {
+	var err error
+	buf := new(bytes.Buffer)
+	for {
+		buf.Reset()
+		if err = conn.ReadMessage(r.connectionContext, buf); chk.T(err) {
+			r.ConnectionError = err
+			r.Close()
+			break
+		}
+		message := buf.Bytes()
+		log.D.F("{%s} %v\n", r.URL, message)
+
+		var t string
+		if t, message = envelopes.Identify(message); chk.E(err) {
+			continue
+		}
+		switch t {
+		case noticeenvelope.L:
+			env := noticeenvelope.New()
+			if env, message, err = noticeenvelope.Parse(message); chk.E(err) {
 				continue
 			}
-			switch t {
-			case noticeenvelope.L:
-				env := noticeenvelope.New()
-				if env, message, err = noticeenvelope.Parse(message); chk.E(err) {
+			// see WithNoticeHandler
+			if r.notices != nil {
+				r.notices <- env.Message
+			} else {
+				log.E.F("NOTICE from %s: '%s'\n", r.URL, env.Message)
+			}
+		case authenvelope.L:
+			env := authenvelope.NewChallenge()
+			if env, message, err = authenvelope.ParseChallenge(message); chk.E(err) {
+				continue
+			}
+			if len(env.Challenge) == 0 {
+				continue
+			}
+			r.challenge = env.Challenge
+		case eventenvelope.L:
+			env := eventenvelope.NewResult()
+			if env, message, err = eventenvelope.ParseResult(message); chk.E(err) {
+				continue
+			}
+			if len(env.Subscription.T) == 0 {
+				continue
+			}
+			if sub, ok := r.Subscriptions.Load(env.Subscription.String()); !ok {
+				log.D.F("{%s} no subscription with id '%s'\n", r.URL, env.Subscription)
+				continue
+			} else {
+				// check if the event matches the desired filter, ignore otherwise
+				if !sub.Filters.Match(env.Event) {
+					log.D.F("{%s} filter does not match: %v ~ %v\n", r.URL,
+						sub.Filters, env.Event)
 					continue
 				}
-				// see WithNoticeHandler
-				if r.notices != nil {
-					r.notices <- env.Message
-				} else {
-					log.E.F("NOTICE from %s: '%s'\n", r.URL, env.Message)
-				}
-			case authenvelope.L:
-				env := authenvelope.NewChallenge()
-				if env, message, err = authenvelope.ParseChallenge(message); chk.E(err) {
-					continue
-				}
-				if len(env.Challenge) == 0 {
-					continue
-				}
-				r.challenge = env.Challenge
-			case eventenvelope.L:
-				env := eventenvelope.NewResult()
-				if env, message, err = eventenvelope.ParseResult(message); chk.E(err) {
-					continue
-				}
-				if len(env.Subscription.T) == 0 {
-					continue
-				}
-				if sub, ok := r.Subscriptions.Load(env.Subscription.String()); !ok {
-					log.D.F("{%s} no subscription with id '%s'\n", r.URL, env.Subscription)
-					continue
-				} else {
-					// check if the event matches the desired filter, ignore otherwise
-					if !sub.Filters.Match(env.Event) {
-						log.D.F("{%s} filter does not match: %v ~ %v\n", r.URL,
-							sub.Filters, env.Event)
+				// check signature, ignore invalid, except from trusted (AssumeValid) relays
+				if !r.AssumeValid {
+					if ok = r.signatureChecker(env.Event); !ok {
+						log.E.F("{%s} bad signature on %s\n", r.URL, env.Event.Id)
 						continue
 					}
-					// check signature, ignore invalid, except from trusted (AssumeValid) relays
-					if !r.AssumeValid {
-						if ok = r.signatureChecker(env.Event); !ok {
-							log.E.F("{%s} bad signature on %s\n", r.URL, env.Event.Id)
-							continue
-						}
-					}
-					// dispatch this to the internal .events channel of the subscription
-					sub.dispatchEvent(env.Event)
 				}
-			case eoseenvelope.L:
-				env := eoseenvelope.New()
-				if env, message, err = eoseenvelope.Parse(message); chk.E(err) {
-					continue
-				}
-				if subscription, ok := r.Subscriptions.Load(env.Subscription.String()); ok {
-					subscription.dispatchEose()
-				}
-			case closedenvelope.L:
-				env := closedenvelope.New()
-				if env, message, err = closedenvelope.Parse(message); chk.E(err) {
-					continue
-				}
-				if subscription, ok := r.Subscriptions.Load(env.Subscription.String()); ok {
-					subscription.dispatchClosed(env.ReasonString())
-				}
-			case countenvelope.L:
-				env := countenvelope.NewResponse()
-				if env, message, err = countenvelope.Parse(message); chk.E(err) {
-					continue
-				}
-				if subscription, ok := r.Subscriptions.Load(env.ID.String()); ok && subscription.countResult != nil {
-					subscription.countResult <- env.Count
-				}
-			case okenvelope.L:
-				env := okenvelope.New()
-				if env, message, err = okenvelope.Parse(message); chk.E(err) {
-					continue
-				}
-				if okCallback, exist := r.okCallbacks.Load(env.EventID.String()); exist {
-					okCallback(env.OK, env.ReasonString())
-				} else {
-					log.I.F("{%s} got an unexpected OK message for event %s", r.URL,
-						env.EventID)
-				}
+				// dispatch this to the internal .events channel of the subscription
+				sub.dispatchEvent(env.Event)
+			}
+		case eoseenvelope.L:
+			env := eoseenvelope.New()
+			if env, message, err = eoseenvelope.Parse(message); chk.E(err) {
+				continue
+			}
+			if subscription, ok := r.Subscriptions.Load(env.Subscription.String()); ok {
+				subscription.dispatchEose()
+			}
+		case closedenvelope.L:
+			env := closedenvelope.New()
+			if env, message, err = closedenvelope.Parse(message); chk.E(err) {
+				continue
+			}
+			if subscription, ok := r.Subscriptions.Load(env.Subscription.String()); ok {
+				subscription.dispatchClosed(env.ReasonString())
+			}
+		case countenvelope.L:
+			env := countenvelope.NewResponse()
+			if env, message, err = countenvelope.Parse(message); chk.E(err) {
+				continue
+			}
+			if subscription, ok := r.Subscriptions.Load(env.ID.String()); ok && subscription.countResult != nil {
+				subscription.countResult <- env.Count
+			}
+		case okenvelope.L:
+			env := okenvelope.New()
+			if env, message, err = okenvelope.Parse(message); chk.E(err) {
+				continue
+			}
+			if okCallback, exist := r.okCallbacks.Load(env.EventID.String()); exist {
+				okCallback(env.OK, env.ReasonString())
+			} else {
+				log.I.F("{%s} got an unexpected OK message for event %s", r.URL,
+					env.EventID)
 			}
 		}
-	}()
-	return nil
+	}
+}
+
+func WriteLoop(ticker *time.Ticker, r *Client) {
+	var err error
+	for {
+		select {
+		case <-ticker.C:
+			err = wsutil.WriteClientMessage(r.Connection.conn, ws.OpPing, nil)
+			if err != nil {
+				log.D.F("{%s} error writing ping: %v; closing websocket", r.URL,
+					err)
+				r.Close() // this should trigger a context cancelation
+				return
+			}
+		case writeReq := <-r.writeQueue:
+			// all write requests will go through this to prevent races
+			if err = r.Connection.WriteMessage(r.connectionContext,
+				writeReq.msg); chk.T(err) {
+				writeReq.answer <- err
+			}
+			close(writeReq.answer)
+		case <-r.connectionContext.Done():
+			// stop here
+			return
+		}
+	}
 }
 
 // Write queues a message to be sent to the relay.
