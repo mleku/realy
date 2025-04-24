@@ -51,6 +51,11 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server,
 	if err = a.VerifyEvent(env); chk.E(err) {
 		return
 	}
+	if env.T.Kind.K == kind.Deletion.K {
+		if err = a.CheckDelete(c, env, sto); chk.E(err) {
+			return
+		}
+	}
 	var reason []byte
 	ok, reason = srv.AddEvent(c, env.T, a.Listener.Req(), a.Listener.AuthedBytes(), remote)
 	log.T.F("event added %v", ok)
@@ -228,7 +233,8 @@ func (a *A) CheckDelete(c context.T, env *eventenvelope.Submission, sto store.I)
 	return
 }
 
-func (a *A) ProcessDelete(c context.T, target *event.T, env *eventenvelope.Submission, sto store.I) (skip bool, err error) {
+func (a *A) ProcessDelete(c context.T, target *event.T, env *eventenvelope.Submission,
+	sto store.I) (skip bool, err error) {
 	if target.Kind.K == kind.Deletion.K {
 		if err = Ok.Error(a, env, "cannot delete delete event %s", env.Id); chk.E(err) {
 			return
