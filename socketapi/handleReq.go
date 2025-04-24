@@ -144,27 +144,17 @@ func (a *A) HandleReq(
 			}
 		}
 		// remove privileged events as they come through in scrape queries
-		var tmp event.Ts
-		for _, ev := range events {
-			// if auth is required, kind is privileged and there is no authed pubkey, skip
-			if srv.AuthRequired() && ev.Kind.IsPrivileged() && len(aut) == 0 {
-				if notice, err = a.AuthRequiredResponse(env, remote); chk.E(err) {
-					return
-				}
-				return notice
-			}
-			// if the authed pubkey is not present in the pubkey or p tags, skip
-			receivers := f.Tags.GetAll(tag.New("#p"))
-			if ev.Kind.IsPrivileged() && (!bytes.Equal(ev.Pubkey, aut) ||
-				!receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes()))) {
-				if notice, err = a.AuthRequiredResponse(env, remote); chk.E(err) {
-					return
-				}
-				return notice
-			}
-			tmp = append(tmp, ev)
+		if events, notice, err = a.CheckPrivilege(events, f, env, srv, aut, remote); chk.E(err) {
+			return
 		}
-		events = tmp
+		if len(notice) > 0 {
+			return notice
+		}
+		if len(events) == 0 {
+			continue
+		}
+		if err = a.WriteEvents(events, env, int(i)); chk.E(err) {
+		}
 		// write out the events to the socket
 		for _, ev := range events {
 			i--
@@ -194,6 +184,50 @@ func (a *A) HandleReq(
 		Receiver: receiver,
 		Filters:  env.Filters,
 	})
+	return
+}
+
+func (a *A) CheckPrivilege(events event.Ts, f *filter.T, env *reqenvelope.T,
+	srv interfaces.Server, aut []byte, remote string) (evs event.Ts, notice []byte, err error) {
+
+	for _, ev := range events {
+		// if auth is required, kind is privileged and there is no authed pubkey, skip
+		if srv.AuthRequired() && ev.Kind.IsPrivileged() && len(aut) == 0 {
+			if notice, err = a.AuthRequiredResponse(env, remote); chk.E(err) {
+				return
+			}
+			return
+		}
+		// if the authed pubkey is not present in the pubkey or p tags, skip
+		receivers := f.Tags.GetAll(tag.New("#p"))
+		if ev.Kind.IsPrivileged() && (!bytes.Equal(ev.Pubkey, aut) ||
+			!receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes()))) {
+			if notice, err = a.AuthRequiredResponse(env, remote); chk.E(err) {
+				return
+			}
+			return
+		}
+		evs = append(evs, ev)
+	}
+	return
+}
+
+func (a *A) WriteEvents(events event.Ts, env *reqenvelope.T, i int) (err error) {
+	// write out the events to the socket
+	for _, ev := range events {
+		i--
+		if i < 0 {
+			break
+		}
+		var res *eventenvelope.Result
+		if res, err = eventenvelope.NewResultWith(env.Subscription.T,
+			ev); chk.E(err) {
+			return
+		}
+		if err = res.Write(a.Listener); chk.E(err) {
+			return
+		}
+	}
 	return
 }
 

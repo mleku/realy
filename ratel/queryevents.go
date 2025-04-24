@@ -125,54 +125,13 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 			for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 				item := it.Item()
 				if r.HasL2 && item.ValueSize() == sha256.Size {
-					// todo: this isn't actually calling anything right now, it should be
-					//  accumulating to propagate the query (this means response lag also)
-					//
-					// this is a stub entry that indicates an L2 needs to be accessed for it, so we
-					// populate only the event.T.Id and return the result, the caller will expect
-					// this as a signal to query the L2 event store.
-					var eventValue []byte
-					ev := &event.T{}
-					if eventValue, err = item.ValueCopy(nil); chk.E(err) {
-						continue
-					}
-					log.T.F("found event stub %0x must seek in L2", eventValue)
-					ev.Id = eventValue
-					select {
-					case <-c.Done():
+					if err = r.HandleL2Queries(c, evMap, item); chk.E(err) {
 						return
-					case <-r.Ctx.Done():
-						log.T.Ln("backend context canceled")
-						return
-					default:
 					}
-					evMap[hex.Enc(ev.Id)] = ev
-					return
+					continue
 				}
-				ev := &event.T{}
-				if err = item.Value(func(eventValue []byte) (err error) {
-					var rem []byte
-					if rem, err = r.Unmarshal(ev, eventValue); chk.E(err) {
-						return
-					}
-					if len(rem) > 0 {
-						log.T.S(rem)
-					}
-					if et := ev.Tags.GetFirst(tag.New("expiration")); et != nil {
-						var exp uint64
-						if exp, err = strconv.ParseUint(string(et.Value()), 10,
-							64); chk.E(err) {
-							return
-						}
-						if int64(exp) > time.Now().Unix() {
-							// this needs to be deleted
-							delEvs = append(delEvs, ev.Id)
-							ev = nil
-							return
-						}
-					}
-					return
-				}); chk.E(err) {
+				var ev *event.T
+				if ev, err = r.ProcessFoundEvent(item, delEvs); chk.E(err) {
 					continue
 				}
 				if ev == nil {
@@ -226,26 +185,85 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 		if len(evs) > limit {
 			evs = evs[:limit]
 		}
-		go func() {
-			for ser := range accessed {
-				seri := serial.New([]byte(ser))
-				now := timestamp.Now()
-				err = r.Update(func(txn *badger.Txn) (err error) {
-					key := GetCounterKey(seri)
-					it := txn.NewIterator(badger.IteratorOptions{})
-					defer it.Close()
-					if it.Seek(key); it.ValidForPrefix(key) {
-						// update access record
-						if err = txn.Set(key, now.Bytes()); chk.E(err) {
-							return
-						}
-					}
-					return nil
-				})
-			}
-		}()
+		go r.UpdateAccessed(accessed)
 	} else {
 		log.T.F("no events found,%s", f.Serialize())
 	}
 	return
+}
+
+func (r *T) ProcessFoundEvent(item *badger.Item, delEvs [][]byte) (ev *event.T, err error) {
+	err = item.Value(func(eventValue []byte) (err error) {
+		var rem []byte
+		ev = &event.T{}
+		if rem, err = r.Unmarshal(ev, eventValue); chk.E(err) {
+			return
+		}
+		if len(rem) > 0 {
+			log.T.S(rem)
+		}
+		if et := ev.Tags.GetFirst(tag.New("expiration")); et != nil {
+			var exp uint64
+			if exp, err = strconv.ParseUint(string(et.Value()), 10,
+				64); chk.E(err) {
+				return
+			}
+			if int64(exp) > time.Now().Unix() {
+				// this needs to be deleted
+				delEvs = append(delEvs, ev.Id)
+				ev = nil
+				return
+			}
+		}
+		return
+	})
+	return
+}
+
+func (r *T) HandleL2Queries(c context.T, evMap map[string]*event.T, item *badger.Item) (err error) {
+	// todo: this isn't actually calling anything right now, it should be
+	//  accumulating to propagate the query (this means response lag also)
+	//
+	// this is a stub entry that indicates an L2 needs to be accessed for it, so we
+	// populate only the event.T.Id and return the result, the caller will expect
+	// this as a signal to query the L2 event store.
+	var eventValue []byte
+	ev := &event.T{}
+	if eventValue, err = item.ValueCopy(nil); chk.E(err) {
+		return
+	}
+	log.T.F("found event stub %0x must seek in L2", eventValue)
+	ev.Id = eventValue
+	select {
+	case <-c.Done():
+		return
+	case <-r.Ctx.Done():
+		log.T.Ln("backend context canceled")
+		return
+	default:
+	}
+	evMap[hex.Enc(ev.Id)] = ev
+	return
+}
+
+func (r *T) UpdateAccessed(accessed map[string]struct{}) {
+	var err error
+	for ser := range accessed {
+		seri := serial.New([]byte(ser))
+		now := timestamp.Now()
+		if err = r.Update(func(txn *badger.Txn) (err error) {
+			key := GetCounterKey(seri)
+			it := txn.NewIterator(badger.IteratorOptions{})
+			defer it.Close()
+			if it.Seek(key); it.ValidForPrefix(key) {
+				// update access record
+				if err = txn.Set(key, now.Bytes()); chk.E(err) {
+					return
+				}
+			}
+			return nil
+		}); chk.E(err) {
+			return
+		}
+	}
 }
