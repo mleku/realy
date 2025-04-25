@@ -12,7 +12,6 @@ import (
 	"realy.mleku.dev/event"
 	"realy.mleku.dev/eventid"
 	"realy.mleku.dev/filter"
-	"realy.mleku.dev/hex"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/ratel/keys"
 	"realy.mleku.dev/ratel/keys/createdat"
@@ -22,7 +21,6 @@ import (
 	"realy.mleku.dev/ratel/keys/serial"
 	"realy.mleku.dev/ratel/prefixes"
 	"realy.mleku.dev/realy/pointers"
-	"realy.mleku.dev/sha256"
 	"realy.mleku.dev/store"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/timestamp"
@@ -81,7 +79,6 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 		}
 	}
 	log.T.F("found %d event indexes from %d queries", len(eventKeys), len(queries))
-	l2Map := make(map[string]*event.T) // todo: this is not being used, it should be
 	var delEvs [][]byte
 	defer func() {
 		for _, d := range delEvs {
@@ -101,24 +98,10 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 			done:
 				for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 					item := it.Item()
-					if r.HasL2 && item.ValueSize() == sha256.Size {
-						// this is a stub entry that indicates an L2 needs to be accessed for
-						// it, so we populate only the event.T.Id and return the result, the
-						// caller will expect this as a signal to query the L2 event store.
-						var eventValue []byte
-						ev := &event.T{}
-						if eventValue, err = item.ValueCopy(nil); chk.E(err) {
-							continue
-						}
-						log.T.F("found event stub %0x must seek in L2", eventValue)
-						ev.Id = eventValue
-						l2Map[hex.Enc(ev.Id)] = ev
-						return
-					}
 					ev := &event.T{}
 					if err = item.Value(func(eventValue []byte) (err error) {
 						var rem []byte
-						if rem, err = r.Unmarshal(ev, eventValue); chk.E(err) {
+						if rem, err = ev.Unmarshal(eventValue); chk.E(err) {
 							return
 						}
 						if len(rem) > 0 {

@@ -62,7 +62,7 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 			}
 			// log.I.S(evb)
 			var rem []byte
-			if rem, err = r.Unmarshal(ev, evb); chk.E(err) {
+			if rem, err = ev.Unmarshal(evb); chk.E(err) {
 				return
 			}
 			if len(rem) != 0 {

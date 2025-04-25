@@ -65,8 +65,6 @@ func main() {
 			BlockCacheSize: units.Gb,
 			LogLevel:       lol.Info,
 			MaxLimit:       ratel.DefaultMaxLimit,
-			UseCompact:     false,
-			Compression:    "zstd",
 		},
 	)
 	if err = storage.Init(filepath.Join(xdg.DataHome, cfg.AppName)); chk.E(err) {

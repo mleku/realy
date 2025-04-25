@@ -46,7 +46,7 @@ func (r *T) Rescan() (err error) {
 				ser := serial.FromKey(key)
 				var rem []byte
 				ev := &event.T{}
-				if rem, err = r.Unmarshal(ev, evB); chk.E(err) {
+				if rem, err = ev.Unmarshal(evB); chk.E(err) {
 					return
 				}
 				if len(rem) > 0 {

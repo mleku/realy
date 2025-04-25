@@ -27,7 +27,6 @@ type T struct {
 	Ctx            context.T
 	WG             *sync.WaitGroup
 	dataDir        string
-	HasL2          bool
 	BlockCacheSize int
 	InitLogLevel   int
 	Logger         *logger
@@ -43,11 +42,6 @@ type T struct {
 	// Flatten should be set to true to trigger a flatten at close... this is mainly
 	// triggered by running an import
 	Flatten bool
-	// UseCompact uses a compact encoding based on the canonical format (generate
-	// hash of it to get Id field with the signature in raw binary after.
-	UseCompact bool
-	// Compression sets the compression to use, none/snappy/zstd
-	Compression string
 }
 
 func (r *T) SetLogLevel(level string) {
@@ -61,17 +55,14 @@ var _ store.I = (*T)(nil)
 type BackendParams struct {
 	Ctx                                context.T
 	WG                                 *sync.WaitGroup
-	HasL2, UseCompact                  bool
 	BlockCacheSize, LogLevel, MaxLimit int
-	Compression                        string // none,snappy,zstd
 	Extra                              []int
 }
 
 // New configures a a new ratel.T event store.
-func New(p BackendParams, params ...int) *T {
-	return GetBackend(p.Ctx, p.WG, p.HasL2, p.UseCompact, p.BlockCacheSize, p.LogLevel,
-		p.MaxLimit,
-		p.Compression, params...)
+func New(p BackendParams) *T {
+	return GetBackend(p.Ctx, p.WG, p.BlockCacheSize, p.LogLevel,
+		p.MaxLimit)
 }
 
 // GetBackend returns a reasonably configured badger.Backend.
@@ -83,8 +74,8 @@ func New(p BackendParams, params ...int) *T {
 // caller.
 //
 // Deprecated: use New instead.
-func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2, useCompact bool,
-	blockCacheSize, logLevel, maxLimit int, compression string, params ...int) (b *T) {
+func GetBackend(Ctx context.T, WG *sync.WaitGroup,
+	blockCacheSize, logLevel, maxLimit int) (b *T) {
 	// if unset, assume a safe maximum limit for unlimited filters.
 	if maxLimit == 0 {
 		maxLimit = 512
@@ -92,12 +83,9 @@ func GetBackend(Ctx context.T, WG *sync.WaitGroup, hasL2, useCompact bool,
 	b = &T{
 		Ctx:            Ctx,
 		WG:             WG,
-		HasL2:          hasL2,
 		BlockCacheSize: blockCacheSize,
 		InitLogLevel:   logLevel,
 		MaxLimit:       maxLimit,
-		UseCompact:     true,
-		Compression:    compression,
 	}
 	return
 }

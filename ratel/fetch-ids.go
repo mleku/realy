@@ -7,8 +7,6 @@ import (
 
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/log"
 	"realy.mleku.dev/ratel/keys/id"
 	"realy.mleku.dev/ratel/keys/serial"
 	"realy.mleku.dev/ratel/prefixes"
@@ -42,23 +40,9 @@ func (r *T) FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error) {
 			if b, err = item.ValueCopy(nil); chk.E(err) {
 				return
 			}
-			if r.UseCompact {
-				ev := &event.T{}
-				var rem []byte
-				if rem, err = ev.UnmarshalCompact(b); chk.E(err) {
-					return
-				}
-				if len(rem) > 0 {
-					log.I.S(rem)
-				}
-				if _, err = out.Write(ev.Serialize()); chk.E(err) {
-					return
-				}
-			} else {
-				// if db isn't using compact encoding the bytes are already right
-				if _, err = out.Write(b); chk.E(err) {
-					return
-				}
+			// if db isn't using compact encoding the bytes are already right
+			if _, err = out.Write(b); chk.E(err) {
+				return
 			}
 			// add the new line after entries
 			if _, err = out.Write([]byte{'\n'}); chk.E(err) {

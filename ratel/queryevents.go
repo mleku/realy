@@ -19,7 +19,6 @@ import (
 	"realy.mleku.dev/ratel/keys/serial"
 	"realy.mleku.dev/ratel/prefixes"
 	"realy.mleku.dev/realy/pointers"
-	"realy.mleku.dev/sha256"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/timestamp"
 )
@@ -124,12 +123,6 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 			defer it.Close()
 			for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 				item := it.Item()
-				if r.HasL2 && item.ValueSize() == sha256.Size {
-					if err = r.HandleL2Queries(c, evMap, item); chk.E(err) {
-						return
-					}
-					continue
-				}
 				var ev *event.T
 				if ev, err = r.ProcessFoundEvent(item, delEvs); chk.E(err) {
 					continue
@@ -201,7 +194,7 @@ func (r *T) ProcessFoundEvent(item *badger.Item, delEvs [][]byte) (ev *event.T, 
 	err = item.Value(func(eventValue []byte) (err error) {
 		var rem []byte
 		ev = &event.T{}
-		if rem, err = r.Unmarshal(ev, eventValue); chk.E(err) {
+		if rem, err = ev.Unmarshal(eventValue); chk.E(err) {
 			return
 		}
 		if len(rem) > 0 {
@@ -222,32 +215,6 @@ func (r *T) ProcessFoundEvent(item *badger.Item, delEvs [][]byte) (ev *event.T, 
 		}
 		return
 	})
-	return
-}
-
-func (r *T) HandleL2Queries(c context.T, evMap map[string]*event.T, item *badger.Item) (err error) {
-	// todo: this isn't actually calling anything right now, it should be
-	//  accumulating to propagate the query (this means response lag also)
-	//
-	// this is a stub entry that indicates an L2 needs to be accessed for it, so we
-	// populate only the event.T.Id and return the result, the caller will expect
-	// this as a signal to query the L2 event store.
-	var eventValue []byte
-	ev := &event.T{}
-	if eventValue, err = item.ValueCopy(nil); chk.E(err) {
-		return
-	}
-	log.T.F("found event stub %0x must seek in L2", eventValue)
-	ev.Id = eventValue
-	select {
-	case <-c.Done():
-		return
-	case <-r.Ctx.Done():
-		log.T.Ln("backend context canceled")
-		return
-	default:
-	}
-	evMap[hex.Enc(ev.Id)] = ev
 	return
 }
 

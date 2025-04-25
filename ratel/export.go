@@ -9,13 +9,11 @@ import (
 
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
 	"realy.mleku.dev/filter"
 	"realy.mleku.dev/hex"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/ratel/keys/serial"
 	"realy.mleku.dev/ratel/prefixes"
-	"realy.mleku.dev/sha256"
 	"realy.mleku.dev/tag"
 	"realy.mleku.dev/tags"
 )
@@ -180,10 +178,6 @@ func (r *T) EventWriterLoop(c context.T, w io.Writer, keyChan chan []byte, quit 
 				for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 					count++
 					item := it.Item()
-					if r.HasL2 && item.ValueSize() == sha256.Size {
-						// we aren't fetching from L2 for export, so don't send this back.
-						return
-					}
 					if err = item.Value(func(eventValue []byte) (err error) {
 						// send the event to client (no need to re-encode it)
 						if _, err = fmt.Fprintf(w, "%s\n", eventValue); chk.E(err) {
@@ -223,26 +217,9 @@ func (r *T) BlanketDownload(c context.T, w io.Writer) (counter int, err error) {
 				continue
 			}
 			// send the event to client
-			if r.UseCompact {
-				ev := &event.T{}
-				var rem []byte
-				rem, err = ev.UnmarshalCompact(b)
-				if chk.E(err) {
-					err = nil
-					continue
-				}
-				if len(rem) > 0 {
-					log.I.S(rem)
-				}
-				if _, err = fmt.Fprintf(w, "%s\n", ev.Marshal(nil)); chk.E(err) {
-					return
-				}
-
-			} else {
-				// the database stores correct JSON versions so no need to decode/encode.
-				if _, err = fmt.Fprintf(w, "%s\n", b); chk.E(err) {
-					return
-				}
+			// the database stores correct JSON versions so no need to decode/encode.
+			if _, err = fmt.Fprintf(w, "%s\n", b); chk.E(err) {
+				return
 			}
 			counter++
 			if counter%1000 == 0 && counter > 0 {

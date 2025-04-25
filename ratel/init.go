@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
-	"github.com/dgraph-io/badger/v4/options"
 
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/log"
@@ -23,14 +22,6 @@ func (r *T) Init(path string) (err error) {
 	opts.BlockSize = 128 * units.Mb
 	opts.CompactL0OnClose = true
 	opts.LmaxCompaction = true
-	switch r.Compression {
-	case "none":
-		opts.Compression = options.None
-	case "snappy":
-		opts.Compression = options.Snappy
-	case "zstd":
-		opts.Compression = options.ZSTD
-	}
 	r.Logger = NewLogger(r.InitLogLevel, r.dataDir)
 	opts.Logger = r.Logger
 	if r.DB, err = badger.Open(opts); chk.E(err) {
