@@ -42,7 +42,7 @@ func main() {
 		ratel.BackendParams{
 			Ctx:            c,
 			WG:             wg,
-			BlockCacheSize: 250 * units.Mb,
+			BlockCacheSize: units.Gb,
 			LogLevel:       lol.Info,
 			MaxLimit:       ratel.DefaultMaxLimit,
 			UseCompact:     false,
