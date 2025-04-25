@@ -120,8 +120,6 @@ out:
 		case r := <-resC:
 			// one of the workers found the solution
 			res = r
-			// tell the others to stop
-			close(quit)
 			break out
 		case <-shutdown:
 			close(quit)
