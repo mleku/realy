@@ -40,10 +40,6 @@ func (r *T) Import(rr io.Reader) {
 			log.I.F("received %d events", count)
 			time.Sleep(time.Second)
 		}
-		if count > 0 && count%10000 == 0 {
-			chk.T(r.DB.Sync())
-			chk.T(r.DB.RunValueLogGC(0.5))
-		}
 	}
 	log.I.F("read %d bytes and saved %d events", total, count)
 	err = scan.Err()
