@@ -1,7 +1,6 @@
 package openapi
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,8 +16,7 @@ import (
 // ImportInput is the parameters of an import operation, authentication and the stream of line
 // structured JSON events.
 type ImportInput struct {
-	Auth    string `header:"Authorization" doc:"nostr nip-98 token for authentication" required:"true"`
-	RawBody []byte
+	Auth string `header:"Authorization" doc:"nostr nip-98 token for authentication" required:"true"`
 }
 
 // ImportOutput is nothing, basically, a 204 or 200 status is expected.
@@ -51,20 +49,12 @@ func (x *Operations) RegisterImport(api huma.API) {
 			return
 		}
 		sto := x.Storage()
-		if len(input.RawBody) > 0 {
-			read := bytes.NewBuffer(input.RawBody)
-			sto.Import(read)
-			x.Server.ZeroLists()
-			x.Server.CheckOwnerLists(context.Bg())
-		} else {
-			log.I.F("import of event data requested on admin port from %s pubkey %0x", remote,
-				pubkey)
-			read := io.LimitReader(r.Body, r.ContentLength)
-			sto.Import(read)
-			x.Server.ZeroLists()
-			x.Server.CheckOwnerLists(context.Bg())
-
-		}
+		log.I.F("import of event data requested on admin port from %s pubkey %0x", remote,
+			pubkey)
+		read := io.LimitReader(r.Body, r.ContentLength)
+		sto.Import(read)
+		x.Server.ZeroLists()
+		x.Server.CheckOwnerLists(context.Bg())
 		return
 	})
 }
