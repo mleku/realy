@@ -253,10 +253,10 @@ func (r *T) HandleL2Queries(c context.T, evMap map[string]*event.T, item *badger
 
 func (r *T) UpdateAccessed(accessed map[string]struct{}) {
 	var err error
+	now := timestamp.Now()
 	for ser := range accessed {
-		seri := serial.New([]byte(ser))
-		now := timestamp.Now()
 		if err = r.Update(func(txn *badger.Txn) (err error) {
+			seri := serial.New([]byte(ser))
 			key := GetCounterKey(seri)
 			it := txn.NewIterator(badger.IteratorOptions{})
 			defer it.Close()

@@ -88,8 +88,10 @@ func (a *A) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 	log.I.F("requesting auth from %s", remote)
 	// 	a.Listener.RequestAuth()
 	// }
-	if a.Server.AuthRequired() && a.Listener.AuthRequested() && len(a.Listener.Authed()) == 0 {
-		log.T.F("requesting auth from client again from %s", a.Listener.RealRemote())
+	if a.Server.AuthRequired() || len(a.Owners()) > 0 ||
+		!a.Server.PublicReadable() {
+		log.T.F("requesting auth from client from %s", a.Listener.RealRemote())
+		a.Listener.RequestAuth()
 		if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.E(err) {
 			return
 		}

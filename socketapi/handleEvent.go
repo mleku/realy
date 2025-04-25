@@ -58,7 +58,7 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server,
 	}
 	var reason []byte
 	ok, reason = srv.AddEvent(c, env.T, a.Listener.Req(), a.Listener.AuthedBytes(), remote)
-	log.T.F("event added %v", ok)
+	log.T.F("%s <- event added %v", remote, ok)
 	if err = okenvelope.NewFrom(env.Id(), ok, reason).Write(a.Listener); chk.E(err) {
 		return
 	}

@@ -22,12 +22,13 @@ var (
 func (s *Server) addEvent(c context.T, ev *event.T,
 	authedPubkey []byte, remote string) (accepted bool, message []byte) {
 
+	authRequired := s.AuthRequired()
 	if ev == nil {
 		log.I.F("empty event")
 		return false, reason.Invalid.F("empty event")
 	}
 	// don't allow storing event with protected marker as per nip-70 with auth enabled.
-	if (s.AuthRequired() || !s.PublicReadable()) && ev.Tags.ContainsProtectedMarker() {
+	if (authRequired || !s.PublicReadable()) && ev.Tags.ContainsProtectedMarker() {
 		if len(authedPubkey) == 0 || !bytes.Equal(ev.Pubkey, authedPubkey) {
 			return false,
 				[]byte(fmt.Sprintf("event with relay marker tag '-' (nip-70 protected event) "+
@@ -55,8 +56,6 @@ func (s *Server) addEvent(c context.T, ev *event.T,
 			}
 		}
 	}
-	var authRequired bool
-	authRequired = s.AuthRequired()
 	// notify subscribers
 	publish.P.Deliver(authRequired, s.PublicReadable(), ev)
 	accepted = true

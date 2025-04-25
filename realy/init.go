@@ -99,7 +99,8 @@ func (s *Server) CheckOwnerLists(c context.T) {
 		var err error
 		var evs []*event.T
 		// need to search DB for moderator npub follow lists, followed npubs are allowed access.
-		if len(s.followed) < 1 {
+		lf := len(s.followed)
+		if lf < 1 {
 			log.T.F("regenerating followed list")
 			// add the owners themselves of course
 			for i := range s.owners {

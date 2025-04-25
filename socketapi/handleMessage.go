@@ -26,7 +26,7 @@ func (a *A) HandleMessage(msg []byte, remote string) {
 	case eventenvelope.L:
 		notice = a.HandleEvent(a.Context(), rem, a.Server, remote)
 	case reqenvelope.L:
-		notice = a.HandleReq(a.Context(), rem, a.Server, remote)
+		notice = a.HandleReq(a.Context(), rem, a.Server, a.Listener.AuthedBytes(), remote)
 	case closeenvelope.L:
 		notice = a.HandleClose(rem, a.Server)
 	case authenvelope.L:

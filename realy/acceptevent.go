@@ -2,7 +2,6 @@ package realy
 
 import (
 	"bytes"
-	"fmt"
 
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/context"
@@ -17,15 +16,13 @@ import (
 
 func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 	remote string) (accept bool, notice string, afterSave func()) {
+	authRequired := s.AuthRequired()
+	s.Lock()
+	defer s.Unlock()
 	// if the authenticator is enabled we require auth to accept events
-	if !s.AuthRequired() && len(s.owners) == 0 {
+	if authRequired && len(s.owners) == 0 {
 		log.W.F("%s auth not required and no ACL enabled, accepting event %0x", remote, evt.Id)
 		return true, "", nil
-	}
-	if len(authedPubkey) != 32 || s.AuthRequired() {
-		notice = fmt.Sprintf("client not authed with auth required %s", remote)
-		log.I.F("%s %s", remote, notice)
-		return false, notice, nil
 	}
 	// check ACL
 	if len(s.owners) > 0 {
@@ -118,7 +115,7 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 	}
 	// if auth is enabled and there is no moderators we just check that the pubkey
 	// has been loaded via the auth function.
-	if len(authedPubkey) == schnorr.PubKeyBytesLen && s.AuthRequired() {
+	if len(authedPubkey) == schnorr.PubKeyBytesLen && authRequired {
 		notice = "auth required but user not authed"
 		return
 	}
