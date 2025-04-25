@@ -10,6 +10,8 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
+	"runtime"
+	"runtime/debug"
 	"strconv"
 	"sync"
 
@@ -40,6 +42,9 @@ func main() {
 		log.F.F("SUPERUSER is not set")
 		os.Exit(1)
 	}
+	runtime.GOMAXPROCS(1)
+	debug.SetGCPercent(10)
+	debug.SetMemoryLimit(250000)
 	var err error
 	a := cfg.Superuser
 	dst := make([]byte, len(a)/2)
