@@ -54,10 +54,6 @@ func (x *Operations) RegisterEventIdsBySerial(api huma.API) {
 		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *EventIdsBySerialInput) (output *EventIdsBySerialOutput, err error) {
-		if !x.Server.Configured() {
-			err = huma.Error503ServiceUnavailable("server is not configured")
-			return
-		}
 		var out []eventidserial.E
 		if out, err = x.Server.Storage().EventIdsBySerial(input.Start, input.Count); chk.E(err) {
 			return

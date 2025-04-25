@@ -19,7 +19,6 @@ type Server interface {
 	AuthRequired() bool
 	CheckOwnerLists(c context.T)
 	Configuration() config.C
-	Configured() bool
 	Context() context.T
 	HandleRelayInfo(w http.ResponseWriter, r *http.Request)
 	Lock()
@@ -27,7 +26,7 @@ type Server interface {
 	OwnersFollowed(pubkey string) (ok bool)
 	PublicReadable() bool
 	ServiceURL(req *http.Request) (s string)
-	SetConfiguration(cfg *config.C) (err error)
+	SetConfiguration(cfg config.C) (err error)
 	Shutdown()
 	Storage() store.I
 	Unlock()

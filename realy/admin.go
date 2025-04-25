@@ -15,7 +15,7 @@ import (
 func (s *Server) UpdateConfiguration() (err error) {
 	if c, ok := s.Store.(store.Configurationer); ok {
 		log.I.F("updating configuration")
-		var cfg *config.C
+		var cfg config.C
 		if cfg, err = c.GetConfiguration(); chk.E(err) {
 			err = nil
 			return

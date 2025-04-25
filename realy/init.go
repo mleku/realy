@@ -14,7 +14,6 @@ import (
 	"realy.mleku.dev/kind"
 	"realy.mleku.dev/kinds"
 	"realy.mleku.dev/log"
-	"realy.mleku.dev/realy/config"
 	"realy.mleku.dev/tag"
 )
 
@@ -28,8 +27,6 @@ func getFirstTime() (s string) {
 	return
 }
 
-func (s *Server) Configured() bool { return s.configured }
-
 func (s *Server) Init() {
 	var err error
 	s.configurationMx.Lock()
@@ -37,33 +34,6 @@ func (s *Server) Init() {
 	if err = s.UpdateConfiguration(); chk.E(err) {
 		return
 	}
-	if s.configuration == nil {
-		s.configuration = &config.C{
-			FirstTime:      getFirstTime(),
-			BlockList:      nil,
-			Owners:         nil,
-			Admins:         nil,
-			AuthRequired:   false,
-			PublicReadable: true,
-		}
-		log.W.F(`first time configuration password: %s
-    use with Authorization header to set at least 1 Admin`,
-			s.configuration.FirstTime)
-	} else {
-		s.configured = true
-	}
-	// for _, src := range s.configuration.Owners {
-	// 	if len(src) < 1 {
-	// 		continue
-	// 	}
-	// 	dst := make([]byte, len(src)/2)
-	// 	if _, err = hex.DecBytes(dst, []byte(src)); err != nil {
-	// 		if dst, err = bech32encoding.NpubToBytes([]byte(src)); chk.E(err) {
-	// 			continue
-	// 		}
-	// 	}
-	// 	s.owners = append(s.owners, dst)
-	// }
 	if len(s.owners) > 0 {
 		log.T.C(func() string {
 			ownerIds := make([]string, len(s.owners))

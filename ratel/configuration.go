@@ -11,9 +11,9 @@ import (
 )
 
 // SetConfiguration stores the store.C value to a provided setting.
-func (r *T) SetConfiguration(c *config.C) (err error) {
+func (r *T) SetConfiguration(c config.C) (err error) {
 	var b []byte
-	if b, err = json.Marshal(c); chk.E(err) {
+	if b, err = json.Marshal(&c); chk.E(err) {
 		return
 	}
 	err = r.Update(func(txn *badger.Txn) (err error) {
@@ -26,9 +26,9 @@ func (r *T) SetConfiguration(c *config.C) (err error) {
 }
 
 // GetConfiguration returns the current store.C stored in the database.
-func (r *T) GetConfiguration() (c *config.C, err error) {
+func (r *T) GetConfiguration() (c config.C, err error) {
 	err = r.View(func(txn *badger.Txn) (err error) {
-		c = &config.C{BlockList: make([]string, 0)}
+		c = config.C{BlockList: make([]string, 0)}
 		var it *badger.Item
 		if it, err = txn.Get(prefixes.Configuration.Key()); chk.E(err) {
 			return
@@ -37,7 +37,7 @@ func (r *T) GetConfiguration() (c *config.C, err error) {
 		if b, err = it.ValueCopy(nil); chk.E(err) {
 			return
 		}
-		if err = json.Unmarshal(b, c); chk.E(err) {
+		if err = json.Unmarshal(b, &c); chk.E(err) {
 			return
 		}
 		return

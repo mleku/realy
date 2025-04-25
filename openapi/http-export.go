@@ -35,10 +35,6 @@ func (x *Operations) RegisterExport(api huma.API) {
 		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *ExportInput) (resp *huma.StreamResponse, err error) {
-		if !x.Server.Configured() {
-			err = huma.Error503ServiceUnavailable("server is not configured")
-			return
-		}
 		r := ctx.Value("http-request").(*http.Request)
 		remote := helpers.GetRemoteFromReq(r)
 		log.I.F("processing export from %s", remote)

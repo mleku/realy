@@ -17,10 +17,11 @@ import (
 // configurations should generally be stored in the database, where APIs make them easy to
 // modify.
 type C struct {
-	AppName string `env:"APP_NAME" default:"realy"`
-	Listen  string `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
-	Port    int    `env:"PORT" default:"3334" usage:"network listen port"`
-	Pprof   bool   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
+	AppName   string `env:"APP_NAME" default:"realy"`
+	Listen    string `env:"LISTEN" default:"0.0.0.0" usage:"network listen address"`
+	Port      int    `env:"PORT" default:"3334" usage:"network listen port"`
+	Pprof     bool   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
+	Superuser string `env:"SUPERUSER" usage:"superuser npub/hex public key"`
 }
 
 func New() (c *C) {

@@ -28,6 +28,10 @@ func (s *Server) adminAuth(r *http.Request,
 		log.E.F("invalid auth %s", r.Header.Get("Authorization"))
 		return
 	}
+	if bytes.Equal(s.Superuser.Pub(), pubkey) {
+		authed = true
+		return
+	}
 	// check admins pubkey list
 	for _, v := range s.admins {
 		log.I.F("%0x", v.Pub())

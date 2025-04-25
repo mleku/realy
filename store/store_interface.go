@@ -109,8 +109,8 @@ type Configuration struct {
 }
 
 type Configurationer interface {
-	GetConfiguration() (c *config.C, err error)
-	SetConfiguration(c *config.C) (err error)
+	GetConfiguration() (c config.C, err error)
+	SetConfiguration(c config.C) (err error)
 }
 
 type LogLeveler interface {

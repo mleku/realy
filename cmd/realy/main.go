@@ -16,13 +16,16 @@ import (
 	"github.com/adrg/xdg"
 
 	realy_lol "realy.mleku.dev"
+	"realy.mleku.dev/bech32encoding"
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/config"
 	"realy.mleku.dev/context"
+	"realy.mleku.dev/hex"
 	"realy.mleku.dev/interrupt"
 	"realy.mleku.dev/log"
 	"realy.mleku.dev/lol"
 	"realy.mleku.dev/openapi"
+	"realy.mleku.dev/p256k"
 	"realy.mleku.dev/ratel"
 	"realy.mleku.dev/realy"
 	"realy.mleku.dev/servemux"
@@ -33,6 +36,23 @@ import (
 func main() {
 	log.I.F("starting realy %s", realy_lol.Version)
 	cfg := config.New()
+	if cfg.Superuser == "" {
+		log.F.F("SUPERUSER is not set")
+		os.Exit(1)
+	}
+	var err error
+	a := cfg.Superuser
+	dst := make([]byte, len(a)/2)
+	if dst, err = bech32encoding.NpubToBytes([]byte(a)); chk.E(err) {
+		if _, err = hex.DecBytes(dst, []byte(a)); chk.E(err) {
+			log.F.F("SUPERUSER is invalid: %s", a)
+			os.Exit(1)
+		}
+	}
+	super := &p256k.Signer{}
+	if err = super.InitPub(dst); chk.E(err) {
+		return
+	}
 	lol.ShortLoc.Store(false)
 	log.I.F("starting %s %s", cfg.AppName, realy_lol.Version)
 	wg := &sync.WaitGroup{}
@@ -49,20 +69,20 @@ func main() {
 			Compression:    "zstd",
 		},
 	)
-	var err error
 	if err = storage.Init(filepath.Join(xdg.DataHome, cfg.AppName)); chk.E(err) {
 		os.Exit(1)
 	}
 	serveMux := servemux.New()
 	s := &realy.Server{
-		Name:     cfg.AppName,
-		Ctx:      c,
-		Cancel:   cancel,
-		WG:       wg,
-		Mux:      serveMux,
-		Address:  net.JoinHostPort(cfg.Listen, strconv.Itoa(cfg.Port)),
-		Store:    storage,
-		MaxLimit: ratel.DefaultMaxLimit,
+		Name:      cfg.AppName,
+		Ctx:       c,
+		Cancel:    cancel,
+		WG:        wg,
+		Mux:       serveMux,
+		Address:   net.JoinHostPort(cfg.Listen, strconv.Itoa(cfg.Port)),
+		Store:     storage,
+		MaxLimit:  ratel.DefaultMaxLimit,
+		Superuser: super,
 	}
 	openapi.New(s, cfg.AppName, realy_lol.Version, realy_lol.Description, "/api", serveMux)
 	socketapi.New(s, "/{$}", serveMux)

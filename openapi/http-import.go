@@ -41,10 +41,6 @@ func (x *Operations) RegisterImport(api huma.API) {
 		Security:      []map[string][]string{{"auth": scopes}},
 		DefaultStatus: 204,
 	}, func(ctx context.T, input *ImportInput) (wgh *ImportOutput, err error) {
-		if !x.Server.Configured() {
-			err = huma.Error503ServiceUnavailable("server is not configured")
-			return
-		}
 		r := ctx.Value("http-request").(*http.Request)
 		remote := helpers.GetRemoteFromReq(r)
 		authed, pubkey := x.AdminAuth(r, remote, 10*time.Minute)

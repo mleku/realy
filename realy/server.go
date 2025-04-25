@@ -31,16 +31,16 @@ type Server struct {
 	HTTPServer *http.Server
 	Mux        *servemux.S
 	huma.API
-	Store      store.I
-	MaxLimit   int
-	configured bool
+	Store    store.I
+	MaxLimit int
 
 	configurationMx sync.Mutex
-	configuration   *config.C
+	configuration   config.C
 
 	sync.Mutex
-	admins []signer.I
-	owners [][]byte
+	Superuser signer.I
+	admins    []signer.I
+	owners    [][]byte
 	// followed are the pubkeys that are in the Owners' follow lists and have full
 	// access permission.
 	followed list.L

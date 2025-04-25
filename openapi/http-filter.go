@@ -98,10 +98,6 @@ func (x *Operations) RegisterFilter(api huma.API) {
 		Description: helpers.GenerateDescription(description, scopes),
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *FilterInput) (output *FilterOutput, err error) {
-		if !x.Server.Configured() {
-			err = huma.Error503ServiceUnavailable("server is not configured")
-			return
-		}
 		r := ctx.Value("http-request").(*http.Request)
 		remote := helpers.GetRemoteFromReq(r)
 		log.I.S(input)

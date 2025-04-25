@@ -40,12 +40,6 @@ func New(s interfaces.Server, path string, sm *servemux.S) {
 
 func (a *A) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	remote := helpers.GetRemoteFromReq(r)
-	if !a.Server.Configured() {
-		log.T.F("not configured %s", remote)
-		http.Error(w, http.StatusText(http.StatusServiceUnavailable),
-			http.StatusServiceUnavailable)
-		return
-	}
 	if r.Header.Get("Upgrade") != "websocket" && r.Header.Get("Accept") == "application/nostr+json" {
 		log.T.F("serving realy info %s", remote)
 		a.Server.HandleRelayInfo(w, r)

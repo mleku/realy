@@ -26,22 +26,14 @@ func (s *Server) Storage() store.I { return s.Store }
 func (s *Server) Configuration() config.C {
 	s.configurationMx.Lock()
 	defer s.configurationMx.Unlock()
-	if s.configuration == nil {
-		s.configured = false
-		return config.C{}
-	}
-	return *s.configuration
+	return s.configuration
 }
 
-func (s *Server) SetConfiguration(cfg *config.C) (err error) {
+func (s *Server) SetConfiguration(cfg config.C) (err error) {
 	if len(cfg.Admins) == 0 {
 		err = errorf.E("cannot set configuration without at least one admin")
 		return
 	}
-	s.configurationMx.Lock()
-	s.configuration = cfg
-	s.configured = true
-	s.configurationMx.Unlock()
 	if c, ok := s.Store.(store.Configurationer); ok {
 		chk.E(c.SetConfiguration(cfg))
 		chk.E(s.UpdateConfiguration())

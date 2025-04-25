@@ -16,8 +16,8 @@ import (
 
 // ConfigurationSetInput is the parameters for HTTP API method to set Configuration.
 type ConfigurationSetInput struct {
-	Auth string    `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true"`
-	Body *config.C `doc:"the new configuration"`
+	Auth string   `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true"`
+	Body config.C `doc:"the new configuration"`
 }
 
 // ConfigurationGetInput is the parameters for HTTP API method to get Configuration.
@@ -52,34 +52,25 @@ func (x *Operations) RegisterConfigurationSet(api huma.API) {
 		authed, _ := x.AdminAuth(r, remote)
 		log.I.F("authed %v", authed)
 		if !authed {
-
-			log.I.F("checking first time password %s %s %v",
-				input.Auth, x.Configuration().FirstTime,
-				input.Auth != x.Configuration().FirstTime)
-			if input.Auth != x.Configuration().FirstTime {
-				err = huma.Error401Unauthorized("authorization required")
-				return
-			} else {
-				log.I.F("checking admin pubkeys")
-				var found bool
-				for _, a := range input.Body.Admins {
-					if len(a) < 1 {
+			log.I.F("checking admin pubkeys")
+			var found bool
+			for _, a := range input.Body.Admins {
+				if len(a) < 1 {
+					continue
+				}
+				dst := make([]byte, len(a)/2)
+				if dst, err = bech32encoding.NpubToBytes([]byte(a)); chk.E(err) {
+					if _, err = hex.DecBytes(dst, []byte(a)); chk.E(err) {
 						continue
 					}
-					dst := make([]byte, len(a)/2)
-					if dst, err = bech32encoding.NpubToBytes([]byte(a)); chk.E(err) {
-						if _, err = hex.DecBytes(dst, []byte(a)); chk.E(err) {
-							continue
-						}
-					}
-					log.T.S(dst)
-					found = true
-					log.I.F("found valid admin pubkey %s", a)
 				}
-				if !found {
-					err = huma.Error401Unauthorized("at least one valid admin pubkey must be set")
-					return
-				}
+				log.T.S(dst)
+				found = true
+				log.I.F("found valid admin pubkey %s", a)
+			}
+			if !found {
+				err = huma.Error401Unauthorized("at least one valid admin pubkey must be set")
+				return
 			}
 		}
 		log.I.F("setting configuration")
@@ -108,10 +99,6 @@ func (x *Operations) RegisterConfigurationGet(api huma.API) {
 		Security:    []map[string][]string{{"auth": scopes}},
 	}, func(ctx context.T, input *ConfigurationGetInput) (output *ConfigurationGetOutput,
 		err error) {
-		if !x.Server.Configured() {
-			err = huma.Error503ServiceUnavailable("server is not configured")
-			return
-		}
 		r := ctx.Value("http-request").(*http.Request)
 		remote := helpers.GetRemoteFromReq(r)
 		authed, _ := x.AdminAuth(r, remote)

@@ -75,10 +75,6 @@ func (x *Operations) RegisterSubscribe(api huma.API) {
 		},
 		func(ctx context.T, input *SubscribeInput, send sse.Sender) {
 			var err error
-			if !x.Server.Configured() {
-				return
-			}
-			log.I.S(input)
 			var f *filter.T
 			if f, err = input.ToFilter(); chk.E(err) {
 				err = huma.Error422UnprocessableEntity(err.Error())
