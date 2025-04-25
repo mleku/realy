@@ -3,6 +3,7 @@ package ratel
 import (
 	"bufio"
 	"io"
+	"time"
 
 	"realy.mleku.dev/chk"
 	"realy.mleku.dev/event"
@@ -32,9 +33,12 @@ func (r *T) Import(rr io.Reader) {
 		if err = r.SaveEvent(r.Ctx, ev); err != nil {
 			continue
 		}
+		b = nil
+		ev = nil
 		count++
 		if count%1000 == 0 {
 			log.I.F("received %d events", count)
+			time.Sleep(time.Second)
 		}
 		if count > 0 && count%10000 == 0 {
 			chk.T(r.DB.Sync())
