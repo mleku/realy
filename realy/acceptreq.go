@@ -16,13 +16,13 @@ func (s *Server) AcceptReq(c context.T, hr *http.Request, id []byte,
 
 	log.T.F("%s AcceptReq pubkey %0x", remote, authedPubkey)
 	if s.PublicReadable() && !s.AuthRequired() {
-		log.T.F("%s accept because public readable and not auth required", remote)
+		log.W.F("%s accept req because public readable and not auth required", remote)
 		allowed = ff
 		ok = true
 
 	}
 	if len(s.Owners()) == 0 && !s.AuthRequired() {
-		log.T.F("%s accept because no access control is enabled", remote)
+		log.W.F("%s accept req because no access control is enabled", remote)
 		allowed = ff
 		ok = true
 		return
@@ -47,5 +47,8 @@ func (s *Server) AcceptReq(c context.T, hr *http.Request, id []byte,
 	// if auth is enabled and there is no moderators we just check that the pubkey
 	// has been loaded via the auth function.
 	ok = len(authedPubkey) == schnorr.PubKeyBytesLen
+	if !ok {
+		log.W.F("%s reject req because auth required but user not authed", remote)
+	}
 	return
 }

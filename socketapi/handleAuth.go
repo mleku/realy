@@ -11,7 +11,7 @@ import (
 )
 
 func (a *A) HandleAuth(b []byte, srv interfaces.Server) (msg []byte) {
-	if srv.AuthRequired() {
+	if srv.AuthRequired() || len(a.Owners()) > 0 || !a.PublicReadable() {
 		svcUrl := srv.ServiceURL(a.Listener.Req())
 		if svcUrl == "" {
 			return

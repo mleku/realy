@@ -17,15 +17,15 @@ import (
 
 func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 	remote string) (accept bool, notice string, afterSave func()) {
-	s.Lock()
-	defer s.Unlock()
 	// if the authenticator is enabled we require auth to accept events
 	if !s.AuthRequired() && len(s.owners) == 0 {
-		log.T.F("%s auth not required and no ACL enabled, accepting event %0x", remote, evt.Id)
+		log.W.F("%s auth not required and no ACL enabled, accepting event %0x", remote, evt.Id)
 		return true, "", nil
 	}
 	if len(authedPubkey) != 32 || s.AuthRequired() {
-		return false, fmt.Sprintf("client not authed with auth required %s", remote), nil
+		notice = fmt.Sprintf("client not authed with auth required %s", remote)
+		log.I.F("%s %s", remote, notice)
+		return false, notice, nil
 	}
 	// check ACL
 	if len(s.owners) > 0 {
@@ -49,8 +49,10 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 		// they come from a pubkey that is on the follow list.
 		for pk := range s.muted {
 			if bytes.Equal(evt.Pubkey, []byte(pk)) {
-				return false, "rejecting event with pubkey " + hex.Enc(evt.Pubkey) +
-					" because on owner mute list", nil
+				notice = "rejecting event with pubkey " + hex.Enc(evt.Pubkey) +
+					" because on owner mute list"
+				log.I.F("%s %s", remote, notice)
+				return false, notice, nil
 			}
 		}
 		for _, o := range s.owners {
@@ -88,8 +90,10 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 							if bytes.Equal(own, a.PubKey) ||
 								a.Kind.Equal(kind.MuteList) ||
 								a.Kind.Equal(kind.FollowList) {
-								return false, "owners may not delete their own " +
-									"mute or follow lists, they can be replaced", nil
+								notice = "owners may not delete their own " +
+									"mute or follow lists, they can be replaced"
+								log.I.F("%s %s", remote, notice)
+								return false, notice, nil
 							}
 						}
 					}
