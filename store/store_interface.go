@@ -30,6 +30,7 @@ type I interface {
 	Syncer
 	LogLeveler
 	EventIdSerialer
+	Accountant
 }
 
 type Initer interface {
@@ -54,6 +55,10 @@ type Querent interface {
 	// QueryEvents is invoked upon a client's REQ as described in NIP-01. It returns the
 	// matching events in reverse chronological order in a slice.
 	QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error)
+}
+
+type Accountant interface {
+	EventCount() (count uint64, err error)
 }
 
 type IdTsPk struct {

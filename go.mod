@@ -10,8 +10,10 @@ require (
 	github.com/dgraph-io/badger/v4 v4.7.0
 	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.18.0
+	github.com/fxamacker/cbor v1.5.1
 	github.com/gobwas/httphead v0.1.0
 	github.com/gobwas/ws v1.4.0
+	github.com/jessevdk/go-flags v1.6.1
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/klauspost/cpuid/v2 v2.2.10
 	github.com/pkg/profile v1.7.0
@@ -19,6 +21,9 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.10.0
 	github.com/templexxx/xhex v0.0.0-20200614015412-aed53437177b
+	github.com/viant/bintly v0.2.0
+	github.com/viant/toolbox v0.37.0
+	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	go-simpler.org/env v0.12.0
 	golang.org/x/crypto v0.37.0
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
@@ -37,29 +42,38 @@ require (
 	github.com/dgraph-io/ristretto/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
+	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/flatbuffers v25.2.10+incompatible // indirect
 	github.com/google/pprof v0.0.0-20250423184734-337e5dd93bb4 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287 // indirect
 	github.com/templexxx/cpu v0.1.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.61.0 // indirect
+	github.com/viant/xreflect v0.0.0-20230303201326-f50afb0feb0d // indirect
+	github.com/viant/xunsafe v0.10.3 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel v1.35.0 // indirect
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
+	golang.org/x/oauth2 v0.29.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/tools v0.32.0 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
