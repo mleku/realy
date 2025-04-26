@@ -5,10 +5,10 @@ import (
 	"net/url"
 	"strings"
 
-	"relay.mleku.dev/chk"
-	"relay.mleku.dev/context"
-	"relay.mleku.dev/event"
-	"relay.mleku.dev/keys"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/keys"
 )
 
 type Request struct {

@@ -1,0 +1,55 @@
+{{ define "tree" }}
+<html>
+
+{{ template "head" . }}
+
+  {{ template "repoheader" . }}
+  <body>
+    {{ template "nav" . }}
+    <main>
+      {{ $repo := .name }}
+      {{ $ref := .ref }}
+      {{ $parent := .parent }}
+
+      <div class="tree">
+        {{ if $parent }}
+        <div></div>
+        <div></div>
+        <div><a href="/{{ $repo }}/tree/{{ $ref }}/{{ .dotdot }}">..</a></div>
+        {{ end }}
+        {{ range .files }}
+        {{ if not .IsFile }}
+        <div class="mode">{{ .Mode }}</div>
+        <div class="size">{{ .Size }}</div>
+        <div>
+          {{ if $parent }}
+          <a href="/{{ $repo }}/tree/{{ $ref }}/{{ $parent }}/{{ .Name }}">{{ .Name }}/</a>
+          {{ else }}
+          <a href="/{{ $repo }}/tree/{{ $ref }}/{{ .Name }}">{{ .Name }}/</a>
+          {{ end }}
+        </div>
+        {{ end }}
+        {{ end }}
+        {{ range .files }}
+        {{ if .IsFile }}
+        <div class="mode">{{ .Mode }}</div>
+        <div class="size">{{ .Size }}</div>
+        <div>
+          {{ if $parent }}
+          <a href="/{{ $repo }}/blob/{{ $ref }}/{{ $parent }}/{{ .Name }}">{{ .Name }}</a>
+          {{ else }}
+          <a href="/{{ $repo }}/blob/{{ $ref }}/{{ .Name }}">{{ .Name }}</a>
+          {{ end }}
+        </div>
+        {{ end }}
+        {{ end }}
+      </div>
+      <article>
+        <pre>
+          {{- if .readme }}{{ .readme }}{{- end -}}
+        </pre>
+      </article>
+    </main>
+  </body>
+</html>
+{{ end }}

@@ -9,6 +9,8 @@ import (
 	"math/rand"
 	"testing"
 	"time"
+
+	"realy.lol/chk"
 )
 
 // randBytes returns a byte slice of the required size created from a random

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"relay.mleku.dev/chk"
-	"relay.mleku.dev/dns"
-	"relay.mleku.dev/errorf"
+	"realy.lol/chk"
+	"realy.lol/dns"
+	"realy.lol/errorf"
 )
 
 func queryWellKnownNostrJson(ctx context.Context, fullname string) (pubkey string,

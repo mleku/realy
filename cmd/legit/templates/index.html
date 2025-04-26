@@ -1,0 +1,21 @@
+{{ define "index" }}
+<html>
+{{ template "head" . }}
+
+  <header>
+    <h1>{{ .meta.Title }}</h1>
+    <h2>{{ .meta.Description }}</h2>
+  </header>
+  <body>
+    <main>
+      <div class="index">
+      {{ range .info }}
+       <div class="index-name"><a href="/{{ .Name }}">{{ .DisplayName }}</a></div>
+       <div class="desc">{{ .Desc }}</div>
+       <div>{{ .Idle }}</div>
+      {{ end }}
+      </div>
+    </main>
+  </body>
+</html>
+{{ end }}

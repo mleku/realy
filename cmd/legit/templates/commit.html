@@ -1,0 +1,104 @@
+{{ define "commit" }}
+<html>
+{{ template "head" . }}
+
+  {{ template "repoheader" . }}
+  <body>
+    {{ template "nav" . }}
+    <main>
+      <section class="commit">
+        <pre>
+          {{- .commit.Message -}}
+        </pre>
+        <div class="commit-info">
+        {{ .commit.Author.Name }} <a href="mailto:{{ .commit.Author.Email }}" class="commit-email">{{ .commit.Author.Email}}</a>
+        <div>{{ .commit.Author.When.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</div>
+        </div>
+
+        <div>
+        <strong>commit</strong>
+        <p><a href="/{{ .name }}/commit/{{ .commit.This }}" class="commit-hash">
+          {{ .commit.This }}
+        </a>
+        </p>
+        </div>
+
+        {{ if .commit.Parent }}
+        <div>
+        <strong>parent</strong>
+        <p><a href="/{{ .name }}/commit/{{ .commit.Parent }}" class="commit-hash">
+          {{ .commit.Parent }}
+        </a></p>
+        </div>
+
+        {{ end }}
+        <div class="diff-stat">
+          <div>
+          {{ .stat.FilesChanged }} files changed,
+          {{ .stat.Insertions }} insertions(+),
+          {{ .stat.Deletions }} deletions(-)
+          </div>
+          <div>
+            <br>
+            <strong>jump to</strong>
+            {{ range .diff }}
+            <ul>
+            <li><a href="#{{ .Name.New }}">{{ .Name.New }}</a></li>
+            </ul>
+            {{ end }}
+          </div>
+        </div>
+      </section>
+      <section>
+        {{ $repo := .name }}
+        {{ $this := .commit.This }}
+        {{ $parent := .commit.Parent }}
+        {{ range .diff }}
+          <div id="{{ .Name.New }}">
+            <div class="diff">
+            {{ if .IsNew }}
+            <span class="diff-type">A</span>
+            {{ end }}
+            {{ if .IsDelete }}
+            <span class="diff-type">D</span>
+            {{ end }}
+            {{ if not (or .IsNew .IsDelete) }}
+            <span class="diff-type">M</span>
+            {{ end }}
+          {{ if .Name.Old }}
+          <a href="/{{ $repo }}/blob/{{ $parent }}/{{ .Name.Old }}">{{ .Name.Old }}</a>
+          {{ if .Name.New }}
+            &#8594; 
+            <a href="/{{ $repo }}/blob/{{ $this }}/{{ .Name.New }}">{{ .Name.New }}</a>
+          {{ end }}
+          {{ else }}
+          <a href="/{{ $repo }}/blob/{{ $this }}/{{ .Name.New }}">{{ .Name.New }}</a>
+          {{- end -}}
+          {{ if .IsBinary }}
+          <p>Not showing binary file.</p>
+          {{ else }}
+            <pre>
+            {{- range .TextFragments -}}
+            <p>{{- .Header -}}</p>
+            {{- range .Lines -}}
+              {{- if eq .Op.String "+" -}}
+              <span class="diff-add">{{ .String }}</span>
+              {{- end -}}
+              {{- if eq .Op.String "-" -}}
+              <span class="diff-del">{{ .String }}</span>
+              {{- end -}}
+              {{- if eq .Op.String " " -}}
+              <span class="diff-noop">{{ .String }}</span>
+              {{- end -}}
+            {{- end -}}
+            {{- end -}}
+          {{- end -}}
+            </pre>
+          </div>
+          </div>
+        {{ end }}
+      </section>
+    </main>
+  </body>
+</html>
+{{ end }}

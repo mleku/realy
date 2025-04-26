@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"realy.lol/chk"
 	"realy.lol/ec/schnorr"
 	"realy.lol/ec/secp256k1"
 )

@@ -58,6 +58,8 @@ import (
 	"io"
 	"strings"
 	"testing"
+
+	"realy.lol/chk"
 )
 
 type sha256Test struct {

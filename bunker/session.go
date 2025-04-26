@@ -3,13 +3,13 @@ package bunker
 import (
 	"encoding/json"
 
-	"relay.mleku.dev/chk"
-	"relay.mleku.dev/encryption"
-	"relay.mleku.dev/event"
-	"relay.mleku.dev/kind"
-	"relay.mleku.dev/tag"
-	"relay.mleku.dev/tags"
-	"relay.mleku.dev/timestamp"
+	"realy.lol/chk"
+	"realy.lol/encryption"
+	"realy.lol/event"
+	"realy.lol/kind"
+	"realy.lol/tag"
+	"realy.lol/tags"
+	"realy.lol/timestamp"
 )
 
 type Session struct {

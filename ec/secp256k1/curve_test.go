@@ -12,6 +12,8 @@ import (
 	"math/rand"
 	"testing"
 	"time"
+
+	"realy.lol/chk"
 )
 
 var (

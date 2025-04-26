@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"sync"
 
-	"relay.mleku.dev/chk"
-	"relay.mleku.dev/context"
-	"relay.mleku.dev/ec/schnorr"
-	"relay.mleku.dev/encryption"
-	"relay.mleku.dev/errorf"
-	"relay.mleku.dev/event"
-	"relay.mleku.dev/hex"
-	"relay.mleku.dev/keys"
-	"relay.mleku.dev/kind"
-	"relay.mleku.dev/signer"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/ec/schnorr"
+	"realy.lol/encryption"
+	"realy.lol/errorf"
+	"realy.lol/event"
+	"realy.lol/hex"
+	"realy.lol/keys"
+	"realy.lol/kind"
+	"realy.lol/signer"
 )
 
 var _ Signer = (*StaticKeySigner)(nil)

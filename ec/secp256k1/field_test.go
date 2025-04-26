@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"realy.lol/chk"
 	"realy.lol/hex"
 )
 

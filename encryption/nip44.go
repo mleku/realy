@@ -31,8 +31,8 @@ type Opts struct {
 // Deprecated: use WithCustomNonce instead of WithCustomSalt, so the naming is less confusing
 var WithCustomSalt = WithCustomNonce
 
-// WithCustomNonce enables using a custom nonce (salt) instead of using the
-// system crypto/rand entropy source.
+// WithCustomNonce enables using a custom nonce (salt) instead of using the system crypto/rand
+// entropy source.
 func WithCustomNonce(salt []byte) func(opts *Opts) {
 	return func(opts *Opts) {
 		if len(salt) != 32 {
@@ -42,10 +42,10 @@ func WithCustomNonce(salt []byte) func(opts *Opts) {
 	}
 }
 
-// Encrypt data using a provided symmetric conversation key using NIP-44
-// encryption (chacha20 cipher stream and sha256 HMAC).
-func Encrypt(plaintext string, conversationKey []byte,
-	applyOptions ...func(opts *Opts)) (cipherString string,
+// Encrypt data using a provided symmetric conversation key using NIP-44 encryption (chacha20
+// cipher stream and sha256 HMAC).
+func Encrypt(plaintext, conversationKey []byte,
+	applyOptions ...func(opts *Opts)) (cipherString []byte,
 	err error) {
 
 	var o Opts
@@ -66,7 +66,7 @@ func Encrypt(plaintext string, conversationKey []byte,
 	if enc, cc20nonce, auth, err = getKeys(conversationKey, o.nonce); chk.E(err) {
 		return
 	}
-	plain := []byte(plaintext)
+	plain := plaintext
 	size := len(plain)
 	if size < MinPlaintextSize || size > MaxPlaintextSize {
 		err = errorf.E("plaintext should be between 1b and 64kB")
@@ -89,25 +89,26 @@ func Encrypt(plaintext string, conversationKey []byte,
 	ct = append(ct, o.nonce...)
 	ct = append(ct, cipher...)
 	ct = append(ct, mac...)
-	cipherString = base64.StdEncoding.EncodeToString(ct)
+	cipherString = make([]byte, base64.StdEncoding.EncodedLen(len(ct)))
+	base64.StdEncoding.Encode(cipherString, ct)
 	return
 }
 
-// Decrypt data that has been encoded using a provided symmetric conversation
-// key using NIP-44 encryption (chacha20 cipher stream and sha256 HMAC).
-func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (plaintext string,
+// Decrypt data that has been encoded using a provided symmetric conversation key using NIP-44
+// encryption (chacha20 cipher stream and sha256 HMAC).
+func Decrypt(b64ciphertextWrapped []byte, conversationKey []byte) (plaintext []byte,
 	err error) {
 	cLen := len(b64ciphertextWrapped)
 	if cLen < 132 || cLen > 87472 {
 		err = errorf.E("invalid payload length: %d", cLen)
 		return
 	}
-	if b64ciphertextWrapped[:1] == "#" {
+	if b64ciphertextWrapped[0] == '#' {
 		err = errorf.E("unknown version")
 		return
 	}
 	var decoded []byte
-	if decoded, err = base64.StdEncoding.DecodeString(b64ciphertextWrapped); chk.E(err) {
+	if decoded, err = base64.StdEncoding.DecodeString(string(b64ciphertextWrapped)); chk.E(err) {
 		return
 	}
 	if decoded[0] != version {
@@ -142,25 +143,18 @@ func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (plaintext str
 		err = errorf.E("invalid padding")
 		return
 	}
-	unpadded := padded[2:][:unpaddedLen]
-	if len(unpadded) == 0 || len(unpadded) != int(unpaddedLen) {
+	plaintext = padded[2:][:unpaddedLen]
+	if len(plaintext) == 0 || len(plaintext) != int(unpaddedLen) {
 		err = errorf.E("invalid padding")
 		return
 	}
-	plaintext = string(unpadded)
 	return
 }
 
 // GenerateConversationKey performs an ECDH key generation hashed with the nip-44-v2 using hkdf.
-func GenerateConversationKey(pkh, skh string) (ck []byte, err error) {
-	if skh >= "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141" ||
-		skh == "0000000000000000000000000000000000000000000000000000000000000000" {
-		err = errorf.E("invalid private key: x coordinate %s is not on the secp256k1 curve",
-			skh)
-		return
-	}
+func GenerateConversationKey(pk, sk []byte) (ck []byte, err error) {
 	var shared []byte
-	if shared, err = ComputeSharedSecret(pkh, skh); chk.E(err) {
+	if shared, err = ComputeSharedSecret(pk, sk); chk.E(err) {
 		return
 	}
 	ck = hkdf.Extract(sha256.New, shared, []byte("nip44-v2"))
@@ -214,10 +208,10 @@ func getKeys(conversationKey, nonce []byte) (enc, cc20nonce, auth []byte, err er
 	return
 }
 
-// CalcPadding creates padding for the message payload that is precisely a power
-// of two in order to reduce the chances of plaintext attack. This is plainly
-// retarded because it could blow out the message size a lot when just a random few
-// dozen bytes and a length prefix would achieve the same result.
+// CalcPadding creates padding for the message payload that is precisely a power of two in order
+// to reduce the chances of plaintext attack. This is plainly retarded because it could blow out
+// the message size a lot when just a random few dozen bytes and a length prefix would achieve
+// the same result.
 func CalcPadding(sLen int) (l int) {
 	if sLen <= 32 {
 		return 32

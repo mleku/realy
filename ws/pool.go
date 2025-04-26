@@ -140,18 +140,19 @@ func (pool *Pool) EnsureRelay(url string) (*Client, error) {
 
 // SubMany opens a subscription with the given filters to multiple relays
 // the subscriptions only end when the context is canceled
-func (pool *Pool) SubMany(c context.T, urls []string, ff *filters.T) chan IncomingEvent {
-	return pool.subMany(c, urls, ff, true)
+func (pool *Pool) SubMany(c context.T, urls []string, ff *filters.T,
+	opts ...SubscriptionOption) chan IncomingEvent {
+	return pool.subMany(c, urls, ff, true, opts)
 }
 
 // SubManyNonUnique is like SubMany, but returns duplicate events if they come from different relays
 func (pool *Pool) SubManyNonUnique(c context.T, urls []string,
-	ff *filters.T) chan IncomingEvent {
-	return pool.subMany(c, urls, ff, false)
+	ff *filters.T, opts ...SubscriptionOption) chan IncomingEvent {
+	return pool.subMany(c, urls, ff, false, opts)
 }
 
 func (pool *Pool) subMany(c context.T, urls []string, ff *filters.T,
-	unique bool) chan IncomingEvent {
+	unique bool, opts []SubscriptionOption) chan IncomingEvent {
 	ctx, cancel := context.Cancel(c)
 	_ = cancel // do this so `go vet` will stop complaining
 	events := make(chan IncomingEvent)
@@ -192,7 +193,7 @@ func (pool *Pool) subMany(c context.T, urls []string, ff *filters.T,
 				}
 				hasAuthed = false
 			subscribe:
-				if sub, err = relay.Subscribe(ctx, ff); chk.T(err) {
+				if sub, err = relay.Subscribe(ctx, ff, opts...); chk.T(err) {
 					goto reconnect
 				}
 				go func() {
@@ -268,18 +269,20 @@ func (pool *Pool) subMany(c context.T, urls []string, ff *filters.T,
 }
 
 // SubManyEose is like SubMany, but it stops subscriptions and closes the channel when gets a EOSE
-func (pool *Pool) SubManyEose(c context.T, urls []string, ff *filters.T) chan IncomingEvent {
-	return pool.subManyEose(c, urls, ff, true)
+func (pool *Pool) SubManyEose(c context.T, urls []string, ff *filters.T,
+	opts ...SubscriptionOption) chan IncomingEvent {
+	return pool.subManyEose(c, urls, ff, true, opts)
 }
 
 // SubManyEoseNonUnique is like SubManyEose, but returns duplicate events if they come from different relays
 func (pool *Pool) SubManyEoseNonUnique(c context.T, urls []string,
-	ff *filters.T) chan IncomingEvent {
-	return pool.subManyEose(c, urls, ff, false)
+	ff *filters.T,
+	opts ...SubscriptionOption) chan IncomingEvent {
+	return pool.subManyEose(c, urls, ff, false, opts)
 }
 
 func (pool *Pool) subManyEose(c context.T, urls []string, ff *filters.T,
-	unique bool) chan IncomingEvent {
+	unique bool, opts []SubscriptionOption) chan IncomingEvent {
 	ctx, cancel := context.Cancel(c)
 
 	events := make(chan IncomingEvent)
@@ -307,7 +310,7 @@ func (pool *Pool) subManyEose(c context.T, urls []string, ff *filters.T,
 
 		subscribe:
 			var sub *Subscription
-			if sub, err = client.Subscribe(ctx, ff); chk.E(err) || sub == nil {
+			if sub, err = client.Subscribe(ctx, ff, opts...); chk.E(err) || sub == nil {
 				log.E.F("error subscribing to %s with %v: %s", client, ff, err)
 				return
 			}
@@ -363,7 +366,7 @@ func (pool *Pool) subManyEose(c context.T, urls []string, ff *filters.T,
 func (pool *Pool) QuerySingle(c context.T, urls []string, f *filter.T) *IncomingEvent {
 	ctx, cancel := context.Cancel(c)
 	defer cancel()
-	for ievt := range pool.SubManyEose(ctx, urls, filters.New(f)) {
+	for ievt := range pool.SubManyEose(ctx, urls, filters.New(f), nil) {
 		return &ievt
 	}
 	return nil
@@ -372,13 +375,14 @@ func (pool *Pool) QuerySingle(c context.T, urls []string, f *filter.T) *Incoming
 func (pool *Pool) batchedSubMany(
 	c context.T,
 	dfs []DirectedFilters,
-	subFn func(context.T, []string, *filters.T, bool) chan IncomingEvent,
+	subFn func(context.T, []string, *filters.T, bool, []SubscriptionOption) chan IncomingEvent,
+	opts []SubscriptionOption,
 ) chan IncomingEvent {
 	res := make(chan IncomingEvent)
 
 	for _, df := range dfs {
 		go func(df DirectedFilters) {
-			for ie := range subFn(c, []string{df.Client}, df.Filters, true) {
+			for ie := range subFn(c, []string{df.Client}, df.Filters, true, opts) {
 				res <- ie
 			}
 		}(df)
@@ -388,11 +392,13 @@ func (pool *Pool) batchedSubMany(
 }
 
 // BatchedSubMany fires subscriptions only to specific relays, but batches them when they are the same.
-func (pool *Pool) BatchedSubMany(c context.T, dfs []DirectedFilters) chan IncomingEvent {
-	return pool.batchedSubMany(c, dfs, pool.subMany)
+func (pool *Pool) BatchedSubMany(c context.T, dfs []DirectedFilters,
+	opts ...SubscriptionOption) chan IncomingEvent {
+	return pool.batchedSubMany(c, dfs, pool.subMany, opts)
 }
 
 // BatchedSubManyEose is like BatchedSubMany, but ends upon receiving EOSE from all relays.
-func (pool *Pool) BatchedSubManyEose(c context.T, dfs []DirectedFilters) chan IncomingEvent {
-	return pool.batchedSubMany(c, dfs, pool.subManyEose)
+func (pool *Pool) BatchedSubManyEose(c context.T, dfs []DirectedFilters,
+	opts ...SubscriptionOption) chan IncomingEvent {
+	return pool.batchedSubMany(c, dfs, pool.subManyEose, opts)
 }
