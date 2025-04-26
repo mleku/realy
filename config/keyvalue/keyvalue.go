@@ -33,15 +33,14 @@ func EnvKV(cfg any) (m KVSlice) {
 		k := t.Field(i).Tag.Get("env")
 		v := reflect.ValueOf(cfg).Field(i).Interface()
 		var val string
-		switch v.(type) {
+		switch u := v.(type) {
 		case string:
-			val = v.(string)
+			val = u
 		case int, int64, int32, uint64, uint32, bool, time.Duration:
 			val = fmt.Sprint(v)
 		case []string:
-			arr := v.([]string)
-			if len(arr) > 0 {
-				val = strings.Join(arr, ",")
+			if len(u) > 0 {
+				val = strings.Join(u, ",")
 			}
 		}
 		// this can happen with embedded structs

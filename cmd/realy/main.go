@@ -4,9 +4,7 @@
 package main
 
 import (
-	"errors"
 	"net"
-	"net/http/httputil"
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
@@ -47,7 +45,7 @@ func main() {
 	debug.SetMemoryLimit(250000)
 	var err error
 	a := cfg.Superuser
-	dst := make([]byte, len(a)/2)
+	var dst []byte
 	if dst, err = bech32encoding.NpubToBytes([]byte(a)); chk.E(err) {
 		if _, err = hex.DecBytes(dst, []byte(a)); chk.E(err) {
 			log.F.F("SUPERUSER is invalid: %s", a)
@@ -90,10 +88,7 @@ func main() {
 	openapi.New(s, cfg.AppName, realy_lol.Version, realy_lol.Description, "/api", serveMux)
 	socketapi.New(s, "/{$}", serveMux)
 	interrupt.AddHandler(func() { s.Shutdown() })
-	if err = s.Start(); err != nil {
-		if errors.Is(err, httputil.ErrClosed) {
-			os.Exit(0)
-		}
+	if err = s.Start(); chk.E(err) {
 		os.Exit(1)
 	}
 }

@@ -523,7 +523,7 @@ func GenFilter() (f *T, err error) {
 	n := frand.Intn(16)
 	for _ = range n {
 		id := make([]byte, sha256.Size)
-		frand.Read(id)
+		_, _ = frand.Read(id)
 		f.IDs = f.IDs.Append(id)
 	}
 	n = frand.Intn(16)
@@ -553,7 +553,7 @@ func GenFilter() (f *T, err error) {
 			var idb [][]byte
 			for range l {
 				id := make([]byte, sha256.Size)
-				frand.Read(id)
+				_, _ = frand.Read(id)
 				idb = append(idb, id)
 			}
 			idb = append([][]byte{{'#', byte(b)}}, idb...)
@@ -562,7 +562,7 @@ func GenFilter() (f *T, err error) {
 			var idb [][]byte
 			for range l {
 				bb := make([]byte, frand.Intn(31)+1)
-				frand.Read(bb)
+				_, _ = frand.Read(bb)
 				id := make([]byte, 0, len(bb)*2)
 				id = hex.EncAppend(id, bb)
 				idb = append(idb, id)

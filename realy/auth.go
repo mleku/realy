@@ -2,7 +2,6 @@ package realy
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -41,13 +40,6 @@ func (s *Server) adminAuth(r *http.Request,
 		}
 	}
 	return
-}
-
-func (s *Server) unauthorized(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
-	http.Error(w, "Unauthorized", http.StatusUnauthorized)
-	fmt.Fprintf(w,
-		"not authorized, either you did not provide an auth token or what you provided does not grant access\n")
 }
 
 // ServiceURL returns the address of the relay to send back in auth responses.

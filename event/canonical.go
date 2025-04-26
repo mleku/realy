@@ -58,6 +58,11 @@ var minimal = len(`[0,"0123456789abcdef0123456789abcdef0123456789abcdef012345678
 // that the signature is missing in this form. Allocate an event.T before
 // calling this.
 func (ev *T) FromCanonical(b []byte) (rem []byte, err error) {
+	if len(b) < minimal {
+		err = errorf.E("event is too short to be a canonical event, require at least %d got %d",
+			minimal, len(b))
+		return
+	}
 	rem = b
 	id := Hash(rem)
 	c := NewCanonical()

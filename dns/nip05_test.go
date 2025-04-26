@@ -58,7 +58,9 @@ func TestQuery(t *testing.T) {
 		t.Fatalf("invalid query for fiatjaf.com")
 	}
 
-	pp, err = QueryIdentifier(context.Background(), "htlc@fiatjaf.com")
+	if pp, err = QueryIdentifier(context.Background(), "htlc@fiatjaf.com"); chk.E(err) {
+		t.Fatal(err)
+	}
 	if pkb, err = keys.HexPubkeyToBytes(
 		"f9dd6a762506260b38a2d3e5b464213c2e47fa3877429fe9ee60e071a31a07d7"); chk.E(err) {
 		t.Fatal(err)

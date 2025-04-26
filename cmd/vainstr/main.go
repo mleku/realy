@@ -89,7 +89,7 @@ func Vanity(str string, where int, threads int) (e error) {
 			}
 		}
 		if wrong {
-			return fmt.Errorf("found invalid character '%c' only ones from '%s' allowed\n",
+			return fmt.Errorf("found invalid character '%c' only ones from '%s' allowed",
 				str[i], bech32.Charset)
 		}
 	}
@@ -112,7 +112,7 @@ out:
 	for {
 		select {
 		case <-tick.C:
-			workingFor := time.Now().Sub(started)
+			workingFor := time.Since(started)
 			wm := workingFor % time.Second
 			workingFor -= wm
 			fmt.Printf("working for %v, attempts %d\n",
@@ -132,7 +132,7 @@ out:
 	wg.Wait()
 
 	fmt.Printf("generated in %d attempts using %d threads, taking %v\n",
-		counter.Load(), args.Threads, time.Now().Sub(started))
+		counter.Load(), args.Threads, time.Since(started))
 	secBytes := res.sec.Serialize()
 	log.D.Ln(
 		"generated key pair:\n"+

@@ -2,7 +2,6 @@ package realy
 
 import (
 	"bytes"
-	"crypto/rand"
 	"fmt"
 	"strings"
 
@@ -16,16 +15,6 @@ import (
 	"realy.lol/log"
 	"realy.lol/tag"
 )
-
-func getFirstTime() (s string) {
-	b := make([]byte, 32)
-	var err error
-	if _, err = rand.Read(b); chk.E(err) {
-		panic(err)
-	}
-	s = fmt.Sprintf("%x", b)
-	return
-}
 
 func (s *Server) Init() {
 	var err error
@@ -67,7 +56,7 @@ func (s *Server) CheckOwnerLists(c context.T) {
 	defer s.Unlock()
 	if len(s.owners) > 0 {
 		var err error
-		var evs []*event.T
+		var evs event.Ts
 		// need to search DB for moderator npub follow lists, followed npubs are allowed access.
 		lf := len(s.followed)
 		if lf < 1 {
@@ -95,7 +84,7 @@ func (s *Server) CheckOwnerLists(c context.T) {
 					}
 				}
 			}
-			evs = evs[:0]
+			evs = nil
 			// next, search for the follow lists of all on the follow list
 			log.T.Ln("searching for owners follows follow lists")
 			var followed []string
@@ -120,7 +109,7 @@ func (s *Server) CheckOwnerLists(c context.T) {
 					}
 				}
 			}
-			evs = evs[:0]
+			evs = nil
 		}
 		if len(s.muted) < 1 {
 			log.D.Ln("regenerating owners mute lists")
@@ -141,7 +130,7 @@ func (s *Server) CheckOwnerLists(c context.T) {
 					}
 				}
 			}
-			evs = evs[:0]
+			evs = nil
 		}
 		// remove muted from the followed list
 		for m := range s.muted {

@@ -105,7 +105,7 @@ func TestError_InitializeDefaults(t *testing.T) {
 			msg: "Error swapped with default",
 			newError: func() *Error {
 				e := NewError(assert.AnError)
-				e.Swap(nil)
+				_ = e.Swap(nil)
 				return e
 			},
 		},

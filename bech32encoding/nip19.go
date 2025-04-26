@@ -207,6 +207,8 @@ func EncodeEvent(eventIDHex *eventid.T, relays [][]byte, author []byte) (s []byt
 	pubkey := make([]byte, schnorr.PubKeyBytesLen)
 	if _, err = hex.DecBytes(pubkey, author); len(pubkey) == 32 {
 		tlv.WriteEntry(buf, tlv.Author, pubkey)
+	} else if chk.E(err) {
+		return
 	}
 	var bits5 []byte
 	if bits5, err = bech32.ConvertBits(buf.Bytes(), 8, 5, true); chk.D(err) {

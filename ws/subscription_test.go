@@ -58,7 +58,6 @@ func TestNestedSubscriptions(t *testing.T) {
 	defer rl.Close()
 
 	n := atomic.Uint32{}
-	_ = n
 	// fetch 2 replies to a note
 	var lim3 uint = 3
 	sub, err := rl.Subscribe(context.Bg(),

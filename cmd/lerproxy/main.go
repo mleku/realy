@@ -111,7 +111,7 @@ func run(c context.T, args runArgs) (err error) {
 			if ln, err = net.Listen("tcp", srv.Addr); chk.E(err) {
 				return
 			}
-			defer ln.Close()
+			defer func() { _ = ln.Close() }()
 			ln = tcpkeepalive.Listener{
 				Duration:    args.Idle,
 				TCPListener: ln.(*net.TCPListener),
@@ -123,9 +123,9 @@ func run(c context.T, args runArgs) (err error) {
 	}
 	group.Go(func() error {
 		<-ctx.Done()
-		ctx, cancel := context.Timeout(context.Bg(), time.Second)
+		c, cancel := context.Timeout(context.Bg(), time.Second)
 		defer cancel()
-		return srv.Shutdown(ctx)
+		return srv.Shutdown(c)
 	})
 	return group.Wait()
 }
@@ -247,7 +247,7 @@ func setProxy(mapping map[string]string) (h http.Handler, err error) {
 				writer.Header().Set("Content-Type", "text/html")
 				writer.Header().Set("Content-Length", fmt.Sprint(len(redirector)))
 				writer.Header().Set("strict-transport-security", "max-age=0; includeSubDomains")
-				fmt.Fprint(writer, redirector)
+				_, _ = fmt.Fprint(writer, redirector)
 			})
 			continue
 		} else if filepath.IsAbs(ba) {
@@ -284,7 +284,7 @@ func setProxy(mapping map[string]string) (h http.Handler, err error) {
 						writer.Header().Set("Content-Length", fmt.Sprint(len(nostrJSON)))
 						writer.Header().Set("strict-transport-security",
 							"max-age=0; includeSubDomains")
-						fmt.Fprint(writer, nostrJSON)
+						_, _ = fmt.Fprint(writer, nostrJSON)
 					})
 				continue
 			}

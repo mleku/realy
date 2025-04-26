@@ -232,7 +232,7 @@ func (pool *Pool) subMany(c context.T, urls []string, ff *filters.T,
 						}
 					case <-ticker.C:
 						if eose {
-							old := &timestamp.T{int64(timestamp.Now().Int() - seenAlreadyDropTick)}
+							old := &timestamp.T{V: int64(timestamp.Now().Int() - seenAlreadyDropTick)}
 							seenAlready.Range(func(id string, value *timestamp.T) bool {
 								if value.I64() < old.I64() {
 									seenAlready.Delete(id)

@@ -19,8 +19,6 @@ import (
 //go:embed base10k.txt
 var base10k []byte
 
-const base = 10000
-
 // T is an integer with a fast codec to decimal ASCII.
 type T struct {
 	N uint64

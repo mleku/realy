@@ -5,6 +5,7 @@ package reqenvelope
 import (
 	"io"
 
+	"realy.lol/chk"
 	"realy.lol/codec"
 	"realy.lol/envelopes"
 	"realy.lol/filters"

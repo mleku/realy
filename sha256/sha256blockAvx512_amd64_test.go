@@ -245,7 +245,7 @@ func TestAvx512Server(t *testing.T) {
 		}
 		go func(i int, uid uint64, input []byte) {
 			output := server.Sum(uid, input)
-			if bytes.Compare(output[:], golden[offset+i].out[:]) != 0 {
+			if !bytes.Equal(output[:], golden[offset+i].out[:]) {
 				t.Fatalf("Sum256 function: sha256(%s) = %s want %s", golden[offset+i].in,
 					hex.EncodeToString(output[:]), hex.EncodeToString(golden[offset+i].out[:]))
 			}
@@ -284,7 +284,7 @@ func TestAvx512Digest(t *testing.T) {
 	}
 	for i := 0; i < tests; i++ {
 		output := h512[i].Sum([]byte{})
-		if bytes.Compare(output[:], golden[offset+i].out[:]) != 0 {
+		if !bytes.Equal(output[:], golden[offset+i].out[:]) {
 			t.Fatalf("Sum256 function: sha256(%s) = %s want %s", golden[offset+i].in,
 				hex.EncodeToString(output[:]), hex.EncodeToString(golden[offset+i].out[:]))
 		}

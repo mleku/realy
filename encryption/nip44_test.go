@@ -69,7 +69,7 @@ func assertConversationKeyGeneration(t *testing.T, priv, pub, conversationKey []
 
 func assertConversationKeyGenerationSec(t *testing.T, sk1, sk2, conversationKey []byte) bool {
 	signer := new(p256k.Signer)
-	signer.InitSec(sk2)
+	_ = signer.InitSec(sk2)
 	pub2 := signer.Pub()
 	return assertConversationKeyGeneration(t, sk1, pub2, conversationKey)
 }
@@ -1106,7 +1106,7 @@ func TestMaxLength(t *testing.T) {
 	}
 	pub2 := sk2.Pub()
 	nonce := make([]byte, 32)
-	rand.Read(nonce)
+	_, _ = rand.Read(nonce)
 	conversationKey, _ := GenerateConversationKey(pub2, sk1.Sec())
 	plaintext := bytes.Repeat([]byte{'a'}, MaxPlaintextSize)
 	var encrypted []byte

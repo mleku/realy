@@ -81,7 +81,7 @@ func QueryIdentifier(c context.T, account string) (prf *pointers.Profile,
 	if pkb, err = keys.HexPubkeyToBytes(pubkey); chk.E(err) {
 		return
 	}
-	relays, _ := result.Relays[pubkey]
+	relays := result.Relays[pubkey]
 	return &pointers.Profile{
 		PublicKey: pkb,
 		Relays:    StringSliceToByteSlice(relays),
@@ -116,7 +116,7 @@ func Fetch(c context.T, account string) (resp *WellKnownResponse,
 		err = errorf.E("request failed: %w", err)
 		return
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 	resp = NewWellKnownResponse()
 	b := make([]byte, 65535)
 	var n int

@@ -1,3 +1,0 @@
-- Add code generation
-- Add real numbers support
-- Add support for tag annotation (i.e transient)

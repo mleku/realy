@@ -17,7 +17,7 @@ package sha256
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"runtime"
 
 	"github.com/klauspost/cpuid/v2"
@@ -44,7 +44,7 @@ func hasArmSha2() bool {
 	// Feature to check for.
 	const sha256Feature = "sha2"
 
-	cpuInfo, err := ioutil.ReadFile(procCPUInfo)
+	cpuInfo, err := os.ReadFile(procCPUInfo)
 	if err != nil {
 		return false
 	}

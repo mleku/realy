@@ -27,44 +27,44 @@ func main() {
 	if fh, err = os.Open(os.Args[1]); chk.E(err) {
 		os.Exit(1)
 	}
-	defer fh.Close()
+	defer func() { _ = fh.Close() }()
 	var read, unmar, ids, tobin, frombin, reser *os.File
 	if read, err = os.OpenFile("read.jsonl", os.O_RDWR|os.O_CREATE|os.O_TRUNC,
 		0600); chk.E(err) {
 		return
 	}
-	defer read.Close()
+	defer func() { _ = read.Close() }()
 	if unmar, err = os.OpenFile("fail_unmar.jsonl", os.O_RDWR|os.O_CREATE|os.O_TRUNC,
 		0600); chk.E(err) {
 		return
 	}
-	defer unmar.Close()
+	defer func() { _ = unmar.Close() }()
 	if ids, err = os.OpenFile("fail_ids.jsonl", os.O_RDWR|os.O_CREATE|os.O_TRUNC,
 		0600); chk.E(err) {
 		return
 	}
-	defer ids.Close()
+	defer func() { _ = ids.Close() }()
 	if tobin, err = os.OpenFile("fail_tobin.jsonl", os.O_RDWR|os.O_CREATE|os.O_TRUNC,
 		0600); chk.E(err) {
 		return
 	}
-	defer tobin.Close()
+	defer func() { _ = tobin.Close() }()
 	if frombin, err = os.OpenFile("fail_frombin.jsonl", os.O_RDWR|os.O_CREATE|os.O_TRUNC,
 		0600); chk.E(err) {
 		return
 	}
-	defer frombin.Close()
+	defer func() { _ = frombin.Close() }()
 	if reser, err = os.OpenFile("fail_reser.jsonl", os.O_RDWR|os.O_CREATE|os.O_TRUNC,
 		0600); chk.E(err) {
 		return
 	}
-	defer reser.Close()
+	defer func() { _ = reser.Close() }()
 	interrupt.AddHandler(func() {
-		unmar.Sync()
-		ids.Sync()
-		tobin.Sync()
-		frombin.Sync()
-		reser.Sync()
+		_ = unmar.Sync()
+		_ = ids.Sync()
+		_ = tobin.Sync()
+		_ = frombin.Sync()
+		_ = reser.Sync()
 		os.Exit(0)
 	})
 	var progress, total int
@@ -90,7 +90,7 @@ func main() {
 			// strings nor can events have keys that are other than the set defined in NIP-01.
 			if err.Error() != "invalid character '\\n' in quoted string" &&
 				!strings.HasPrefix(err.Error(), "invalid key,") {
-				fmt.Fprintf(unmar, "%s\n", ev.Serialize())
+				_, _ = fmt.Fprintf(unmar, "%s\n", ev.Serialize())
 				log.E.F("error unmarshaling line: '%s'\n%s", err.Error(), cp)
 			}
 			line = line[:0]

@@ -192,7 +192,7 @@ func endomorphismVectors(lambda *big.Int) (a1, b1, a2, b2 *big.Int) {
 }
 
 // deriveEndomorphismParams calculates and returns parameters needed to make use
-// of the secp256k1 endomorphism.
+// of the secp256k1 endomorphism. TODO: this is unused
 func deriveEndomorphismParams() [2]endomorphismParams {
 	// roots returns the solutions of the characteristic polynomial of the
 	// secp256k1 endomorphism.

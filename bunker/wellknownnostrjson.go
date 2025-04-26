@@ -21,7 +21,7 @@ func queryWellKnownNostrJson(ctx context.Context, fullname string) (pubkey strin
 	if pubkey, ok = result.Names[name]; !ok {
 		return "", nil, fmt.Errorf("no entry found for the '%s' name", name)
 	}
-	if relays, _ = result.NIP46[pubkey]; !ok {
+	if relays, ok = result.NIP46[pubkey]; !ok {
 		err = errorf.E("no bunker relays found for the '%s' name", name)
 		return
 	}

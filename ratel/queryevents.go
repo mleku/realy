@@ -124,7 +124,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 			for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 				item := it.Item()
 				var ev *event.T
-				if ev, err = r.ProcessFoundEvent(item, delEvs); chk.E(err) {
+				if delEvs, ev, err = r.ProcessFoundEvent(item, delEvs); chk.E(err) {
 					continue
 				}
 				if ev == nil {
@@ -190,7 +190,7 @@ func (r *T) FilterSortAndLimit(evMap map[string]*event.T, limit int) (evs event.
 	return
 }
 
-func (r *T) ProcessFoundEvent(item *badger.Item, delEvs [][]byte) (ev *event.T, err error) {
+func (r *T) ProcessFoundEvent(item *badger.Item, delEvs [][]byte) (dEvs [][]byte, ev *event.T, err error) {
 	err = item.Value(func(eventValue []byte) (err error) {
 		var rem []byte
 		ev = &event.T{}

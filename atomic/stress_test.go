@@ -266,11 +266,11 @@ func stressError() func() {
 	var err1 = errors.New("err1")
 	var err2 = errors.New("err2")
 	return func() {
-		atom.Load()
+		_ = atom.Load()
 		atom.Store(err1)
-		atom.Load()
+		_ = atom.Load()
 		atom.Store(err2)
-		atom.Load()
+		_ = atom.Load()
 		atom.Store(nil)
 	}
 }

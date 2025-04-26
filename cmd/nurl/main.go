@@ -119,10 +119,10 @@ func Get(ur *url.URL, sign signer.I) (err error) {
 		return
 	}
 	if _, err = io.Copy(os.Stdout, res.Body); chk.E(err) {
-		res.Body.Close()
+		_ = res.Body.Close()
 		return
 	}
-	res.Body.Close()
+	_ = res.Body.Close()
 	return
 }
 
@@ -146,8 +146,7 @@ func Post(f string, ur *url.URL, sign signer.I) (err error) {
 		return
 	}
 	log.T.F("opened file %s hash %s", f, h)
-	var r *http.Request
-	r = &http.Request{
+	r := &http.Request{
 		Method:        "POST",
 		URL:           ur,
 		Proto:         "HTTP/1.1",
@@ -175,8 +174,8 @@ func Post(f string, ur *url.URL, sign signer.I) (err error) {
 		return
 	}
 	// log.I.S(res)
-	defer res.Body.Close()
-	if io.Copy(os.Stdout, res.Body); chk.E(err) {
+	defer func() { _ = res.Body.Close() }()
+	if _, err = io.Copy(os.Stdout, res.Body); chk.E(err) {
 		return
 	}
 	fmt.Println()

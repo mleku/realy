@@ -84,11 +84,8 @@ type (
 )
 
 var (
-	// sep is just a convenient shortcut for this very longwinded expression
-	sep = string(os.PathSeparator)
-
-	// writer can be swapped out for any io.*writer* that you want to use instead of stdout.
-	writer io.Writer = os.Stderr
+	// Writer can be swapped out for any io.*Writer* that you want to use instead of stdout.
+	Writer io.Writer = os.Stderr
 
 	// LevelSpecs specifies the id, string name and color-printing function
 	LevelSpecs = []LevelSpec{
@@ -278,6 +275,9 @@ func GetNullPrinter() LevelPrinter {
 
 // New creates a new logger with all the levels and things.
 func New(writer io.Writer, skip int) (l *Log, c *Check, errorf *Errorf) {
+	if writer == nil {
+		writer = Writer
+	}
 	l = &Log{
 		T: GetPrinter(Trace, writer, skip),
 		D: GetPrinter(Debug, writer, skip),

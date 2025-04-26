@@ -15,8 +15,6 @@ import (
 
 // FetchIds retrieves events based on a list of event Ids that have been provided.
 func (r *T) FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error) {
-	// create an ample buffer for decoding events, 100kb should usually be enough, if
-	// it needs to get bigger it will be reallocated.
 	b := make([]byte, 0, 100000)
 	err = r.View(func(txn *badger.Txn) (err error) {
 		for _, v := range evIds.ToSliceOfBytes() {
@@ -40,7 +38,6 @@ func (r *T) FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error) {
 			if b, err = item.ValueCopy(nil); chk.E(err) {
 				return
 			}
-			// if db isn't using compact encoding the bytes are already right
 			if _, err = out.Write(b); chk.E(err) {
 				return
 			}
