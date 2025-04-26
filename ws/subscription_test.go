@@ -5,13 +5,13 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/filter"
-	"realy.mleku.dev/filters"
-	"realy.mleku.dev/kind"
-	"realy.mleku.dev/kinds"
-	"realy.mleku.dev/tag"
-	"realy.mleku.dev/tags"
+	"realy.lol/context"
+	"realy.lol/filter"
+	"realy.lol/filters"
+	"realy.lol/kind"
+	"realy.lol/kinds"
+	"realy.lol/tag"
+	"realy.lol/tags"
 )
 
 const RELAY = "wss://mleku.realy.lol"

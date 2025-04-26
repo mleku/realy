@@ -7,9 +7,9 @@ import (
 	"time"
 	"unsafe"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/ints"
+	"realy.lol/chk"
+	"realy.lol/errorf"
+	"realy.lol/ints"
 )
 
 // T is a convenience type for UNIX 64 bit timestamps of 1 second

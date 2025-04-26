@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"testing"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/envelopes"
-	"realy.mleku.dev/filters"
-	"realy.mleku.dev/subscription"
+	"realy.lol/chk"
+	"realy.lol/envelopes"
+	"realy.lol/filters"
+	"realy.lol/subscription"
 )
 
 func TestRequest(t *testing.T) {

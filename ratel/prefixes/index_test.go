@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"realy.mleku.dev/ratel/keys/index"
+	"realy.lol/ratel/keys/index"
 )
 
 func TestT(t *testing.T) {

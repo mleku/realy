@@ -5,9 +5,9 @@ import (
 	"context"
 	"testing"
 
-	"realy.mleku.dev/bech32encoding/pointers"
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/keys"
+	"realy.lol/bech32encoding/pointers"
+	"realy.lol/chk"
+	"realy.lol/keys"
 )
 
 func TestParse(t *testing.T) {

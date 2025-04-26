@@ -9,10 +9,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/keys"
-	"realy.mleku.dev/sha256"
+	"realy.lol/chk"
+	"realy.lol/hex"
+	"realy.lol/keys"
+	"realy.lol/sha256"
 )
 
 func assertCryptPriv(t *testing.T,

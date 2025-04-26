@@ -5,9 +5,9 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/realy/helpers"
+	"realy.lol/context"
+	"realy.lol/log"
+	"realy.lol/realy/helpers"
 )
 
 // ExportInput is the parameters for the HTTP API Export method.

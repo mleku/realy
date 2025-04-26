@@ -6,8 +6,8 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/ec/secp256k1"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
 )
 
 func TestConvertBits(t *testing.T) {

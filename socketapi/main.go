@@ -7,16 +7,16 @@ import (
 
 	"github.com/fasthttp/websocket"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/envelopes/authenvelope"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/publish"
-	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/servemux"
-	"realy.mleku.dev/units"
-	"realy.mleku.dev/ws"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/envelopes/authenvelope"
+	"realy.lol/log"
+	"realy.lol/publish"
+	"realy.lol/realy/helpers"
+	"realy.lol/realy/interfaces"
+	"realy.lol/servemux"
+	"realy.lol/units"
+	"realy.lol/ws"
 )
 
 const (

@@ -8,9 +8,9 @@ import (
 	"github.com/pkg/profile"
 	"go-simpler.org/env"
 
-	"realy.mleku.dev"
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/config/keyvalue"
+	"realy.lol"
+	"realy.lol/chk"
+	"realy.lol/config/keyvalue"
 )
 
 // C is the configuration for a realy. Note that it is absolutely minimal. More complex

@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"realy.mleku.dev/chk"
+	"realy.lol/chk"
 )
 
 // Conn extends deadline after successful read or write operations

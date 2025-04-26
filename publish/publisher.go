@@ -2,9 +2,9 @@
 package publish
 
 import (
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/publish/publisher"
-	"realy.mleku.dev/typer"
+	"realy.lol/event"
+	"realy.lol/publish/publisher"
+	"realy.lol/typer"
 )
 
 var publishers publisher.Publishers

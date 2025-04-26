@@ -7,15 +7,15 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/filter"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/ratel/keys/serial"
-	"realy.mleku.dev/ratel/prefixes"
-	"realy.mleku.dev/tag"
-	"realy.mleku.dev/tags"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/filter"
+	"realy.lol/hex"
+	"realy.lol/log"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
+	"realy.lol/tag"
+	"realy.lol/tags"
 )
 
 // Export the complete database of stored events to an io.Writer in line structured minified

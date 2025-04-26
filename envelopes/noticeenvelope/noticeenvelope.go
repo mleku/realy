@@ -6,10 +6,10 @@ package noticeenvelope
 import (
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/codec"
-	"realy.mleku.dev/envelopes"
-	"realy.mleku.dev/text"
+	"realy.lol/chk"
+	"realy.lol/codec"
+	"realy.lol/envelopes"
+	"realy.lol/text"
 )
 
 // L is the label associated with this type of codec.Envelope.

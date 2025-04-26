@@ -4,15 +4,15 @@ import (
 	"net/http"
 	"time"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/realy/config"
-	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/signer"
-	"realy.mleku.dev/store"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/errorf"
+	"realy.lol/event"
+	"realy.lol/log"
+	"realy.lol/realy/config"
+	"realy.lol/realy/interfaces"
+	"realy.lol/signer"
+	"realy.lol/store"
 )
 
 func (s *Server) AdminAuth(r *http.Request, remote string,

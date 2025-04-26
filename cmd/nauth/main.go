@@ -6,13 +6,13 @@ import (
 	"os"
 	"time"
 
-	"realy.mleku.dev/bech32encoding"
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/httpauth"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/p256k"
-	"realy.mleku.dev/signer"
+	"realy.lol/bech32encoding"
+	"realy.lol/chk"
+	"realy.lol/errorf"
+	"realy.lol/httpauth"
+	"realy.lol/log"
+	"realy.lol/p256k"
+	"realy.lol/signer"
 )
 
 const secEnv = "NOSTR_SECRET_KEY"

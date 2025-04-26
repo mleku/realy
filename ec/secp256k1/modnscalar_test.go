@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/hex"
+	"realy.lol/chk"
+	"realy.lol/hex"
 )
 
 // SetHex interprets the provided hex string as a 256-bit big-endian unsigned

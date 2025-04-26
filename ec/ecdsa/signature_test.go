@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec/secp256k1"
-	"realy.mleku.dev/hex"
+	"realy.lol/chk"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/hex"
 )
 
 // hexToBytes converts the passed hex string into bytes and will panic if there

@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/envelopes"
-	"realy.mleku.dev/envelopes/messages"
+	"realy.lol/chk"
+	"realy.lol/envelopes"
+	"realy.lol/envelopes/messages"
 )
 
 func TestMarshalUnmarshal(t *testing.T) {

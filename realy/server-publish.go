@@ -5,16 +5,16 @@ import (
 	"errors"
 	"fmt"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/filter"
-	"realy.mleku.dev/kinds"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/reason"
-	"realy.mleku.dev/store"
-	"realy.mleku.dev/tag"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/errorf"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/kinds"
+	"realy.lol/log"
+	"realy.lol/reason"
+	"realy.lol/store"
+	"realy.lol/tag"
 )
 
 func (s *Server) Publish(c context.T, evt *event.T) (err error) {

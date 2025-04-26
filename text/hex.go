@@ -1,8 +1,8 @@
 package text
 
 import (
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/hex"
+	"realy.lol/chk"
+	"realy.lol/hex"
 )
 
 // AppendHexFromBinary appends to a hex output from binary input.

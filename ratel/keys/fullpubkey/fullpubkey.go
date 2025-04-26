@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/ratel/keys"
+	"realy.lol/chk"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ratel/keys"
 )
 
 const Len = schnorr.PubKeyBytesLen

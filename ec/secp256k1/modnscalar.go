@@ -7,7 +7,7 @@ package secp256k1
 import (
 	"math/big"
 
-	"realy.mleku.dev/hex"
+	"realy.lol/hex"
 )
 
 // References:

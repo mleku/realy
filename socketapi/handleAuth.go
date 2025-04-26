@@ -1,13 +1,13 @@
 package socketapi
 
 import (
-	"realy.mleku.dev/auth"
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/envelopes/authenvelope"
-	"realy.mleku.dev/envelopes/okenvelope"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/reason"
+	"realy.lol/auth"
+	"realy.lol/chk"
+	"realy.lol/envelopes/authenvelope"
+	"realy.lol/envelopes/okenvelope"
+	"realy.lol/log"
+	"realy.lol/realy/interfaces"
+	"realy.lol/reason"
 )
 
 func (a *A) HandleAuth(b []byte, srv interfaces.Server) (msg []byte) {

@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/kind"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/tag"
-	"realy.mleku.dev/tags"
-	"realy.mleku.dev/timestamp"
+	"realy.lol/chk"
+	"realy.lol/event"
+	"realy.lol/kind"
+	"realy.lol/log"
+	"realy.lol/tag"
+	"realy.lol/tags"
+	"realy.lol/timestamp"
 )
 
 // GenerateChallenge creates a reasonable, 96 byte base64 challenge string

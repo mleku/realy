@@ -11,15 +11,15 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/rs/cors"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/list"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/realy/config"
-	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/servemux"
-	"realy.mleku.dev/signer"
-	"realy.mleku.dev/store"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/list"
+	"realy.lol/log"
+	"realy.lol/realy/config"
+	"realy.lol/realy/helpers"
+	"realy.lol/servemux"
+	"realy.lol/signer"
+	"realy.lol/store"
 )
 
 type Server struct {

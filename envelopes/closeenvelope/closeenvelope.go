@@ -5,10 +5,10 @@ package closeenvelope
 import (
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/codec"
-	"realy.mleku.dev/envelopes"
-	"realy.mleku.dev/subscription"
+	"realy.lol/chk"
+	"realy.lol/codec"
+	"realy.lol/envelopes"
+	"realy.lol/subscription"
 )
 
 // L is the label associated with this type of codec.Envelope.

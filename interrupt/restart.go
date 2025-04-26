@@ -8,7 +8,7 @@ import (
 
 	"github.com/kardianos/osext"
 
-	"realy.mleku.dev/log"
+	"realy.lol/log"
 )
 
 // Restart uses syscall.Exec to restart the process. MacOS and Windows are not implemented,

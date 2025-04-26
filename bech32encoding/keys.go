@@ -3,13 +3,13 @@ package bech32encoding
 import (
 	"bytes"
 
-	"realy.mleku.dev/chk"
-	btcec "realy.mleku.dev/ec"
-	"realy.mleku.dev/ec/bech32"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/ec/secp256k1"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/log"
+	"realy.lol/chk"
+	btcec "realy.lol/ec"
+	"realy.lol/ec/bech32"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/hex"
+	"realy.lol/log"
 )
 
 const (

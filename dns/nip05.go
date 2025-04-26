@@ -9,11 +9,11 @@ import (
 	"regexp"
 	"strings"
 
-	"realy.mleku.dev/bech32encoding/pointers"
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/keys"
+	"realy.lol/bech32encoding/pointers"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/errorf"
+	"realy.lol/keys"
 )
 
 // Nip05Regex is an regular expression that matches up with the same pattern as

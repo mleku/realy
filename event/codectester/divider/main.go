@@ -10,11 +10,11 @@ import (
 	"os"
 	"strings"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/interrupt"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/units"
+	"realy.lol/chk"
+	"realy.lol/event"
+	"realy.lol/interrupt"
+	"realy.lol/log"
+	"realy.lol/units"
 )
 
 func main() {

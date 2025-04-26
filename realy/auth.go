@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/httpauth"
-	"realy.mleku.dev/log"
+	"realy.lol/chk"
+	"realy.lol/httpauth"
+	"realy.lol/log"
 )
 
 func (s *Server) adminAuth(r *http.Request,

@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/ints"
-	"realy.mleku.dev/kind"
-	"realy.mleku.dev/tag"
+	"realy.lol/chk"
+	"realy.lol/errorf"
+	"realy.lol/event"
+	"realy.lol/ints"
+	"realy.lol/kind"
+	"realy.lol/tag"
 
-	"realy.mleku.dev/log"
+	"realy.lol/log"
 )
 
 var ErrMissingKey = fmt.Errorf(

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"net/http"
 
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/filters"
-	"realy.mleku.dev/log"
+	"realy.lol/context"
+	"realy.lol/ec/schnorr"
+	"realy.lol/filters"
+	"realy.lol/log"
 )
 
 func (s *Server) AcceptReq(c context.T, hr *http.Request, id []byte,

@@ -5,13 +5,13 @@ package authenvelope
 import (
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/codec"
-	envs "realy.mleku.dev/envelopes"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/text"
+	"realy.lol/chk"
+	"realy.lol/codec"
+	envs "realy.lol/envelopes"
+	"realy.lol/errorf"
+	"realy.lol/event"
+	"realy.lol/log"
+	"realy.lol/text"
 )
 
 // L is the label associated with this type of codec.Envelope.

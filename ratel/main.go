@@ -9,13 +9,13 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/lol"
-	"realy.mleku.dev/ratel/keys/serial"
-	"realy.mleku.dev/ratel/prefixes"
-	"realy.mleku.dev/store"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/log"
+	"realy.lol/lol"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
+	"realy.lol/store"
 )
 
 // DefaultMaxLimit is set to a size that means the usual biggest batch of events sent to a

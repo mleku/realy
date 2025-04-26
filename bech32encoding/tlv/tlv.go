@@ -6,7 +6,7 @@ package tlv
 import (
 	"io"
 
-	"realy.mleku.dev/chk"
+	"realy.lol/chk"
 )
 
 const (

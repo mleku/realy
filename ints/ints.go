@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/exp/constraints"
 
-	"realy.mleku.dev/errorf"
+	"realy.lol/errorf"
 )
 
 // run this to regenerate (pointlessly) the base 10 array of 4 places per entry

@@ -3,7 +3,7 @@ package bin
 import (
 	"encoding/binary"
 
-	"realy.mleku.dev/errorf"
+	"realy.lol/errorf"
 )
 
 // Append is a straight append with length prefix.

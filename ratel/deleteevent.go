@@ -3,19 +3,19 @@ package ratel
 import (
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/eventid"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/ratel/keys"
-	"realy.mleku.dev/ratel/keys/createdat"
-	"realy.mleku.dev/ratel/keys/id"
-	"realy.mleku.dev/ratel/keys/index"
-	"realy.mleku.dev/ratel/keys/serial"
-	"realy.mleku.dev/ratel/keys/tombstone"
-	"realy.mleku.dev/ratel/prefixes"
-	"realy.mleku.dev/timestamp"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/eventid"
+	"realy.lol/log"
+	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/id"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/keys/tombstone"
+	"realy.lol/ratel/prefixes"
+	"realy.lol/timestamp"
 )
 
 // DeleteEvent deletes an event if it exists, and writes a tombstone for the event unless

@@ -3,7 +3,7 @@
 package count
 
 import (
-	"realy.mleku.dev/timestamp"
+	"realy.lol/timestamp"
 )
 
 type Item struct {

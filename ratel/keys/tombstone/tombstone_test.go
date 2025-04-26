@@ -6,7 +6,7 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.mleku.dev/eventid"
+	"realy.lol/eventid"
 )
 
 func TestT(t *testing.T) {

@@ -5,9 +5,9 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ratel/prefixes"
-	"realy.mleku.dev/realy/config"
+	"realy.lol/chk"
+	"realy.lol/ratel/prefixes"
+	"realy.lol/realy/config"
 )
 
 // SetConfiguration stores the store.C value to a provided setting.

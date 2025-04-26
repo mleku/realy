@@ -1,8 +1,8 @@
 package ratel
 
 import (
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/log"
+	"realy.lol/chk"
+	"realy.lol/log"
 )
 
 // Close the database. If the Flatten flag was set, then trigger the flattening of tables before

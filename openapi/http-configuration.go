@@ -5,13 +5,13 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.mleku.dev/bech32encoding"
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/realy/config"
-	"realy.mleku.dev/realy/helpers"
+	"realy.lol/bech32encoding"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/hex"
+	"realy.lol/log"
+	"realy.lol/realy/config"
+	"realy.lol/realy/helpers"
 )
 
 // ConfigurationSetInput is the parameters for HTTP API method to set Configuration.

@@ -6,14 +6,14 @@ package okenvelope
 import (
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/codec"
-	"realy.mleku.dev/envelopes"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/eventid"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/sha256"
-	"realy.mleku.dev/text"
+	"realy.lol/chk"
+	"realy.lol/codec"
+	"realy.lol/envelopes"
+	"realy.lol/errorf"
+	"realy.lol/eventid"
+	"realy.lol/log"
+	"realy.lol/sha256"
+	"realy.lol/text"
 )
 
 // L is the label associated with this type of codec.Envelope.

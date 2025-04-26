@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/base64"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/text"
+	"realy.lol/chk"
+	"realy.lol/errorf"
+	"realy.lol/text"
 )
 
 // Base64 is a string representing binary data encoded as base64.

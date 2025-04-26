@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"sync"
 
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/filter"
-	"realy.mleku.dev/publish"
-	"realy.mleku.dev/publish/publisher"
-	"realy.mleku.dev/tag"
-	"realy.mleku.dev/typer"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/publish"
+	"realy.lol/publish/publisher"
+	"realy.lol/tag"
+	"realy.lol/typer"
 )
 
 const Type = "openapi"

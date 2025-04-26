@@ -6,11 +6,11 @@ package subscription
 import (
 	"crypto/rand"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec/bech32"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/text"
+	"realy.lol/chk"
+	"realy.lol/ec/bech32"
+	"realy.lol/errorf"
+	"realy.lol/log"
+	"realy.lol/text"
 )
 
 type Id struct {

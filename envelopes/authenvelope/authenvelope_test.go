@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"testing"
 
-	"realy.mleku.dev/auth"
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/envelopes"
-	"realy.mleku.dev/p256k"
+	"realy.lol/auth"
+	"realy.lol/chk"
+	"realy.lol/envelopes"
+	"realy.lol/p256k"
 )
 
 const relayURL = "wss://example.com"

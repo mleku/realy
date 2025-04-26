@@ -3,8 +3,8 @@ package openapi
 import (
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.mleku.dev/realy/interfaces"
-	"realy.mleku.dev/servemux"
+	"realy.lol/realy/interfaces"
+	"realy.lol/servemux"
 )
 
 type Operations struct {

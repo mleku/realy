@@ -1,7 +1,7 @@
 package index
 
 import (
-	"realy.mleku.dev/ratel/keys"
+	"realy.lol/ratel/keys"
 )
 
 type P byte

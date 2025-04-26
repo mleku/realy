@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"time"
 
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/filters"
-	"realy.mleku.dev/realy/config"
-	"realy.mleku.dev/store"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/filters"
+	"realy.lol/realy/config"
+	"realy.lol/store"
 )
 
 type Server interface {

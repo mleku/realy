@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"sort"
 
-	"realy.mleku.dev"
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/relayinfo"
+	"realy.lol"
+	"realy.lol/chk"
+	"realy.lol/log"
+	"realy.lol/relayinfo"
 )
 
 func (s *Server) HandleRelayInfo(w http.ResponseWriter, r *http.Request) {

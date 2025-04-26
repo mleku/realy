@@ -5,10 +5,10 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/eventidserial"
-	"realy.mleku.dev/realy/helpers"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/eventidserial"
+	"realy.lol/realy/helpers"
 )
 
 type EventIdsBySerialInput struct {

@@ -7,12 +7,12 @@ import (
 	"regexp"
 	"strings"
 
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/publish"
-	"realy.mleku.dev/reason"
-	"realy.mleku.dev/store"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/log"
+	"realy.lol/publish"
+	"realy.lol/reason"
+	"realy.lol/store"
 )
 
 var (

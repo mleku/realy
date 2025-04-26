@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"realy.mleku.dev/kind"
+	"realy.lol/kind"
 )
 
 func TestT(t *testing.T) {

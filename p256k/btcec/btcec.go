@@ -2,12 +2,12 @@
 package btcec
 
 import (
-	"realy.mleku.dev/chk"
-	ec "realy.mleku.dev/ec"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/ec/secp256k1"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/signer"
+	"realy.lol/chk"
+	ec "realy.lol/ec"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/errorf"
+	"realy.lol/signer"
 )
 
 // Signer is an implementation of signer.I that uses the btcec library.

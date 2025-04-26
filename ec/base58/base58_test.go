@@ -9,7 +9,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"realy.mleku.dev/ec/base58"
+	"realy.lol/ec/base58"
 )
 
 var stringTests = []struct {

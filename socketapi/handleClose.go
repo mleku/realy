@@ -1,11 +1,11 @@
 package socketapi
 
 import (
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/envelopes/closeenvelope"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/publish"
-	"realy.mleku.dev/realy/interfaces"
+	"realy.lol/chk"
+	"realy.lol/envelopes/closeenvelope"
+	"realy.lol/log"
+	"realy.lol/publish"
+	"realy.lol/realy/interfaces"
 )
 
 func (a *A) HandleClose(req []byte,

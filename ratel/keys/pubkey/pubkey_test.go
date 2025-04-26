@@ -6,8 +6,8 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec/schnorr"
+	"realy.lol/chk"
+	"realy.lol/ec/schnorr"
 )
 
 func TestT(t *testing.T) {

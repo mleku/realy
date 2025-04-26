@@ -6,10 +6,10 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/tag"
+	"realy.lol/chk"
+	"realy.lol/hex"
+	"realy.lol/log"
+	"realy.lol/tag"
 )
 
 func TestMarshalUnmarshal(t *testing.T) {

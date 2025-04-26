@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"realy.mleku.dev/chk"
+	"realy.lol/chk"
 )
 
 // Env is a key/value map used to represent environment variables. This is

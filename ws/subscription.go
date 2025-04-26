@@ -5,16 +5,16 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/envelopes/closeenvelope"
-	"realy.mleku.dev/envelopes/countenvelope"
-	"realy.mleku.dev/envelopes/reqenvelope"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/filters"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/subscription"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/envelopes/closeenvelope"
+	"realy.lol/envelopes/countenvelope"
+	"realy.lol/envelopes/reqenvelope"
+	"realy.lol/errorf"
+	"realy.lol/event"
+	"realy.lol/filters"
+	"realy.lol/log"
+	"realy.lol/subscription"
 )
 
 // Subscription is a client interface for a subscription (what REQ turns into after EOSE).

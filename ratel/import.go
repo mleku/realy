@@ -5,9 +5,9 @@ import (
 	"io"
 	"time"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/log"
+	"realy.lol/chk"
+	"realy.lol/event"
+	"realy.lol/log"
 )
 
 const maxLen = 500000000

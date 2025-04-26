@@ -3,13 +3,13 @@ package event
 import (
 	"bytes"
 
-	"realy.mleku.dev/chk"
-	sch "realy.mleku.dev/ec/schnorr"
-	k1 "realy.mleku.dev/ec/secp256k1"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/p256k"
-	"realy.mleku.dev/signer"
+	"realy.lol/chk"
+	sch "realy.lol/ec/schnorr"
+	k1 "realy.lol/ec/secp256k1"
+	"realy.lol/errorf"
+	"realy.lol/log"
+	"realy.lol/p256k"
+	"realy.lol/signer"
 )
 
 // Sign the event using the signer.I. Uses github.com/bitcoin-core/secp256k1 if

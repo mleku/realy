@@ -7,13 +7,13 @@ import (
 	"io"
 	"strings"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/ratel/keys"
-	"realy.mleku.dev/sha256"
+	"realy.lol/chk"
+	"realy.lol/errorf"
+	"realy.lol/ratel/keys"
+	"realy.lol/sha256"
 
-	"realy.mleku.dev/eventid"
-	"realy.mleku.dev/hex"
+	"realy.lol/eventid"
+	"realy.lol/hex"
 )
 
 const Len = 8

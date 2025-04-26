@@ -5,11 +5,11 @@ package reqenvelope
 import (
 	"io"
 
-	"realy.mleku.dev/codec"
-	"realy.mleku.dev/envelopes"
-	"realy.mleku.dev/filters"
-	"realy.mleku.dev/subscription"
-	"realy.mleku.dev/text"
+	"realy.lol/codec"
+	"realy.lol/envelopes"
+	"realy.lol/filters"
+	"realy.lol/subscription"
+	"realy.lol/text"
 )
 
 // L is the label associated with this type of codec.Envelope.

@@ -7,13 +7,13 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/httpauth"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/publish"
-	"realy.mleku.dev/realy/helpers"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/httpauth"
+	"realy.lol/log"
+	"realy.lol/publish"
+	"realy.lol/realy/helpers"
 )
 
 // RelayInput is the parameters for the Event HTTP API method.

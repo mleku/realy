@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/exp/constraints"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ints"
+	"realy.lol/chk"
+	"realy.lol/ints"
 )
 
 // T - which will be externally referenced as kind.T is the event type in the

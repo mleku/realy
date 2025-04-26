@@ -5,10 +5,10 @@ package schnorr
 import (
 	"fmt"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec"
-	"realy.mleku.dev/ec/chainhash"
-	"realy.mleku.dev/ec/secp256k1"
+	"realy.lol/chk"
+	"realy.lol/ec"
+	"realy.lol/ec/chainhash"
+	"realy.lol/ec/secp256k1"
 )
 
 const (

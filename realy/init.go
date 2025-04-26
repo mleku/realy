@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"strings"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/filter"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/kind"
-	"realy.mleku.dev/kinds"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/tag"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/hex"
+	"realy.lol/kind"
+	"realy.lol/kinds"
+	"realy.lol/log"
+	"realy.lol/tag"
 )
 
 func getFirstTime() (s string) {

@@ -6,7 +6,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 
-	"realy.mleku.dev/servemux"
+	"realy.lol/servemux"
 )
 
 // ExposeMiddleware adds the http.Request and http.ResponseWriter to the context

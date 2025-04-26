@@ -10,10 +10,10 @@ import (
 	"os"
 	"sort"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/lol"
-	"realy.mleku.dev/tag"
+	"realy.lol/chk"
+	"realy.lol/log"
+	"realy.lol/lol"
+	"realy.lol/tag"
 )
 
 // T is a list of tag.T - which are lists of string elements with ordering and no uniqueness

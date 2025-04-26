@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"realy.mleku.dev/hex"
+	"realy.lol/hex"
 )
 
 // SetHex decodes the passed big-endian hex string into the internal field value

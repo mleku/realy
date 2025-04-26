@@ -5,7 +5,7 @@
 package options
 
 import (
-	"realy.mleku.dev/event"
+	"realy.lol/event"
 )
 
 type SkipEventFunc func(*event.T) bool

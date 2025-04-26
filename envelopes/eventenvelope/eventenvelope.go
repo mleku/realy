@@ -5,12 +5,12 @@ package eventenvelope
 import (
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/codec"
-	"realy.mleku.dev/envelopes"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/subscription"
+	"realy.lol/chk"
+	"realy.lol/codec"
+	"realy.lol/envelopes"
+	"realy.lol/errorf"
+	"realy.lol/event"
+	"realy.lol/subscription"
 )
 
 // L is the label associated with this type of codec.Envelope.

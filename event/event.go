@@ -7,19 +7,19 @@ package event
 import (
 	"lukechampine.com/frand"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/eventid"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/kind"
-	"realy.mleku.dev/sha256"
-	"realy.mleku.dev/signer"
-	"realy.mleku.dev/tag"
-	"realy.mleku.dev/tags"
-	"realy.mleku.dev/text"
-	"realy.mleku.dev/timestamp"
-	"realy.mleku.dev/unix"
+	"realy.lol/chk"
+	"realy.lol/ec/schnorr"
+	"realy.lol/errorf"
+	"realy.lol/eventid"
+	"realy.lol/hex"
+	"realy.lol/kind"
+	"realy.lol/sha256"
+	"realy.lol/signer"
+	"realy.lol/tag"
+	"realy.lol/tags"
+	"realy.lol/text"
+	"realy.lol/timestamp"
+	"realy.lol/unix"
 )
 
 // T is the primary datatype of nostr. This is the form of the structure that

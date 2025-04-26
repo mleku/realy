@@ -6,9 +6,9 @@ import (
 
 	"github.com/templexxx/xhex"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/hex"
+	"realy.lol/chk"
+	"realy.lol/errorf"
+	"realy.lol/hex"
 )
 
 // JSONKey generates the JSON format for an object key and terminates with the semicolon.

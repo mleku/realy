@@ -9,8 +9,8 @@ import (
 	"math/rand"
 	"testing"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/hex"
+	"realy.lol/chk"
+	"realy.lol/hex"
 )
 
 // TestIsZero ensures that checking if a field IsZero works as expected.

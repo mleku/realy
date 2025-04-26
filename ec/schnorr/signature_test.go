@@ -13,10 +13,10 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec"
-	"realy.mleku.dev/ec/secp256k1"
-	"realy.mleku.dev/hex"
+	"realy.lol/chk"
+	"realy.lol/ec"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/hex"
 )
 
 type bip340Test struct {

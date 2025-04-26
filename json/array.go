@@ -3,8 +3,8 @@ package json
 import (
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/codec"
+	"realy.lol/chk"
+	"realy.lol/codec"
 )
 
 // An Array is an ordered list of values. Each field is typed, to deal with the javascript

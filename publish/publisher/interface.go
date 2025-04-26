@@ -1,8 +1,8 @@
 package publisher
 
 import (
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/typer"
+	"realy.lol/event"
+	"realy.lol/typer"
 )
 
 type I interface {

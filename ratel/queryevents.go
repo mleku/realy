@@ -8,19 +8,19 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/eventid"
-	"realy.mleku.dev/filter"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/ratel/keys/createdat"
-	"realy.mleku.dev/ratel/keys/serial"
-	"realy.mleku.dev/ratel/prefixes"
-	"realy.mleku.dev/realy/pointers"
-	"realy.mleku.dev/tag"
-	"realy.mleku.dev/timestamp"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/eventid"
+	"realy.lol/filter"
+	"realy.lol/hex"
+	"realy.lol/log"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
+	"realy.lol/realy/pointers"
+	"realy.lol/tag"
+	"realy.lol/timestamp"
 )
 
 func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {

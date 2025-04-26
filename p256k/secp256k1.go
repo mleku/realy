@@ -6,12 +6,12 @@ import (
 	"crypto/rand"
 	"unsafe"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/ec/secp256k1"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/sha256"
+	"realy.lol/chk"
+	"realy.lol/ec/schnorr"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/errorf"
+	"realy.lol/log"
+	"realy.lol/sha256"
 )
 
 /*

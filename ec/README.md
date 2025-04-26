@@ -1,4 +1,4 @@
-realy.mleku.dev/pkg/ec
+realy.lol/pkg/ec
 =====
 
 This is a full drop-in replacement for

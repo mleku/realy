@@ -3,16 +3,16 @@ package ratel
 import (
 	"github.com/dgraph-io/badger/v4"
 
-	"realy.mleku.dev/eventidserial"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/ratel/keys"
-	"realy.mleku.dev/ratel/keys/createdat"
-	"realy.mleku.dev/ratel/keys/fullid"
-	"realy.mleku.dev/ratel/keys/fullpubkey"
-	"realy.mleku.dev/ratel/keys/index"
-	"realy.mleku.dev/ratel/keys/serial"
-	"realy.mleku.dev/ratel/prefixes"
-	"realy.mleku.dev/timestamp"
+	"realy.lol/eventidserial"
+	"realy.lol/hex"
+	"realy.lol/ratel/keys"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/fullid"
+	"realy.lol/ratel/keys/fullpubkey"
+	"realy.lol/ratel/keys/index"
+	"realy.lol/ratel/keys/serial"
+	"realy.lol/ratel/prefixes"
+	"realy.lol/timestamp"
 )
 
 func (r *T) EventIdsBySerial(start uint64, count int) (evs []eventidserial.E,

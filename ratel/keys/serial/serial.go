@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ratel/keys"
+	"realy.lol/chk"
+	"realy.lol/ratel/keys"
 )
 
 const Len = 8

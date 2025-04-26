@@ -3,7 +3,7 @@ package nwc
 import (
 	"fmt"
 
-	"realy.mleku.dev/chk"
+	"realy.lol/chk"
 )
 
 func ExamplePayInvoiceRequest_Marshal() {

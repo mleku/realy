@@ -7,11 +7,11 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/kind"
-	"realy.mleku.dev/log"
+	"realy.lol/chk"
+	"realy.lol/ec/schnorr"
+	"realy.lol/hex"
+	"realy.lol/kind"
+	"realy.lol/log"
 )
 
 func TestT_Marshal_Unmarshal(t *testing.T) {

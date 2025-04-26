@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ratel/keys"
-	"realy.mleku.dev/sha256"
+	"realy.lol/chk"
+	"realy.lol/ratel/keys"
+	"realy.lol/sha256"
 
-	"realy.mleku.dev/eventid"
+	"realy.lol/eventid"
 )
 
 const Len = sha256.Size

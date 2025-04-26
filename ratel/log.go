@@ -5,9 +5,9 @@ import (
 	"runtime"
 	"strings"
 
-	"realy.mleku.dev/atomic"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/lol"
+	"realy.lol/atomic"
+	"realy.lol/log"
+	"realy.lol/lol"
 )
 
 // NewLogger creates a new badger logger.

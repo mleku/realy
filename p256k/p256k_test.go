@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/event/examples"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/p256k"
-	realy "realy.mleku.dev/signer"
+	"realy.lol/chk"
+	"realy.lol/ec/schnorr"
+	"realy.lol/event"
+	"realy.lol/event/examples"
+	"realy.lol/log"
+	"realy.lol/p256k"
+	realy "realy.lol/signer"
 )
 
 func TestSigner_Generate(t *testing.T) {

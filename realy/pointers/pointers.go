@@ -3,7 +3,7 @@ package pointers
 import (
 	"time"
 
-	"realy.mleku.dev/unix"
+	"realy.lol/unix"
 )
 
 // PointerToValue is a generic interface to refer to any pointer to almost any kind of common

@@ -3,8 +3,8 @@ package auth
 import (
 	"testing"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/p256k"
+	"realy.lol/chk"
+	"realy.lol/p256k"
 )
 
 func TestCreateUnsigned(t *testing.T) {

@@ -7,11 +7,11 @@ import (
 	"sort"
 	"sync"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/kinds"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/number"
-	"realy.mleku.dev/timestamp"
+	"realy.lol/chk"
+	"realy.lol/kinds"
+	"realy.lol/log"
+	"realy.lol/number"
+	"realy.lol/timestamp"
 )
 
 // NIP is a number and description of a nostr "improvement" possibility.

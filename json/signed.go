@@ -3,8 +3,8 @@ package json
 import (
 	"golang.org/x/exp/constraints"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ints"
+	"realy.lol/chk"
+	"realy.lol/ints"
 )
 
 // Signed integers can be negative and thus a `-` prefix.

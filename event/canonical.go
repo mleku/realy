@@ -3,16 +3,16 @@ package event
 import (
 	"reflect"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/codec"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/json"
-	"realy.mleku.dev/kind"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/tags"
-	"realy.mleku.dev/text"
-	"realy.mleku.dev/timestamp"
+	"realy.lol/chk"
+	"realy.lol/codec"
+	"realy.lol/errorf"
+	"realy.lol/hex"
+	"realy.lol/json"
+	"realy.lol/kind"
+	"realy.lol/log"
+	"realy.lol/tags"
+	"realy.lol/text"
+	"realy.lol/timestamp"
 )
 
 // ToCanonical converts the event to the canonical encoding used to derive the

@@ -1,10 +1,10 @@
 package json
 
 import (
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/text"
+	"realy.lol/chk"
+	"realy.lol/errorf"
+	"realy.lol/hex"
+	"realy.lol/text"
 )
 
 // Hex is a string representing binary data encoded as hexadecimal.

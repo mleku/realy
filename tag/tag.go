@@ -6,10 +6,10 @@ package tag
 import (
 	"bytes"
 
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/normalize"
-	"realy.mleku.dev/text"
+	"realy.lol/errorf"
+	"realy.lol/log"
+	"realy.lol/normalize"
+	"realy.lol/text"
 )
 
 // The tag position meanings, so they are clear when reading.

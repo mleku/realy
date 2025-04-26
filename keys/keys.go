@@ -5,10 +5,10 @@ package keys
 import (
 	"bytes"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/p256k"
+	"realy.lol/chk"
+	"realy.lol/ec/schnorr"
+	"realy.lol/hex"
+	"realy.lol/p256k"
 )
 
 // GeneratePrivateKey - deprecated, use GenerateSecretKeyHex

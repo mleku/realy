@@ -3,15 +3,15 @@ package realy
 import (
 	"bytes"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/ec/schnorr"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/kind"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/tag"
-	"realy.mleku.dev/tag/atag"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/ec/schnorr"
+	"realy.lol/event"
+	"realy.lol/hex"
+	"realy.lol/kind"
+	"realy.lol/log"
+	"realy.lol/tag"
+	"realy.lol/tag/atag"
 )
 
 func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,

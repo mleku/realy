@@ -6,8 +6,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/realy/helpers"
+	"realy.lol/context"
+	"realy.lol/realy/helpers"
 )
 
 type ShutdownInput struct {

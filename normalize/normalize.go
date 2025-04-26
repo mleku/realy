@@ -6,9 +6,9 @@ import (
 	"bytes"
 	"net/url"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/ints"
-	"realy.mleku.dev/log"
+	"realy.lol/chk"
+	"realy.lol/ints"
+	"realy.lol/log"
 )
 
 var (

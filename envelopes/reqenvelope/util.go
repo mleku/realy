@@ -1,7 +1,7 @@
 package reqenvelope
 
 import (
-	"realy.mleku.dev/lol"
+	"realy.lol/lol"
 )
 
 var (

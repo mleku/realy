@@ -5,10 +5,10 @@ package tombstone
 import (
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/eventid"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/ratel/keys"
+	"realy.lol/chk"
+	"realy.lol/eventid"
+	"realy.lol/log"
+	"realy.lol/ratel/keys"
 )
 
 const Len = 16

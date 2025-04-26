@@ -11,9 +11,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"realy.mleku.dev/ec/secp256k1"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/sha256"
+	"realy.lol/ec/secp256k1"
+	"realy.lol/hex"
+	"realy.lol/sha256"
 )
 
 // This example demonstrates use of GenerateSharedSecret to encrypt a message

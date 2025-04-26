@@ -7,9 +7,9 @@ import (
 	"bytes"
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/ratel/keys"
+	"realy.lol/chk"
+	"realy.lol/log"
+	"realy.lol/ratel/keys"
 )
 
 // T is an arbitrary length byte string. In any construction there can only be one with arbitrary length. Custom lengths

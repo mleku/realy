@@ -5,11 +5,11 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/store"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/log"
+	"realy.lol/realy/helpers"
+	"realy.lol/store"
 )
 
 type RescanInput struct {

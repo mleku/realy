@@ -6,7 +6,7 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.mleku.dev/sha256"
+	"realy.lol/sha256"
 )
 
 func TestT(t *testing.T) {

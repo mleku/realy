@@ -5,8 +5,8 @@ import (
 
 	"github.com/fasthttp/websocket"
 
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/log"
+	"realy.lol/context"
+	"realy.lol/log"
 )
 
 func (a *A) Pinger(ctx context.T, ticker *time.Ticker, cancel context.F, remote string) {

@@ -8,18 +8,18 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/context"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/filter"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/httpauth"
-	"realy.mleku.dev/ints"
-	"realy.mleku.dev/kind"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/realy/helpers"
-	"realy.mleku.dev/sha256"
-	"realy.mleku.dev/tag"
+	"realy.lol/chk"
+	"realy.lol/context"
+	"realy.lol/event"
+	"realy.lol/filter"
+	"realy.lol/hex"
+	"realy.lol/httpauth"
+	"realy.lol/ints"
+	"realy.lol/kind"
+	"realy.lol/log"
+	"realy.lol/realy/helpers"
+	"realy.lol/sha256"
+	"realy.lol/tag"
 )
 
 // EventInput is the parameters for the Event HTTP API method.

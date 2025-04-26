@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/hex"
+	"realy.lol/chk"
+	"realy.lol/hex"
 )
 
 func ExampleBool_Marshal() {

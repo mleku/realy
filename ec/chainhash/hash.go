@@ -9,8 +9,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/sha256"
+	"realy.lol/hex"
+	"realy.lol/sha256"
 )
 
 const (

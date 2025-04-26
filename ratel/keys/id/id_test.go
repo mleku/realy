@@ -6,8 +6,8 @@ import (
 
 	"lukechampine.com/frand"
 
-	"realy.mleku.dev/eventid"
-	"realy.mleku.dev/sha256"
+	"realy.lol/eventid"
+	"realy.lol/sha256"
 )
 
 func TestT(t *testing.T) {

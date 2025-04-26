@@ -1,9 +1,9 @@
 package socketapi
 
 import (
-	"realy.mleku.dev/envelopes/eid"
-	"realy.mleku.dev/envelopes/okenvelope"
-	"realy.mleku.dev/reason"
+	"realy.lol/envelopes/eid"
+	"realy.lol/envelopes/okenvelope"
+	"realy.lol/reason"
 )
 
 type OK func(a *A, env eid.Ider, format string, params ...any) (err error)

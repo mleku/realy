@@ -2,10 +2,10 @@
 package filters
 
 import (
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/errorf"
-	"realy.mleku.dev/event"
-	"realy.mleku.dev/filter"
+	"realy.lol/chk"
+	"realy.lol/errorf"
+	"realy.lol/event"
+	"realy.lol/filter"
 )
 
 // T is a wrapper around an array of pointers to filter.T.

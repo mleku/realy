@@ -1,15 +1,15 @@
 package realy
 
 import (
-	"realy.mleku.dev/bech32encoding"
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/hex"
-	"realy.mleku.dev/log"
-	"realy.mleku.dev/lol"
-	"realy.mleku.dev/p256k"
-	"realy.mleku.dev/realy/config"
-	"realy.mleku.dev/signer"
-	"realy.mleku.dev/store"
+	"realy.lol/bech32encoding"
+	"realy.lol/chk"
+	"realy.lol/hex"
+	"realy.lol/log"
+	"realy.lol/lol"
+	"realy.lol/p256k"
+	"realy.lol/realy/config"
+	"realy.lol/signer"
+	"realy.lol/store"
 )
 
 func (s *Server) UpdateConfiguration() (err error) {

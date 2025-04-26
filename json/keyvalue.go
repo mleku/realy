@@ -3,8 +3,8 @@ package json
 import (
 	"io"
 
-	"realy.mleku.dev/chk"
-	"realy.mleku.dev/codec"
+	"realy.lol/chk"
+	"realy.lol/codec"
 )
 
 // An Object is an (not necessarily) ordered list of KeyValue.
