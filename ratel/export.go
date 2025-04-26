@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"runtime/debug"
 
 	"github.com/dgraph-io/badger/v4"
 
@@ -224,6 +225,7 @@ func (r *T) BlanketDownload(c context.T, w io.Writer) (counter int, err error) {
 			counter++
 			if counter%1000 == 0 && counter > 0 {
 				log.I.F("%d events exported", counter)
+				debug.FreeOSMemory()
 			}
 		}
 		return

@@ -3,7 +3,7 @@ package ratel
 import (
 	"bufio"
 	"io"
-	"time"
+	"runtime/debug"
 
 	"realy.lol/chk"
 	"realy.lol/event"
@@ -36,9 +36,9 @@ func (r *T) Import(rr io.Reader) {
 		b = nil
 		ev = nil
 		count++
-		if count%1000 == 0 {
+		if count%100 == 0 {
 			log.I.F("received %d events", count)
-			time.Sleep(time.Second)
+			debug.FreeOSMemory()
 		}
 	}
 	log.I.F("read %d bytes and saved %d events", total, count)
