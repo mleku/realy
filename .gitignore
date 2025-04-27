@@ -75,6 +75,11 @@ node_modules/**
 !*.css
 !*.ts
 !*.html
+!Dockerfile
+!*.lock
+!*.nix
+!license
+!readme
 
 # ...even if they are in subdirectories
 !*/
