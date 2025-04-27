@@ -10,6 +10,7 @@ import (
 
 	"realy.lol/chk"
 	"realy.lol/context"
+	"realy.lol/event"
 	"realy.lol/filter"
 	"realy.lol/hex"
 	"realy.lol/log"
@@ -42,7 +43,8 @@ func (r *T) Export(c context.T, w io.Writer, pubkeys ...[]byte) {
 		if queries, _, _, err = PrepareQueries(fa); chk.E(err) {
 			return
 		}
-		pTag := [][]byte{[]byte("#b")}
+		// also export events with p tags matching the requested pubkeys
+		pTag := [][]byte{[]byte("#p")}
 		pTag = append(pTag, pubkeys...)
 		fp := &filter.T{Tags: tags.New(tag.New(pTag...))}
 		var queries2 []query
@@ -180,8 +182,21 @@ func (r *T) EventWriterLoop(c context.T, w io.Writer, keyChan chan []byte, quit 
 					count++
 					item := it.Item()
 					if err = item.Value(func(eventValue []byte) (err error) {
-						// send the event to client (no need to re-encode it)
-						if _, err = fmt.Fprintf(w, "%s\n", eventValue); chk.E(err) {
+						// send the event to client
+						var b []byte
+						if r.Binary {
+							ev := event.New()
+							if _, err = r.Unmarshal(ev, eventValue); chk.E(err) {
+								return
+							}
+							b = ev.Marshal(eventValue)
+						} else {
+							b = eventValue
+						}
+						if _, err = w.Write(b); chk.E(err) {
+							return
+						}
+						if _, err = w.Write([]byte{'\n'}); chk.E(err) {
 							return
 						}
 						return

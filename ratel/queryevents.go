@@ -192,13 +192,9 @@ func (r *T) FilterSortAndLimit(evMap map[string]*event.T, limit int) (evs event.
 
 func (r *T) ProcessFoundEvent(item *badger.Item, delEvs [][]byte) (dEvs [][]byte, ev *event.T, err error) {
 	err = item.Value(func(eventValue []byte) (err error) {
-		var rem []byte
 		ev = &event.T{}
-		if rem, err = ev.Unmarshal(eventValue); chk.E(err) {
+		if _, err = r.Unmarshal(ev, eventValue); chk.E(err) {
 			return
-		}
-		if len(rem) > 0 {
-			log.T.S(rem)
 		}
 		if et := ev.Tags.GetFirst(tag.New("expiration")); et != nil {
 			var exp uint64

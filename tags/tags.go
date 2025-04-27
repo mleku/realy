@@ -10,6 +10,8 @@ import (
 	"os"
 	"sort"
 
+	"golang.org/x/exp/constraints"
+
 	"realy.lol/chk"
 	"realy.lol/log"
 	"realy.lol/lol"
@@ -34,7 +36,7 @@ func New(fields ...*tag.T) (t *T) {
 }
 
 // NewWithCap creates a tags.T with space pre-allocated for a number of tag.T elements.
-func NewWithCap(c int) (t *T) {
+func NewWithCap[V constraints.Integer](c V) (t *T) {
 	return &T{element: make([]*tag.T, 0, c)}
 }
 

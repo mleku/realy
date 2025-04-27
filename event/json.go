@@ -230,7 +230,7 @@ InVal:
 			if !bytes.Equal(jCreatedAt, key) {
 				goto invalid
 			}
-			ev.CreatedAt = timestamp.New()
+			ev.CreatedAt = timestamp.New(uint(0))
 			if r, err = ev.CreatedAt.Unmarshal(r); chk.T(err) {
 				return
 			}

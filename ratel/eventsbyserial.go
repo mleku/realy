@@ -32,7 +32,7 @@ func (r *T) EventIdsBySerial(start uint64, count int) (evs []eventidserial.E,
 			item := it.Item()
 			k := item.KeyCopy(nil)
 			id := fullid.New()
-			ts := createdat.New(timestamp.New())
+			ts := createdat.New(timestamp.New(uint(0)))
 			pk := fullpubkey.New()
 			keys.Read(k, index.New(0), ser, id, pk, ts)
 			// counter++

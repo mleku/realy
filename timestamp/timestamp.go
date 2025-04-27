@@ -7,6 +7,8 @@ import (
 	"time"
 	"unsafe"
 
+	"golang.org/x/exp/constraints"
+
 	"realy.lol/chk"
 	"realy.lol/errorf"
 	"realy.lol/ints"
@@ -18,10 +20,10 @@ type T struct{ V int64 }
 
 // New creates a new timestamp.T, as zero or optionally from teh first variadic parameter as
 // int64.
-func New(x ...int64) (t *T) {
+func New[V constraints.Integer](x ...V) (t *T) {
 	t = &T{}
 	if len(x) > 0 {
-		t.V = x[0]
+		t.V = int64(x[0])
 	}
 	return
 }

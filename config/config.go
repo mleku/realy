@@ -22,6 +22,7 @@ type C struct {
 	Port      int    `env:"PORT" default:"3334" usage:"network listen port"`
 	Pprof     bool   `env:"PPROF" default:"false" usage:"enable pprof on 127.0.0.1:6060"`
 	Superuser string `env:"SUPERUSER" usage:"superuser npub/hex public key"`
+	Binary    bool   `env:"BINARY" usage:"use binary encoder for database" default:"false"`
 }
 
 func New() (c *C) {

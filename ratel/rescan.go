@@ -44,13 +44,9 @@ func (r *T) Rescan() (err error) {
 					return
 				}
 				ser := serial.FromKey(key)
-				var rem []byte
 				ev := &event.T{}
-				if rem, err = ev.Unmarshal(evB); chk.E(err) {
+				if _, err = r.Unmarshal(ev, evB); chk.E(err) {
 					return
-				}
-				if len(rem) > 0 {
-					log.T.S(rem)
 				}
 				// 	add the indexes
 				var indexKeys [][]byte

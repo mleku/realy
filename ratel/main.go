@@ -42,6 +42,9 @@ type T struct {
 	// Flatten should be set to true to trigger a flatten at close... this is mainly
 	// triggered by running an import
 	Flatten bool
+	// Binary sets whether to use a fast streaming binary codec for events, to change to this,
+	// events must be exported, the database nuked and the events re-imported.
+	Binary bool
 }
 
 func (r *T) SetLogLevel(level string) {
@@ -56,13 +59,13 @@ type BackendParams struct {
 	Ctx                                context.T
 	WG                                 *sync.WaitGroup
 	BlockCacheSize, LogLevel, MaxLimit int
-	Extra                              []int
+	Binary                             bool
 }
 
 // New configures a a new ratel.T event store.
 func New(p BackendParams) *T {
 	return GetBackend(p.Ctx, p.WG, p.BlockCacheSize, p.LogLevel,
-		p.MaxLimit)
+		p.MaxLimit, p.Binary)
 }
 
 // GetBackend returns a reasonably configured badger.Backend.
@@ -75,7 +78,7 @@ func New(p BackendParams) *T {
 //
 // Deprecated: use New instead.
 func GetBackend(Ctx context.T, WG *sync.WaitGroup,
-	blockCacheSize, logLevel, maxLimit int) (b *T) {
+	blockCacheSize, logLevel, maxLimit int, binary bool) (b *T) {
 	// if unset, assume a safe maximum limit for unlimited filters.
 	if maxLimit == 0 {
 		maxLimit = 512
@@ -86,6 +89,7 @@ func GetBackend(Ctx context.T, WG *sync.WaitGroup,
 		BlockCacheSize: blockCacheSize,
 		InitLogLevel:   logLevel,
 		MaxLimit:       maxLimit,
+		Binary:         binary,
 	}
 	return
 }

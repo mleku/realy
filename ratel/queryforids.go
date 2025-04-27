@@ -100,12 +100,8 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 					item := it.Item()
 					ev := &event.T{}
 					if err = item.Value(func(eventValue []byte) (err error) {
-						var rem []byte
-						if rem, err = ev.Unmarshal(eventValue); chk.E(err) {
+						if _, err = r.Unmarshal(ev, eventValue); chk.E(err) {
 							return
-						}
-						if len(rem) > 0 {
-							log.T.S(rem)
 						}
 						if et := ev.Tags.GetFirst(tag.New("expiration")); et != nil {
 							var exp uint64
@@ -159,7 +155,7 @@ func (r *T) QueryForIds(c context.T, f *filter.T) (founds []store.IdTsPk, err er
 			if it.ValidForPrefix(prf) {
 				k := it.Item().KeyCopy(nil)
 				id := fullid.New()
-				ts := createdat.New(timestamp.New())
+				ts := createdat.New(timestamp.New(uint(0)))
 				pk := fullpubkey.New()
 				keys.Read(k, index.New(0), serial.New(nil), id, pk, ts)
 				ff := store.IdTsPk{

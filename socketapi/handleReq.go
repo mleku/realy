@@ -48,7 +48,7 @@ func (a *A) HandleReq(c context.T, req []byte, srv interfaces.Server, aut []byte
 	if !accepted || allowed == nil || modified {
 		if authRequired && !authRequested {
 			a.Listener.RequestAuth()
-			if _, err = a.AuthRequiredResponse(env, remote, aut); chk.E(err) {
+			if _, err = a.AuthRequiredResponse(env, remote, aut, reason.AuthRequired); chk.E(err) {
 				return
 			}
 			if !modified {
@@ -61,7 +61,7 @@ func (a *A) HandleReq(c context.T, req []byte, srv interfaces.Server, aut []byte
 		defer func() {
 			if authRequired && !authRequested {
 				a.Listener.RequestAuth()
-				if notice, err = a.AuthRequiredResponse(env, remote, aut); chk.E(err) {
+				if notice, err = a.AuthRequiredResponse(env, remote, aut, reason.AuthRequired); chk.E(err) {
 					return
 				}
 				return
@@ -148,7 +148,7 @@ func (a *A) HandleAuthPrivilege(env *reqenvelope.T, f *filter.T, aut []byte, rem
 	receivers := f.Tags.GetAll(tag.New("#p"))
 	switch {
 	case len(a.Listener.Authed()) == 0:
-		if notice, err = a.AuthRequiredResponse(env, remote, aut); chk.E(err) {
+		if notice, err = a.AuthRequiredResponse(env, remote, aut, reason.AuthRequired); chk.E(err) {
 			return
 		}
 		return
@@ -204,7 +204,7 @@ func (a *A) CheckPrivilege(events event.Ts, f *filter.T, env *reqenvelope.T,
 		// if auth is required, kind is privileged and there is no authed pubkey, skip
 		if authRequired && isPrivileged && len(aut) == 0 {
 			log.I.F("privileged and not authed")
-			if notice, err = a.AuthRequiredResponse(env, remote, aut); chk.E(err) {
+			if notice, err = a.AuthRequiredResponse(env, remote, aut, reason.Restricted); chk.E(err) {
 				return
 			}
 			return
@@ -215,7 +215,7 @@ func (a *A) CheckPrivilege(events event.Ts, f *filter.T, env *reqenvelope.T,
 			!receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes()))) {
 
 			log.I.F("%v && (%v || %v)", isPrivileged, !bytes.Equal(ev.Pubkey, aut), !receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes())))
-			if notice, err = a.AuthRequiredResponse(env, remote, aut); chk.E(err) {
+			if notice, err = a.AuthRequiredResponse(env, remote, aut, reason.Restricted); chk.E(err) {
 				return
 			}
 			return
@@ -244,9 +244,9 @@ func (a *A) WriteEvents(events event.Ts, env *reqenvelope.T, i int) (err error) 
 	return
 }
 
-func (a *A) AuthRequiredResponse(env *reqenvelope.T, remote string, aut []byte) (notice []byte, err error) {
+func (a *A) AuthRequiredResponse(env *reqenvelope.T, remote string, aut []byte, r reason.R) (notice []byte, err error) {
 	if err = closedenvelope.NewFrom(env.Subscription,
-		reason.AuthRequired.F(privilegedClosedNotice)).Write(a.Listener); chk.E(err) {
+		r.F(privilegedClosedNotice)).Write(a.Listener); chk.E(err) {
 	}
 	if len(aut) < 1 {
 		log.I.F("requesting auth from client from %s %0x", remote, a.Listener.AuthedBytes())
@@ -254,7 +254,7 @@ func (a *A) AuthRequiredResponse(env *reqenvelope.T, remote string, aut []byte) 
 			return
 		}
 	}
-	notice = reason.Restricted.F(privilegedNotice)
+	notice = r.F(privilegedNotice)
 	return
 }
 

@@ -60,15 +60,9 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 			if evb, err = it.Item().ValueCopy(evb); chk.E(err) {
 				return
 			}
-			// log.I.S(evb)
-			var rem []byte
-			if rem, err = ev.Unmarshal(evb); chk.E(err) {
+			if _, err = r.Unmarshal(ev, evb); chk.E(err) {
 				return
 			}
-			if len(rem) != 0 {
-				log.I.S(rem)
-			}
-			// log.I.S(rem, ev, seri)
 			indexKeys = GetIndexKeysForEvent(ev, seri)
 			// we don't make tombstones for replacements, but it is better to shift that
 			// logic outside of this closure.

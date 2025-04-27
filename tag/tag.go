@@ -6,6 +6,8 @@ package tag
 import (
 	"bytes"
 
+	"golang.org/x/exp/constraints"
+
 	"realy.lol/errorf"
 	"realy.lol/log"
 	"realy.lol/normalize"
@@ -46,7 +48,7 @@ func New[V string | []byte](fields ...V) (t *T) {
 }
 
 // NewWithCap creates a new empty tag.T with a pre-allocated capacity for some number of fields.
-func NewWithCap(c int) *T { return &T{make([]BS[[]byte], 0, c)} }
+func NewWithCap[V constraints.Integer](c V) *T { return &T{make([]BS[[]byte], 0, c)} }
 
 // S returns a field of a tag.T as a string.
 func (t *T) S(i int) (s string) {
