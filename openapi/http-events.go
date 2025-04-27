@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/rickb777/acceptable/header"
 
 	"realy.lol/chk"
 	"realy.lol/context"
@@ -20,8 +21,13 @@ import (
 
 // EventsInput is the parameters for an Events HTTP API method. Basically an array of eventid.T.
 type EventsInput struct {
-	Auth string   `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false"`
-	Body []string `doc:"list of event Ids"`
+	Auth   string   `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false"`
+	Accept string   `header:"Accept" default:"application/nostr+json;q=0.9,application/x-realy-event;q=0.1" doc:"event encoding format that is expected, priority using mimetype;q=0.x will indicate preference when multiple are available"`
+	Body   []string `doc:"list of event Ids"`
+}
+
+type EventsOutput struct {
+	Limit int `header:"X-Limit" default:"1000" doc:"informs client maximum number of events that they can request"`
 }
 
 // RegisterEvents is the implementation of the HTTP API for Events.
@@ -32,15 +38,14 @@ func (x *Operations) RegisterEvents(api huma.API) {
 	scopes := []string{"user", "read"}
 	method := http.MethodPost
 	huma.Register(api, huma.Operation{
-		OperationID:   name,
-		Summary:       name,
-		Path:          path,
-		Method:        method,
-		Tags:          []string{"events"},
-		Description:   helpers.GenerateDescription(description, scopes),
-		Security:      []map[string][]string{{"auth": scopes}},
-		DefaultStatus: 204,
-	}, func(ctx context.T, input *EventsInput) (output *huma.StreamResponse, err error) {
+		OperationID: name,
+		Summary:     name,
+		Path:        path,
+		Method:      method,
+		Tags:        []string{"events"},
+		Description: helpers.GenerateDescription(description, scopes),
+		Security:    []map[string][]string{{"auth": scopes}},
+	}, func(ctx context.T, input *EventsInput) (output *struct{}, err error) {
 		// log.I.S(input)
 		if len(input.Body) == 10000 {
 			err = huma.Error400BadRequest(
@@ -51,6 +56,10 @@ func (x *Operations) RegisterEvents(api huma.API) {
 		var authrequired bool
 		if len(input.Body) > 1000 || x.Server.AuthRequired() {
 			authrequired = true
+		}
+		limit := 1000
+		if !authrequired {
+			limit = 10000
 		}
 		r := ctx.Value("http-request").(*http.Request)
 		var valid bool
@@ -97,14 +106,27 @@ func (x *Operations) RegisterEvents(api huma.API) {
 			}
 			evIds = append(evIds, idb)
 		}
+
 		if idsWriter, ok := sto.(store.GetIdsWriter); ok {
-			output = &huma.StreamResponse{
-				func(ctx huma.Context) {
-					if err = idsWriter.FetchIds(x.Context(), tag.New(evIds...),
-						ctx.BodyWriter()); chk.E(err) {
-						return
-					}
-				},
+			w := ctx.Value("http-response").(http.ResponseWriter)
+			var binary bool
+			precedence := header.ParsePrecedenceValues(r.Header.Get("Accept"))
+		done:
+			for _, v := range precedence {
+				switch v.Value {
+				case "application/x-realy-event":
+					binary = true
+					break done
+				case "application/nostr+json":
+					break done
+				default:
+					break done
+				}
+			}
+			w.WriteHeader(200)
+			w.Header().Set("X-Limit", fmt.Sprint(limit))
+			if err = idsWriter.FetchIds(w, x.Context(), tag.New(evIds...), binary); chk.E(err) {
+				return
 			}
 		}
 		return

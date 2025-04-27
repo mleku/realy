@@ -16,8 +16,9 @@ import (
 
 // ConfigurationSetInput is the parameters for HTTP API method to set Configuration.
 type ConfigurationSetInput struct {
-	Auth string   `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true"`
-	Body config.C `doc:"the new configuration"`
+	Auth   string   `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"true"`
+	Body   config.C `doc:"the new configuration"`
+	Accept string   `header:"Accept" default:"application/json" required:"false"`
 }
 
 // ConfigurationGetInput is the parameters for HTTP API method to get Configuration.

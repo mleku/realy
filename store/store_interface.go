@@ -72,7 +72,7 @@ type Querier interface {
 }
 
 type GetIdsWriter interface {
-	FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error)
+	FetchIds(w io.Writer, c context.T, evIds *tag.T, binary bool) (err error)
 }
 
 type Deleter interface {

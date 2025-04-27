@@ -46,6 +46,7 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rickb777/acceptable v0.46.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287 // indirect
 	github.com/templexxx/cpu v0.1.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

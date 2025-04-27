@@ -1,12 +1,14 @@
 package ratel
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/dgraph-io/badger/v4"
 
 	"realy.lol/chk"
 	"realy.lol/context"
+	"realy.lol/event"
 	"realy.lol/ratel/keys/id"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/prefixes"
@@ -14,7 +16,7 @@ import (
 )
 
 // FetchIds retrieves events based on a list of event Ids that have been provided.
-func (r *T) FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error) {
+func (r *T) FetchIds(w io.Writer, c context.T, evIds *tag.T, binary bool) (err error) {
 	b := make([]byte, 0, 100000)
 	err = r.View(func(txn *badger.Txn) (err error) {
 		for _, v := range evIds.ToSliceOfBytes() {
@@ -38,11 +40,30 @@ func (r *T) FetchIds(c context.T, evIds *tag.T, out io.Writer) (err error) {
 			if b, err = item.ValueCopy(nil); chk.E(err) {
 				return
 			}
-			if _, err = out.Write(b); chk.E(err) {
+			if binary {
+				if !r.Binary {
+					ev := event.New()
+					if b, err = ev.Unmarshal(b); chk.E(err) {
+						return
+					}
+					ev.MarshalBinary(w)
+					continue
+				}
+			} else {
+				if r.Binary {
+					ev := event.New()
+					buf := bytes.NewBuffer(b)
+					if err = ev.UnmarshalBinary(buf); chk.E(err) {
+						return
+					}
+					b = ev.Marshal(nil)
+				}
+			}
+			if _, err = w.Write(b); chk.E(err) {
 				return
 			}
 			// add the new line after entries
-			if _, err = out.Write([]byte{'\n'}); chk.E(err) {
+			if _, err = w.Write([]byte{'\n'}); chk.E(err) {
 				return
 			}
 		}

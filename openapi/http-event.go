@@ -25,6 +25,7 @@ import (
 // EventInput is the parameters for the Event HTTP API method.
 type EventInput struct {
 	Auth    string `header:"Authorization" doc:"nostr nip-98 (and expiring variant)" required:"false"`
+	Accept  string `header:"Accept" default:"application/nostr+json;q=0.9,application/x-realy-event:q=0.1"`
 	RawBody []byte
 }
 
