@@ -1,4 +1,4 @@
-module git.icyphox.sh/legit
+module realy.lol/cmd/legit
 
 go 1.22.0
 

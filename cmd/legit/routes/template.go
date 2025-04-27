@@ -13,7 +13,7 @@ import (
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/alecthomas/chroma/v2/styles"
 
-	"git.icyphox.sh/legit/git"
+	"realy.lol/cmd/legit/git"
 )
 
 func (d *deps) Write404(w http.ResponseWriter) {

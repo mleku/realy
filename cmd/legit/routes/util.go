@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.icyphox.sh/legit/git"
+	"realy.lol/cmd/legit/git"
 )
 
 func isGoModule(gr *git.GitRepo) bool {

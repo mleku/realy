@@ -18,8 +18,8 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
 
-	"git.icyphox.sh/legit/config"
-	"git.icyphox.sh/legit/git"
+	"realy.lol/cmd/legit/config"
+	"realy.lol/cmd/legit/git"
 )
 
 type deps struct {

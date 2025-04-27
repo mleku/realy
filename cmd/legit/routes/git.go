@@ -9,7 +9,7 @@ import (
 
 	securejoin "github.com/cyphar/filepath-securejoin"
 
-	"git.icyphox.sh/legit/git/service"
+	"realy.lol/cmd/legit/git/service"
 )
 
 func (d *deps) InfoRefs(w http.ResponseWriter, r *http.Request) {
