@@ -3,11 +3,11 @@ module realy.lol
 go 1.24.2
 
 require (
-	gio.mleku.dev v0.8.0-mleku
+	cogentcore.org/core v0.3.10
 	github.com/adrg/xdg v0.5.3
 	github.com/alexflint/go-arg v1.5.1
 	github.com/danielgtaylor/huma/v2 v2.32.0
-	github.com/davecgh/go-spew v1.1.1
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/dgraph-io/badger/v4 v4.7.0
 	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.18.0
@@ -24,7 +24,6 @@ require (
 	go-simpler.org/env v0.12.0
 	golang.org/x/crypto v0.37.0
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
-	golang.org/x/exp/shiny v0.0.0-20250408133849-7e4ce0ab07d0
 	golang.org/x/lint v0.0.0-20241112194109-818c5a804067
 	golang.org/x/net v0.39.0
 	golang.org/x/sync v0.13.0
@@ -33,24 +32,40 @@ require (
 )
 
 require (
-	gioui.org/shader v1.0.8 // indirect
+	github.com/Bios-Marcel/wastebasket/v2 v2.0.3 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
+	github.com/Masterminds/vcs v1.13.3 // indirect
 	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/anthonynsimon/bild v0.13.0 // indirect
+	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/chewxy/math32 v1.10.1 // indirect
+	github.com/cogentcore/webgpu v0.0.0-20250118183535-3dd1436165cf // indirect
 	github.com/dgraph-io/ristretto/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20240506104042-037f3cc74f2a // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-text/typesetting v0.3.0 // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/goki/freetype v1.0.5 // indirect
 	github.com/google/flatbuffers v25.2.10+incompatible // indirect
 	github.com/google/pprof v0.0.0-20250423184734-337e5dd93bb4 // indirect
+	github.com/gorilla/css v1.0.1 // indirect
+	github.com/h2non/filetype v1.1.3 // indirect
+	github.com/hack-pad/go-indexeddb v0.3.2 // indirect
+	github.com/hack-pad/hackpadfs v0.2.1 // indirect
+	github.com/hack-pad/safejs v0.1.1 // indirect
+	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287 // indirect
 	github.com/templexxx/cpu v0.1.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
