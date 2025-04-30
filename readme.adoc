@@ -24,6 +24,98 @@ and https://github.com/fiatjaf/relayer[fiatjaf/relayer] aimed at maximum perform
 * reverse proxy tool link:cmd/lerproxy[lerproxy] with support for Go vanity imports and https://github.com/nostr-protocol/nips/blob/master/05.md[nip-05] npub DNS verification and own TLS certificates
 * link:https://github.com/nostr-protocol/nips/blob/master/98.md[nip-98] implementation with new expiring variant for vanilla HTTP tools and browsers.
 
+== Configuration
+
+There is very minimal configuration in the main runtime, because it has been deliberately minimized  to make it less work to administer.
+
+The HTTP endpoint at `/api` has documentation that you can see and every item in it is explained briefly.
+
+Everything that can and should be dynamically configured is part of the `/api/configuration` data, which you set with `/api/configuration/set` and read with the `/api/configuration/get`
+
+This currently includes the following settings:
+
+    admins
+    Type:[ "array", "null" ] string[]
+    required
+    list of npubs that have admin access
+
+    allow_list
+    Type:[ "array", "null" ] string[]
+    required
+    List of allowed IP addresses
+
+    app_name
+    Type:string
+    default:
+    realy
+    required
+    application name
+
+    auth_required
+    Type:boolean
+    default:
+    false
+    required
+    authentication is required for read and write
+
+    block_list
+    Type:[ "array", "null" ] string[]
+    required
+    list of IP addresses that will be ignored
+
+    db_log_level
+    Type:string
+    default:
+    info
+    required
+    database log level
+
+    log_level
+    Type:string
+    required
+    Log level
+
+    log_timestamp
+    Type:boolean
+    default:
+    false
+    required
+    print log timestamp
+
+    owners
+    Type:[ "array", "null" ] string[]
+    required
+    list of owner npubs whose follow lists set the whitelisted users and enables auth implicitly for all writes
+
+    public_readable
+    Type:boolean
+    default:
+    false
+    required
+    authentication is relaxed for read except privileged events
+
+This list may get out of sync with this documentation because simply running the relay you can access these endpoints. They are the original "source of truth" for how you can configure the relay, other than that, there is the environment variables, which you can get by running the relay and using the command `env` and get a result like this:
+
+    #!/usr/bin/env bash
+    export APP_NAME=realy
+    export BINARY=false
+    export LISTEN=0.0.0.0
+    export PORT=3334
+    export PPROF=false
+    export SUPERUSER=npub1fjqqy4a93z5zsjwsfxqhc2764kvykfdyttvldkkkdera8dr78vhsmmleku
+
+This output is configured as a shell script, because that is the simplest way to use it. This is standardised and if you run this script, and then run the relay in a normal shell environment, you will get it running the configuration you want.
+
+The Binary option is highly recommended to be set to true, because the binary database encoding is about 3x faster than the already fast JSON encoding that is default as with the setting shown above.
+
+The rest should be self-explanatory, except for `SUPERUSER` which sets a static npub that you can't change with the `/api/configuration/*` endpoints, and that configuration refuses to allow no `admins` to be set, anyway.
+
+=== Authentication for Admin
+
+Authentication is required to read and write to the endpoints tagged "admin" in the `/api` endpoint that you must use some other tool that can do `cURL` style requests, or you can use the ones i created that are very bare minimal:
+
+- `cmd/nauth` contains a tool that requires the environment variable `NOSTR_SECRET_KEY` to have your nsec or hex secret key
+
 == Building
 
 If you just want to make it run from source, you should check out a tagged version.
