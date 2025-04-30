@@ -26,6 +26,16 @@ and https://github.com/fiatjaf/relayer[fiatjaf/relayer] aimed at maximum perform
 
 == Configuration
 
+=== Authentication for Admin
+
+Authentication is required to read and write to the endpoints tagged "admin" in the `/api` endpoint that you must use some other tool that can do `cURL` style requests, or you can use the ones i created that are very bare minimal:
+
+- `cmd/nauth` contains a tool that requires the environment variable `NOSTR_SECRET_KEY` to have your nsec or hex secret key, and
+
+- `cmd/nurl` is a simple `cURL` like tool limited to only printing responses from GET, or if you put a filename after the URL, it pushes it with a POST. This can be used to read and write from the API for all endpoints you can see when you go to `/api` on a running instance. It is not featureful because there is a planned web UI that replaces what is currently available with one that can do nostr `NIP-98` http authentication which will be the preferred way (and only advanced way) to access the configuration.
+
+=== Configuration API
+
 There is very minimal configuration in the main runtime, because it has been deliberately minimized  to make it less work to administer.
 
 The HTTP endpoint at `/api` has documentation that you can see and every item in it is explained briefly.
@@ -109,12 +119,6 @@ This output is configured as a shell script, because that is the simplest way to
 The Binary option is highly recommended to be set to true, because the binary database encoding is about 3x faster than the already fast JSON encoding that is default as with the setting shown above.
 
 The rest should be self-explanatory, except for `SUPERUSER` which sets a static npub that you can't change with the `/api/configuration/*` endpoints, and that configuration refuses to allow no `admins` to be set, anyway.
-
-=== Authentication for Admin
-
-Authentication is required to read and write to the endpoints tagged "admin" in the `/api` endpoint that you must use some other tool that can do `cURL` style requests, or you can use the ones i created that are very bare minimal:
-
-- `cmd/nauth` contains a tool that requires the environment variable `NOSTR_SECRET_KEY` to have your nsec or hex secret key
 
 == Building
 
