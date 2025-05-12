@@ -232,8 +232,14 @@ func (r *T) BlanketDownload(c context.T, w io.Writer) (counter int, err error) {
 				// err = nil
 				continue
 			}
+			if r.Binary {
+				ev := &event.T{}
+				if _, err = r.Unmarshal(ev, b); chk.E(err) {
+					continue
+				}
+				b = ev.Serialize()
+			}
 			// send the event to client
-			// the database stores correct JSON versions so no need to decode/encode.
 			if _, err = fmt.Fprintf(w, "%s\n", b); chk.E(err) {
 				return
 			}

@@ -74,6 +74,20 @@ func (x *Operations) RegisterConfigurationSet(api huma.API) {
 				return
 			}
 		}
+		tmpB := []string{}
+		tmpA := []string{}
+		for _, v := range input.Body.BlockList {
+			if len(v) > 0 {
+				tmpB = append(tmpB, v)
+			}
+		}
+		input.Body.BlockList = tmpB
+		for _, v := range input.Body.AllowList {
+			if len(v) > 0 {
+				tmpA = append(tmpA, v)
+			}
+		}
+		input.Body.AllowList = tmpA
 		log.I.F("setting configuration")
 		if err = x.SetConfiguration(input.Body); chk.E(err) {
 			err = huma.Error400BadRequest(err.Error())
