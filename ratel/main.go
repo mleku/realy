@@ -45,6 +45,8 @@ type T struct {
 	// Binary sets whether to use a fast streaming binary codec for events, to change to this,
 	// events must be exported, the database nuked and the events re-imported.
 	Binary bool
+	// IndexMx is a lock to ensure that indexing doesn't happen concurrently.
+	IndexMx sync.Mutex
 }
 
 func (r *T) SetLogLevel(level string) {

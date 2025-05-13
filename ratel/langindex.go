@@ -7,7 +7,6 @@ import (
 
 	"realy.lol/chk"
 	"realy.lol/event"
-	"realy.lol/kind"
 	"realy.lol/log"
 	"realy.lol/ratel/keys/lang"
 	"realy.lol/ratel/keys/serial"
@@ -25,6 +24,8 @@ type Langs struct {
 func (r *T) LangIndex() (err error) {
 	r.WG.Add(1)
 	defer r.WG.Done()
+	r.IndexMx.Lock()
+	defer r.IndexMx.Unlock()
 	log.I.F("indexing language tags")
 	defer log.I.F("finished indexing language tags")
 	langChan := make(chan Langs)
@@ -124,7 +125,7 @@ func (r *T) LangIndex() (err error) {
 }
 
 func (r *T) GetLangTags(ev *event.T) (langs []string) {
-	if ev.Kind.OneOf(kind.TextNote, kind.Article) {
+	if ev.Kind.IsText() {
 		tgs := ev.Tags.GetAll(tag.New("l"))
 		tgsl := tgs.ToStringsSlice()
 		for _, v := range tgsl {

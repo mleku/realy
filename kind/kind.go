@@ -162,6 +162,40 @@ func (k *T) IsDirectoryEvent() bool {
 	return false
 }
 
+var Text = []*T{
+	ProfileMetadata,
+	TextNote,
+	Article,
+	Thread,
+	Reply,
+	Repost,
+	Issue,
+	Thread,
+	Reply,
+	WikiMergeRequest,
+	Wiki,
+	Issue,
+	IssueOpen,
+	IssueApplied,
+	IssueClosed,
+	IssueDraft,
+	Torrent,
+	TorrentComment,
+	DateBasedCalendarEvent,
+	TimeBasedCalendarEvent,
+	Calendar,
+	CalendarEventRSVP,
+}
+
+func (k *T) IsText() bool {
+	for i := range Text {
+		if k.Equal(Text[i]) {
+			return true
+		}
+	}
+	return false
+}
+
 var (
 	// ProfileMetadata is an event type that stores user profile data, pet
 	// names, bio, lightning address, etc.
@@ -188,6 +222,8 @@ var (
 	Reaction = &T{7}
 	// BadgeAward is an event type
 	BadgeAward = &T{8}
+	// Thread is an OP for another type of text note
+	Thread = &T{11}
 	// Seal is an event that wraps a PrivateDirectMessage and is placed inside a
 	// GiftWrap or GiftWrapWithKind4
 	Seal = &T{13}
@@ -212,6 +248,11 @@ var (
 	ChannelHideMessage = &T{43}
 	// ChannelMuteUser is an event type that...
 	ChannelMuteUser = &T{44}
+	// Reply is a non-OP type of text note that is used with Thread.
+	Reply = &T{111}
+	// WikiMergeRequest is a request to have another user merge their version of a wiki page
+	// into their version.
+	WikiMergeRequest = &T{818}
 	// Bid is an event type that...
 	Bid = &T{1021}
 	// BidConfirmation is an event type that...
@@ -226,16 +267,30 @@ var (
 	LiveChatMessage = &T{1311}
 	// BitcoinBlock is an event type created for the Nostrocket
 	BitcoinBlock = &T{1517}
+	// Issue is a conversation post for a git issue.
+	Issue = &T{1621}
+	// IssueOpen is an Issue comment that marks an issue open.
+	IssueOpen = &T{1630}
+	// IssueApplied is an Issue comment that marks status to applied/merged/resolved
+	IssueApplied = &T{1631}
+	// IssueClosed is an Issue comment that marks an Issue as closed
+	IssueClosed = &T{1632}
+	// IssueDraft is an Issue comment that marks an issue as a Draft.
+	IssueDraft = &T{1633}
 	// LiveStream from zap.stream
 	LiveStream = &T{1808}
 	// ProblemTracker is an event type used by Nostrocket
 	ProblemTracker = &T{1971}
 	// MemoryHole is an event type contains a report about an event (usually
-	// text note or other human readable)
+	// text note or other human-readable)
 	MemoryHole = &T{1984}
 	Reporting  = &T{1984}
 	// Label is an event type has L and l tags, namespace and type - NIP-32
 	Label = &T{1985}
+	// Torrent is an announcement of a torrent.
+	Torrent = &T{2003}
+	// TorrentComment is a comment on a Torrent
+	TorrentComment = &T{2004}
 	// CommunityPostApproval is an event type that...
 	CommunityPostApproval = &T{4550}
 	JobRequestStart       = &T{5000}
@@ -325,12 +380,14 @@ var (
 	UserStatuses            = &T{30315}
 	ClassifiedListing       = &T{30402}
 	DraftClassifiedListing  = &T{30403}
-	DateBasedCalendarEvent  = &T{31922}
-	TimeBasedCalendarEvent  = &T{31923}
-	Calendar                = &T{31924}
-	CalendarEventRSVP       = &T{31925}
-	HandlerRecommendation   = &T{31989}
-	HandlerInformation      = &T{31990}
+	// Wiki is a page in a wiki
+	Wiki                   = &T{30818}
+	DateBasedCalendarEvent = &T{31922}
+	TimeBasedCalendarEvent = &T{31923}
+	Calendar               = &T{31924}
+	CalendarEventRSVP      = &T{31925}
+	HandlerRecommendation  = &T{31989}
+	HandlerInformation     = &T{31990}
 	// WaveLakeTrack which has no spec and uses malformed tags
 	WaveLakeTrack       = &T{32123}
 	CommunityDefinition = &T{34550}

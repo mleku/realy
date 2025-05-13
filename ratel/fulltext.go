@@ -13,7 +13,6 @@ import (
 
 	"realy.lol/chk"
 	"realy.lol/event"
-	"realy.lol/kind"
 	"realy.lol/log"
 	"realy.lol/ratel/keys/arb"
 	"realy.lol/ratel/keys/serial"
@@ -32,6 +31,8 @@ type Words struct {
 func (r *T) FulltextIndex() (err error) {
 	r.WG.Add(1)
 	defer r.WG.Done()
+	r.IndexMx.Lock()
+	defer r.IndexMx.Unlock()
 	wordsChan := make(chan Words)
 	go func() {
 		for {
@@ -151,7 +152,7 @@ func (r *T) FulltextIndex() (err error) {
 
 func (r *T) GetWordsFromContent(ev *event.T) (wordMap map[string]struct{}) {
 	wordMap = make(map[string]struct{})
-	if ev.Kind.OneOf(kind.TextNote, kind.Article) {
+	if ev.Kind.IsText() {
 		content := ev.Content
 		seg := words.NewSegmenter(content)
 		for seg.Next() {
