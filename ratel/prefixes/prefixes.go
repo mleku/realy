@@ -115,6 +115,17 @@ const (
 	//
 	// [ 14 ]
 	Configuration
+
+	// FulltextIndex is an inverted index that maps a search term to the events it is found in.
+	//
+	// [ 15 ][ word ] [ array of serials of events containing the word ]
+	FulltextIndex
+
+	// FulltextLastIndexed is a key that stores the last (highest) serial that has already been
+	// indexed for the FulltextIndex.
+	//
+	// [ 16 ] [ 8 byte serial ]
+	FulltextLastIndexed
 )
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop

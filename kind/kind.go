@@ -66,11 +66,19 @@ func (k *T) Equal(k2 *T) bool {
 	return k.K == k2.K
 }
 
+func (k *T) OneOf(k2 ...*T) bool {
+	for _, v := range k2 {
+		if k.Equal(v) {
+			return true
+		}
+	}
+	return false
+}
+
 var Privileged = []*T{
 	EncryptedDirectMessage,
 	GiftWrap,
 	GiftWrapWithKind4,
-	JWTBinding,
 	ApplicationSpecificData,
 }
 
@@ -259,8 +267,6 @@ var (
 	UserEmojiList         = &T{10030}
 	DMRelaysList          = &T{10050}
 	FileStorageServerList = &T{10096}
-	// JWTBinding is an event kind that creates a link between a JWT certificate and a pubkey
-	JWTBinding = &T{13004}
 	// NWCWalletInfo is an event type that...
 	NWCWalletInfo = &T{13194}
 	WalletInfo    = NWCWalletInfo

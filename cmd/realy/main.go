@@ -90,6 +90,6 @@ func main() {
 	socketapi.New(s, "/{$}", serveMux)
 	interrupt.AddHandler(func() { s.Shutdown() })
 	if err = s.Start(); chk.E(err) {
-		os.Exit(1)
+		// os.Exit(1)
 	}
 }

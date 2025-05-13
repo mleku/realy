@@ -19,7 +19,7 @@ func (r *T) Init(path string) (err error) {
 	log.I.Ln("opening ratel event store at", r.Path())
 	opts := badger.DefaultOptions(r.dataDir)
 	opts.BlockCacheSize = int64(r.BlockCacheSize)
-	opts.BlockSize = 128 * units.Mb
+	opts.BlockSize = units.Gb
 	opts.CompactL0OnClose = true
 	opts.LmaxCompaction = true
 	r.Logger = NewLogger(r.InitLogLevel, r.dataDir)

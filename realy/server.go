@@ -97,7 +97,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	blocklist := s.Configuration().BlockList
-	log.I.S(blocklist)
 	if len(blocklist) > 0 {
 		for _, a := range s.Configuration().BlockList {
 			if strings.HasPrefix(remote, a) {

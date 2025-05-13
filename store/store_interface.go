@@ -31,6 +31,7 @@ type I interface {
 	LogLeveler
 	EventIdSerialer
 	Accountant
+	Fulltexter
 }
 
 type Initer interface {
@@ -125,4 +126,8 @@ type LogLeveler interface {
 type EventIdSerialer interface {
 	EventIdsBySerial(start uint64, count int) (evs []eventidserial.E,
 		err error)
+}
+
+type Fulltexter interface {
+	FulltextIndex() (err error)
 }

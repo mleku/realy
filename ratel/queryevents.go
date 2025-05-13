@@ -217,8 +217,8 @@ func (r *T) ProcessFoundEvent(item *badger.Item, delEvs [][]byte) (dEvs [][]byte
 func (r *T) UpdateAccessed(accessed map[string]struct{}) {
 	var err error
 	now := timestamp.Now()
-	for ser := range accessed {
-		if err = r.Update(func(txn *badger.Txn) (err error) {
+	if err = r.Update(func(txn *badger.Txn) (err error) {
+		for ser := range accessed {
 			seri := serial.New([]byte(ser))
 			key := GetCounterKey(seri)
 			it := txn.NewIterator(badger.IteratorOptions{})
@@ -229,9 +229,9 @@ func (r *T) UpdateAccessed(accessed map[string]struct{}) {
 					return
 				}
 			}
-			return nil
-		}); chk.E(err) {
-			return
 		}
+		return nil
+	}); chk.E(err) {
+		return
 	}
 }
