@@ -129,6 +129,9 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 	if err = r.FulltextIndex(); chk.E(err) {
 		return
 	}
+	if err = r.LangIndex(); chk.E(err) {
+		return
+	}
 	return
 }
 

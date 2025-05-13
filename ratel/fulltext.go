@@ -25,6 +25,10 @@ type Words struct {
 	wordMap map[string]struct{}
 }
 
+// FulltextIndex adds serials to the list of serials associated with a given word so a free text
+// search can find text events with specific words and in sequences in the events. This only has
+// to be done one time per event so it stores the serial of the newest index it has already done
+// in a special key.
 func (r *T) FulltextIndex() (err error) {
 	r.WG.Add(1)
 	defer r.WG.Done()

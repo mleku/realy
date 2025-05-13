@@ -32,6 +32,7 @@ type I interface {
 	EventIdSerialer
 	Accountant
 	Fulltexter
+	Languager
 }
 
 type Initer interface {
@@ -130,4 +131,8 @@ type EventIdSerialer interface {
 
 type Fulltexter interface {
 	FulltextIndex() (err error)
+}
+
+type Languager interface {
+	LangIndex() (err error)
 }

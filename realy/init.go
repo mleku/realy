@@ -37,6 +37,7 @@ func (s *Server) Init() {
 	}
 	go func() {
 		chk.E(s.Store.FulltextIndex())
+		chk.E(s.Store.LangIndex())
 	}()
 }
 

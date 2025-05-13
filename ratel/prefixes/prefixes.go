@@ -127,10 +127,16 @@ const (
 	// [ 16 ] [ 8 byte serial ]
 	FulltextLastIndexed
 
-	// LangIndex is an index of events with language tags.
+	// LangIndex is an index of events with language tags. These use ISO639-2 3-letter codes
+	// regardless of if there is ISO639-1 codes because they cover more languages and are less
+	// ambiguous.
 	//
-	// [ 17 ][
+	// [ 17 ][ ISO639-2 code ][ serial ]
 	LangIndex
+
+	// LangLastIndexed is a progress cursor for the LangIndex that marks the newest index that
+	// has been scanned for an l language tag
+	LangLastIndexed
 )
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop

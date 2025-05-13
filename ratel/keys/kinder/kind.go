@@ -6,6 +6,8 @@ import (
 	"encoding/binary"
 	"io"
 
+	"golang.org/x/exp/constraints"
+
 	"realy.lol/chk"
 	"realy.lol/kind"
 	"realy.lol/ratel/keys"
@@ -20,7 +22,7 @@ type T struct {
 var _ keys.Element = &T{}
 
 // New creates a new kinder.T for reading/writing kind.T values.
-func New[V uint16 | uint32 | int32 | uint64 | int64 | int](c V) (p *T) { return &T{Val: kind.New(c)} }
+func New[V constraints.Integer](c V) (p *T) { return &T{Val: kind.New(c)} }
 
 func Make(c *kind.T) (v []byte) {
 	v = make([]byte, Len)
