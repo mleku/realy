@@ -126,6 +126,11 @@ const (
 	//
 	// [ 16 ] [ 8 byte serial ]
 	FulltextLastIndexed
+
+	// LangIndex is an index of events with language tags.
+	//
+	// [ 17 ][
+	LangIndex
 )
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop

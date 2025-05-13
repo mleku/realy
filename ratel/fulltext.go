@@ -176,6 +176,5 @@ func (r *T) GetWordsFromContent(ev *event.T) (wordMap map[string]struct{}) {
 		}
 		content = content[:0]
 	}
-
 	return
 }

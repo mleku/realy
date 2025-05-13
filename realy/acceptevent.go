@@ -97,8 +97,8 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 					return
 				}
 				log.W.Ln("event is from owner")
-				// accept = true
-				// return
+				accept = true
+				return
 			}
 			// for all else, check the authed pubkey is in the follow list
 			for pk := range s.followed {
