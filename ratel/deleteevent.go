@@ -22,7 +22,7 @@ import (
 // requested not to, so that the event can't be saved again.
 func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err error) {
 	var foundSerial []byte
-	seri := serial.New(nil)
+	ser := serial.New(nil)
 	err = r.View(func(txn *badger.Txn) (err error) {
 		// query event by id to ensure we don't try to save duplicates
 		prf := prefixes.Id.Key(id.New(eid))
@@ -34,9 +34,9 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 			// get the serial
 			k = it.Item().Key()
 			// copy serial out
-			keys.Read(k, index.Empty(), id.New(&eventid.T{}), seri)
+			keys.Read(k, index.Empty(), id.New(&eventid.T{}), ser)
 			// save into foundSerial
-			foundSerial = seri.Val
+			foundSerial = ser.Val
 		}
 		return
 	})
@@ -49,10 +49,11 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 	var indexKeys [][]byte
 	ev := event.New()
 	var evKey, evb, tombstoneKey []byte
+	var w, l [][]byte
 	// fetch the event to get its index keys
 	err = r.View(func(txn *badger.Txn) (err error) {
 		// retrieve the event record
-		evKey = keys.Write(index.New(prefixes.Event), seri)
+		evKey = keys.Write(index.New(prefixes.Event), ser)
 		it := txn.NewIterator(badger.IteratorOptions{})
 		defer it.Close()
 		it.Seek(evKey)
@@ -63,7 +64,9 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 			if _, err = r.Unmarshal(ev, evb); chk.E(err) {
 				return
 			}
-			indexKeys = GetIndexKeysForEvent(ev, seri)
+			indexKeys = GetIndexKeysForEvent(ev, ser)
+			indexKeys = append(indexKeys, r.GetFulltextKeys(ev, ser)...)
+			indexKeys = append(indexKeys, r.GetLangKeys(ev, ser)...)
 			// we don't make tombstones for replacements, but it is better to shift that
 			// logic outside of this closure.
 			if len(noTombstone) > 0 && !noTombstone[0] {
@@ -77,6 +80,8 @@ func (r *T) DeleteEvent(c context.T, eid *eventid.T, noTombstone ...bool) (err e
 	if chk.E(err) {
 		return
 	}
+	_, _ = w, l
+
 	err = r.Update(func(txn *badger.Txn) (err error) {
 		if err = txn.Delete(evKey); chk.E(err) {
 		}

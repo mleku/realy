@@ -49,6 +49,15 @@ retry:
 	return
 }
 
+func (r *T) GetLangKeys(ev *event.T, ser *serial.T) (keys [][]byte) {
+	langs := r.GetLangTags(ev)
+	for _, v := range langs {
+		key := prefixes.LangIndex.Key(lang.New(v), ser)
+		keys = append(keys, key)
+	}
+	return
+}
+
 func (r *T) GetLangTags(ev *event.T) (langs []string) {
 	if ev.Kind.IsText() {
 		tgs := ev.Tags.GetAll(tag.New("l"))

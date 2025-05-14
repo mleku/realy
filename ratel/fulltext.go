@@ -28,41 +28,26 @@ func (r *T) WriteFulltextIndex(w *Words) (err error) {
 	}
 	r.WG.Add(1)
 	defer r.WG.Done()
-	// log.I.F("making fulltext index for %d", w.ser.Uint64())
 	for i := range w.wordMap {
 	retry:
 		if err = r.Update(func(txn *badger.Txn) (err error) {
-			prf := prefixes.FulltextIndex.Key(arb.New(i))
-			var item2 *badger.Item
-			if item2, err = txn.Get(prf); err != nil {
-				// make a new record
-				if err = txn.Set(prf, w.ser.Val); chk.E(err) {
-					return
-				}
-			} else {
-				if item2.KeySize() == int64(len(prf)) {
-					select {
-					case <-r.Ctx.Done():
-						return
-					default:
-					}
-					var val2 []byte
-					if val2, err = item2.ValueCopy(nil); chk.E(err) {
-						return
-					}
-					if !bytes.Contains(val2, w.ser.Val) {
-						val2 = append(val2, w.ser.Val...)
-						if err = txn.Set(prf, val2); chk.E(err) {
-							return
-						}
-					}
-					return
-				}
+			key := prefixes.FulltextIndex.Key(arb.New(i), w.ser)
+			if err = txn.Set(key, nil); chk.E(err) {
+				return
 			}
 			return
 		}); chk.E(err) {
 			goto retry
 		}
+	}
+	return
+}
+
+func (r *T) GetFulltextKeys(ev *event.T, ser *serial.T) (keys [][]byte) {
+	w := r.GetWordsFromContent(ev)
+	for i := range w {
+		key := prefixes.FulltextIndex.Key(arb.New(i), ser)
+		keys = append(keys, key)
 	}
 	return
 }

@@ -117,8 +117,10 @@ const (
 	Configuration
 
 	// FulltextIndex is an inverted index that maps a search term to the events it is found in.
+	// The keys are written with the word and serial to make handling them easier, even though
+	// it's a little bigger, it's much faster to search, which is what matters.
 	//
-	// [ 15 ][ word ] [ array of serials of events containing the word ]
+	// [ 15 ][ word ][ serial ]
 	FulltextIndex
 
 	// LangIndex is an index of events with language tags. These use ISO639-2 3-letter codes
