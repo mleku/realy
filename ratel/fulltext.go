@@ -11,15 +11,22 @@ import (
 
 	"realy.lol/chk"
 	"realy.lol/event"
+	"realy.lol/eventid"
 	"realy.lol/hex"
 	"realy.lol/ratel/keys/arb"
+	"realy.lol/ratel/keys/createdat"
+	"realy.lol/ratel/keys/fullid"
+	"realy.lol/ratel/keys/integer"
+	"realy.lol/ratel/keys/kinder"
+	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/prefixes"
 )
 
 type Words struct {
 	ser     *serial.T
-	wordMap map[string]struct{}
+	ev      *event.T
+	wordMap map[string]int
 }
 
 func (r *T) WriteFulltextIndex(w *Words) (err error) {
@@ -28,10 +35,26 @@ func (r *T) WriteFulltextIndex(w *Words) (err error) {
 	}
 	r.WG.Add(1)
 	defer r.WG.Done()
-	for i := range w.wordMap {
+	for word, pos := range w.wordMap {
 	retry:
 		if err = r.Update(func(txn *badger.Txn) (err error) {
-			key := prefixes.FulltextIndex.Key(arb.New(i), w.ser)
+			var eid *eventid.T
+			if eid, err = eventid.NewFromBytes(w.ev.Id); chk.E(err) {
+				return
+			}
+			var pk *pubkey.T
+			if pk, err = pubkey.New(w.ev.Pubkey); chk.E(err) {
+				return
+			}
+			key := prefixes.FulltextIndex.Key(
+				arb.New(word),
+				fullid.New(eid),
+				pk,
+				createdat.New(w.ev.CreatedAt),
+				kinder.New(w.ev.Kind.ToU16()),
+				integer.New(pos),
+				w.ser,
+			)
 			if err = txn.Set(key, nil); chk.E(err) {
 				return
 			}
@@ -52,17 +75,18 @@ func (r *T) GetFulltextKeys(ev *event.T, ser *serial.T) (keys [][]byte) {
 	return
 }
 
-func (r *T) GetWordsFromContent(ev *event.T) (wordMap map[string]struct{}) {
-	wordMap = make(map[string]struct{})
+func (r *T) GetWordsFromContent(ev *event.T) (wordMap map[string]int) {
+	wordMap = make(map[string]int)
 	if ev.Kind.IsText() {
 		content := ev.Content
 		seg := words.NewSegmenter(content)
+		var counter int
 		for seg.Next() {
 			w := seg.Bytes()
 			w = bytes.ToLower(w)
 			var ru rune
 			ru, _ = utf8.DecodeRune(w)
-			// ignore the most common things that aren't words\
+			// ignore the most common things that aren't words
 			if !unicode.IsSpace(ru) &&
 				!unicode.IsPunct(ru) &&
 				!unicode.IsSymbol(ru) &&
@@ -80,8 +104,8 @@ func (r *T) GetWordsFromContent(ev *event.T) (wordMap map[string]struct{}) {
 						continue
 					}
 				}
-
-				wordMap[string(w)] = struct{}{}
+				wordMap[string(w)] = counter
+				counter++
 			}
 		}
 		content = content[:0]
@@ -92,27 +116,35 @@ func (r *T) GetWordsFromContent(ev *event.T) (wordMap map[string]struct{}) {
 func IsEntity(w []byte) (is bool) {
 	var b []byte
 	b = []byte("nostr:")
-	if bytes.Contains(w, b) && len(b) < len(w) {
+	if bytes.Contains(w, b) && len(b)+10 < len(w) {
 		return true
 	}
 	b = []byte("npub")
-	if bytes.Contains(w, b) && len(b) < len(w) {
+	if bytes.Contains(w, b) && len(b)+5 < len(w) {
 		return true
 	}
 	b = []byte("nsec")
-	if bytes.Contains(w, b) && len(b) < len(w) {
+	if bytes.Contains(w, b) && len(b)+5 < len(w) {
 		return true
 	}
 	b = []byte("nevent")
-	if bytes.Contains(w, b) && len(b) < len(w) {
+	if bytes.Contains(w, b) && len(b)+5 < len(w) {
 		return true
 	}
 	b = []byte("naddr")
-	if bytes.Contains(w, b) && len(b) < len(w) {
+	if bytes.Contains(w, b) && len(b)+5 < len(w) {
+		return true
+	}
+	b = []byte("note")
+	if bytes.Contains(w, b) && len(b)+20 < len(w) {
+		return true
+	}
+	b = []byte("lnurl")
+	if bytes.Contains(w, b) && len(b)+20 < len(w) {
 		return true
 	}
 	b = []byte("cashu")
-	if bytes.Contains(w, b) && len(b) < len(w) {
+	if bytes.Contains(w, b) && len(b)+20 < len(w) {
 		return true
 	}
 	return

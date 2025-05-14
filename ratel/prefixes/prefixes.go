@@ -107,7 +107,7 @@ const (
 	// from its created_at field. The serial acts as a "first seen" ordering, then
 	// you also have the (claimed) chronological ordering.
 	//
-	//   [ 13 ][ 8 bytes Serial ][ 32 bytes eventid.T ][ 32 bytes pubkey ][ 8 bytes timestamp.T ]
+	//   [ 13 ][ 8 bytes Serial ][ 32 bytes eventid.T ][ 32 bytes pubkey ][ 8 bytes timestamp.T
 	FullIndex
 
 	// Configuration is a free-form minified JSON object that contains a collection of
@@ -120,7 +120,10 @@ const (
 	// The keys are written with the word and serial to make handling them easier, even though
 	// it's a little bigger, it's much faster to search, which is what matters.
 	//
-	// [ 15 ][ word ][ serial ]
+	// The index contains pubkey, event ID, timestamp and kind, to enable filtering out results
+	// by all of these as expected from a regular filter search.
+	//
+	// [ 15 ][ word ][ 32 bytes eventid.T ][ 32 bytes pubkey ][ 8 bytes timestamp.T ][ 2 bytes kind ][ 4 bytes sequence number of word in text ][ 8 bytes Serial ]
 	FulltextIndex
 
 	// LangIndex is an index of events with language tags. These use ISO639-2 3-letter codes
@@ -160,6 +163,8 @@ var AllPrefixes = [][]byte{
 	{PubkeyIndex.B()},
 	{FullIndex.B()},
 	{Configuration.B()},
+	{FulltextIndex.B()},
+	{LangIndex.B()},
 }
 
 // KeySizes are the byte size of keys of each type of key prefix. int(P) or call the P.I() method

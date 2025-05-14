@@ -129,6 +129,7 @@ func (s *Server) CheckOwnerLists(c context.T) {
 						if p, err = hex.Dec(string(t.Value())); chk.E(err) {
 							continue
 						}
+						// log.I.F("muted %0x", p)
 						s.muted[string(p)] = struct{}{}
 					}
 				}

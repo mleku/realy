@@ -12,9 +12,11 @@ import (
 	"realy.lol/sha256"
 )
 
+const Len = sha256.Size
+
 // T is the SHA256 hash in hexadecimal of the canonical form of an event as
 // produced by the output of T.ToCanonical().Bytes().
-type T [sha256.Size]byte
+type T [Len]byte
 
 // New creates a new eventid.T. This is actually more wordy than simply creating a &T{} via
 // slice literal.
@@ -35,9 +37,9 @@ func (ei *T) Set(b []byte) (err error) {
 		err = errorf.E("event id is nil")
 		return
 	}
-	if len(b) != sha256.Size {
+	if len(b) != Len {
 		err = errorf.E("Id bytes incorrect size, got %d require %d",
-			len(b), sha256.Size)
+			len(b), Len)
 		return
 	}
 	copy(ei[:], b)
@@ -90,7 +92,7 @@ func (ei *T) Equal(ei2 *T) (eq bool) {
 // Marshal renders the eventid.T into JSON.
 func (ei *T) Marshal(dst []byte) (b []byte) {
 	b = dst
-	b = make([]byte, 0, 2*sha256.Size+2)
+	b = make([]byte, 0, 2*Len+2)
 	b = append(b, '"')
 	hex.EncAppend(b, ei[:])
 	b = append(b, '"')
@@ -100,10 +102,10 @@ func (ei *T) Marshal(dst []byte) (b []byte) {
 // Unmarshal decodes a JSON encoded eventid.T.
 func (ei *T) Unmarshal(b []byte) (rem []byte, err error) {
 	// trim off the quotes.
-	b = b[1 : 2*sha256.Size+1]
-	if len(b) != 2*sha256.Size {
+	b = b[1 : 2*Len+1]
+	if len(b) != 2*Len {
 		err = errorf.E("event Id hex incorrect size, got %d require %d",
-			len(b), 2*sha256.Size)
+			len(b), 2*Len)
 		log.E.Ln(string(b))
 		return
 	}
@@ -118,12 +120,12 @@ func (ei *T) Unmarshal(b []byte) (rem []byte, err error) {
 // NewFromString inspects a string and ensures it is a valid, 64 character long
 // hexadecimal string, returns the string coerced to the type.
 func NewFromString(s string) (ei *T, err error) {
-	if len(s) != 2*sha256.Size {
+	if len(s) != 2*Len {
 		return nil, errorf.E("event Id hex wrong size, got %d require %d",
-			len(s), 2*sha256.Size)
+			len(s), 2*Len)
 	}
 	ei = &T{}
-	b := make([]byte, 0, sha256.Size)
+	b := make([]byte, 0, Len)
 	b, err = hex.DecAppend(b, []byte(s))
 	copy(ei[:], b)
 	return
@@ -131,7 +133,7 @@ func NewFromString(s string) (ei *T, err error) {
 
 // Gen creates a fake pseudorandom generated event Id for tests.
 func Gen() (ei *T) {
-	b := frand.Bytes(sha256.Size)
+	b := frand.Bytes(Len)
 	ei = &T{}
 	copy(ei[:], b)
 	return

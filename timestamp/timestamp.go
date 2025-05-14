@@ -14,6 +14,8 @@ import (
 	"realy.lol/ints"
 )
 
+const Len = 8
+
 // T is a convenience type for UNIX 64 bit timestamps of 1 second
 // precision.
 type T struct{ V int64 }
@@ -65,7 +67,7 @@ func (t *T) Int() int {
 // Bytes returns a timestamp as an 8 byte thing.
 func (t *T) Bytes() (b []byte) {
 	b = make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(t.V))
+	binary.LittleEndian.PutUint64(b, uint64(t.V))
 	return
 }
 
@@ -78,7 +80,7 @@ func FromUnix(t int64) *T { return &T{t} }
 func (t *T) FromInt(i int) { *t = T{int64(i)} }
 
 // FromBytes converts from a string of raw bytes.
-func FromBytes(b []byte) *T { return &T{int64(binary.BigEndian.Uint64(b))} }
+func FromBytes(b []byte) *T { return &T{int64(binary.LittleEndian.Uint64(b))} }
 
 // FromVarint decodes a varint and returns the remainder of the bytes and the encoded
 // timestamp.T.

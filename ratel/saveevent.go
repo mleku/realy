@@ -146,6 +146,7 @@ func (r *T) GenerateFulltextIndex(ev *event.T, ser *serial.T) (err error) {
 	w = &Words{
 		ser:     ser,
 		wordMap: ww,
+		ev:      ev,
 	}
 	// log.I.F("indexing words: %v", w.wordMap)
 	if err = r.WriteFulltextIndex(w); chk.E(err) {

@@ -29,7 +29,7 @@ func (c *T) Read(buf io.Reader) (el keys.Element) {
 	if n, err := buf.Read(b); chk.E(err) || n != Len {
 		return nil
 	}
-	c.Val = timestamp.FromUnix(int64(binary.BigEndian.Uint64(b)))
+	c.Val = timestamp.FromUnix(int64(binary.LittleEndian.Uint64(b)))
 	return c
 }
 

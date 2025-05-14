@@ -33,7 +33,7 @@ func (s *Server) UpdateConfiguration() (err error) {
 				continue
 			}
 			dst := make([]byte, len(src)/2)
-			if _, err = hex.DecBytes(dst, []byte(src)); chk.E(err) {
+			if _, err = hex.DecBytes(dst, []byte(src)); err != nil {
 				if dst, err = bech32encoding.NpubToBytes([]byte(src)); chk.E(err) {
 					continue
 				}
@@ -54,7 +54,7 @@ func (s *Server) UpdateConfiguration() (err error) {
 				continue
 			}
 			dst := make([]byte, len(src)/2)
-			if _, err = hex.DecBytes(dst, []byte(src)); chk.E(err) {
+			if _, err = hex.DecBytes(dst, []byte(src)); err != nil {
 				if dst, err = bech32encoding.NpubToBytes([]byte(src)); chk.E(err) {
 					continue
 				}

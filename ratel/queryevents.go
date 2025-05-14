@@ -217,6 +217,7 @@ func (r *T) ProcessFoundEvent(item *badger.Item, delEvs [][]byte) (dEvs [][]byte
 func (r *T) UpdateAccessed(accessed map[string]struct{}) {
 	var err error
 	now := timestamp.Now()
+retry:
 	if err = r.Update(func(txn *badger.Txn) (err error) {
 		for ser := range accessed {
 			seri := serial.New([]byte(ser))
@@ -231,7 +232,7 @@ func (r *T) UpdateAccessed(accessed map[string]struct{}) {
 			}
 		}
 		return nil
-	}); chk.E(err) {
-		return
+	}); err != nil {
+		goto retry
 	}
 }

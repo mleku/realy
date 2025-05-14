@@ -4,6 +4,7 @@
 package kind
 
 import (
+	"encoding/binary"
 	"sync"
 
 	"golang.org/x/exp/constraints"
@@ -11,6 +12,8 @@ import (
 	"realy.lol/chk"
 	"realy.lol/ints"
 )
+
+const Len = 2
 
 // T - which will be externally referenced as kind.T is the event type in the
 // nostr protocol, the use of the capital T signifying type, consistent with Go
@@ -22,6 +25,10 @@ type T struct {
 // New creates a new kind.T with a provided integer value. Note that anything larger than 2^16
 // will be truncated.
 func New[V constraints.Integer](k V) (ki *T) { return &T{uint16(k)} }
+
+func NewFromBytes(b []byte) (ki *T) {
+	return New(binary.LittleEndian.Uint16(b))
+}
 
 // ToInt returns the value of the kind.T as an int.
 func (k *T) ToInt() int {
