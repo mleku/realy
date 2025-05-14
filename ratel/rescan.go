@@ -36,6 +36,12 @@ func (r *T) Rescan() (err error) {
 					log.I.F("completed rescanning %d events", count)
 					return
 				}
+				if err = r.GenerateFulltextIndex(e.ev, e.ser); chk.E(err) {
+					return
+				}
+				if err = r.GenerateLanguageIndex(e.ev, e.ser); chk.E(err) {
+					return
+				}
 			retry:
 				if err = r.Update(func(txn *badger.Txn) (err error) {
 					// rewrite the indexes
@@ -51,9 +57,9 @@ func (r *T) Rescan() (err error) {
 						}
 					}
 					count++
-					if count%1000 == 0 {
-						log.I.F("rescanned %d events", count)
-					}
+					// if count%100 == 0 {
+					log.I.F("rescanned %d events", count)
+					// }
 					return
 				}); chk.E(err) {
 					goto retry
@@ -84,25 +90,5 @@ func (r *T) Rescan() (err error) {
 		}
 		return
 	})
-	r.IndexMx.Lock()
-	if err = r.Update(func(txn *badger.Txn) (err error) {
-		// reset the last indexed for fulltext
-		lprf := prefixes.FulltextLastIndexed.Key()
-		if err = txn.Set(lprf, make([]byte, serial.Len)); chk.E(err) {
-			return
-		}
-		// reset the last indexed for lang
-		lprf = prefixes.LangLastIndexed.Key()
-		if err = txn.Set(lprf, make([]byte, serial.Len)); chk.E(err) {
-			return
-		}
-		return
-	}); chk.E(err) {
-	}
-	r.IndexMx.Unlock()
-	if err = r.FulltextIndex(); chk.E(err) {
-	}
-	if err = r.LangIndex(); chk.E(err) {
-	}
 	return err
 }

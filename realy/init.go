@@ -35,10 +35,10 @@ func (s *Server) Init() {
 		s.ZeroLists()
 		s.CheckOwnerLists(context.Bg())
 	}
-	go func() {
-		chk.E(s.Store.FulltextIndex())
-		chk.E(s.Store.LangIndex())
-	}()
+	// go func() {
+	// 	chk.E(s.Store.FulltextIndex())
+	// 	chk.E(s.Store.LangIndex())
+	// }()
 }
 
 func (s *Server) ZeroLists() {

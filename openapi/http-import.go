@@ -52,7 +52,7 @@ func (x *Operations) RegisterImport(api huma.API) {
 		log.I.F("import of event data requested on admin port from %s pubkey %0x", remote,
 			pubkey)
 		read := io.LimitReader(r.Body, r.ContentLength)
-		sto.Import(read)
+		<-sto.Import(read)
 		x.Server.ZeroLists()
 		x.Server.CheckOwnerLists(context.Bg())
 		return

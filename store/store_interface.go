@@ -31,8 +31,6 @@ type I interface {
 	LogLeveler
 	EventIdSerialer
 	Accountant
-	Fulltexter
-	Languager
 }
 
 type Initer interface {
@@ -90,7 +88,7 @@ type Saver interface {
 type Importer interface {
 	// Import reads in a stream of line structured JSON of events to save into the
 	// store.
-	Import(r io.Reader)
+	Import(r io.Reader) (done chan struct{})
 }
 
 type Exporter interface {
@@ -127,12 +125,4 @@ type LogLeveler interface {
 type EventIdSerialer interface {
 	EventIdsBySerial(start uint64, count int) (evs []eventidserial.E,
 		err error)
-}
-
-type Fulltexter interface {
-	FulltextIndex() (err error)
-}
-
-type Languager interface {
-	LangIndex() (err error)
 }

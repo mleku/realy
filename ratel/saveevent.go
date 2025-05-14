@@ -99,9 +99,9 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 	}
 	bin := r.Marshal(ev, nil)
 	// otherwise, save new event record.
+	var idx []byte
+	var ser *serial.T
 	if err = r.Update(func(txn *badger.Txn) (err error) {
-		var idx []byte
-		var ser *serial.T
 		idx, ser = r.SerialKey()
 		// encode to binary
 		// raw event store
@@ -126,13 +126,47 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 	}); chk.E(err) {
 		return
 	}
-	if err = r.FulltextIndex(); chk.E(err) {
+	if err = r.GenerateFulltextIndex(ev, ser); chk.E(err) {
 		return
 	}
-	if err = r.LangIndex(); chk.E(err) {
+	if err = r.GenerateLanguageIndex(ev, ser); chk.E(err) {
 		return
 	}
 	return
 }
 
 func (r *T) Sync() (err error) { return r.DB.Sync() }
+
+func (r *T) GenerateFulltextIndex(ev *event.T, ser *serial.T) (err error) {
+	var w *Words
+	ww := r.GetWordsFromContent(ev)
+	if ww == nil {
+		return
+	}
+	w = &Words{
+		ser:     ser,
+		wordMap: ww,
+	}
+	// log.I.F("indexing words: %v", w.wordMap)
+	if err = r.WriteFulltextIndex(w); chk.E(err) {
+		return
+	}
+	return
+}
+
+func (r *T) GenerateLanguageIndex(ev *event.T, ser *serial.T) (err error) {
+	var langs []string
+	ll := r.GetLangTags(ev)
+	if ll == nil {
+		return
+	}
+	l := &Langs{
+		ser:   ser,
+		langs: langs,
+	}
+	if err = r.WriteLangIndex(l); chk.E(err) {
+		return
+	}
+
+	return
+}
