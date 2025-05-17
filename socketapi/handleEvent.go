@@ -102,10 +102,10 @@ func (a *A) HandleRejectEvent(env *eventenvelope.Submission, notice string) (err
 		} else {
 			log.I.F("requesting auth again from client %s", a.Listener.RealRemote())
 		}
-		if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.T(err) {
+		if err = Ok.AuthRequired(a, env, "auth required for storing events"); chk.E(err) {
 			return
 		}
-		if err = Ok.AuthRequired(a, env, "auth required for storing events"); chk.E(err) {
+		if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.T(err) {
 			return
 		}
 		return
