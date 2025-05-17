@@ -126,15 +126,19 @@ func PrepareQueries(f *filter.T) (
 		ext = &filter.T{Kinds: f.Kinds}
 		i := 0
 		for _, values := range f.Tags.ToSliceOfTags() {
-			for _, value := range values.ToSliceOfBytes()[1:] {
-				// get key prefix (with full length) and offset where to write the last parts
-				var prf []byte
-				if prf, err = GetTagKeyPrefix(string(value)); chk.E(err) {
-					continue
+			tsb := values.ToSliceOfBytes()
+			// indexable tags can only have 1 character in the key field.
+			if len(tsb[0]) == 1 {
+				for _, value := range tsb[1:] {
+					// get key prefix (with full length) and offset where to write the last parts
+					var prf []byte
+					if prf, err = GetTagKeyPrefix(tsb[0][0], value); chk.E(err) {
+						continue
+					}
+					// remove the last part to get just the prefix we want here
+					qs[i] = query{index: i, queryFilter: f, searchPrefix: prf}
+					i++
 				}
-				// remove the last part to get just the prefix we want here
-				qs[i] = query{index: i, queryFilter: f, searchPrefix: prf}
-				i++
 			}
 		}
 		// log.T.S("tags", qs)

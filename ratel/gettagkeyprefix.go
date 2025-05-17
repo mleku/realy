@@ -3,9 +3,11 @@ package ratel
 import (
 	eventstore "realy.lol/addresstag"
 	"realy.lol/chk"
+	"realy.lol/eventid"
 	"realy.lol/hex"
 	"realy.lol/ratel/keys"
 	"realy.lol/ratel/keys/arb"
+	"realy.lol/ratel/keys/id"
 	"realy.lol/ratel/keys/kinder"
 	"realy.lol/ratel/keys/pubkey"
 	"realy.lol/ratel/prefixes"
@@ -14,7 +16,7 @@ import (
 // GetTagKeyPrefix returns tag index prefixes based on the initial field of a
 // tag.
 //
-// There is 3 types of index tag keys:
+// There is 4 types of index tag keys:
 //
 // - TagAddr:   [ 8 ][ 2b Kind ][ 8b Pubkey ][ address/URL ][ 8b Serial ]
 //
@@ -22,9 +24,17 @@ import (
 //
 // - Tag:       [ 6 ][ address/URL ][ 8b Serial ]
 //
+// - TagEventId [ 8 bytes eventid.T prefix ][ 8 bytes Serial ]
+//
 // This function produces the initial bytes without the index.
-func GetTagKeyPrefix(tagValue string) (key []byte, err error) {
-	if k, pkb, d := eventstore.DecodeAddressTag(tagValue); len(pkb) == 32 {
+func GetTagKeyPrefix(prf byte, tagValue []byte) (key []byte, err error) {
+	if prf == 'e' {
+		var eid []byte
+		if eid, err = hex.DecAppend(eid, tagValue); chk.E(err) {
+			return
+		}
+		key = prefixes.TagEventId.Key(id.New(eventid.NewWith(eid)))
+	} else if k, pkb, d := eventstore.DecodeAddressTag(tagValue); len(pkb) == 32 {
 		// store value in the new special "a" tag index
 		var pk *pubkey.T
 		if pk, err = pubkey.NewFromBytes(pkb); chk.E(err) {
@@ -35,7 +45,7 @@ func GetTagKeyPrefix(tagValue string) (key []byte, err error) {
 			els = append(els, arb.New(d))
 		}
 		key = prefixes.TagAddr.Key(els...)
-	} else if pkb, _ := hex.Dec(tagValue); len(pkb) == 32 {
+	} else if pkb, _ := hex.DecAppend(nil, tagValue); len(pkb) == 32 {
 		// store value as bytes
 		var pkk *pubkey.T
 		if pkk, err = pubkey.NewFromBytes(pkb); chk.E(err) {

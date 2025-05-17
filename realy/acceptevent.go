@@ -44,6 +44,9 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 		}
 		// check the mute list, and reject events authored by muted pubkeys, even if
 		// they come from a pubkey that is on the follow list.
+		//
+		// note that some clients hide this info in the kind 10000 mute list, unfortunately.
+		// such as jumble. use old nostrudel or similar which still gives public readable info.
 		for pk := range s.muted {
 			if bytes.Equal(evt.Pubkey, []byte(pk)) {
 				notice = "rejecting event with pubkey " + hex.Enc(evt.Pubkey) +

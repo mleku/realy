@@ -6,7 +6,7 @@ import (
 	"realy.lol/chk"
 	"realy.lol/event"
 	"realy.lol/eventid"
-	"realy.lol/log"
+	"realy.lol/hex"
 	"realy.lol/ratel/keys"
 	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/fullid"
@@ -59,15 +59,19 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 	}
 	// ~ by tag value + date
 	for i, t := range ev.Tags.ToSliceOfTags() {
-		// there is no value field
+		tsb := t.ToSliceOfBytes()
+		if t.Len() < 2 {
+			continue
+		}
+		tk, tv := tsb[0], tsb[1]
 		if t.Len() < 2 ||
-			// the tag is not a-zA-Z probably (this would permit arbitrary other
-			// single byte chars)
-			len(t.ToSliceOfBytes()[0]) != 1 ||
+			// the tag is not a-zA-Z probably (this would permit arbitrary other single byte
+			// chars)
+			len(tk) != 1 ||
 			// the second field is zero length
-			len(t.ToSliceOfBytes()[1]) == 0 ||
+			len(tv) == 0 ||
 			// the second field is more than 100 characters long
-			len(t.ToSliceOfBytes()[1]) > 100 {
+			len(tv) > 100 {
 			// any of the above is true then the tag is not indexable
 			continue
 		}
@@ -82,17 +86,27 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 			// duplicate
 			continue
 		}
-		// get key prefix (with full length) and offset where to write the last
-		// parts
+		// create tags for e (event references) but we don't care about the optional third value
+		// as it can't be searched for anyway (it's for clients to render threads)
+		if bytes.Equal(tk, []byte("e")) {
+			if len(tv) != 64 {
+				continue
+			}
+			var ei []byte
+			if ei, err = hex.DecAppend(ei, tv); chk.E(err) {
+				continue
+			}
+			keyz = append(keyz, prefixes.TagEventId.Key(id.New(eventid.NewWith(ei)), ser))
+			continue
+		}
+		// get key prefix (with full length) and offset where to write the last parts.
 		prf, elems := index.P(0), []keys.Element(nil)
-		if prf, elems, err = Create_a_Tag(string(t.ToSliceOfBytes()[0]),
-			string(t.ToSliceOfBytes()[1]), CA,
-			ser); chk.E(err) {
-			log.I.F("%v", t.ToStringSlice())
+		if prf, elems, err = Create_a_Tag(string(tsb[0]),
+			string(tv), CA, ser); chk.E(err) {
+			// log.I.F("%v", t.ToStringSlice())
 			return
 		}
 		k := prf.Key(elems...)
-		// log.T.ToSliceOfBytes("tag '%s': %s key %0x", t.ToSliceOfBytes()[0], t.ToSliceOfBytes()[1:], k)
 		keyz = append(keyz, k)
 	}
 	{ // ~ by date only

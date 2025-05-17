@@ -33,7 +33,7 @@ type FulltextIndexKey struct {
 	pubkey    []byte
 	timestamp *timestamp.T
 	kind      *kind.T
-	sequence  uint32
+	sequence  *integer.T
 	serial    *serial.T
 }
 
@@ -51,42 +51,62 @@ func (f *FulltextIndexKey) Segment(start, end int) []byte {
 }
 
 func (f *FulltextIndexKey) Word() (v []byte) {
+	if f.word != nil {
+		return f.word
+	}
 	v = f.key[index.Len:f.endOfWord]
 	f.word = v
 	return
 }
 
 func (f *FulltextIndexKey) EventId() (v *eventid.T) {
+	if f.eventid != nil {
+		return f.eventid
+	}
 	v = eventid.NewWith(f.Segment(StartOfEventId, StartOfPubkey))
 	f.eventid = v
 	return
 }
 
 func (f *FulltextIndexKey) Pubkey() (v []byte) {
+	if f.pubkey != nil {
+		return f.pubkey
+	}
 	v = f.Segment(StartOfPubkey, StartOfTimestamp)
 	f.pubkey = v
 	return
 }
 
 func (f *FulltextIndexKey) Timestamp() (v *timestamp.T) {
+	if f.timestamp != nil {
+		return f.timestamp
+	}
 	v = timestamp.FromBytes(f.Segment(StartOfTimestamp, StartOfKind))
 	f.timestamp = v
 	return
 }
 
 func (f *FulltextIndexKey) Kind() (v *kind.T) {
+	if f.kind != nil {
+		return f.kind
+	}
 	v = kind.NewFromBytes(f.Segment(StartOfKind, StartOfSequence))
 	f.kind = v
 	return
 }
 
 func (f *FulltextIndexKey) Sequence() (v *integer.T) {
-	v = integer.NewFrom(f.Segment(StartOfSequence, StartOfSerial))
-	f.sequence = v.Val
+	if f.sequence != nil {
+		return f.sequence
+	}
+	f.sequence = integer.NewFrom(f.Segment(StartOfSequence, StartOfSerial))
 	return
 }
 
 func (f *FulltextIndexKey) Serial() (v *serial.T) {
+	if f.serial != nil {
+		return f.serial
+	}
 	v = serial.New(f.Segment(StartOfSerial, len(f.key)))
 	f.serial = v
 	return

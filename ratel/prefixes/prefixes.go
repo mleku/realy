@@ -132,6 +132,14 @@ const (
 	//
 	// [ 16 ][ ISO639-2 code ][ serial ]
 	LangIndex
+
+	// TagEventId is a tag that is used to search for events containing e tag references to
+	// other events. This will greatly accelerate searches for threaded discussion and enable
+	// the creation of composite documents with a directed acyclic graph structure, such as git
+	// commits.
+	//
+	// [ 17 ][ 8 bytes eventid.T prefix ][ 8 bytes Serial ]
+	TagEventId
 )
 
 // FilterPrefixes is a slice of the prefixes used by filter index to enable a loop

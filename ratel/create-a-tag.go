@@ -20,6 +20,8 @@ import (
 
 // Create_a_Tag generates tag indexes from a tag key, tag value, created_at
 // timestamp and the event serial.
+//
+// This only covers what are essentially p tags and a tags.
 func Create_a_Tag(tagKey, tagValue string, CA *createdat.T,
 	ser *serial.T) (prf index.P, elems []keys.Element, err error) {
 
