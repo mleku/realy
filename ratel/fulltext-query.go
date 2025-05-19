@@ -12,6 +12,7 @@ import (
 	"realy.lol/filter"
 	"realy.lol/log"
 	"realy.lol/ratel/keys/arb"
+	"realy.lol/ratel/keys/lang"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/prefixes"
 	"realy.lol/store"
@@ -19,10 +20,10 @@ import (
 )
 
 type FulltextSequence struct {
-	inSequence int
-	distance   int
-	sequence   []int
-	items      []*prefixes.FulltextIndexKey
+	distinctMatches    int
+	distinctCount      int
+	distance, sequence float64
+	items              []*prefixes.FulltextIndexKey
 }
 
 func (r *T) QueryFulltextEvents(c context.T, f *filter.T) (evs []store.IdTsPk, err error) {
@@ -32,11 +33,11 @@ func (r *T) QueryFulltextEvents(c context.T, f *filter.T) (evs []store.IdTsPk, e
 		return r.QueryForIds(c, f)
 	}
 	split := bytes.Split(f.Search, []byte{' '})
-	var lang []byte
+	var lTag []byte
 	var terms [][]byte
 	for i := range split {
 		if bytes.HasPrefix(split[i], []byte("lang:")) {
-			lang = split[i][5:]
+			lTag = split[i][5:]
 		} else {
 			terms = append(terms, split[i])
 		}
@@ -107,23 +108,9 @@ func (r *T) QueryFulltextEvents(c context.T, f *filter.T) (evs []store.IdTsPk, e
 				// get serial
 				ser := idx.Serial()
 				// check language tags
-				if len(lang) > 0 {
-					var found bool
-					func() {
-						itl := txn.NewIterator(badger.IteratorOptions{
-							Prefix: prefixes.LangIndex.Key(),
-						})
-						defer itl.Close()
-						for itl.Rewind(); itl.Valid(); itl.Next() {
-							s := serial.FromKey(itl.Item().KeyCopy(nil))
-							if s.Uint64() == ser.Uint64() {
-								found = true
-								return
-							}
-						}
-					}()
-					// the event does not have an associated language tag
-					if !found {
+				if len(lTag) > 0 {
+					if _, err = txn.Get(prefixes.LangIndex.Key(lang.New(lTag), ser)); chk.E(err) {
+						// the event does not have an associated language tag
 						continue
 					}
 				}
@@ -191,75 +178,89 @@ func (r *T) QueryFulltextEvents(c context.T, f *filter.T) (evs []store.IdTsPk, e
 	for _, g := range groups {
 		groupS = append(groupS, g)
 	}
-	// first, sort the groups by the number of elements in descending order
-	sort.Slice(groupS, func(i, j int) (e bool) {
-		return len(groupS[i].items) > len(groupS[j].items)
-	})
-	// get the distance of the groups
+	// get the number of distinct terms that were matched, and the counts of each term
+	var distinct map[string]int
 	for _, g := range groupS {
-		g.distance = int(g.items[len(g.items)-1].Sequence().Val - g.items[0].Sequence().Val)
-	}
-	// get the sequence as relates to the search terms
-	for _, g := range groupS {
-		for i := range g.items {
-			if i > 0 {
-				for k := range terms {
-					if bytes.Equal(g.items[i].Word(), terms[k]) {
-						g.sequence = append(g.sequence, i)
-					}
-				}
+		for _, i := range g.items {
+			if _, ok := distinct[string(i.Word())]; ok {
+				distinct[string(i.Word())]++
+			} else {
+				distinct[string(i.Word())] = 1
 			}
 		}
+		g.distinctMatches = len(distinct)
+		// sum the counts on the distinct matches to get the number of distinct match groups
+		for _, dCount := range distinct {
+			g.distinctCount += dCount
+		}
 	}
-	// count the number of elements of the sequence that are in ascending order
+	// eliminate all results that don't have a complete set
+	var tmp []FulltextSequence
 	for _, g := range groupS {
-		for i := range g.sequence {
-			if i > 0 {
-				if g.sequence[i-1] < g.sequence[i] {
-					g.inSequence++
-				}
-			}
+		if g.distinctCount >= len(g.items) {
+			tmp = append(tmp, g)
 		}
 	}
-	// find the boundaries of each length segment of the group
-	var groupedCounts []int
-	var lastCount int
-	lastCount = len(groupS[0].items)
-	for i, g := range groupS {
-		if len(g.items) < lastCount {
-			groupedCounts = append(groupedCounts, i)
-			lastCount = len(g.items)
-		}
-	}
-	// break the groupS into segments of the same length
-	var segments [][]FulltextSequence
-	lastCount = 0
-	for i := range groupedCounts {
-		segments = append(segments, groupS[lastCount:groupedCounts[i]])
-	}
-	// sort the segments by distance and number in sequence
-	for _, s := range segments {
-		sort.Slice(s, func(i, j int) bool {
-			return (s[i].distance < s[j].distance) && s[i].inSequence > s[i].inSequence
+	groupS = tmp
+	// sort each group so the indexes are sorted by sequence number
+	for _, g := range groupS {
+		sort.Slice(g.items, func(i, j int) bool {
+			return g.items[i].Sequence().Val < g.items[j].Sequence().Val
 		})
 	}
-	// flatten the segments back into a list
-	var list []FulltextSequence
-	for _, seg := range segments {
-		for _, bit := range seg {
-			list = append(list, bit)
+	// find the max sequential in the items
+	for _, g := range groupS {
+		var itemSequence int
+		var itemsInSequence, distanceInSequence [][]int
+		var seq, dist []int
+		var groupSeq, groupDist []float64
+		for itemSequence < len(g.items) {
+			for _, ts := range terms {
+				if bytes.Equal(g.items[itemSequence].Word(), ts) {
+					seq = append(seq, itemSequence)
+					dist = append(dist,
+						int(g.items[itemSequence].Sequence().Val))
+					itemSequence++
+				} else {
+					itemsInSequence = append(itemsInSequence, seq)
+					distanceInSequence = append(distanceInSequence, dist)
+					dist = []int{}
+					seq = []int{}
+					itemSequence++
+					continue
+				}
+			}
 		}
-	}
-	// convert into store.IdTsPk
-	for _, bit := range list {
-		for _, el := range bit.items {
-			evs = append(evs, store.IdTsPk{
-				Ts:  el.Timestamp().I64(),
-				Id:  el.EventId().Bytes(),
-				Pub: el.Pubkey(),
-			})
+		// generate the sequence and distance scores for the groups
+		for i := range itemsInSequence {
+			// add the number of items in sequence to an array
+			groupSeq = append(groupSeq, float64(len(itemsInSequence[i])))
+			// add the distance between the first and last items in a sequence to an array
+			groupDist = append(groupDist,
+				float64(distanceInSequence[i][len(distanceInSequence)-1]-
+					distanceInSequence[i][0]))
 		}
+		// sum the sequence and distance numbers for averaging
+		var s, d float64
+		for i := range groupSeq {
+			s += groupSeq[i]
+			d += groupDist[i]
+		}
+		// get the average sequence and distance values
+		s /= float64(len(groupSeq))
+		d /= float64(len(groupDist))
+		// divide by the length of the terms
+		s /= float64(len(terms))
+		d /= float64(len(terms))
+		// these values represent sequence ond proximity, store in the group
+		g.sequence = s
+		g.distance = d
 	}
+	// sort the groups by these scores by ascending distance and descending sequence
+	sort.Slice(groupS, func(i, j int) bool {
+		return groupS[i].distance < groupS[j].distance &&
+			groupS[i].sequence > groupS[j].sequence
+	})
 	if f.Limit != nil {
 		evs = evs[:*f.Limit]
 	} else {
