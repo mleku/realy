@@ -51,7 +51,7 @@ func (a *A) HandleAuth(b []byte, srv interfaces.Server) (msg []byte) {
 				var accepted bool
 				if accepted, msg = a.Server.AddEvent(context.Bg(), ev, a.Listener.Request, a.Listener.AuthedBytes(),
 					a.Listener.RealRemote()); accepted {
-					log.I.F("saved event %0x", ev.Id)
+					log.W.F("saved event %0x", ev.Id)
 				}
 			}
 		}

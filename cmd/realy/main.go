@@ -40,9 +40,9 @@ func main() {
 		log.F.F("SUPERUSER is not set")
 		os.Exit(1)
 	}
-	runtime.GOMAXPROCS(1)
+	runtime.GOMAXPROCS(4)
 	debug.SetGCPercent(10)
-	debug.SetMemoryLimit(250000)
+	debug.SetMemoryLimit(2500000)
 	var err error
 	a := cfg.Superuser
 	var dst []byte

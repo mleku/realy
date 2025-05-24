@@ -2,6 +2,7 @@ package socketapi
 
 import (
 	"fmt"
+	"runtime/debug"
 
 	"realy.lol/chk"
 	"realy.lol/envelopes"
@@ -40,5 +41,5 @@ func (a *A) HandleMessage(msg []byte, remote string) {
 			return
 		}
 	}
-
+	debug.FreeOSMemory()
 }
