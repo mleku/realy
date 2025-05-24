@@ -39,6 +39,7 @@ func (a *A) HandleEvent(c context.T, req []byte, srv interfaces.Server,
 	if len(rem) > 0 {
 		log.T.F("%s extra '%s'", remote, rem)
 	}
+	log.I.F("authed pubkey: %0x", a.Listener.AuthedBytes())
 	accept, notice, after := a.Server.AcceptEvent(c, env.T, a.Listener.Req(),
 		a.Listener.AuthedBytes(), remote)
 	log.T.F("%s accepted %v", remote, accept)
