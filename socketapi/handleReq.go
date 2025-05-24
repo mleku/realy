@@ -85,7 +85,7 @@ func (a *A) HandleReq(c context.T, req []byte, srv interfaces.Server, aut []byte
 			}
 		}
 		var events event.Ts
-		log.D.F("query from %s %0x,%s", remote, a.Listener.AuthedBytes(), f.Serialize())
+		// log.D.F("query from %s %0x,%s", remote, a.Listener.AuthedBytes(), f.Serialize())
 		if events, err = sto.QueryEvents(c, f); err != nil {
 			log.E.F("eventstore: %v", err)
 			if errors.Is(err, badger.ErrDBClosed) {
@@ -214,7 +214,8 @@ func (a *A) CheckPrivilege(events event.Ts, f *filter.T, env *reqenvelope.T,
 		if isPrivileged && !(bytes.Equal(ev.Pubkey, aut) ||
 			!receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes()))) {
 
-			log.I.F("%v && (%v || %v)", isPrivileged, !bytes.Equal(ev.Pubkey, aut), !receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes())))
+			log.I.F("%v && (%v || %v)", isPrivileged, !bytes.Equal(ev.Pubkey, aut),
+				!receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes())))
 			if notice, err = a.AuthRequiredResponse(env, remote, aut, reason.Restricted); chk.E(err) {
 				return
 			}
