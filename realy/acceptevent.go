@@ -111,11 +111,11 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 		// }
 		// check the authed pubkey is in the follow list
 		for pk := range s.followed {
+			log.I.F("%0x %0x", authedPubkey, []byte(pk))
 			// allow all events from follows of owners
 			if bytes.Equal(authedPubkey, []byte(pk)) {
 				log.I.F("accepting event %0x because %0x on owner follow list",
 					evt.Id, []byte(pk))
-				// log.I.S([]byte(pk))
 				accept = true
 				return
 			}

@@ -318,7 +318,7 @@ func TimeStamper() (s string) {
 // GetNLoc returns multiple levels of depth of code location from the current.
 func GetNLoc(n int) (output string) {
 	for ; n > 1; n-- {
-		output += fmt.Sprintf("%s\n", GetLoc(n))
+		output += fmt.Sprintf(" %s\n", GetLoc(n))
 	}
 	return
 }

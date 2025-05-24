@@ -14,7 +14,7 @@ import (
 )
 
 func (a *A) HandleMessage(msg []byte, remote string) {
-	log.T.F("received message from %s\n%s", remote, msg)
+	// log.T.F("received message from %s\n%s", remote, msg)
 	var notice []byte
 	var err error
 	var t string
