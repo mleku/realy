@@ -15,9 +15,6 @@ import (
 	"realy.lol/envelopes/reqenvelope"
 	"realy.lol/event"
 	"realy.lol/filter"
-	"realy.lol/hex"
-	"realy.lol/kind"
-	"realy.lol/kinds"
 	"realy.lol/log"
 	"realy.lol/publish"
 	"realy.lol/realy/interfaces"
@@ -94,10 +91,10 @@ func (a *A) HandleReq(c context.T, req []byte, srv interfaces.Server, aut []byte
 			continue
 		}
 		aut := a.Listener.AuthedBytes()
-		// remove events from muted authors if we have the authed user's mute list.
-		if a.Listener.IsAuthed() {
-			a.FilterPrivileged(c, sto, aut, events)
-		}
+		// // remove events from muted authors if we have the authed user's mute list.
+		// if a.Listener.IsAuthed() {
+		// 	a.FilterPrivileged(c, sto, aut, events)
+		// }
 		// remove privileged events as they come through in scrape queries
 		if events, notice, err = a.CheckPrivilege(events, f, env, srv, aut, remote); chk.E(err) {
 			return
@@ -164,34 +161,34 @@ func (a *A) HandleAuthPrivilege(env *reqenvelope.T, f *filter.T, aut []byte, rem
 }
 
 func (a *A) FilterPrivileged(c context.T, sto store.I, aut []byte, events event.Ts) (evs event.Ts) {
-	var mutes event.Ts
-	var err error
-	if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),
-		Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
-		var mutePubs [][]byte
-		for _, ev := range mutes {
-			for _, t := range ev.Tags.ToSliceOfTags() {
-				if bytes.Equal(t.Key(), []byte("p")) {
-					var p []byte
-					if p, err = hex.Dec(string(t.Value())); chk.E(err) {
-						continue
-					}
-					mutePubs = append(mutePubs, p)
-				}
-			}
-		}
-		var tmp event.Ts
-		for _, ev := range events {
-			for _, pk := range mutePubs {
-				if bytes.Equal(ev.Pubkey, pk) {
-					continue
-				}
-				tmp = append(tmp, ev)
-			}
-		}
-		// remove privileged events
-		evs = tmp
-	}
+	// var mutes event.Ts
+	// var err error
+	// if mutes, err = sto.QueryEvents(c, &filter.T{Authors: tag.New(aut),
+	// 	Kinds: kinds.New(kind.MuteList)}); !chk.E(err) {
+	// 	var mutePubs [][]byte
+	// 	for _, ev := range mutes {
+	// 		for _, t := range ev.Tags.ToSliceOfTags() {
+	// 			if bytes.Equal(t.Key(), []byte("p")) {
+	// 				var p []byte
+	// 				if p, err = hex.Dec(string(t.Value())); chk.E(err) {
+	// 					continue
+	// 				}
+	// 				mutePubs = append(mutePubs, p)
+	// 			}
+	// 		}
+	// 	}
+	// 	var tmp event.Ts
+	// 	for _, ev := range events {
+	// 		for _, pk := range mutePubs {
+	// 			if bytes.Equal(ev.Pubkey, pk) {
+	// 				continue
+	// 			}
+	// 			tmp = append(tmp, ev)
+	// 		}
+	// 	}
+	// 	// remove privileged events
+	// 	evs = tmp
+	// }
 	return
 }
 

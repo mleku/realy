@@ -109,7 +109,7 @@ func (a *A) HandleRejectEvent(env *eventenvelope.Submission, notice string) (err
 		if err = authenvelope.NewChallengeWith(a.Listener.Challenge()).Write(a.Listener); chk.T(err) {
 			return
 		}
-		a.Listener.AddPendingEvent(env.T)
+		a.Listener.SetPendingEvent(env.T)
 		return
 	}
 	if err = Ok.Invalid(a, env, notice); chk.E(err) {

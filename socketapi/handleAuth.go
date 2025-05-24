@@ -46,12 +46,13 @@ func (a *A) HandleAuth(b []byte, srv interfaces.Server) (msg []byte) {
 			}
 			log.D.F("%s authed to pubkey,%0x", a.Listener.RealRemote(), env.Event.Pubkey)
 			a.Listener.SetAuthed(string(env.Event.Pubkey))
-			evs := a.Listener.GetPendingEvents()
-			sto := a.Storage()
-			for _, ev := range evs {
-				if err = sto.SaveEvent(context.Bg(), ev); chk.E(err) {
+			ev := a.Listener.GetPendingEvent()
+			if ev != nil {
+				var accepted bool
+				if accepted, msg = a.Server.AddEvent(context.Bg(), ev, a.Listener.Request, a.Listener.AuthedBytes(),
+					a.Listener.RealRemote()); accepted {
+					log.I.F("saved event %0x", ev.Id)
 				}
-				log.I.F("saved event %0x", ev.Id)
 			}
 		}
 	}

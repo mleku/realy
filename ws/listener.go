@@ -22,7 +22,7 @@ type Listener struct {
 	remote        atomic.String
 	authed        atomic.String
 	authRequested atomic.Bool
-	pendingEvents []*event.T
+	pendingEvent  *event.T
 }
 
 // NewListener creates a new Listener for listening for inbound connections for a relay.
@@ -130,12 +130,12 @@ func (ws *Listener) Req() *http.Request { return ws.Request }
 // Close the Listener connection from the Listener side.
 func (ws *Listener) Close() (err error) { return ws.Conn.Close() }
 
-func (ws *Listener) AddPendingEvent(ev *event.T) {
-	ws.pendingEvents = append(ws.pendingEvents, ev)
+func (ws *Listener) SetPendingEvent(ev *event.T) {
+	ws.pendingEvent = ev
 }
 
-func (ws *Listener) GetPendingEvents() (evs []*event.T) {
-	evs = ws.pendingEvents
-	ws.pendingEvents = nil
+func (ws *Listener) GetPendingEvent() (evs *event.T) {
+	evs = ws.pendingEvent
+	ws.pendingEvent = nil
 	return
 }
