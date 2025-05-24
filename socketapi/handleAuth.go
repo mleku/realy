@@ -3,6 +3,7 @@ package socketapi
 import (
 	"realy.lol/auth"
 	"realy.lol/chk"
+	"realy.lol/context"
 	"realy.lol/envelopes/authenvelope"
 	"realy.lol/envelopes/okenvelope"
 	"realy.lol/log"
@@ -45,6 +46,13 @@ func (a *A) HandleAuth(b []byte, srv interfaces.Server) (msg []byte) {
 			}
 			log.D.F("%s authed to pubkey,%0x", a.Listener.RealRemote(), env.Event.Pubkey)
 			a.Listener.SetAuthed(string(env.Event.Pubkey))
+			evs := a.Listener.GetPendingEvents()
+			sto := a.Storage()
+			for _, ev := range evs {
+				if err = sto.SaveEvent(context.Bg(), ev); chk.E(err) {
+				}
+				log.I.F("saved event %0x", ev.Id)
+			}
 		}
 	}
 	return

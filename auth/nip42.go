@@ -53,7 +53,7 @@ var (
 // The result of the validation is encoded in the ok bool.
 func Validate(ev *event.T, challenge []byte, relayURL string) (ok bool, err error) {
 	// log.T.ToSliceOfBytes("relayURL '%s'", relayURL)
-	log.I.S(ev)
+	// log.I.S(ev)
 	if ev.Kind.K != kind.ClientAuthentication.K {
 		err = log.E.Err("event incorrect kind for auth: %d %s",
 			ev.Kind.K, kind.GetString(ev.Kind))

@@ -7,7 +7,6 @@ import (
 	"realy.lol/context"
 	"realy.lol/ec/schnorr"
 	"realy.lol/event"
-	"realy.lol/hex"
 	"realy.lol/kind"
 	"realy.lol/log"
 	"realy.lol/tag"
@@ -51,14 +50,15 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 		//
 		// note that some clients hide this info in the kind 10000 mute list, unfortunately.
 		// such as jumble. use old nostrudel or similar which still gives public readable info.
-		for pk := range s.muted {
-			if bytes.Equal(evt.Pubkey, []byte(pk)) {
-				notice = "rejecting event with pubkey " + hex.Enc(evt.Pubkey) +
-					" because on owner mute list"
-				log.I.F("%s %s", remote, notice)
-				return false, notice, nil
-			}
-		}
+		// log.I.S(s.muted)
+		// for pk := range s.muted {
+		// 	if bytes.Equal(evt.Pubkey, []byte(pk)) {
+		// 		notice = "rejecting event with pubkey " + hex.Enc(evt.Pubkey) +
+		// 			" because on owner mute list"
+		// 		log.I.F("%s %s", remote, notice)
+		// 		return false, notice, nil
+		// 	}
+		// }
 		// for _, o := range s.owners {
 		// 	log.T.F("%0x,%0x", o, evt.Pubkey)
 		// 	if bytes.Equal(o, evt.Pubkey) {

@@ -100,7 +100,7 @@ func (t *T) AddCap(i, c int) (tt *T) {
 // ToStringsSlice converts a tags.T to a slice of slice of strings.
 func (t *T) ToStringsSlice() (b [][]string) {
 	if t == nil {
-		log.I.F("nil tags %s", lol.GetNLoc(7))
+		// log.I.F("nil tags %s", lol.GetNLoc(7))
 		return nil
 	}
 	b = make([][]string, 0, len(t.element))

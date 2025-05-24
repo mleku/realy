@@ -9,6 +9,7 @@ import (
 	"github.com/fasthttp/websocket"
 
 	"realy.lol/atomic"
+	"realy.lol/event"
 	"realy.lol/log"
 )
 
@@ -21,6 +22,7 @@ type Listener struct {
 	remote        atomic.String
 	authed        atomic.String
 	authRequested atomic.Bool
+	pendingEvents []*event.T
 }
 
 // NewListener creates a new Listener for listening for inbound connections for a relay.
@@ -127,3 +129,13 @@ func (ws *Listener) Req() *http.Request { return ws.Request }
 
 // Close the Listener connection from the Listener side.
 func (ws *Listener) Close() (err error) { return ws.Conn.Close() }
+
+func (ws *Listener) AddPendingEvent(ev *event.T) {
+	ws.pendingEvents = append(ws.pendingEvents, ev)
+}
+
+func (ws *Listener) GetPendingEvents() (evs []*event.T) {
+	evs = ws.pendingEvents
+	ws.pendingEvents = nil
+	return
+}

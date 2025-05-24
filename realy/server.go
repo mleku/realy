@@ -47,9 +47,9 @@ type Server struct {
 	// OwnersFollowed are "guests" of the followed and have full access but with
 	// rate limiting enabled.
 	ownersFollowed list.L
-	// muted are on Owners' mute lists and do not have write access to the relay,
-	// even if they would be in the OwnersFollowed list, they can only read.
-	muted list.L
+	// // muted are on Owners' mute lists and do not have write access to the relay,
+	// // even if they would be in the OwnersFollowed list, they can only read.
+	// muted list.L
 	// ownersFollowLists are the event IDs of owners follow lists, which must not be
 	// deleted, only replaced.
 	ownersFollowLists [][]byte

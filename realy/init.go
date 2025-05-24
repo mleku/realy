@@ -47,7 +47,7 @@ func (s *Server) ZeroLists() {
 	s.followed = make(map[string]struct{})
 	s.ownersFollowed = make(map[string]struct{})
 	s.ownersFollowLists = s.ownersFollowLists[:0]
-	s.muted = make(map[string]struct{})
+	// s.muted = make(map[string]struct{})
 	s.ownersMuteLists = s.ownersMuteLists[:0]
 }
 
@@ -114,37 +114,37 @@ func (s *Server) CheckOwnerLists(c context.T) {
 			}
 			evs = nil
 		}
-		if len(s.muted) < 1 {
-			log.D.Ln("regenerating owners mute lists")
-			s.muted = make(map[string]struct{})
-			if evs, err = s.Store.QueryEvents(c,
-				&filter.T{Authors: tag.New(s.owners...),
-					Kinds: kinds.New(kind.MuteList)}); chk.E(err) {
-			}
-			for _, ev := range evs {
-				s.ownersMuteLists = append(s.ownersMuteLists, ev.Id)
-				for _, t := range ev.Tags.ToSliceOfTags() {
-					if bytes.Equal(t.Key(), []byte("p")) {
-						var p []byte
-						if p, err = hex.Dec(string(t.Value())); chk.E(err) {
-							continue
-						}
-						// log.I.F("muted %0x", p)
-						s.muted[string(p)] = struct{}{}
-					}
-				}
-			}
-			evs = nil
-		}
-		// remove muted from the followed list
-		for m := range s.muted {
-			for f := range s.followed {
-				if f == m {
-					// delete muted element from followed list
-					delete(s.followed, m)
-				}
-			}
-		}
-		log.I.F("%d allowed npubs, %d blocked", len(s.followed), len(s.muted))
+		// if len(s.muted) < 1 {
+		// 	log.D.Ln("regenerating owners mute lists")
+		// 	s.muted = make(map[string]struct{})
+		// 	if evs, err = s.Store.QueryEvents(c,
+		// 		&filter.T{Authors: tag.New(s.owners...),
+		// 			Kinds: kinds.New(kind.MuteList)}); chk.E(err) {
+		// 	}
+		// 	for _, ev := range evs {
+		// 		s.ownersMuteLists = append(s.ownersMuteLists, ev.Id)
+		// 		for _, t := range ev.Tags.ToSliceOfTags() {
+		// 			if bytes.Equal(t.Key(), []byte("p")) {
+		// 				var p []byte
+		// 				if p, err = hex.Dec(string(t.Value())); chk.E(err) {
+		// 					continue
+		// 				}
+		// 				// log.I.F("muted %0x", p)
+		// 				s.muted[string(p)] = struct{}{}
+		// 			}
+		// 		}
+		// 	}
+		// 	evs = nil
+		// }
+		// // remove muted from the followed list
+		// for m := range s.muted {
+		// 	for f := range s.followed {
+		// 		if f == m {
+		// 			// delete muted element from followed list
+		// 			delete(s.followed, m)
+		// 		}
+		// 	}
+		// }
+		log.I.F("%d allowed npubs ", len(s.followed))
 	}
 }

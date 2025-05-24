@@ -10,6 +10,7 @@ import (
 	"realy.lol/chk"
 	"realy.lol/context"
 	"realy.lol/envelopes/authenvelope"
+	"realy.lol/event"
 	"realy.lol/log"
 	"realy.lol/publish"
 	"realy.lol/realy/helpers"
@@ -27,8 +28,9 @@ const (
 )
 
 type A struct {
-	Ctx      context.T
-	Listener *ws.Listener
+	Ctx          context.T
+	Listener     *ws.Listener
+	AwaitingAuth *event.T
 	interfaces.Server
 }
 
