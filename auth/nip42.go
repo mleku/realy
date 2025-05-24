@@ -51,15 +51,16 @@ var (
 
 // Validate checks whether event is a valid NIP-42 event for given challenge and relayURL.
 // The result of the validation is encoded in the ok bool.
-func Validate(evt *event.T, challenge []byte, relayURL string) (ok bool, err error) {
+func Validate(ev *event.T, challenge []byte, relayURL string) (ok bool, err error) {
 	// log.T.ToSliceOfBytes("relayURL '%s'", relayURL)
-	if evt.Kind.K != kind.ClientAuthentication.K {
+	log.I.S(ev)
+	if ev.Kind.K != kind.ClientAuthentication.K {
 		err = log.E.Err("event incorrect kind for auth: %d %s",
-			evt.Kind.K, kind.GetString(evt.Kind))
+			ev.Kind.K, kind.GetString(ev.Kind))
 		log.D.Ln(err)
 		return
 	}
-	if evt.Tags.GetFirst(tag.New(ChallengeTag, challenge)) == nil {
+	if ev.Tags.GetFirst(tag.New(ChallengeTag, challenge)) == nil {
 		err = log.E.Err("challenge tag missing from auth response")
 		log.D.Ln(err)
 		return
@@ -70,7 +71,7 @@ func Validate(evt *event.T, challenge []byte, relayURL string) (ok bool, err err
 		log.D.Ln(err)
 		return
 	}
-	r := evt.Tags.
+	r := ev.Tags.
 		GetFirst(tag.New(RelayTag, nil)).Value()
 	if len(r) == 0 {
 		err = log.E.Err("relay tag missing from auth response")
@@ -102,13 +103,13 @@ func Validate(evt *event.T, challenge []byte, relayURL string) (ok bool, err err
 	}
 
 	now := time.Now()
-	if evt.CreatedAt.Time().After(now.Add(10*time.Minute)) ||
-		evt.CreatedAt.Time().Before(now.Add(-10*time.Minute)) {
+	if ev.CreatedAt.Time().After(now.Add(10*time.Minute)) ||
+		ev.CreatedAt.Time().Before(now.Add(-10*time.Minute)) {
 		err = log.E.Err(
 			"auth event more than 10 minutes before or after current time")
 		log.D.Ln(err)
 		return
 	}
 	// save for last, as it is the most expensive operation
-	return evt.Verify()
+	return ev.Verify()
 }

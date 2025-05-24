@@ -26,6 +26,10 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 	}
 	// check ACL
 	if len(s.owners) > 0 {
+		if len(authedPubkey) == 0 {
+			notice = "auth required but user not authed"
+			return
+		}
 		// if one of the follows of the owners or follows of the follows changes
 		if evt.Kind.Equal(kind.FollowList) || evt.Kind.Equal(kind.MuteList) {
 			// if owner or any of their follows lists are updated we need to regenerate the
