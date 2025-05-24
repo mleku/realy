@@ -82,7 +82,7 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 					// we don't delete delete events, period
 					return false, "delete event kind may not be deleted", nil
 				}
-				// if the kind is not parameterised replaceable, the tag is invalid and the
+				// if the kind is not parameterized replaceable, the tag is invalid and the
 				// delete event will not be saved.
 				if !a.Kind.IsParameterizedReplaceable() {
 					return false, "delete tags with a tags containing " +

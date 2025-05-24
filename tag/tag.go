@@ -10,6 +10,7 @@ import (
 
 	"realy.lol/errorf"
 	"realy.lol/log"
+	"realy.lol/lol"
 	"realy.lol/normalize"
 	"realy.lol/text"
 )
@@ -83,14 +84,11 @@ func (t *T) Len() int {
 // Less returns whether one field of a tag.T is lexicographically less than another (smaller).
 // This uses bytes.Compare, which sorts strings and byte slices as though they are numbers.
 func (t *T) Less(i, j int) bool {
-	var cursor int
-	for len(t.field[i]) < cursor-1 && len(t.field[j]) < cursor-1 {
-		if bytes.Compare(t.field[i], t.field[j]) < 0 {
-			return true
-		}
-		cursor++
+	// Added nil checks for robustness
+	if t == nil || i < 0 || j < 0 || i >= t.Len() || j >= t.Len() {
+		return false // Or panic, depending on desired error handling
 	}
-	return false
+	return bytes.Compare(t.field[i], t.field[j]) < 0
 }
 
 // Swap flips the position of two fields of a tag.T with each other.
@@ -107,6 +105,10 @@ func FromBytesSlice(fields ...[]byte) (t *T) {
 
 // Clone makes a new tag.T with the same members.
 func (t *T) Clone() (c *T) {
+	if t == nil {
+		log.I.F("nil tag %s", lol.GetNLoc(7)) // This line is present in the `tags.go` code.
+		return nil                            // Or return &T{} or panic, depending on desired behavior for nil receiver
+	}
 	c = &T{field: make([]BS[[]byte], 0, len(t.field))}
 	for _, f := range t.field {
 		l := len(f)
@@ -119,15 +121,15 @@ func (t *T) Clone() (c *T) {
 
 // Append a slice of slice of bytes to a tag.T.
 func (t *T) Append(b ...[]byte) (tt *T) {
+	tt = t
 	if t == nil {
 		// we are propagating back this to tt if t was nil, else it appends
-		// t = &T{make([]ToSliceOfBytes[B], 0, len(t.field))}
-		t = &T{}
+		tt = &T{}
 	}
 	for _, bb := range b {
-		t.field = append(t.field, bb)
+		tt.field = append(tt.field, bb)
 	}
-	return t
+	return
 }
 
 // Cap returns the capacity of a tag.T (how much elements it can hold without a re-allocation).
@@ -136,8 +138,12 @@ func (t *T) Cap() int { return cap(t.field) }
 // Clear sets the length of the tag.T to zero so new elements can be appended.
 func (t *T) Clear() { t.field = t.field[:0] }
 
-// Slice cuts out a given start and end (exclusive) segment of the tag.T.
-func (t *T) Slice(start, end int) *T { return &T{t.field[start:end]} }
+// Slice cuts out a given start and end (exclusive) segment of the tag.T. This
+// function must be called after using the Len function to ensure the `end`
+// parameter does not exceed the bounds of the array.
+func (t *T) Slice(start, end int) *T {
+	return &T{t.field[start:end]}
+}
 
 // ToSliceOfBytes renders a tag.T as a slice of slice of bytes.
 func (t *T) ToSliceOfBytes() (b [][]byte) {
@@ -186,7 +192,7 @@ func (t *T) Key() []byte {
 	if t == nil {
 		return nil
 	}
-	if t.Len() > Key {
+	if len(t.field) > Key {
 		return t.field[Key]
 	}
 	return nil
@@ -197,9 +203,19 @@ func (t *T) KeyString() string {
 	if t == nil {
 		return ""
 	}
-	if t.Len() > Key {
-		return string(t.field[Key])
+	// Get the first element.
+	keyElement := t.field[Key]
+	// Ensure the key element has at least two bytes to perform the slice [1:].
+	// If it has 0 or 1 byte, slicing from index 1 will cause a panic or unexpected behavior.
+	// A common pattern for filter keys is like "#e", "#p", so they should be at least 2 chars.
+	if len(keyElement) >= 2 {
+		return string(keyElement[1:])
 	}
+	// If the key element is too short, return an empty slice or the original key,
+	// depending on desired behavior. Returning nil or an empty slice seems safer
+	// than panicking. The comment implies removing '#', so if it's not present
+	// or the string is too short, an empty or original string could be returned.
+	// Returning nil in this context is consistent with other nil returns in this package.
 	return ""
 }
 
@@ -208,9 +224,19 @@ func (t *T) FilterKey() []byte {
 	if t == nil {
 		return nil
 	}
-	if len(t.field) > Key {
-		return t.field[Key][1:]
+	// Get the first element.
+	keyElement := t.field[Key]
+	// Ensure the key element has at least two bytes to perform the slice [1:].
+	// If it has 0 or 1 byte, slicing from index 1 will cause a panic or unexpected behavior.
+	// A common pattern for filter keys is like "#e", "#p", so they should be at least 2 chars.
+	if len(keyElement) >= 2 {
+		return keyElement[1:]
 	}
+	// If the key element is too short, return an empty slice or the original key,
+	// depending on desired behavior. Returning nil or an empty slice seems safer
+	// than panicking. The comment implies removing '#', so if it's not present
+	// or the string is too short, an empty or original string could be returned.
+	// Returning nil in this context is consistent with other nil returns in this package.
 	return nil
 }
 
@@ -232,9 +258,10 @@ func (t *T) Relay() (s []byte) {
 	if t == nil {
 		return nil
 	}
+	// Check if the key is 'e' or 'p' and if there are enough fields for the Relay.
 	if (bytes.Equal(t.Key(), etag) ||
 		bytes.Equal(t.Key(), ptag)) &&
-		len(t.field) >= Relay {
+		len(t.field) > Relay {
 
 		return normalize.URL([]byte(t.field[Relay]))
 	}
@@ -243,6 +270,10 @@ func (t *T) Relay() (s []byte) {
 
 // Marshal encodes a tag.T as standard minified JSON array of strings.
 func (t *T) Marshal(dst []byte) (b []byte) {
+	if t == nil {
+		// A nil tag should marshal to an empty JSON array.
+		return append(dst, []byte("[]")...)
+	}
 	dst = append(dst, '[')
 	for i, s := range t.field {
 		if i > 0 {
@@ -258,32 +289,70 @@ func (t *T) Marshal(dst []byte) (b []byte) {
 func (t *T) Unmarshal(b []byte) (r []byte, err error) {
 	var inQuotes, openedBracket bool
 	var quoteStart int
-	// t.Field = []ToSliceOfBytes[B]{}
+	t.field = []BS[[]byte]{} // Clear the field to ensure a fresh unmarshal
+
 	for i := 0; i < len(b); i++ {
-		if !openedBracket && b[i] == '[' {
-			openedBracket = true
-		} else if !inQuotes {
-			if b[i] == '"' {
-				inQuotes, quoteStart = true, i+1
-			} else if b[i] == ']' {
-				return b[i+1:], err
+		if !openedBracket {
+			if b[i] == '[' {
+				openedBracket = true
+				if i+1 == len(b) { // Handle empty array "[]" if it's the end of input
+					return nil, nil // No remaining bytes, no error
+				}
+				continue // Move to the next character after '['
+			} else {
+				// If we haven't opened a bracket yet and current char isn't '[', it's an error.
+				return nil, errorf.E("tag: failed to parse tag: expected opening bracket '['")
 			}
-		} else if b[i] == '\\' && i < len(b)-1 {
-			i++
-		} else if b[i] == '"' {
-			inQuotes = false
-			t.field = append(t.field, text.NostrUnescape(b[quoteStart:i]))
+		}
+
+		// We are inside the bracket now
+		if !inQuotes {
+			switch b[i] {
+			case '"':
+				inQuotes, quoteStart = true, i+1
+			case ']':
+				// Found the closing bracket. Return the remaining bytes after it.
+				return b[i+1:], nil // Correctly return remaining bytes and no error
+			case ',':
+				// Expecting a comma only if we've already parsed at least one tag.
+				// This case covers a comma before the first element or multiple commas.
+				if len(t.field) == 0 {
+					return nil, errorf.E("tag: failed to parse tag: unexpected comma before first element")
+				}
+			case ' ':
+				// Allow spaces outside quotes but within the array structure
+				continue
+			default:
+				// Unexpected character outside of quotes, e.g., "invalid"
+				return nil, errorf.E("tag: failed to parse tag: unexpected character '%c' outside quotes", b[i])
+			}
+		} else { // In quotes
+			if b[i] == '\\' && i < len(b)-1 {
+				i++ // Skip escaped character
+			} else if b[i] == '"' {
+				inQuotes = false
+				t.field = append(t.field, text.NostrUnescape(b[quoteStart:i]))
+			}
+			// If it's not '\' or '"', just continue as it's part of the string content.
 		}
 	}
-	if !openedBracket || inQuotes {
-		return nil, errorf.E("tag: failed to parse tag")
+
+	// If we reach here, it means we didn't find a closing bracket or are still in quotes
+	// when the input ended. This indicates an incomplete or malformed tag.
+	if inQuotes {
+		return nil, errorf.E("tag: failed to parse tag: unclosed quote")
 	}
-	log.I.S(t.field)
-	return
+	if openedBracket {
+		return nil, errorf.E("tag: failed to parse tag: unclosed bracket")
+	}
+	return nil, errorf.E("tag: failed to parse tag: unexpected end of input")
 }
 
 // Contains returns true if the provided element is found in the tag slice.
 func (t *T) Contains(s []byte) (b bool) {
+	if t == nil {
+		return false // A nil tag list cannot contain any elements.
+	}
 	for i := range t.field {
 		if bytes.Equal(t.field[i], s) {
 			return true
@@ -294,6 +363,15 @@ func (t *T) Contains(s []byte) (b bool) {
 
 // Equal checks that the provided tag list matches.
 func (t *T) Equal(ta *T) bool {
+	// Handle nil cases:
+	// If both are nil, they are equal.
+	if t == nil && ta == nil {
+		return true
+	}
+	// If one is nil and the other is not, they are not equal.
+	if t == nil || ta == nil {
+		return false
+	}
 	if len(t.field) != len(ta.field) {
 		return false
 	}

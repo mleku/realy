@@ -170,7 +170,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 		evs = r.FilterSortAndLimit(evMap, limit)
 		r.UpdateAccessed(accessed)
 	} else {
-		log.T.F("no events found,%s", f.Serialize())
+		// log.T.F("no events found ", f.Serialize())
 	}
 	return
 }

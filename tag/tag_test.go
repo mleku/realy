@@ -11,7 +11,7 @@ import (
 )
 
 func TestMarshalUnmarshal(t *testing.T) {
-	var b, bool, bc []byte
+	var b, bo, bc []byte
 	for _ = range 100 {
 		n := frand.Intn(8)
 		tg := NewWithCap(n)
@@ -22,8 +22,8 @@ func TestMarshalUnmarshal(t *testing.T) {
 		}
 		// log.I.S(tg)
 		b = tg.Marshal(b)
-		bool = make([]byte, len(b))
-		copy(bool, b)
+		bo = make([]byte, len(b))
+		copy(bo, b)
 		tg2 := NewWithCap(n)
 		rem, err := tg2.Unmarshal(b)
 		// log.I.S(tg2)
@@ -32,8 +32,8 @@ func TestMarshalUnmarshal(t *testing.T) {
 		}
 		bc = tg2.Marshal(bc)
 		// log.I.ToSliceOfBytes("\n\norig\n%s\n\ncopy\n%s\n", bo, bc)
-		if !bytes.Equal(bool, bc) {
-			t.Fatalf("got\n%s\nwant\n%s", bool, bc)
+		if !bytes.Equal(bo, bc) {
+			t.Fatalf("got\n%s\nwant\n%s", bo, bc)
 		}
 		if len(rem) != 0 {
 			t.Fatalf("len(rem)!=0:\n%s", rem)
@@ -41,7 +41,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 		if !tg.Equal(tg2) {
 			t.Fatalf("got\n%s\nwant\n%s", tg2, tg)
 		}
-		b, bool, bc = b[:0], bool[:0], bc[:0]
+		b, bo, bc = b[:0], bo[:0], bc[:0]
 	}
 }
 

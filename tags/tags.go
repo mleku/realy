@@ -5,14 +5,12 @@ package tags
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"os"
 	"sort"
 
 	"golang.org/x/exp/constraints"
 
 	"realy.lol/chk"
+	"realy.lol/errorf"
 	"realy.lol/log"
 	"realy.lol/lol"
 	"realy.lol/tag"
@@ -65,8 +63,14 @@ func (t *T) AppendTo(n int, b ...[]byte) (tt *T) {
 		log.E.S(t, b)
 		return
 	}
+	// Ensure t.element has enough elements up to index n
+	for len(t.element) <= n {
+		t.element = append(t.element, &tag.T{}) // Append empty tag.T instances
+	}
+	// Now, t.element[n] is a valid tag.T to append to
+	currentTag := t.element[n]
 	for _, bb := range b {
-		t.GetTagElement(n).Append(bb)
+		currentTag.Append(bb) // Append to the existing tag.T
 	}
 	return t
 }
@@ -82,7 +86,7 @@ func (t *T) AppendSlice(b ...[]byte) (tt *T) {
 func (t *T) AddCap(i, c int) (tt *T) {
 	if t == nil {
 		log.E.F("cannot add capacity to index %d of nil tags", i)
-		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		log.I.F("nil tags %s", lol.GetNLoc(7))
 		return t
 	}
 
@@ -96,7 +100,7 @@ func (t *T) AddCap(i, c int) (tt *T) {
 // ToStringsSlice converts a tags.T to a slice of slice of strings.
 func (t *T) ToStringsSlice() (b [][]string) {
 	if t == nil {
-		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		log.I.F("nil tags %s", lol.GetNLoc(7))
 		return nil
 	}
 	b = make([][]string, 0, len(t.element))
@@ -109,7 +113,7 @@ func (t *T) ToStringsSlice() (b [][]string) {
 // Clone makes a copy of all of the elements of a tags.T into a new tags.T.
 func (t *T) Clone() (c *T) {
 	if t == nil {
-		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		log.I.F("nil tags %s", lol.GetNLoc(7))
 		return t
 	}
 	c = &T{element: make([]*tag.T, len(t.element))}
@@ -120,11 +124,16 @@ func (t *T) Clone() (c *T) {
 }
 
 func (t *T) Equal(ta *T) bool {
-	// sort them the same so if they are the same in content they compare the same.
-	if t == nil {
-		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
-		return false
+	// Handle nil cases:
+	if t == nil && ta == nil {
+		log.I.F("nil tags %s", lol.GetNLoc(7))
+		return true
 	}
+	if t == nil || ta == nil {
+		log.I.F("nil tags %s", lol.GetNLoc(7))
+		return false // One is nil, the other isn't, so they are not equal
+	}
+	// sort them the same so if they are the same in content they compare the same.
 	t1 := t.Clone()
 	sort.Sort(t1)
 	t2 := ta.Clone()
@@ -140,7 +149,7 @@ func (t *T) Equal(ta *T) bool {
 // Less returns which tag's first element is first lexicographically
 func (t *T) Less(i, j int) (less bool) {
 	if t == nil {
-		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
+		log.I.F("nil tags %s", lol.GetNLoc(7))
 		return
 	}
 	a, b := t.element[i], t.element[j]
@@ -280,7 +289,7 @@ func (t *T) Scan(src any) (err error) {
 	case string:
 		jtags = []byte(v)
 	default:
-		return errors.New("couldn't scan tag, it's not a json string")
+		return errorf.E("couldn't scan tag, it's not a json string")
 	}
 	err = json.Unmarshal(jtags, &t)
 	chk.E(err)
@@ -384,21 +393,21 @@ func (t *T) MarshalTo(dst []byte) []byte {
 // Marshal encodes a tags.T appended to a provided byte slice in JSON form.
 func (t *T) Marshal(dst []byte) (b []byte) {
 	b = dst
-	b = append(b, '[')
-	if t == nil || t.element == nil {
-		b = append(b, ']')
+	b = append(b, '[') // Start with opening bracket for outer array
+
+	if t == nil || t.element == nil || len(t.element) == 0 {
+		b = append(b, ']') // For nil or empty, just append closing bracket
 		return
 	}
-	if len(t.element) == 0 {
-		b = append(b, '[', ']')
-	}
+
 	for i, s := range t.element {
 		if i > 0 {
 			b = append(b, ',')
 		}
+		// Assume s.Marshal correctly marshals a single tag.T to a JSON array of strings
 		b = s.Marshal(b)
 	}
-	b = append(b, ']')
+	b = append(b, ']') // End with closing bracket for outer array
 	return
 }
 
