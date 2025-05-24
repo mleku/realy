@@ -211,7 +211,9 @@ func (a *A) CheckPrivilege(events event.Ts, f *filter.T, env *reqenvelope.T,
 		}
 		// if the authed pubkey is not present in the pubkey or p tags, skip
 		receivers := f.Tags.GetAll(tag.New("#p"))
-		log.I.S(receivers)
+		if receivers == nil {
+			continue
+		}
 		if isPrivileged && !(bytes.Equal(ev.Pubkey, aut) ||
 			!receivers.ContainsAny([]byte("#p"), tag.New(a.Listener.AuthedBytes()))) {
 

@@ -201,7 +201,7 @@ func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
 
 // GetAll gets all the tags that match the prefix, see [T.StartsWith]
 func (t *T) GetAll(tagPrefix *tag.T) (result *T) {
-	log.I.S("GetAll", tagPrefix, t)
+	// log.I.S("GetAll", tagPrefix, t)
 	if t == nil {
 		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
 		return nil
