@@ -3,6 +3,7 @@
 package p256k
 
 import (
+	"realy.lol/log"
 	"realy.lol/p256k/btcec"
 )
 
