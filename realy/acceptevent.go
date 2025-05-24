@@ -74,6 +74,10 @@ func (s *Server) acceptEvent(c context.T, evt *event.T, authedPubkey []byte,
 					log.I.S("remainder", evt, rem)
 				}
 				log.I.S(a)
+				if a.Kind == nil {
+					log.I.F("a tag is empty!")
+					continue
+				}
 				if a.Kind.Equal(kind.Deletion) {
 					// we don't delete delete events, period
 					return false, "delete event kind may not be deleted", nil

@@ -12,6 +12,7 @@ import (
 	"realy.lol/chk"
 	"realy.lol/ints"
 	"realy.lol/log"
+	"realy.lol/lol"
 )
 
 const Len = 2
@@ -127,6 +128,10 @@ func GetString(t *T) string {
 // IsEphemeral returns true if the event kind is an ephemeral event. (not to be
 // stored)
 func (k *T) IsEphemeral() bool {
+	if k == nil {
+		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		return false
+	}
 	return k.K >= EphemeralStart.K && k.K < EphemeralEnd.K
 }
 
@@ -134,6 +139,10 @@ func (k *T) IsEphemeral() bool {
 // if the newest version is the one that is in force (eg follow lists, relay
 // lists, etc.
 func (k *T) IsReplaceable() bool {
+	if k == nil {
+		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		return false
+	}
 	return k.K == ProfileMetadata.K || k.K == FollowList.K ||
 		(k.K >= ReplaceableStart.K && k.K < ReplaceableEnd.K)
 }
@@ -141,6 +150,10 @@ func (k *T) IsReplaceable() bool {
 // IsParameterizedReplaceable is a kind of event that is one of a group of
 // events that replaces based on matching criteria.
 func (k *T) IsParameterizedReplaceable() bool {
+	if k == nil {
+		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		return false
+	}
 	log.I.S(k)
 	return k.K >= ParameterizedReplaceableStart.K &&
 		k.K < ParameterizedReplaceableEnd.K
@@ -163,6 +176,10 @@ var Directory = []*T{
 // IsDirectoryEvent returns whether an event kind is a Directory event, which
 // should grant permission to read such events without requiring authentication.
 func (k *T) IsDirectoryEvent() bool {
+	if k == nil {
+		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		return false
+	}
 	for i := range Directory {
 		if k.Equal(Directory[i]) {
 			return true
@@ -197,6 +214,10 @@ var Text = []*T{
 }
 
 func (k *T) IsText() bool {
+	if k == nil {
+		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		return false
+	}
 	for i := range Text {
 		if k.Equal(Text[i]) {
 			return true

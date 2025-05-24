@@ -176,15 +176,17 @@ func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
 }
 
 // GetAll gets all the tags that match the prefix, see [T.StartsWith]
-func (t *T) GetAll(tagPrefix *tag.T) *T {
+func (t *T) GetAll(tagPrefix *tag.T) (result *T) {
 	// log.I.S("GetAll", tagPrefix, t)
-	result := &T{element: make([]*tag.T, 0, len(t.element))}
 	for _, v := range t.element {
 		if v.StartsWith(tagPrefix) {
+			if result == nil {
+				result = &T{element: make([]*tag.T, 0, len(t.element))}
+			}
 			result.element = append(result.element, v)
 		}
 	}
-	return result
+	return
 }
 
 // FilterOut removes all tags that match the prefix, see [T.StartsWith]
