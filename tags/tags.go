@@ -95,6 +95,10 @@ func (t *T) AddCap(i, c int) (tt *T) {
 
 // ToStringsSlice converts a tags.T to a slice of slice of strings.
 func (t *T) ToStringsSlice() (b [][]string) {
+	if t == nil {
+		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		return nil
+	}
 	b = make([][]string, 0, len(t.element))
 	for i := range t.element {
 		b = append(b, t.element[i].ToStringSlice())
@@ -104,6 +108,10 @@ func (t *T) ToStringsSlice() (b [][]string) {
 
 // Clone makes a copy of all of the elements of a tags.T into a new tags.T.
 func (t *T) Clone() (c *T) {
+	if t == nil {
+		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		return t
+	}
 	c = &T{element: make([]*tag.T, len(t.element))}
 	for i, field := range t.element {
 		c.element[i] = field.Clone()
@@ -113,6 +121,10 @@ func (t *T) Clone() (c *T) {
 
 func (t *T) Equal(ta *T) bool {
 	// sort them the same so if they are the same in content they compare the same.
+	if t == nil {
+		fmt.Fprint(os.Stderr, lol.GetNLoc(7))
+		return false
+	}
 	t1 := t.Clone()
 	sort.Sort(t1)
 	t2 := ta.Clone()
@@ -127,6 +139,10 @@ func (t *T) Equal(ta *T) bool {
 
 // Less returns which tag's first element is first lexicographically
 func (t *T) Less(i, j int) (less bool) {
+	if t == nil {
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
+		return
+	}
 	a, b := t.element[i], t.element[j]
 	if a.Len() < 1 && b.Len() < 1 {
 		return false // they are equal
@@ -156,6 +172,10 @@ func (t *T) Len() (l int) {
 
 // GetFirst gets the first tag in tags that matches the prefix, see [T.StartsWith]
 func (t *T) GetFirst(tagPrefix *tag.T) *tag.T {
+	if t == nil {
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
+		return nil
+	}
 	for _, v := range t.element {
 		if v.StartsWith(tagPrefix) {
 			return v
@@ -166,6 +186,10 @@ func (t *T) GetFirst(tagPrefix *tag.T) *tag.T {
 
 // GetLast gets the last tag in tags that matches the prefix, see [T.StartsWith]
 func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
+	if t == nil {
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
+		return nil
+	}
 	for i := len(t.element) - 1; i >= 0; i-- {
 		v := t.element[i]
 		if v.StartsWith(tagPrefix) {
@@ -177,7 +201,11 @@ func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
 
 // GetAll gets all the tags that match the prefix, see [T.StartsWith]
 func (t *T) GetAll(tagPrefix *tag.T) (result *T) {
-	// log.I.S("GetAll", tagPrefix, t)
+	log.I.S("GetAll", tagPrefix, t)
+	if t == nil {
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
+		return nil
+	}
 	for _, v := range t.element {
 		if v.StartsWith(tagPrefix) {
 			if result == nil {
@@ -204,6 +232,10 @@ func (t *T) FilterOut(tagPrefix [][]byte) *T {
 // the uniqueness comparison is done based only on the first 2 elements of the
 // tag.
 func (t *T) AppendUnique(tag *tag.T) *T {
+	if t == nil {
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
+		return nil
+	}
 	n := tag.Len()
 	if n > 2 {
 		n = 2
@@ -216,7 +248,8 @@ func (t *T) AppendUnique(tag *tag.T) *T {
 
 func (t *T) Append(ttt ...*T) (tt *T) {
 	if t == nil {
-		t = NewWithCap(len(ttt))
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
+		return
 	}
 	for _, tf := range ttt {
 		for _, v := range tf.element {
@@ -228,7 +261,8 @@ func (t *T) Append(ttt ...*T) (tt *T) {
 
 func (t *T) AppendTags(ttt ...*tag.T) (tt *T) {
 	if t == nil {
-		t = NewWithCap(len(ttt))
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
+		return
 	}
 	t.element = append(t.element, ttt...)
 	return t
@@ -258,7 +292,7 @@ func (t *T) Scan(src any) (err error) {
 // following values in the tag matches the first tag of this tag.
 func (t *T) Intersects(f *T) (has bool) {
 	if t == nil || f == nil {
-		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
 		// if either are empty there can't be a match (if caller wants to know if both are empty
 		// that's not the same as an intersection).
 		return
@@ -284,7 +318,7 @@ func (t *T) Intersects(f *T) (has bool) {
 // authed with the same pubkey as in the event. This is for implementing relayinfo.NIP70.
 func (t *T) ContainsProtectedMarker() (does bool) {
 	if t == nil {
-		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
 		return false
 	}
 	for _, v := range t.element {
@@ -299,7 +333,7 @@ func (t *T) ContainsProtectedMarker() (does bool) {
 // elements.
 func (t *T) ContainsAny(tagName []byte, values *tag.T) bool {
 	if t == nil {
-		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
 		return false
 	}
 	if len(tagName) < 1 {
@@ -323,7 +357,7 @@ func (t *T) ContainsAny(tagName []byte, values *tag.T) bool {
 
 func (t *T) Contains(filterTags *T) (has bool) {
 	if t == nil {
-		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		log.I.F("caller provided nil tag %v", lol.GetNLoc(4))
 		return false
 	}
 	for _, v := range filterTags.element {
