@@ -258,6 +258,7 @@ func (t *T) Scan(src any) (err error) {
 // following values in the tag matches the first tag of this tag.
 func (t *T) Intersects(f *T) (has bool) {
 	if t == nil || f == nil {
+		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
 		// if either are empty there can't be a match (if caller wants to know if both are empty
 		// that's not the same as an intersection).
 		return
@@ -282,6 +283,10 @@ func (t *T) Intersects(f *T) (has bool) {
 // ContainsProtectedMarker returns true if an event may only be published to the relay by a user
 // authed with the same pubkey as in the event. This is for implementing relayinfo.NIP70.
 func (t *T) ContainsProtectedMarker() (does bool) {
+	if t == nil {
+		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		return false
+	}
 	for _, v := range t.element {
 		if bytes.Equal(v.Key(), []byte("-")) {
 			return true
@@ -293,6 +298,10 @@ func (t *T) ContainsProtectedMarker() (does bool) {
 // ContainsAny returns true if any of the strings given in `values` matches any of the tag
 // elements.
 func (t *T) ContainsAny(tagName []byte, values *tag.T) bool {
+	if t == nil {
+		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		return false
+	}
 	if len(tagName) < 1 {
 		return false
 	}
@@ -313,6 +322,10 @@ func (t *T) ContainsAny(tagName []byte, values *tag.T) bool {
 }
 
 func (t *T) Contains(filterTags *T) (has bool) {
+	if t == nil {
+		log.I.F("caller provided nil kind %v", lol.GetNLoc(4))
+		return false
+	}
 	for _, v := range filterTags.element {
 		if t.ContainsAny(v.FilterKey(), v) {
 			return true
