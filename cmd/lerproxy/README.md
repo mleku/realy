@@ -87,6 +87,8 @@ requiring that](http://man7.org/linux/man-pages/man7/unix.7.html). It won't
 work with other implementations that calculate addrlen differently (i.e. by
 taking into account only `strlen(addr)` like Go, or even `UNIX_PATH_MAX`).
 
+Note also that static filesystem hosting requires a terminal `/` to work.
+
 ## systemd service file
 
 ```

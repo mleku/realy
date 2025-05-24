@@ -11,6 +11,7 @@ import (
 
 	"realy.lol/chk"
 	"realy.lol/ints"
+	"realy.lol/log"
 )
 
 const Len = 2
@@ -140,6 +141,7 @@ func (k *T) IsReplaceable() bool {
 // IsParameterizedReplaceable is a kind of event that is one of a group of
 // events that replaces based on matching criteria.
 func (k *T) IsParameterizedReplaceable() bool {
+	log.I.S(k)
 	return k.K >= ParameterizedReplaceableStart.K &&
 		k.K < ParameterizedReplaceableEnd.K
 }
