@@ -20,7 +20,6 @@ import (
 	"realy.lol/ratel/prefixes"
 	"realy.lol/realy/pointers"
 	"realy.lol/tag"
-	"realy.lol/timestamp"
 )
 
 func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
@@ -168,7 +167,7 @@ func (r *T) QueryEvents(c context.T, f *filter.T) (evs event.Ts, err error) {
 	}
 	if len(evMap) > 0 {
 		evs = r.FilterSortAndLimit(evMap, limit)
-		r.UpdateAccessed(accessed)
+		// r.UpdateAccessed(accessed)
 	} else {
 		// log.T.F("no events found ", f.Serialize())
 	}
@@ -214,25 +213,25 @@ func (r *T) ProcessFoundEvent(item *badger.Item, delEvs [][]byte) (dEvs [][]byte
 	return
 }
 
-func (r *T) UpdateAccessed(accessed map[string]struct{}) {
-	var err error
-	now := timestamp.Now()
-retry:
-	if err = r.Update(func(txn *badger.Txn) (err error) {
-		for ser := range accessed {
-			seri := serial.New([]byte(ser))
-			key := GetCounterKey(seri)
-			it := txn.NewIterator(badger.IteratorOptions{})
-			defer it.Close()
-			if it.Seek(key); it.ValidForPrefix(key) {
-				// update access record
-				if err = txn.Set(key, now.Bytes()); chk.E(err) {
-					return
-				}
-			}
-		}
-		return nil
-	}); err != nil {
-		goto retry
-	}
-}
+// func (r *T) UpdateAccessed(accessed map[string]struct{}) {
+// 	var err error
+// 	now := timestamp.Now()
+// retry:
+// 	if err = r.Update(func(txn *badger.Txn) (err error) {
+// 		for ser := range accessed {
+// 			seri := serial.New([]byte(ser))
+// 			key := GetCounterKey(seri)
+// 			it := txn.NewIterator(badger.IteratorOptions{})
+// 			defer it.Close()
+// 			if it.Seek(key); it.ValidForPrefix(key) {
+// 				// update access record
+// 				if err = txn.Set(key, now.Bytes()); chk.E(err) {
+// 					return
+// 				}
+// 			}
+// 		}
+// 		return nil
+// 	}); err != nil {
+// 		goto retry
+// 	}
+// }

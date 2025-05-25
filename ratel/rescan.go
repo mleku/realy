@@ -6,12 +6,9 @@ import (
 	"realy.lol/chk"
 	"realy.lol/event"
 	"realy.lol/log"
-	"realy.lol/ratel/keys"
-	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/prefixes"
 	"realy.lol/sha256"
-	"realy.lol/timestamp"
 )
 
 type Event struct {
@@ -49,9 +46,9 @@ func (r *T) Rescan() (err error) {
 					indexKeys = GetIndexKeysForEvent(e.ev, e.ser)
 					for _, k := range indexKeys {
 						var val []byte
-						if k[0] == prefixes.Counter.B() {
-							val = keys.Write(createdat.New(timestamp.Now()))
-						}
+						// if k[0] == prefixes.Counter.B() {
+						// 	val = keys.Write(createdat.New(timestamp.Now()))
+						// }
 						if err = txn.Set(k, val); chk.E(err) {
 							return
 						}

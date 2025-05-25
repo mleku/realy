@@ -114,10 +114,10 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		// log.T.ToSliceOfBytes("date key: %x %0x %0x", k[0], k[1:9], k[9:])
 		keyz = append(keyz, k)
 	}
-	{ // Counter index - for storing last access time of events.
-		k := GetCounterKey(ser)
-		keyz = append(keyz, k)
-	}
+	// { // Counter index - for storing last access time of events.
+	// 	k := GetCounterKey(ser)
+	// 	keyz = append(keyz, k)
+	// }
 	{ // - full Id index - enabling retrieving the event Id without unmarshalling the data
 		k := prefixes.FullIndex.Key(ser, FID, FPK, CA)
 		// log.T.ToSliceOfBytes("full id: %x %0x %0x", k[0], k[1:9], k[9:])

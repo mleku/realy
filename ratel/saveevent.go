@@ -9,14 +9,12 @@ import (
 	"realy.lol/event"
 	"realy.lol/eventid"
 	"realy.lol/ratel/keys"
-	"realy.lol/ratel/keys/createdat"
 	"realy.lol/ratel/keys/id"
 	"realy.lol/ratel/keys/index"
 	"realy.lol/ratel/keys/serial"
 	"realy.lol/ratel/prefixes"
 	"realy.lol/sha256"
 	eventstore "realy.lol/store"
-	"realy.lol/timestamp"
 )
 
 func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
@@ -82,11 +80,11 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 					return
 				}
 				// bump counter key
-				counterKey := GetCounterKey(seri)
-				val := keys.Write(createdat.New(timestamp.Now()))
-				if err = txn.Set(counterKey, val); chk.E(err) {
-					return
-				}
+				// counterKey := GetCounterKey(seri)
+				// val := keys.Write(createdat.New(timestamp.Now()))
+				// if err = txn.Set(counterKey, val); chk.E(err) {
+				// 	return
+				// }
 				return
 			}
 			return
@@ -114,9 +112,9 @@ func (r *T) SaveEvent(c context.T, ev *event.T) (err error) {
 		// log.I.S(indexKeys)
 		for _, k := range indexKeys {
 			var val []byte
-			if k[0] == prefixes.Counter.B() {
-				val = keys.Write(createdat.New(timestamp.Now()))
-			}
+			// if k[0] == prefixes.Counter.B() {
+			// 	val = keys.Write(createdat.New(timestamp.Now()))
+			// }
 			if err = txn.Set(k, val); chk.E(err) {
 				return
 			}

@@ -76,6 +76,9 @@ func (k *T) Equal(k2 *T) bool {
 }
 
 func (k *T) OneOf(k2 ...*T) bool {
+	if k == nil {
+		return false
+	}
 	for _, v := range k2 {
 		if k.Equal(v) {
 			return true
@@ -94,6 +97,9 @@ var Privileged = []*T{
 // IsPrivileged returns true if the type is the kind of message nobody else than the pubkeys in
 // the event and p tags of the event are party to.
 func (k *T) IsPrivileged() (is bool) {
+	if k == nil {
+		return false
+	}
 	for i := range Privileged {
 		if k.Equal(Privileged[i]) {
 			return true
@@ -115,7 +121,7 @@ func (k *T) Unmarshal(b []byte) (r []byte, err error) {
 	return
 }
 
-// GetString returns a human readable identifier for a kind.T.
+// GetString returns a human-readable identifier for a kind.T.
 func GetString(t *T) string {
 	if t == nil {
 		return ""
